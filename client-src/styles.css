@@ -1638,6 +1638,13 @@
   pointer-events: none;
 }
 .mc-home-card-title { margin: 7px 0 0; font-size: 13.5px; line-height: 1.5; font-weight: 550; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* 右键重命名：标题就地换成输入框，保存后写回的仍是资料库里同一条记录。 */
+.mc-home-card-rename { margin-top: 7px; }
+.mc-home-card-rename-input { display: block; box-sizing: border-box; width: 100%; height: 30px; padding: 3px 8px; border: .5px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 46%, var(--mc-line)); border-radius: 8px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); font: inherit; font-size: 13.5px; font-weight: 550; line-height: 1.5; outline: none; }
+.mc-home-card-rename-input:focus { border-color: var(--dsw-alias-brand-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-brand-primary) 16%, transparent); }
+.mc-home-card-rename-hint { margin: 5px 0 0; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; line-height: 1.4; }
+.mc-home-card.is-renaming { cursor: default; }
+.mc-home-card.is-renaming .mc-home-card-actions { opacity: 0; pointer-events: none; }
 .mc-home-card-snippet { margin: 5px 0 0; color: var(--dsw-alias-label-secondary); font-size: 11.5px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mc-home-card-foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; min-width: 0; }
 .mc-home-card-foot > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -2434,6 +2441,8 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-home-tone-meeting::before { background: #7f6ad8; }
 .mc-home-card.is-text .mc-home-card-body { padding: 16px 18px 15px; }
 .mc-home-card.is-text .mc-home-card-title { font-size: 15px; line-height: 1.55; margin-top: 10px; }
+.mc-home-card.is-text .mc-home-card-rename { margin-top: 10px; }
+.mc-home-card.is-text .mc-home-card-rename-input { font-size: 15px; }
 .mc-home-card.is-text .mc-home-card-snippet { font-size: 12.5px; line-height: 1.65; -webkit-line-clamp: 3; }
 .mc-home-card.is-text .mc-home-card-foot { margin-top: 14px; }
 .mc-scatter-card .mc-home-card.is-text { height: 100%; }

@@ -1,4 +1,4 @@
-import { addPackMembers, boardImageUrl, boardImages, createPack, createStickyNote, deleteBoardImage, deletePack, deleteStickyNote, fileUrl, homeFeed, listCards, openExternal, pickFile, removePackMembers, renamePack, reorderPackMembers, stickyNotes, syncCards, updateStickyNote, uploadBoardImage } from '../../lib/api.js'
+import { addPackMembers, boardImageUrl, boardImages, createPack, createStickyNote, deleteBoardImage, deletePack, deleteStickyNote, fileUrl, homeFeed, listCards, openExternal, pickFile, removePackMembers, renamePack, renameSession, reorderPackMembers, stickyNotes, syncCards, updateStickyNote, uploadBoardImage } from '../../lib/api.js'
 import { clock, dateTime, kindInfo, statusText } from '../../lib/format.js'
 import { NoteEditor } from './NoteEditor.jsx'
 import { PinMark, ScatterCanvas } from './ScatterCanvas.jsx'
@@ -121,7 +121,8 @@ function Cover({ item, sources, onBroken }) {
   )
 }
 
-function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
+function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu,
+  renaming = false, renameDraft = '', onRenameChange, onRenameCommit, onRenameCancel }) {
   const partialStatus = item.status === 'error'
     && (item.asr_status === 'partial' || Number(item.missing_chunks) > 0)
   const active = isActiveTask(item)
@@ -130,12 +131,14 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
   const sources = coverSources(item)
   const hasCover = sources.length > 0 && !imageFailed
   return (
-    <article className={`mc-home-card${hasCover ? '' : ' is-text'}${active ? ' is-active' : ''}`}
-      data-kind={info.tone} data-active={active ? 'true' : undefined} tabIndex={0} role="button"
+    <article className={`mc-home-card${hasCover ? '' : ' is-text'}${active ? ' is-active' : ''}${renaming ? ' is-renaming' : ''}`}
+      data-kind={info.tone} data-active={active ? 'true' : undefined}
+      tabIndex={renaming ? -1 : 0} role={renaming ? undefined : 'button'}
       aria-label={`${active ? '进行中，' : ''}${info.label}：${item.title}`}
-      onClick={() => onOpen(item)}
+      onClick={() => { if (!renaming) onOpen(item) }}
       onContextMenu={(event) => onMenu?.(item, event)}
       onKeyDown={(event) => {
+        if (renaming) return
         if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onOpen(item) }
       }}>
       {hasCover ? <Cover item={item} sources={sources} onBroken={() => setImageFailed(true)} /> : null}
@@ -150,8 +153,32 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
             </span>
           )}
         </div>
-        <h3 className="mc-home-card-title">{item.title}</h3>
-        {item.snippet ? <p className="mc-home-card-snippet">{item.snippet}</p> : null}
+        {renaming ? (
+          <div className="mc-home-card-rename" onClick={(event) => event.stopPropagation()}>
+            <input className="mc-home-card-rename-input" autoFocus
+              aria-label="记录标题" title="回车保存 · Esc 取消"
+              value={renameDraft}
+              onFocus={(event) => { try { event.currentTarget.select() } catch {} }}
+              onChange={(event) => onRenameChange?.(event.target.value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+                // 中文输入法回车是上屏，不能当成保存。
+                if (event.key === 'Enter' && (event.isComposing || event.nativeEvent?.isComposing || event.keyCode === 229)) return
+                if (event.key === 'Enter') { event.preventDefault(); onRenameCommit?.() }
+                else if (event.key === 'Escape') { event.preventDefault(); onRenameCancel?.() }
+              }}
+              onBlur={() => onRenameCommit?.()} />
+            <p className="mc-home-card-rename-hint">回车保存 · Esc 取消</p>
+          </div>
+        ) : (
+          <>
+            <h3 className="mc-home-card-title">{item.title}</h3>
+            {item.snippet ? <p className="mc-home-card-snippet">{item.snippet}</p> : null}
+          </>
+        )}
         <div className="mc-home-card-foot">
           <span>{item.platform && item.platform !== 'bilibili' ? item.platform : info.label}</span>
           <span>{dateTime(item.started_at || item.created_at)}</span>
@@ -536,6 +563,10 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const pasteSeqRef = React.useRef(0)
   const pasteHandlersRef = React.useRef(null)
   const [confirm, setConfirm] = React.useState(null)
+  // 首页卡片改名：同一张会话卡在墙面就地编辑，保存时写回资料库里同一条记录的标题。
+  const [renamingCardId, setRenamingCardId] = React.useState('')
+  const [cardRenameDraft, setCardRenameDraft] = React.useState('')
+  const cardRenameTargetRef = React.useRef('')
   const [noteEditor, setNoteEditor] = React.useState(null)
   const focusHandledRef = React.useRef(0)
   const packFocusHandledRef = React.useRef(0)
@@ -1380,6 +1411,45 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     }
   }
 
+  function startCardRename(item) {
+    if (!item?.id) return
+    cardRenameTargetRef.current = String(item.id)
+    setRenamingCardId(String(item.id))
+    setCardRenameDraft(item.title || '')
+  }
+
+  function cancelCardRename() {
+    cardRenameTargetRef.current = ''
+    setRenamingCardId('')
+    setCardRenameDraft('')
+  }
+
+  async function commitCardRename(item) {
+    if (!item?.id || cardRenameTargetRef.current !== String(item.id)) return
+    const next = cardRenameDraft.trim()
+    // 先清掉编辑态：回车提交后输入框失焦会再触发一次 onBlur，这里必须幂等。
+    cardRenameTargetRef.current = ''
+    setRenamingCardId('')
+    setCardRenameDraft('')
+    if (!next || next === item.title) return
+    const previous = item.title || ''
+    setItems((current) => current.map((row) => (
+      String(row.id) === String(item.id) ? { ...row, title: next } : row
+    )))
+    try {
+      await renameSession(item.id, next)
+      onToast?.(`已重命名为「${next}」`)
+      // 首页卡片和资料库是同一条记录：同步一份 @ 卡片文件，让 @ 菜单立刻显示新标题。
+      syncCards().catch(() => {})
+      load(false)
+    } catch (failure) {
+      setItems((current) => current.map((row) => (
+        String(row.id) === String(item.id) ? { ...row, title: previous } : row
+      )))
+      onToast?.(failure?.message || '重命名失败')
+    }
+  }
+
   function cardMenu(item, event) {
     const pinKey = `session-${item.id}`
     openMenu(event, [
@@ -1387,6 +1457,7 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
       { separator: true },
       pinAction(pinKey), { separator: true },
       { id: 'open', label: '打开记录', onSelect: () => onOpenRecord(item) },
+      { id: 'rename', label: '重命名', onSelect: () => startCardRename(item) },
       ...(item.source_url ? [{ id: 'copy', label: '复制链接', onSelect: () => copyLink(item.source_url) }] : []),
       ...(isActiveTask(item) ? [] : [{ id: 'delete', label: '删除记录', onSelect: () => askDelete(item) }]),
       { separator: true },
@@ -1446,7 +1517,12 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
       onOpen={packMode ? () => openMember?.(entry) : onOpenRecord}
       onCopyLink={packMode ? undefined : copyLink}
       onDelete={packMode ? undefined : askDelete}
-      onMenu={packMode ? undefined : cardMenu} />
+      onMenu={packMode ? undefined : cardMenu}
+      renaming={!packMode && renamingCardId === String(entry.item.id)}
+      renameDraft={cardRenameDraft}
+      onRenameChange={setCardRenameDraft}
+      onRenameCommit={() => commitCardRename(entry.item)}
+      onRenameCancel={cancelCardRename} />
   }
 
   return (

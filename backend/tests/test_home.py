@@ -107,6 +107,29 @@ class HomeFeedTests(unittest.TestCase):
         self.assertEqual(payload["highlights"][0]["note"], "这句很重要")
         self.assertEqual(payload["highlights"][0]["session_title"], "带标记的直播")
 
+    def test_rename_updates_home_title_and_at_card(self):
+        """首页卡片与资料库是同一条记录：改名后首页标题、详情标题和 @ 卡片文件一起换。"""
+        sid = self.session("旧标题", cover=False)
+        self.assertTrue(self.cards.sync_cards(force=True)["ok"])
+        card_dir = Path(self.data.name) / "会摘卡片"
+        self.assertTrue((card_dir / "旧标题.md").is_file())
+
+        empty = self.client.patch(f"/api/sessions/{sid}", json={"title": "   "})
+        self.assertEqual(empty.status_code, 400)
+        renamed = self.client.patch(f"/api/sessions/{sid}", json={"title": "新标题"})
+        self.assertEqual(renamed.status_code, 200, renamed.text)
+        self.assertEqual(renamed.json()["title"], "新标题")
+
+        payload = self.client.get("/api/home?limit=10").json()
+        item = next(row for row in payload["items"] if row["id"] == sid)
+        self.assertEqual(item["title"], "新标题")
+        self.assertEqual(self.client.get(f"/api/sessions/{sid}").json()["title"], "新标题")
+
+        synced = self.cards.sync_cards(force=False)
+        self.assertTrue(synced["ok"], synced)
+        self.assertFalse((card_dir / "旧标题.md").exists())
+        self.assertTrue((card_dir / "新标题.md").is_file())
+
     def test_pagination_and_limit_validation(self):
         for index in range(3):
             self.session(f"记录 {index}", cover=False)

@@ -197,6 +197,7 @@ globalThis.EventSource = class {
   close() { this.closed = true }
 }
 const deleteCalls = []
+const renameCalls = []
 const interactionCalls = []
 const linkBatchBodies = []
 const meetingImportBodies = []
@@ -405,6 +406,18 @@ globalThis.fetch = async (url, options = {}) => {
   if (target.includes('/speakers/plan')) return json({ speakers: [], has_numbers: false, total: 0, can_undo: false })
   if (target.includes('/api/models/catalog')) return json({ models: ['demo-asr', 'demo-flash', 'gpt-4o', 'text-embedding-3-small'], count: 4, has_key: true, error: '' })
   if (target.includes('/api/ai/status')) return json({ provider: 'mimo', provider_name: '默认网关（OpenAI 兼容）', base_url: 'https://gateway.example.test/v1', model: 'demo-text', has_key: false, key_masked: '', credential_error: '', json_mode: true, providers: [], minutes_auto: 'final', minutes_interval: 120, notes_language: '简体中文', minutes_language: '简体中文', auto_end_silence: 'prompt', auto_end_after: 600, languages: ['简体中文'] })
+  if (String(options.method || 'GET').toUpperCase() === 'PATCH' && /\/api\/sessions\/[^/]+$/.test(target)) {
+    let body = {}
+    try { body = JSON.parse(String(options.body || '{}')) } catch {}
+    const id = decodeURIComponent(target.split('/').pop())
+    renameCalls.push({ id, title: body.title })
+    const item = homePayload.items.find((row) => row.id === id)
+    if (item) item.title = body.title
+    const session = sessions.find((row) => row.id === id)
+    if (session) session.title = body.title
+    if (detail.id === id) detail.title = body.title
+    return json({ ok: true, title: body.title })
+  }
   if (target.includes('/api/sessions/s1')) return json(detail)
   if (target.includes('/api/sessions/s2')) return json({ ...detail, id: 's2', title: '产品会议', kind: 'meeting', status: 'processing' })
   if (target.includes('/api/sessions')) return json(sessions)
@@ -764,6 +777,49 @@ try {
   await act(async () => { unpinButton.props.onClick() })
   await flush(80)
   if (renderer.root.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('is-pinned')).length) throw new Error('Unpin did not release card')
+
+  // ---- 右键卡片「重命名」：就地编辑，写回同一条记录（PATCH /api/sessions/<id>） ----
+  const renameCard = () => renderer.root.findAll((node) => typeof node.props?.className === 'string'
+    && node.props.className.includes('mc-home-card') && node.props?.onContextMenu
+    && String(node.props['aria-label'] || '').startsWith('直播：'))[0]
+  const openMenuOn = async (node) => {
+    await act(async () => { node.props.onContextMenu(fakeEvent()) })
+    await flush(50)
+  }
+  const clickMenuItem = async (label) => {
+    const button = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === label)
+    if (!button) throw new Error('Home card menu missing ' + label)
+    await act(async () => { button.props.onClick() })
+    await flush(60)
+    return button
+  }
+  const renameInput = () => renderer.root.findAllByType('input')
+    .find((node) => node.props['aria-label'] === '记录标题')
+  const renameTo = async (title) => {
+    const input = renameInput()
+    if (!input) throw new Error('Inline rename input missing')
+    await act(async () => { input.props.onChange({ target: { value: title } }) })
+    await act(async () => {
+      input.props.onKeyDown({ key: 'Enter', preventDefault() {}, stopPropagation() {} })
+    })
+    await flush(160)
+  }
+  await openMenuOn(renameCard())
+  await clickMenuItem('重命名')
+  if (!renameInput()) throw new Error('Rename action did not open the inline title input')
+  if (renameInput().props.value !== '发布会回放') throw new Error('Rename input did not start from the record title')
+  await renameTo('重命名后的回放')
+  if (!renameCalls.some((call) => call.id === 's1' && call.title === '重命名后的回放')) {
+    throw new Error('Rename did not patch the same record id: ' + JSON.stringify(renameCalls))
+  }
+  if (!textOf(renameCard().props.children).includes('重命名后的回放')) throw new Error('Home card title did not update after rename')
+  // 改回原名，后面的资料库断言仍按原数据走。
+  await openMenuOn(renameCard())
+  await clickMenuItem('重命名')
+  await renameTo('发布会回放')
+  if (!renameCalls.some((call) => call.id === 's1' && call.title === '发布会回放')) throw new Error('Rename back did not reach API mock')
+  if (!textOf(renameCard().props.children).includes('发布会回放')) throw new Error('Home card title did not restore after rename')
+
   const closeMenuButton = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '×' && node.props.className?.includes?.('mc-icon-button'))
   if (closeMenuButton) await act(async () => { closeMenuButton.props.onClick() })
   const scatterTab = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '散落')

@@ -3385,6 +3385,13 @@ var styles_default = `.mc-root {
   pointer-events: none;
 }
 .mc-home-card-title { margin: 7px 0 0; font-size: 13.5px; line-height: 1.5; font-weight: 550; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* \u53F3\u952E\u91CD\u547D\u540D\uFF1A\u6807\u9898\u5C31\u5730\u6362\u6210\u8F93\u5165\u6846\uFF0C\u4FDD\u5B58\u540E\u5199\u56DE\u7684\u4ECD\u662F\u8D44\u6599\u5E93\u91CC\u540C\u4E00\u6761\u8BB0\u5F55\u3002 */
+.mc-home-card-rename { margin-top: 7px; }
+.mc-home-card-rename-input { display: block; box-sizing: border-box; width: 100%; height: 30px; padding: 3px 8px; border: .5px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 46%, var(--mc-line)); border-radius: 8px; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); font: inherit; font-size: 13.5px; font-weight: 550; line-height: 1.5; outline: none; }
+.mc-home-card-rename-input:focus { border-color: var(--dsw-alias-brand-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dsw-alias-brand-primary) 16%, transparent); }
+.mc-home-card-rename-hint { margin: 5px 0 0; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; line-height: 1.4; }
+.mc-home-card.is-renaming { cursor: default; }
+.mc-home-card.is-renaming .mc-home-card-actions { opacity: 0; pointer-events: none; }
 .mc-home-card-snippet { margin: 5px 0 0; color: var(--dsw-alias-label-secondary); font-size: 11.5px; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mc-home-card-foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; min-width: 0; }
 .mc-home-card-foot > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4181,6 +4188,8 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-home-tone-meeting::before { background: #7f6ad8; }
 .mc-home-card.is-text .mc-home-card-body { padding: 16px 18px 15px; }
 .mc-home-card.is-text .mc-home-card-title { font-size: 15px; line-height: 1.55; margin-top: 10px; }
+.mc-home-card.is-text .mc-home-card-rename { margin-top: 10px; }
+.mc-home-card.is-text .mc-home-card-rename-input { font-size: 15px; }
 .mc-home-card.is-text .mc-home-card-snippet { font-size: 12.5px; line-height: 1.65; -webkit-line-clamp: 3; }
 .mc-home-card.is-text .mc-home-card-foot { margin-top: 14px; }
 .mc-scatter-card .mc-home-card.is-text { height: 100%; }
@@ -50060,7 +50069,19 @@ function Cover({ item, sources, onBroken }) {
     }
   ), item.status === "recording" ? /* @__PURE__ */ React.createElement("span", { className: "mc-home-live" }, /* @__PURE__ */ React.createElement("i", null), "\u5F55\u5236\u4E2D") : null, item.duration ? /* @__PURE__ */ React.createElement("span", { className: "mc-home-duration" }, clock(item.duration)) : null);
 }
-function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
+function SessionCard({
+  item,
+  t,
+  onOpen,
+  onCopyLink,
+  onDelete,
+  onMenu,
+  renaming = false,
+  renameDraft = "",
+  onRenameChange,
+  onRenameCommit,
+  onRenameCancel
+}) {
   const partialStatus = item.status === "error" && (item.asr_status === "partial" || Number(item.missing_chunks) > 0);
   const active2 = isActiveTask(item);
   const info = kindInfo(item.kind);
@@ -50070,15 +50091,18 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
   return /* @__PURE__ */ React.createElement(
     "article",
     {
-      className: `mc-home-card${hasCover ? "" : " is-text"}${active2 ? " is-active" : ""}`,
+      className: `mc-home-card${hasCover ? "" : " is-text"}${active2 ? " is-active" : ""}${renaming ? " is-renaming" : ""}`,
       "data-kind": info.tone,
       "data-active": active2 ? "true" : void 0,
-      tabIndex: 0,
-      role: "button",
+      tabIndex: renaming ? -1 : 0,
+      role: renaming ? void 0 : "button",
       "aria-label": `${active2 ? "\u8FDB\u884C\u4E2D\uFF0C" : ""}${info.label}\uFF1A${item.title}`,
-      onClick: () => onOpen(item),
+      onClick: () => {
+        if (!renaming) onOpen(item);
+      },
       onContextMenu: (event) => onMenu?.(item, event),
       onKeyDown: (event) => {
+        if (renaming) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpen(item);
@@ -50086,7 +50110,38 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
       }
     },
     hasCover ? /* @__PURE__ */ React.createElement(Cover, { item, sources, onBroken: () => setImageFailed(true) }) : null,
-    /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: `mc-home-type-inline mc-home-tone-${info.tone}` }, info.label), active2 ? /* @__PURE__ */ React.createElement("span", { className: "mc-home-active-pill", "data-status": item.status }, /* @__PURE__ */ React.createElement("i", null), activeTaskLabel(item)) : /* @__PURE__ */ React.createElement("span", { className: "mc-home-status", "data-status": partialStatus ? "partial" : item.status }, /* @__PURE__ */ React.createElement("i", null), statusText(item.status, t, partialStatus))), /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, item.title), item.snippet ? /* @__PURE__ */ React.createElement("p", { className: "mc-home-card-snippet" }, item.snippet) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, item.platform && item.platform !== "bilibili" ? item.platform : info.label), /* @__PURE__ */ React.createElement("span", null, dateTime(item.started_at || item.created_at)), /* @__PURE__ */ React.createElement("span", { className: "mc-home-card-counts" }, !hasCover && item.duration ? `${clock(item.duration)} \xB7 ` : "", item.marks ? `${item.marks} \u6807\u8BB0` : "", item.screenshots ? ` \xB7 ${item.screenshots} \u622A\u56FE` : ""))),
+    /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: `mc-home-type-inline mc-home-tone-${info.tone}` }, info.label), active2 ? /* @__PURE__ */ React.createElement("span", { className: "mc-home-active-pill", "data-status": item.status }, /* @__PURE__ */ React.createElement("i", null), activeTaskLabel(item)) : /* @__PURE__ */ React.createElement("span", { className: "mc-home-status", "data-status": partialStatus ? "partial" : item.status }, /* @__PURE__ */ React.createElement("i", null), statusText(item.status, t, partialStatus))), renaming ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-rename", onClick: (event) => event.stopPropagation() }, /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        className: "mc-home-card-rename-input",
+        autoFocus: true,
+        "aria-label": "\u8BB0\u5F55\u6807\u9898",
+        title: "\u56DE\u8F66\u4FDD\u5B58 \xB7 Esc \u53D6\u6D88",
+        value: renameDraft,
+        onFocus: (event) => {
+          try {
+            event.currentTarget.select();
+          } catch {
+          }
+        },
+        onChange: (event) => onRenameChange?.(event.target.value),
+        onPointerDown: (event) => event.stopPropagation(),
+        onMouseDown: (event) => event.stopPropagation(),
+        onClick: (event) => event.stopPropagation(),
+        onKeyDown: (event) => {
+          event.stopPropagation();
+          if (event.key === "Enter" && (event.isComposing || event.nativeEvent?.isComposing || event.keyCode === 229)) return;
+          if (event.key === "Enter") {
+            event.preventDefault();
+            onRenameCommit?.();
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            onRenameCancel?.();
+          }
+        },
+        onBlur: () => onRenameCommit?.()
+      }
+    ), /* @__PURE__ */ React.createElement("p", { className: "mc-home-card-rename-hint" }, "\u56DE\u8F66\u4FDD\u5B58 \xB7 Esc \u53D6\u6D88")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, item.title), item.snippet ? /* @__PURE__ */ React.createElement("p", { className: "mc-home-card-snippet" }, item.snippet) : null), /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, item.platform && item.platform !== "bilibili" ? item.platform : info.label), /* @__PURE__ */ React.createElement("span", null, dateTime(item.started_at || item.created_at)), /* @__PURE__ */ React.createElement("span", { className: "mc-home-card-counts" }, !hasCover && item.duration ? `${clock(item.duration)} \xB7 ` : "", item.marks ? `${item.marks} \u6807\u8BB0` : "", item.screenshots ? ` \xB7 ${item.screenshots} \u622A\u56FE` : ""))),
     /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-actions" }, onDelete && !active2 ? /* @__PURE__ */ React.createElement(
       "button",
       {
@@ -50443,6 +50498,9 @@ function HomePage({
   const pasteSeqRef = React.useRef(0);
   const pasteHandlersRef = React.useRef(null);
   const [confirm, setConfirm] = React.useState(null);
+  const [renamingCardId, setRenamingCardId] = React.useState("");
+  const [cardRenameDraft, setCardRenameDraft] = React.useState("");
+  const cardRenameTargetRef = React.useRef("");
   const [noteEditor, setNoteEditor] = React.useState(null);
   const focusHandledRef = React.useRef(0);
   const packFocusHandledRef = React.useRef(0);
@@ -51233,6 +51291,37 @@ function HomePage({
       }
     }
   }
+  function startCardRename(item) {
+    if (!item?.id) return;
+    cardRenameTargetRef.current = String(item.id);
+    setRenamingCardId(String(item.id));
+    setCardRenameDraft(item.title || "");
+  }
+  function cancelCardRename() {
+    cardRenameTargetRef.current = "";
+    setRenamingCardId("");
+    setCardRenameDraft("");
+  }
+  async function commitCardRename(item) {
+    if (!item?.id || cardRenameTargetRef.current !== String(item.id)) return;
+    const next = cardRenameDraft.trim();
+    cardRenameTargetRef.current = "";
+    setRenamingCardId("");
+    setCardRenameDraft("");
+    if (!next || next === item.title) return;
+    const previous = item.title || "";
+    setItems((current) => current.map((row) => String(row.id) === String(item.id) ? { ...row, title: next } : row));
+    try {
+      await renameSession(item.id, next);
+      onToast?.(`\u5DF2\u91CD\u547D\u540D\u4E3A\u300C${next}\u300D`);
+      syncCards().catch(() => {
+      });
+      load(false);
+    } catch (failure) {
+      setItems((current) => current.map((row) => String(row.id) === String(item.id) ? { ...row, title: previous } : row));
+      onToast?.(failure?.message || "\u91CD\u547D\u540D\u5931\u8D25");
+    }
+  }
   function cardMenu(item, event) {
     const pinKey = `session-${item.id}`;
     openMenu(event, [
@@ -51241,6 +51330,7 @@ function HomePage({
       pinAction(pinKey),
       { separator: true },
       { id: "open", label: "\u6253\u5F00\u8BB0\u5F55", onSelect: () => onOpenRecord(item) },
+      { id: "rename", label: "\u91CD\u547D\u540D", onSelect: () => startCardRename(item) },
       ...item.source_url ? [{ id: "copy", label: "\u590D\u5236\u94FE\u63A5", onSelect: () => copyLink(item.source_url) }] : [],
       ...isActiveTask(item) ? [] : [{ id: "delete", label: "\u5220\u9664\u8BB0\u5F55", onSelect: () => askDelete(item) }],
       { separator: true },
@@ -51348,7 +51438,12 @@ function HomePage({
         onOpen: packMode ? () => openMember?.(entry) : onOpenRecord,
         onCopyLink: packMode ? void 0 : copyLink,
         onDelete: packMode ? void 0 : askDelete,
-        onMenu: packMode ? void 0 : cardMenu
+        onMenu: packMode ? void 0 : cardMenu,
+        renaming: !packMode && renamingCardId === String(entry.item.id),
+        renameDraft: cardRenameDraft,
+        onRenameChange: setCardRenameDraft,
+        onRenameCommit: () => commitCardRename(entry.item),
+        onRenameCancel: cancelCardRename
       }
     );
   };
