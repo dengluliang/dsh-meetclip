@@ -132,7 +132,7 @@
 
 - 散落画布空白右键新增「新建卡包」；拖一张卡到另一张卡中央，160ms 上膛后松手叠成新卡包，默认名 `卡包 N`。上膛前松手仍是普通重排，Esc/pointercancel 取消。
 - 卡包是画布上的一张顶层卡（272×208），成员从墙面收起，卡包继续参与现有 `buildLayout` 避让；外壳叠放真实成员卡。热区只保留无边框的灰色呼吸光晕 + “停一下/松手”胶囊提示，不随画布缩放；黑色虚线/实线已删除。
-- 卡包浮层用墙面原卡片按信息流三列平铺，按住任意卡片即可整卡拖动排序，目标卡中央显示「插入到这里」后按槽位回写 `PATCH /api/packs/{id}/members`；支持打开成员、移出、改名、解散；合并/加入/新建后 5 秒撤销。图钉卡和进行中的记录不能收纳；一张卡只属于一个卡包，最多 60 张。
+- 卡包浮层用墙面原卡片按信息流三列平铺，按住任意卡片即可整卡拖动排序，指针上半/下半分别在上/下卡片间隙显示「插入到这里」，松手插到两张卡之间并回写 `PATCH /api/packs/{id}/members`；支持打开成员、移出、改名、解散；合并/加入/新建后 5 秒撤销。图钉卡和进行中的记录不能收纳；一张卡只属于一个卡包，最多 60 张。
 - 新增 `card_packs` / `card_pack_members` 表、`backend/app/packs.py`、`routes/packs.py` 与 `/api/packs`；`/api/home` 增加 hydrate 后的 `packs`。成员删除后读取自动跳过；位置仍用本机 `meetclip.scatter.layout.v2`。
 - 散落与信息流都折叠卡包；筛选下任一成员匹配就显示整包，空卡包始终可见。
 
@@ -144,8 +144,8 @@
 
 ### 自动化验证
 
-- 前端：`node --test tests/*.test.mjs` 242/242 通过（新增卡包候选、Agent structured draft、OpenDraft、卡包排序纯函数、卡包布局/样式断言）。
-- 整卡拖动：`build/scatter-preview` 内注入 pointerdown/pointermove/pointerup，验证按住卡片本体即可拖起、目标卡中央出现「插入到这里」、浮层与落点跟随、松手后行序交换并发出 `PATCH /api/packs/{pack}/members`；截图 `build/pack-reorder-preview.png`。
+- 前端：`node --test tests/*.test.mjs` 241/241 通过（新增卡包候选、Agent structured draft、OpenDraft、卡包排序纯函数、卡包布局/样式断言）。
+- 整卡拖动：`build/scatter-preview` 内注入 pointerdown/pointermove/pointerup，验证按住卡片本体即可拖起；指针在上半时插入线在目标卡上方、在下半时在下方，位置与真实卡片间隙一致，松手后按前/后插入并发出 `PATCH /api/packs/{pack}/members`；截图 `build/pack-reorder-preview.png`。
 - `build/build-client.mjs`、`node --check client.js`、`build/render-smoke.mjs` 通过；`build/interaction-smoke.mjs` 通过，覆盖空白右键建包、160ms 上膛（未满 160ms 仍重排）、拖卡入包、拖卡叠包、全卡片浮层与整卡拖动、右键「基于此卡片/卡包提问」、结构化 @ 草稿、筛选、浮层改名、撤销、解散。
 - 后端：`backend/tests/run-all.sh` 29 个测试文件全部 PASS；`test_packs.py` 7 项，`test_cards.py` 8 项（新增卡包/便利签/标记/图片/批次文件生成、`id` 精确取卡）。`test_home.py` 仍通过。
 - 视觉：`node build/build-scatter-preview.mjs` + 无头 Chrome 生成 `build/pack-preview.png`、`build/pack-hotzone-preview.png`、`build/pack-overlay-preview.png`，核对真实卡叠层、灰色光晕/提示与全卡片信息流；浅色/深色均检查。
@@ -164,7 +164,7 @@
 
 ### 卡片 @ 与提问同步
 
-- 同步文件：`client.js`（SHA-256 `b15d271a…`）、`index.js`（`397130c2…`，系统提示补充卡包/辅助卡片说明）、`backend/app/cards.py`（`c8291617…`，标题命名）、`backend/app/routes/cards.py`（`e474f372…`）；同步前整包快照 `~/.dsh/meetclip/backups/dsh-meetclip-pre-card-ask-20261110-154001.tgz`。
+- 同步文件：`client.js`（SHA-256 `ead0a479…`）、`index.js`（`397130c2…`，系统提示补充卡包/辅助卡片说明）、`backend/app/cards.py`（`c8291617…`，标题命名）、`backend/app/routes/cards.py`（`e474f372…`）；同步前整包快照 `~/.dsh/meetclip/backups/dsh-meetclip-pre-card-ask-20261110-154001.tgz`。
 - 后端正 pid `91219`（本次只改前端，未重启）；`POST /api/cards/sync` 返回 `aux.ok=true`，真实库把卡包卡片改为 `会摘卡片/卡包/miloco 3.0相关讨论.md`，旧哈希文件被清理；`/api/cards?id=pack%3A81a26c275e57` 返回新路径。`/api/health` 正常。
 
 ### 限制

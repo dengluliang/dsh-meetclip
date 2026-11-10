@@ -1,5 +1,5 @@
 import { clock, dateTime, kindInfo, statusText } from '../../lib/format.js'
-import { movePackMemberToSlot, packMemberKey } from './pack-model.js'
+import { movePackMember, packMemberKey } from './pack-model.js'
 
 function memberLabel(member) {
   if (!member) return ''
@@ -202,19 +202,23 @@ export function PackOverlay({
       }
       const card = row.querySelector('.mc-pack-row-card') || row
       const box = card.getBoundingClientRect()
+      const after = event.clientY > box.top + box.height / 2
       const drop = {
         key: targetKey,
         index,
-        rect: { left: box.left, top: box.top, width: box.width, height: box.height }
+        after,
+        left: box.left,
+        top: after ? box.bottom + 7 : box.top - 7,
+        width: box.width
       }
       current.drop = drop
       setDropTarget((previous) => {
         if (previous
           && previous.key === drop.key
-          && previous.rect.left === drop.rect.left
-          && previous.rect.top === drop.rect.top
-          && previous.rect.width === drop.rect.width
-          && previous.rect.height === drop.rect.height) return previous
+          && previous.after === drop.after
+          && previous.left === drop.left
+          && previous.top === drop.top
+          && previous.width === drop.width) return previous
         return drop
       })
     }
@@ -255,7 +259,7 @@ export function PackOverlay({
     setTimeout(() => suppressClickRef.current.delete(current.key), 0)
 
     if (!current.drop) return
-    const next = movePackMemberToSlot(orderRef.current, current.key, current.drop.index)
+    const next = movePackMember(orderRef.current, current.key, current.drop.index, current.drop.after)
     if (next === orderRef.current) return
     orderRef.current = next
     setOrder(next)
@@ -435,15 +439,10 @@ export function PackOverlay({
           <button type="button" className="mc-button" data-variant="primary" onClick={onClose}>关闭</button>
         </div>
       </div>
-      {dropTarget?.rect ? (
+      {dropTarget ? (
         <div
           className="mc-pack-drop-marker"
-          style={{
-            left: dropTarget.rect.left,
-            top: dropTarget.rect.top,
-            width: dropTarget.rect.width,
-            height: dropTarget.rect.height
-          }}
+          style={{ left: dropTarget.left, top: dropTarget.top, width: dropTarget.width }}
           aria-hidden="true">
           <span className="mc-pack-drop-line" />
           <span className="mc-pack-drop-pill">插入到这里</span>

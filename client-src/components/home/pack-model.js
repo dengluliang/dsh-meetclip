@@ -140,19 +140,6 @@ export function hitTestPackTarget({ entries, positions, point, sourceKey, pins =
   return null
 }
 
-/** 把成员拖进目标卡槽位：先移除，再插到目标卡原来的索引（目标卡让位）。 */
-export function movePackMemberToSlot(members, key, targetIndex) {
-  const rows = Array.isArray(members) ? members : []
-  const from = rows.findIndex((member) => packMemberKey(member) === key)
-  const index = Number(targetIndex)
-  if (from < 0 || !Number.isInteger(index) || index < 0 || index >= rows.length) return rows
-  if (index === from) return rows
-  const next = rows.slice()
-  const [moved] = next.splice(from, 1)
-  next.splice(index, 0, moved)
-  return next
-}
-
 /** 把某个成员移到目标成员的前/后；顺序未变时返回原数组，便于跳过无意义请求。 */
 export function movePackMember(members, key, targetIndex, after = false) {
   const rows = Array.isArray(members) ? members : []

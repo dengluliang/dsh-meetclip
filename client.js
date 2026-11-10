@@ -3769,34 +3769,38 @@ body.mc-pack-reordering .mc-pack-row-tools { opacity: 0 !important; }
 .mc-pack-drop-marker {
   position: fixed;
   z-index: 65;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22px;
+  height: 14px;
+  transform: translateY(-50%);
+  border-radius: 5px;
+  background: var(--dsw-alias-bg-layer-2);
+  box-shadow: 0 0 0 .5px color-mix(in srgb, var(--mc-line) 65%, transparent);
   pointer-events: none;
 }
 .mc-pack-drop-line {
   position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 50%;
-  width: 2px;
-  margin-left: -1px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 58%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-brand-primary) 6%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 72%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-brand-primary) 7%, transparent);
 }
 .mc-pack-drop-pill {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
   background: var(--dsw-alias-brand-primary);
   color: var(--dsw-alias-bg-layer-1);
   box-shadow: 0 10px 24px -12px rgb(0 0 0 / .45);
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1;
   white-space: nowrap;
   animation: mc-pack-drop-in .16s ease both;
@@ -3810,8 +3814,8 @@ body.mc-pack-reordering .mc-pack-row-tools { opacity: 0 !important; }
   opacity: .7;
 }
 @keyframes mc-pack-drop-in {
-  from { opacity: 0; transform: scale(.94); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.94); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 body.mc-pack-reordering { user-select: none; cursor: grabbing; }
 body.mc-pack-reordering * { cursor: grabbing !important; }
@@ -46725,15 +46729,18 @@ function hitTestPackTarget({ entries, positions, point, sourceKey, pins = {}, in
   }
   return null;
 }
-function movePackMemberToSlot(members, key, targetIndex) {
+function movePackMember(members, key, targetIndex, after = false) {
   const rows = Array.isArray(members) ? members : [];
   const from = rows.findIndex((member) => packMemberKey(member) === key);
   const index = Number(targetIndex);
   if (from < 0 || !Number.isInteger(index) || index < 0 || index >= rows.length) return rows;
-  if (index === from) return rows;
+  let to = index + (after ? 1 : 0);
+  if (from < to) to -= 1;
+  to = Math.max(0, Math.min(rows.length - 1, to));
+  if (to === from) return rows;
   const next = rows.slice();
   const [moved] = next.splice(from, 1);
-  next.splice(index, 0, moved);
+  next.splice(to, 0, moved);
   return next;
 }
 function fanPositions(center2, count) {
@@ -48194,14 +48201,18 @@ function PackOverlay({
       }
       const card = row.querySelector(".mc-pack-row-card") || row;
       const box = card.getBoundingClientRect();
+      const after = event.clientY > box.top + box.height / 2;
       const drop = {
         key: targetKey,
         index,
-        rect: { left: box.left, top: box.top, width: box.width, height: box.height }
+        after,
+        left: box.left,
+        top: after ? box.bottom + 7 : box.top - 7,
+        width: box.width
       };
       current.drop = drop;
       setDropTarget((previous) => {
-        if (previous && previous.key === drop.key && previous.rect.left === drop.rect.left && previous.rect.top === drop.rect.top && previous.rect.width === drop.rect.width && previous.rect.height === drop.rect.height) return previous;
+        if (previous && previous.key === drop.key && previous.after === drop.after && previous.left === drop.left && previous.top === drop.top && previous.width === drop.width) return previous;
         return drop;
       });
     }
@@ -48235,7 +48246,7 @@ function PackOverlay({
     suppressClickRef.current.set(current.key, true);
     setTimeout(() => suppressClickRef.current.delete(current.key), 0);
     if (!current.drop) return;
-    const next = movePackMemberToSlot(orderRef.current, current.key, current.drop.index);
+    const next = movePackMember(orderRef.current, current.key, current.drop.index, current.drop.after);
     if (next === orderRef.current) return;
     orderRef.current = next;
     setOrder(next);
@@ -48392,16 +48403,11 @@ function PackOverlay({
       onClick: (event) => runAfterTitleSave(event, () => onDissolve?.(pack))
     },
     count ? "\u89E3\u6563\u5361\u5305" : "\u5220\u9664\u5361\u5305"
-  ), /* @__PURE__ */ React.createElement("span", { className: "mc-pack-modal-hint" }, count ? "\u6309\u4F4F\u4EFB\u610F\u5361\u7247\u62D6\u52A8\u8C03\u6574\u987A\u5E8F\uFF1B\u89E3\u6563\u53EA\u628A\u5361\u7247\u653E\u56DE\u5899\u9762\uFF0C\u4E0D\u4F1A\u5220\u9664\u8BB0\u5F55" : ""), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: onClose }, "\u5173\u95ED"))), dropTarget?.rect ? /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ React.createElement("span", { className: "mc-pack-modal-hint" }, count ? "\u6309\u4F4F\u4EFB\u610F\u5361\u7247\u62D6\u52A8\u8C03\u6574\u987A\u5E8F\uFF1B\u89E3\u6563\u53EA\u628A\u5361\u7247\u653E\u56DE\u5899\u9762\uFF0C\u4E0D\u4F1A\u5220\u9664\u8BB0\u5F55" : ""), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: onClose }, "\u5173\u95ED"))), dropTarget ? /* @__PURE__ */ React.createElement(
     "div",
     {
       className: "mc-pack-drop-marker",
-      style: {
-        left: dropTarget.rect.left,
-        top: dropTarget.rect.top,
-        width: dropTarget.rect.width,
-        height: dropTarget.rect.height
-      },
+      style: { left: dropTarget.left, top: dropTarget.top, width: dropTarget.width },
       "aria-hidden": "true"
     },
     /* @__PURE__ */ React.createElement("span", { className: "mc-pack-drop-line" }),

@@ -2022,34 +2022,38 @@ body.mc-pack-reordering .mc-pack-row-tools { opacity: 0 !important; }
 .mc-pack-drop-marker {
   position: fixed;
   z-index: 65;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22px;
+  height: 14px;
+  transform: translateY(-50%);
+  border-radius: 5px;
+  background: var(--dsw-alias-bg-layer-2);
+  box-shadow: 0 0 0 .5px color-mix(in srgb, var(--mc-line) 65%, transparent);
   pointer-events: none;
 }
 .mc-pack-drop-line {
   position: absolute;
-  top: 10px;
-  bottom: 10px;
-  left: 50%;
-  width: 2px;
-  margin-left: -1px;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 58%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-brand-primary) 6%, transparent);
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 72%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-brand-primary) 7%, transparent);
 }
 .mc-pack-drop-pill {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 999px;
   background: var(--dsw-alias-brand-primary);
   color: var(--dsw-alias-bg-layer-1);
   box-shadow: 0 10px 24px -12px rgb(0 0 0 / .45);
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1;
   white-space: nowrap;
   animation: mc-pack-drop-in .16s ease both;
@@ -2063,8 +2067,8 @@ body.mc-pack-reordering .mc-pack-row-tools { opacity: 0 !important; }
   opacity: .7;
 }
 @keyframes mc-pack-drop-in {
-  from { opacity: 0; transform: scale(.94); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.94); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 body.mc-pack-reordering { user-select: none; cursor: grabbing; }
 body.mc-pack-reordering * { cursor: grabbing !important; }

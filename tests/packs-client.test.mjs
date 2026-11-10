@@ -13,8 +13,7 @@ import {
   packKey,
   packMatchesFilter,
   packMemberKey,
-  movePackMember,
-  movePackMemberToSlot
+  movePackMember
 } from '../client-src/components/home/pack-model.js'
 import { entryKey } from '../client-src/components/home/scatter-layout.js'
 
@@ -186,15 +185,3 @@ test('拖拽排序：前/后插入、边界与无变化', () => {
   assert.equal(movePackMember(rows, 'session-a', 99, false), rows)
 })
 
-test('整卡拖入目标槽位：从上方/下方插入，目标卡让位', () => {
-  const rows = [
-    { type: 'session', id: 'a' },
-    { type: 'note', id: 'b' },
-    { type: 'doc', id: 'doc:c' }
-  ]
-  assert.deepEqual(movePackMemberToSlot(rows, 'session-a', 1).map((row) => row.id), ['b', 'a', 'doc:c'])
-  assert.deepEqual(movePackMemberToSlot(rows, 'doc-doc:c', 0).map((row) => row.id), ['doc:c', 'a', 'b'])
-  assert.deepEqual(movePackMemberToSlot(rows, 'session-a', 2).map((row) => row.id), ['b', 'doc:c', 'a'])
-  assert.equal(movePackMemberToSlot(rows, 'session-a', 0), rows)
-  assert.equal(movePackMemberToSlot(rows, 'missing', 1), rows)
-})
