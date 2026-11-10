@@ -7,6 +7,18 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.5 供应商前缀与引导验证：填了 Key 就能用
+
+发布日期：2026-11-10。
+
+- **现象**：从 Release 新装，引导里填好网关地址与 API Key、模型也选好了，点「下一步」仍报错：语音是「云端语音凭证无效或无模型权限」，文字是上游原文 `{"error":{"message":"该模型未指定供应商","code":"401","type":"invalid_key"}}`；设置页两个「测试连接」同样不通，但 key 本身有权限。
+- **根因**：这类网关要求调用时写 `供应商/模型名`（如 `xiaomi/mimo-v2.5-asr`），而它自己的 `/models` 只返回裸 id（`mimo-v2.5-asr`、`mimo-v2.6-flash`）。0.9.2 去敏时删掉了硬编码前缀，语音侧又把 `config["model"]` 原样发出，于是引导存下的裸 id 全被拒；文字侧的前缀只能靠 `MEETCLIP_AI_MODEL_PREFIX`，默认空，等于同样不通。
+- **修复：按目录里的 `owned_by` 补全模型名**。Host 探针、后端 `/api/models/catalog` 与 `/api/ai/models` 现在都输出 `供应商/模型名`；`owned_by` 为空时保持原样，已带 `/` 的不重复拼接，同一个 id 由多个供应商提供时分别保留（如 `deepseek/` 与 `volcengine_maas/` 下的 `deepseek-v4-flash`）。语音与文字共用一套规则：设置里存什么就发什么，裸名再用 `MEETCLIP_ASR_MODEL_PREFIX` / `MEETCLIP_AI_MODEL_PREFIX` 兜底。
+- **引导：先验证再保存**。第 1 步拉完清单不再「界面显示第一项、状态仍为空」，而是落到具体模型（文字优先取与语音同供应商的）；「下一步」时逐个发最小请求验证，候选按「当前选择 → 同供应商 → 其余」排序，最多试 6 个，存下第一个真正能通的名字。两类都试不出来时，完成页与首页进度卡会带上网关原话。
+- **错误不再被吞**：语音 401/403 现在附带上游 `error.message`，并抹掉可能被回显的 `sk-…`；提示里含「供应商 / provider / vendor」时追加「模型名要带供应商前缀」的处置建议。
+- **部署统一地址（仍不内置）**：meetclip config 新增 `aiBaseUrl`，Host 把它作为后端的 `MEETCLIP_AI_BASE_URL` / `MEETCLIP_ASR_BASE_URL` 兜底（只配前一个时语音也回退到它），并在首次引导与首页配置卡里预填。公共包默认仍为空，不改 0.9.2 的去敏结论。
+- **验证**：对真实网关（283 个模型）跑通 `fetch_entries`，`xiaomi/mimo-v2.5-asr` 与 `xiaomi/mimo-v2.6-flash` 均可用；用真实 Key 复核语音测试 200（0.28s）、文字测试 200（0.49s）。新增 7 项前端模型前缀/候选排序用例与 `tests/ai-config.test.mjs`（3 项），后端补 `test_model_catalog`（2 项）、`test_cloud_asr`（5 项）；前端 252/252、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
+
 ## 0.9.4 卡包「移出」HTTP 400 修复
 
 发布日期：2026-11-10。

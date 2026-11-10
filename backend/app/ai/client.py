@@ -246,7 +246,7 @@ def probe_models(timeout: float = 20.0) -> list[str]:
         if any(token in lowered for token in ("embed", "whisper", "tts", "transcribe", "dall-e",
                                                "image", "moderation", "realtime", "sora", "asr")):
             continue
-        ids.append(name)
+        ids.append(providers.qualify_model(name, str(item.get("owned_by") or "")))
     return ids
 
 

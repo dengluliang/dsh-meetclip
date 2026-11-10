@@ -79,6 +79,14 @@ class CloudTests(unittest.TestCase):
     def emit(self, kind, **payload):
         self.events.append(dict(kind=kind, **payload))
 
+    def test_default_config_falls_back_to_deployment_base_url(self):
+        """只配了 MEETCLIP_AI_BASE_URL 的 headless 部署，语音也要能拿到同一个网关。"""
+        settings.update(mimo_base_url="", mimo_model="")
+        with patch.dict(os.environ, {"MEETCLIP_AI_BASE_URL": "https://ai.example.test/v1"}, clear=False):
+            os.environ.pop("MEETCLIP_ASR_BASE_URL", None)
+            config = engines.default_config("mimo")
+        self.assertEqual(config["base_url"], "https://ai.example.test/v1")
+
     def test_wav_format_and_actual_size_splitting(self):
         data = engines.encode_wav(self.audio)
         with wave.open(io.BytesIO(data), "rb") as wav:
@@ -109,6 +117,54 @@ class CloudTests(unittest.TestCase):
             result = self.provider.recognize(self.audio)
         self.assertEqual(result.text, "一次性结果")
         self.assertFalse(result.metrics["requests"][0]["streamed"])
+
+    def provider_with(self, model):
+        config = dict(self.config)
+        config["model"] = model
+        return engines.CloudASRProvider(config)
+
+    def test_payload_qualifies_bare_model_with_vendor_prefix(self):
+        """网关要「供应商/模型名」而目录给裸 id：这里按环境变量兜底补全。"""
+        seen = []
+
+        def handler(request):
+            seen.append(json.loads(request.content))
+            return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=sse("好"))
+
+        with patch.dict(os.environ, {"MEETCLIP_ASR_MODEL_PREFIX": "xiaomi"}):
+            with self.transport(handler):
+                self.provider_with("mimo-v2.5-asr").recognize(self.audio)
+        self.assertEqual(seen[0]["model"], "xiaomi/mimo-v2.5-asr")
+
+    def test_payload_keeps_qualified_model_without_double_prefix(self):
+        seen = []
+
+        def handler(request):
+            seen.append(json.loads(request.content))
+            return httpx.Response(200, headers={"content-type": "text/event-stream"}, content=sse("好"))
+
+        with patch.dict(os.environ, {"MEETCLIP_ASR_MODEL_PREFIX": "xiaomi"}):
+            with self.transport(handler):
+                self.provider_with("xiaomi/mimo-v2.5-asr").recognize(self.audio)
+        self.assertEqual(seen[0]["model"], "xiaomi/mimo-v2.5-asr")
+
+    def test_gateway_reason_is_surfaced_with_prefix_hint(self):
+        with self.transport(lambda _: httpx.Response(401, json={"error": {
+                "message": "该模型未指定供应商", "type": "invalid_key"}})):
+            with self.assertRaises(engines.ProviderError) as caught:
+                self.provider.recognize(self.audio)
+        text = str(caught.exception)
+        self.assertIn("该模型未指定供应商", text)
+        self.assertIn("模型名要带供应商前缀", text)
+
+    def test_gateway_reason_redacts_keys(self):
+        with self.transport(lambda _: httpx.Response(401, json={"error": {
+                "message": "Incorrect API key provided: sk-abc123secret"}})):
+            with self.assertRaises(engines.ProviderError) as caught:
+                self.provider.recognize(self.audio)
+        text = str(caught.exception)
+        self.assertNotIn("sk-abc123secret", text)
+        self.assertIn("sk-***", text)
 
     def test_auth_failure_is_fatal_and_does_not_echo_remote_body(self):
         count = []

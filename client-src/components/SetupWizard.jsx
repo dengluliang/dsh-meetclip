@@ -1,14 +1,16 @@
 import {
   backendAction, deps, depsInstallStatus, ensureWorkspace, homeFeed, inspectDataDir, installDeps,
   meetingOptions, modelCatalog, pickFile, probeModels, saveAIConfig, saveAsrEngine, savePrefs,
-  setupStatus, startSetup, status as hostStatus, testAsrEngine
+  setupStatus, startSetup, status as hostStatus, testAIModel, testAsrEngine
 } from '../lib/api.js'
 import { useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
-import { modelOptions, splitModels } from '../lib/models.js'
+import { candidateOrder, modelOptions, splitModels, vendorOf } from '../lib/models.js'
 
 // 不预置网关地址与模型：首次配置时由用户填写自己的 OpenAI 兼容服务。
 const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
+// 每个模型类别最多试几个：同一个 Key 的权限通常按供应商划分，试到能通的就停。
+const MAX_CANDIDATES = 6
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -16,7 +18,7 @@ function sleep(ms) {
 
 export function SetupWizard({ status, onComplete }) {
   const [step, setStep] = React.useState(1)
-  const [baseUrl, setBaseUrl] = React.useState('')
+  const [baseUrl, setBaseUrl] = React.useState(() => String(status?.ai?.baseUrl || '').trim())
   const [apiKey, setApiKey] = React.useState('')
   const [showKey, setShowKey] = React.useState(false)
   const [probing, setProbing] = React.useState(false)
@@ -62,6 +64,18 @@ export function SetupWizard({ status, onComplete }) {
     const timer = setTimeout(() => { discover() }, 700)
     return () => clearTimeout(timer)
   }, [apiKey])
+
+  // 目录到手后把两个下拉落到具体模型：此前是「界面显示第一项、状态仍为空」，
+  // 保存时写进一个空模型名，用户以为选过了，实际没选中。
+  // 文字模型优先取与语音同一个供应商的（同一个 Key 的权限通常按供应商划分）。
+  React.useEffect(() => {
+    if (!catalog) return
+    const asrDefault = catalog.asr?.[0] || ''
+    const vendor = vendorOf(asrDefault)
+    const textDefault = (vendor && catalog.text?.find((id) => vendorOf(id) === vendor)) || catalog.text?.[0] || ''
+    setAsrModel((current) => current || asrDefault)
+    setTextModel((current) => current || textDefault)
+  }, [catalog])
 
   async function discover({ force = false } = {}) {
     const key = apiKey.trim()
@@ -131,6 +145,42 @@ export function SetupWizard({ status, onComplete }) {
     throw new Error('本地引擎启动超时')
   }
 
+  /**
+   * 在同类别里逐个试，返回第一个真正能调通的模型。
+   *
+   * 网关目录只给裸 id，而调用通常要求「供应商/模型名」；有些模型的权限还按供应商
+   * 分配。与其把目录第一项直接存下去再报错，不如当场试到能通的那个。
+   */
+  async function pickWorkingModel(kind, { vendor = '' } = {}) {
+    const current = kind === 'asr' ? asrModel : textModel
+    const list = kind === 'asr' ? (catalog?.asr || []) : (catalog?.text || [])
+    const candidates = candidateOrder(list, {
+      current,
+      vendor: vendor || vendorOf(current)
+    }).slice(0, MAX_CANDIDATES)
+    const label = kind === 'asr' ? '语音' : '文字'
+    if (!candidates.length) return { error: `目录里没有可用的${label}模型` }
+    let last = ''
+    for (const model of candidates) {
+      if (!mounted.current) return { error: '已取消' }
+      if (mounted.current) setDetail(`验证${label}模型：${model}`)
+      try {
+        const result = kind === 'asr'
+          ? await testAsrEngine({
+              provider: 'mimo', base_url: baseUrl.trim(), model, api_key: apiKey.trim()
+            })
+          : await testAIModel({
+              provider: 'mimo', base_url: baseUrl.trim(), model, api_key: apiKey.trim()
+            })
+        if (result?.ok) return { model: result?.model || model }
+        last = result?.message || '测试未通过'
+      } catch (failure) {
+        last = failure?.message || String(failure)
+      }
+    }
+    return { error: last || `没有可用的${label}模型` }
+  }
+
   async function runInstall() {
     if (running) return
     setRunning(true)
@@ -189,17 +239,30 @@ export function SetupWizard({ status, onComplete }) {
       if (mounted.current) setEnvReady(true)
 
       if (!skippedKey && apiKey.trim()) {
-        setDetail('保存模型配置')
-        await saveAsrEngine({
-          provider: 'mimo',
-          base_url: baseUrl.trim(),
-          model: asrModel,
-          api_key: apiKey.trim()
-        })
-        await saveAIConfig({ provider: 'mimo', base_url: baseUrl.trim(), model: textModel })
+        // 先逐个试到真正能用的模型，再保存：网关的目录给的是裸 id，而调用往往要求
+        // 「供应商/模型名」，直接把目录里的名字存下去会得到 401，用户只看到“凭证无效”。
         setDetail('验证云端语音')
-        try { await testAsrEngine() } catch (failure) {
-          foundIssues.push({ id: 'asr-test', title: '云端语音测试未通过', detail: failure?.message || String(failure) })
+        const asrPick = await pickWorkingModel('asr')
+        if (asrPick.model) {
+          setDetail('保存模型配置')
+          await saveAsrEngine({
+            mode: 'default',
+            provider: 'mimo',
+            base_url: baseUrl.trim(),
+            model: asrPick.model,
+            api_key: apiKey.trim()
+          })
+          if (mounted.current) setAsrModel(asrPick.model)
+        } else {
+          foundIssues.push({ id: 'asr-model', title: '云端语音不可用', detail: asrPick.error })
+        }
+        setDetail('验证文字模型')
+        const textPick = await pickWorkingModel('text', { vendor: vendorOf(asrPick.model) })
+        if (textPick.model) {
+          await saveAIConfig({ provider: 'mimo', base_url: baseUrl.trim(), model: textPick.model })
+          if (mounted.current) setTextModel(textPick.model)
+        } else {
+          foundIssues.push({ id: 'text-model', title: '文字模型不可用', detail: textPick.error })
         }
       } else {
         foundIssues.push({ id: 'asr-key', title: '云端语音未配置', detail: '进入主界面后可在 设置 → 模型 填写 API Key。' })

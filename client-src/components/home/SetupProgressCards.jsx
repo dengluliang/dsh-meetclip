@@ -25,6 +25,8 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
         asrEngines(), meetingOptions(), deps()
       ])
       setState({ engine, options, capture })
+      // 部署在 meetclip config 里统一了网关地址时，这里直接带出来，只需粘贴 Key。
+      setBaseUrl((current) => current || engine?.default_base_url || engine?.base_url || '')
     } catch {
       setState(null)
     }

@@ -31,7 +31,8 @@
 - macOS（当前主要验证平台；Windows/Linux 的路径已处理但未实测）
 - Node.js 20+（仅开发/构建需要；运行时由 DSH 提供）
 - 首次使用会创建独立的 Python 运行环境，需要网络
-- 一个 OpenAI 兼容的模型服务：Base URL、模型 ID 和 API Key（云识别与 AI 纪要默认共用同一把 Key）
+- 一个 OpenAI 兼容的模型服务：Base URL、模型 ID 和 API Key（云识别与 AI 纪要默认共用同一把 Key）。
+  网关要求 `供应商/模型名` 时插件会按目录里的 `owned_by` 自动补全（0.9.5 起），语音与纪要同一套规则；部署方可用 meetclip config 的 `aiBaseUrl` 统一地址，用户只需粘贴 Key
 
 ## 安装
 
@@ -47,7 +48,7 @@
 ### 命令行
 
 ```bash
-dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.1.tgz"
+dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.5.tgz"
 ```
 
 网页版把 `desktop` 换成 `web`，然后重启 DSH。更细的步骤、飞书配置和常见问题见 [INSTALL.md](INSTALL.md)。
@@ -69,11 +70,13 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.1.tgz"
 ## 首次使用
 
 1. 打开侧栏「会摘」→ 按引导准备 Python 环境。
-2. **设置 → 会摘 → 模型**：填入服务地址（Base URL）、模型 ID 与 API Key，点「拉取模型清单」挑模型。
+2. **首次引导第 1 步**：填入服务地址（Base URL）与 API Key（部署配了 `aiBaseUrl` 时地址会自动带出）。拉取清单后引导会各发一次最小请求，把能调通的语音与文字模型验证好再保存；之后想换到 **设置 → 会摘 → 模型**。
 3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频），或直接粘贴链接让 Agent 处理。
 4. 采集完成后在记录页看转写、打点、写笔记、生成 AI 纪要。
 
 飞书是可选项：**设置 → 会摘 → 飞书** 安装并登录飞书 MCP 后，Agent 才能读写飞书文档、多维表格与 Wiki。飞书 MCP 包发布在各自组织的私有 npm 源上，插件不内置包名与源：在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）后再安装。
+
+模型服务同理：插件不内置任何网关地址，但部署方可以在同一处 meetclip config 里写 `aiBaseUrl`，首次引导与设置页会直接带出该地址；没有配置时保持每次手填。
 
 ## 数据与隐私
 

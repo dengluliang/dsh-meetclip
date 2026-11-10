@@ -107,7 +107,8 @@ def models_catalog():
     if not key:
         return {"models": [], "count": 0, "has_key": False, "error": "尚未配置 API Key"}
     try:
-        models = model_catalog.fetch_models(config["base_url"], key)
+        entries = model_catalog.fetch_entries(config["base_url"], key)
     except model_catalog.CatalogError as exc:
-        return {"models": [], "count": 0, "has_key": True, "error": str(exc)}
-    return {"models": models, "count": len(models), "has_key": True, "error": ""}
+        return {"models": [], "entries": [], "count": 0, "has_key": True, "error": str(exc)}
+    models = [entry["wire"] for entry in entries]
+    return {"models": models, "entries": entries, "count": len(models), "has_key": True, "error": ""}

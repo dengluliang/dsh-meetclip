@@ -5,6 +5,7 @@ import io
 import json
 import os
 import platform
+import re
 import threading
 import time
 import urllib.parse
@@ -67,6 +68,56 @@ def _retry_after(response):
         return max(1.0, min(float(raw), 180.0))
     except (TypeError, ValueError):
         return None
+
+
+def wire_model(model):
+    """语音识别与文字纪要共用同一套模型名规则：需要时补「供应商/模型名」。
+
+    正常路径下设置里存的就是目录补好的名字，这里原样透传；只有老配置或手填的
+    裸模型名才用 `MEETCLIP_ASR_MODEL_PREFIX` / `MEETCLIP_AI_MODEL_PREFIX` 兜底。
+    """
+    value = (model or "").strip()
+    if not value or "/" in value:
+        return value
+    prefix = (os.environ.get("MEETCLIP_ASR_MODEL_PREFIX")
+              or os.environ.get("MEETCLIP_AI_MODEL_PREFIX") or "").strip().strip("/")
+    return prefix + "/" + value if prefix else value
+
+
+def _upstream_message(response):
+    """网关拒绝时一般会给出可读的 error.message，直接透出比笼统提示有用。"""
+    try:
+        response.read()
+        payload = response.json()
+    except Exception:
+        return ""
+    if not isinstance(payload, dict):
+        return ""
+    error = payload.get("error")
+    if isinstance(error, dict):
+        return str(error.get("message") or "").strip()
+    return str(payload.get("detail") or payload.get("message") or "").strip()
+
+
+_SECRET_IN_TEXT = re.compile(r"sk-[A-Za-z0-9_\-]{4,}")
+
+
+def _safe_detail(value, limit=200):
+    """上游文案照原样展示，但先抹掉可能被回显的 Key，并限长。"""
+    text = _SECRET_IN_TEXT.sub("sk-***", str(value or "").strip())
+    return text[:limit]
+
+
+def _failure_text(code, detail=""):
+    """把网关的拒绝原因翻译成一句能指导操作的中文。"""
+    text = "云端语音凭证无效或无模型权限" if code in (401, 403) else f"云端语音请求失败（HTTP {code}）"
+    detail = _safe_detail(detail)
+    if detail:
+        text += "：" + detail
+    lowered = detail.lower()
+    if "供应商" in detail or "provider" in lowered or "vendor" in lowered:
+        text += "。模型名要带供应商前缀（形如 供应商/模型），请在 设置 → 模型 里重新选择一次"
+    return text
 
 
 class _RequestGate:
@@ -200,7 +251,9 @@ def default_config(provider=None):
         custom = custom_config(data)
         if custom:
             return custom
-    base = (data.get("mimo_base_url") or os.environ.get("MEETCLIP_ASR_BASE_URL", "") or DEFAULT_URL).strip()
+    # 语音与纪要常常共用一个网关：ASR 专用变量没配时，退回部署级 MEETCLIP_AI_BASE_URL。
+    base = (data.get("mimo_base_url") or os.environ.get("MEETCLIP_ASR_BASE_URL", "")
+            or os.environ.get("MEETCLIP_AI_BASE_URL", "") or DEFAULT_URL).strip()
     model = (data.get("mimo_model") or os.environ.get("MEETCLIP_ASR_MODEL", "") or DEFAULT_MODEL).strip()
     if not base or not model:
         # 还没配置网关：返回一份空配置，让 is_ready() 变 false 并提示去设置页填写，
@@ -339,7 +392,7 @@ class CloudASRProvider:
 
     def _request(self, encoded, key, language, cancel, on_partial):
         import httpx
-        payload = {"model": self.config["model"], "messages": [{"role": "user", "content": [{
+        payload = {"model": wire_model(self.config["model"]), "messages": [{"role": "user", "content": [{
             "type": "input_audio", "input_audio": {"data": "data:audio/wav;base64," + encoded}}]}],
             "asr_options": {"language": language}, "stream": True}
         # Reject redirects so bearer credentials cannot be forwarded to another gateway.
@@ -363,8 +416,7 @@ class CloudASRProvider:
                                 ASR_GATE.cool_down(_retry_after(response) or min(60.0, 4.0 * (2 ** attempt)))
                             elif code >= 500:
                                 ASR_GATE.cool_down(min(15.0, 2.0 * (attempt + 1)))
-                            raise ProviderError("云端语音凭证无效或无模型权限" if code in (401, 403) else
-                                                f"云端语音请求失败（HTTP {code}）",
+                            raise ProviderError(_failure_text(code, _upstream_message(response)),
                                                 retryable=code == 429 or code >= 500, fatal=code in (401, 403))
                         deadline = started + 120
                         def consume(data):
@@ -460,9 +512,14 @@ def status():
     data = settings.get_all()
     custom_base = (data.get("asr_custom_base") or "").strip()
     custom_model = (data.get("asr_custom_model") or "").strip()
+    # 设置页要能回显“部署统一配置的地址”，所以这里也把环境变量算进来。
+    default_base = (data.get("mimo_base_url") or os.environ.get("MEETCLIP_ASR_BASE_URL", "")
+                    or DEFAULT_URL).strip()
+    default_model = (data.get("mimo_model") or os.environ.get("MEETCLIP_ASR_MODEL", "")
+                     or DEFAULT_MODEL).strip()
     from dataclasses import asdict
     return {"default_provider": config["provider"], "base_url": config["base_url"], "model": config["model"],
-            "default_base_url": data.get("mimo_base_url", DEFAULT_URL), "default_model": data.get("mimo_model", DEFAULT_MODEL),
+            "default_base_url": default_base, "default_model": default_model,
             "has_api_key": has_key, "default_has_key": default_has_key, "credential_error": key_error, "ready": ready(config),
             "custom": {"base_url": custom_base, "model": custom_model,
                        "enabled": bool(custom_base and custom_model), "has_key": custom_has_key},

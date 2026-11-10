@@ -49,8 +49,20 @@ class Config:
 
     @property
     def model_prefix(self) -> str:
-        """网关照例要求「供应商/模型名」时才需要的补全前缀；开源版默认不补。"""
+        """兜底前缀：网关没有 `owned_by` 时，用它把裸模型名补成「供应商/模型名」。"""
         return os.environ.get("MEETCLIP_AI_MODEL_PREFIX", "").strip().strip("/")
+
+
+def qualify_model(model: str, vendor: str = "") -> str:
+    """按供应商补全模型名：`mimo-v2.6-flash` + `xiaomi` → `xiaomi/mimo-v2.6-flash`。
+
+    已经带供应商的模型名（含 `/`）保持原样，避免重复拼接。
+    """
+    value = (model or "").strip()
+    owner = (vendor or "").strip()
+    if not value or "/" in value or not owner:
+        return value
+    return owner + "/" + value
 
 
 PROVIDERS = {
@@ -97,15 +109,16 @@ def resolve(data: dict | None = None) -> Config:
 
 
 def wire_model(config: Config, model: str | None = None) -> str:
-    """按环境变量补全模型名的供应商前缀（`mimo-v2.6-flash` → `<前缀>/mimo-v2.6-flash`）。
+    """得到真正发出去的模型名。
 
-    只有网关要求带前缀时才需要：模型清单返回的是不带前缀的 id，直接调用会被拒。
-    前缀由 `MEETCLIP_AI_MODEL_PREFIX` 指定，开源版默认不补，OpenAI/自定义服务保持原样。
+    正常路径下设置里存的就是目录补好的 `供应商/模型名`，这里原样透传；只有老配置
+    或手工填的裸名才用 `MEETCLIP_AI_MODEL_PREFIX` 兜底补前缀。OpenAI/自定义服务
+    不会因此被改写。
     """
     value = (model or config.model or "").strip()
     prefix = config.model_prefix
     if prefix and value and "/" not in value:
-        return prefix + "/" + value
+        return qualify_model(value, prefix)
     return value
 
 

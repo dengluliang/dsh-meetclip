@@ -113,6 +113,11 @@ export class MeetClipRuntime {
         backendMode: this.settings.backendMode,
         autoStart: this.settings.autoStart,
         tools: this.settings.tools
+      },
+      // 首次引导用：部署在 meetclip config 里统一了网关地址时，直接把这一栏填好，
+      // 用户只需要粘贴自己的 Key。
+      ai: {
+        baseUrl: this.settings.aiBaseUrl || ''
       }
     }
   }

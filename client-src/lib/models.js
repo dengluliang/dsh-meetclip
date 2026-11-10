@@ -52,3 +52,27 @@ export function modelOptions(list = [], current = '') {
     label: id === cur ? `${id}（当前）` : id
   }))
 }
+
+/**
+ * 验证顺序：当前选择优先，其次同供应商（同一个 Key 的权限通常按供应商划分），
+ * 最后才是其余模型。首次引导据此逐个试，选中第一个真正能调通的模型。
+ */
+export function candidateOrder(list = [], { current = '', vendor = '' } = {}) {
+  const cur = String(current || '').trim()
+  const own = String(vendor || '').trim()
+  const vendorOf = (id) => (String(id || '').includes('/') ? String(id).split('/')[0] : '')
+  const seen = new Set()
+  const items = (Array.isArray(list) ? list : [])
+    .map((id) => String(id || '').trim())
+    .filter((id) => id && !seen.has(id) && seen.add(id))
+  const rank = (id) => (id === cur ? 0 : own && vendorOf(id) === own ? 1 : 2)
+  return items
+    .map((id, index) => ({ id, index, rank: rank(id) }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map((item) => item.id)
+}
+
+export function vendorOf(model) {
+  const value = String(model || '').trim()
+  return value.includes('/') ? value.split('/')[0] : ''
+}

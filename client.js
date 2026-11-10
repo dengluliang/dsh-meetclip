@@ -48555,6 +48555,7 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
         deps()
       ]);
       setState({ engine: engine2, options: options2, capture: capture2 });
+      setBaseUrl((current) => current || engine2?.default_base_url || engine2?.base_url || "");
     } catch {
       setState(null);
     }
@@ -51574,15 +51575,29 @@ function modelOptions(list = [], current = "") {
     label: id === cur ? `${id}\uFF08\u5F53\u524D\uFF09` : id
   }));
 }
+function candidateOrder(list = [], { current = "", vendor = "" } = {}) {
+  const cur = String(current || "").trim();
+  const own = String(vendor || "").trim();
+  const vendorOf2 = (id) => String(id || "").includes("/") ? String(id).split("/")[0] : "";
+  const seen = /* @__PURE__ */ new Set();
+  const items = (Array.isArray(list) ? list : []).map((id) => String(id || "").trim()).filter((id) => id && !seen.has(id) && seen.add(id));
+  const rank = (id) => id === cur ? 0 : own && vendorOf2(id) === own ? 1 : 2;
+  return items.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
+}
+function vendorOf(model) {
+  const value = String(model || "").trim();
+  return value.includes("/") ? value.split("/")[0] : "";
+}
 
 // client-src/components/SetupWizard.jsx
 var BASE_PLACEHOLDER2 = "https://your-gateway.example/v1";
+var MAX_CANDIDATES = 6;
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function SetupWizard({ status: status3, onComplete }) {
   const [step, setStep] = React.useState(1);
-  const [baseUrl, setBaseUrl] = React.useState("");
+  const [baseUrl, setBaseUrl] = React.useState(() => String(status3?.ai?.baseUrl || "").trim());
   const [apiKey, setApiKey] = React.useState("");
   const [showKey, setShowKey] = React.useState(false);
   const [probing, setProbing] = React.useState(false);
@@ -51627,6 +51642,14 @@ function SetupWizard({ status: status3, onComplete }) {
     }, 700);
     return () => clearTimeout(timer);
   }, [apiKey]);
+  React.useEffect(() => {
+    if (!catalog) return;
+    const asrDefault = catalog.asr?.[0] || "";
+    const vendor = vendorOf(asrDefault);
+    const textDefault = vendor && catalog.text?.find((id) => vendorOf(id) === vendor) || catalog.text?.[0] || "";
+    setAsrModel((current) => current || asrDefault);
+    setTextModel((current) => current || textDefault);
+  }, [catalog]);
   async function discover({ force = false } = {}) {
     const key = apiKey.trim();
     if (key.length < 16) return;
@@ -51693,6 +51716,39 @@ function SetupWizard({ status: status3, onComplete }) {
     }
     throw new Error("\u672C\u5730\u5F15\u64CE\u542F\u52A8\u8D85\u65F6");
   }
+  async function pickWorkingModel(kind, { vendor = "" } = {}) {
+    const current = kind === "asr" ? asrModel : textModel;
+    const list = kind === "asr" ? catalog?.asr || [] : catalog?.text || [];
+    const candidates = candidateOrder(list, {
+      current,
+      vendor: vendor || vendorOf(current)
+    }).slice(0, MAX_CANDIDATES);
+    const label = kind === "asr" ? "\u8BED\u97F3" : "\u6587\u5B57";
+    if (!candidates.length) return { error: `\u76EE\u5F55\u91CC\u6CA1\u6709\u53EF\u7528\u7684${label}\u6A21\u578B` };
+    let last = "";
+    for (const model of candidates) {
+      if (!mounted.current) return { error: "\u5DF2\u53D6\u6D88" };
+      if (mounted.current) setDetail(`\u9A8C\u8BC1${label}\u6A21\u578B\uFF1A${model}`);
+      try {
+        const result = kind === "asr" ? await testAsrEngine({
+          provider: "mimo",
+          base_url: baseUrl.trim(),
+          model,
+          api_key: apiKey.trim()
+        }) : await testAIModel({
+          provider: "mimo",
+          base_url: baseUrl.trim(),
+          model,
+          api_key: apiKey.trim()
+        });
+        if (result?.ok) return { model: result?.model || model };
+        last = result?.message || "\u6D4B\u8BD5\u672A\u901A\u8FC7";
+      } catch (failure) {
+        last = failure?.message || String(failure);
+      }
+    }
+    return { error: last || `\u6CA1\u6709\u53EF\u7528\u7684${label}\u6A21\u578B` };
+  }
   async function runInstall() {
     if (running) return;
     setRunning(true);
@@ -51737,19 +51793,28 @@ function SetupWizard({ status: status3, onComplete }) {
       await waitEngine();
       if (mounted.current) setEnvReady(true);
       if (!skippedKey && apiKey.trim()) {
-        setDetail("\u4FDD\u5B58\u6A21\u578B\u914D\u7F6E");
-        await saveAsrEngine({
-          provider: "mimo",
-          base_url: baseUrl.trim(),
-          model: asrModel,
-          api_key: apiKey.trim()
-        });
-        await saveAIConfig({ provider: "mimo", base_url: baseUrl.trim(), model: textModel });
         setDetail("\u9A8C\u8BC1\u4E91\u7AEF\u8BED\u97F3");
-        try {
-          await testAsrEngine();
-        } catch (failure) {
-          foundIssues.push({ id: "asr-test", title: "\u4E91\u7AEF\u8BED\u97F3\u6D4B\u8BD5\u672A\u901A\u8FC7", detail: failure?.message || String(failure) });
+        const asrPick = await pickWorkingModel("asr");
+        if (asrPick.model) {
+          setDetail("\u4FDD\u5B58\u6A21\u578B\u914D\u7F6E");
+          await saveAsrEngine({
+            mode: "default",
+            provider: "mimo",
+            base_url: baseUrl.trim(),
+            model: asrPick.model,
+            api_key: apiKey.trim()
+          });
+          if (mounted.current) setAsrModel(asrPick.model);
+        } else {
+          foundIssues.push({ id: "asr-model", title: "\u4E91\u7AEF\u8BED\u97F3\u4E0D\u53EF\u7528", detail: asrPick.error });
+        }
+        setDetail("\u9A8C\u8BC1\u6587\u5B57\u6A21\u578B");
+        const textPick = await pickWorkingModel("text", { vendor: vendorOf(asrPick.model) });
+        if (textPick.model) {
+          await saveAIConfig({ provider: "mimo", base_url: baseUrl.trim(), model: textPick.model });
+          if (mounted.current) setTextModel(textPick.model);
+        } else {
+          foundIssues.push({ id: "text-model", title: "\u6587\u5B57\u6A21\u578B\u4E0D\u53EF\u7528", detail: textPick.error });
         }
       } else {
         foundIssues.push({ id: "asr-key", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E", detail: "\u8FDB\u5165\u4E3B\u754C\u9762\u540E\u53EF\u5728 \u8BBE\u7F6E \u2192 \u6A21\u578B \u586B\u5199 API Key\u3002" });

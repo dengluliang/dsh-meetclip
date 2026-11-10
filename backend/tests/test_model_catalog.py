@@ -83,6 +83,36 @@ class ModelCatalogTests(unittest.TestCase):
                 model_catalog.fetch_models("https://example.com/v1", "sk-test")
         self.assertIn("模型列表", str(ctx.exception))
 
+    def test_qualifies_models_with_owned_by(self):
+        """网关要求「供应商/模型名」，目录却给裸 id：这里统一补好再交给界面保存。"""
+        response = FakeResponse(200, {"data": [
+            {"id": "mimo-v2.5-asr", "owned_by": "xiaomi"},
+            {"id": "deepseek-v4-flash", "owned_by": "deepseek"},
+            # 同一个 id 由不同供应商提供时，两条都要留下，否则会丢掉可用的那条。
+            {"id": "deepseek-v4-flash", "owned_by": "volcengine_maas"},
+            {"id": "anthropic/claude-sonnet-5-5", "owned_by": "ppio"},
+            {"id": "plain-model"},
+        ]})
+        with patch.object(model_catalog.httpx, "Client", factory(response)):
+            entries = model_catalog.fetch_entries("https://example.com/v1", "sk-test")
+        self.assertEqual([entry["wire"] for entry in entries], [
+            "xiaomi/mimo-v2.5-asr",
+            "deepseek/deepseek-v4-flash",
+            "volcengine_maas/deepseek-v4-flash",
+            # 已经带供应商的名字不再拼接。
+            "anthropic/claude-sonnet-5-5",
+            # 没有 owned_by 的保持裸名。
+            "plain-model",
+        ])
+        self.assertEqual(entries[0]["vendor"], "xiaomi")
+        self.assertEqual(entries[0]["id"], "mimo-v2.5-asr")
+
+    def test_qualify_helper_rules(self):
+        self.assertEqual(model_catalog.qualify("mimo-v2.5-asr", "xiaomi"), "xiaomi/mimo-v2.5-asr")
+        self.assertEqual(model_catalog.qualify("xiaomi/mimo-v2.5-asr", "xiaomi"), "xiaomi/mimo-v2.5-asr")
+        self.assertEqual(model_catalog.qualify("plain", ""), "plain")
+        self.assertEqual(model_catalog.qualify("", "xiaomi"), "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -431,6 +431,12 @@ export class BackendManager {
     // 多资料空间：账号与通用设置只存一份，后端通过这个变量读共享目录。
     // 没启用共享时绝不注入，保证单库安装与外部引擎行为不变。
     if (this.settings.sharedDir) env.MEETCLIP_SHARED_DIR = this.settings.sharedDir
+    // 部署级默认网关地址：设置页与引导仍可覆盖，这里只作为“还没填过”时的兜底，
+    // 让无界面启动（CLI / CI）也能直接跑通识别与纪要。
+    if (this.settings.aiBaseUrl) {
+      env.MEETCLIP_AI_BASE_URL = this.settings.aiBaseUrl
+      env.MEETCLIP_ASR_BASE_URL = this.settings.aiBaseUrl
+    }
     if (fs.existsSync('/etc/ssl/cert.pem')) env.SSL_CERT_FILE = '/etc/ssl/cert.pem'
     return env
   }

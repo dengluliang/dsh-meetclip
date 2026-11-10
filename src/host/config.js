@@ -50,6 +50,10 @@ export function normalizeConfig(raw) {
     // the registry URL are configuration, not constants. Empty = not configured.
     feishuPackage: typeof config.feishuPackage === 'string' ? config.feishuPackage.trim() : '',
     feishuRegistry: typeof config.feishuRegistry === 'string' ? config.feishuRegistry.trim() : '',
+    // Model-service address for deployments that standardise on one gateway.
+    // Left empty in the public package; the first-run wizard only pre-fills it,
+    // so a user can always type their own address.
+    aiBaseUrl: typeof config.aiBaseUrl === 'string' ? config.aiBaseUrl.trim().replace(/\/+$/, '') : '',
     // Update feed is intentionally opt-in: the public default points at the
     // upstream GitHub Releases, and forks can override it without editing code.
     updateRepo: typeof config.updateRepo === 'string' && config.updateRepo.trim() ? config.updateRepo.trim() : '',
