@@ -18,8 +18,9 @@ import text_hygiene
 
 SAMPLE_RATE = 16000
 MAX_BASE64_BYTES = 10_000_000
-DEFAULT_URL = "https://api.llm.mioffice.cn/v1"
-DEFAULT_MODEL = "xiaomi/mimo-v2.5-asr"
+# 默认服务地址与模型不预置：每个部署指向自己的 OpenAI 兼容网关，由用户在设置页填写。
+DEFAULT_URL = ""
+DEFAULT_MODEL = ""
 ASR_CUSTOM_ACCOUNT = "asr_custom"
 KEYCHAIN_SERVICE = "cn.meetclip.asr"
 
@@ -162,7 +163,10 @@ def credential(account="mimo", value=None, delete=False):
 def validate_config(provider, base_url=DEFAULT_URL, model=DEFAULT_MODEL):
     if provider not in PROVIDERS:
         raise ValueError("不支持的转录引擎")
-    url = urllib.parse.urlsplit(base_url.strip())
+    base_url = (base_url or "").strip()
+    if not base_url:
+        raise ValueError("请先填写服务地址（Base URL）")
+    url = urllib.parse.urlsplit(base_url)
     try:
         port = url.port
     except ValueError:
@@ -196,7 +200,13 @@ def default_config(provider=None):
         custom = custom_config(data)
         if custom:
             return custom
-    return validate_config(provider, data.get("mimo_base_url", DEFAULT_URL), data.get("mimo_model", DEFAULT_MODEL))
+    base = (data.get("mimo_base_url") or os.environ.get("MEETCLIP_ASR_BASE_URL", "") or DEFAULT_URL).strip()
+    model = (data.get("mimo_model") or os.environ.get("MEETCLIP_ASR_MODEL", "") or DEFAULT_MODEL).strip()
+    if not base or not model:
+        # 还没配置网关：返回一份空配置，让 is_ready() 变 false 并提示去设置页填写，
+        # 而不是让「新建记录」这种与识别无关的动作也失败。
+        return {"provider": provider, "base_url": base, "model": model}
+    return validate_config(provider, base, model)
 
 
 def session_config(sess):
@@ -230,9 +240,12 @@ def require_ready(config):
     provider = resolve(config)
     if not provider.is_ready():
         if config.get("key_account") == ASR_CUSTOM_ACCOUNT:
-            raise ProviderError("请先为自定义 API 配置 Key")
-        raise ProviderError("请先在 设置 → 会摘 → 模型 配置 Mify API Key" if config["provider"] == "mimo"
-                            else "请先启用本地语音识别模型")
+            raise ProviderError("请先为自定义 API 配置服务地址、模型与 Key")
+        if config["provider"] == "mimo":
+            if not (config.get("base_url") or "").strip() or not (config.get("model") or "").strip():
+                raise ProviderError("请先在 设置 → 会摘 → 模型 填写云端语音的服务地址与模型")
+            raise ProviderError("请先在 设置 → 会摘 → 模型 配置云端语音 API Key")
+        raise ProviderError("请先启用本地语音识别模型")
     return provider
 
 
@@ -283,7 +296,9 @@ class LocalProvider:
         return Recognition(text)
 
 
-class MiMoProvider:
+class CloudASRProvider:
+    """任意 OpenAI 兼容网关的语音识别；地址、模型与 Key 都由用户配置。"""
+
     capabilities = Capabilities(text_streaming=True)
 
     def __init__(self, config):
@@ -298,19 +313,21 @@ class MiMoProvider:
         return direct or credential(self._account())
 
     def is_ready(self):
+        if not (self.config.get("base_url") or "").strip() or not (self.config.get("model") or "").strip():
+            return False
         return bool(self.config.get("api_key")) or bool(credential(self._account()))
 
     def recognize(self, audio, *, language="", cancel=None, on_partial=None):
         lang = {"": "auto", "auto": "auto", "Chinese": "zh", "zh": "zh", "English": "en", "en": "en"}.get(language)
         if lang is None:
-            raise ProviderError("MiMo 当前仅支持自动、中文和英文语种选项", fatal=True)
+            raise ProviderError("云端识别当前仅支持自动、中文和英文语种选项", fatal=True)
         try:
             key = self._key()
         except ProviderError as exc:
             raise ProviderError(str(exc), fatal=True) from None
         if not key:
             raise ProviderError("请先为自定义 API 配置 Key" if self._account() == ASR_CUSTOM_ACCOUNT
-                                else "请先配置 Mify API Key", fatal=True)
+                                else "请先配置云端语音 API Key", fatal=True)
         text_parts, metrics = [], []
         for _, encoded in split_upload(audio):
             previous = "".join(text_parts)
@@ -346,8 +363,8 @@ class MiMoProvider:
                                 ASR_GATE.cool_down(_retry_after(response) or min(60.0, 4.0 * (2 ** attempt)))
                             elif code >= 500:
                                 ASR_GATE.cool_down(min(15.0, 2.0 * (attempt + 1)))
-                            raise ProviderError("MiMo 凭证无效或无模型权限" if code in (401, 403) else
-                                                f"MiMo 请求失败（HTTP {code}）",
+                            raise ProviderError("云端语音凭证无效或无模型权限" if code in (401, 403) else
+                                                f"云端语音请求失败（HTTP {code}）",
                                                 retryable=code == 429 or code >= 500, fatal=code in (401, 403))
                         deadline = started + 120
                         def consume(data):
@@ -357,7 +374,7 @@ class MiMoProvider:
                                 return
                             obj = json.loads(data)
                             if obj.get("error"):
-                                raise ProviderError("MiMo 返回识别错误", retryable=True)
+                                raise ProviderError("云端语音返回识别错误", retryable=True)
                             for choice in obj.get("choices", []):
                                 content = (choice.get("delta") or choice.get("message") or {}).get("content")
                                 if isinstance(content, str) and content:
@@ -377,7 +394,7 @@ class MiMoProvider:
                             for line in response.iter_lines():
                                 check_cancel(cancel)
                                 if time.monotonic() > deadline:
-                                    raise ProviderError("MiMo 识别超时", retryable=True)
+                                    raise ProviderError("云端语音识别超时", retryable=True)
                                 if not line:
                                     if event:
                                         consume("\n".join(event))
@@ -394,14 +411,14 @@ class MiMoProvider:
                             consume(response.text)
                         check_cancel(cancel)
                         if finish_reason in ("content_filter", "error"):
-                            raise ProviderError("MiMo 未完成识别，片段结果未提交")
+                            raise ProviderError("云端语音未完成识别，片段结果未提交")
                         if finish_reason == "length":
                             # 一整段都是语言标记：这是空白片段，不是被截断的语音。
                             if text_hygiene.noise(text):
                                 raise _NoiseLoop()
-                            raise ProviderError("MiMo 输出被截断，请缩短音频片段")
+                            raise ProviderError("云端语音输出被截断，请缩短音频片段")
                         if not terminal:
-                            raise ProviderError("MiMo 响应中断，片段尚未完成", retryable=True)
+                            raise ProviderError("云端语音响应中断，片段尚未完成", retryable=True)
                         return Recognition(text_hygiene.strip_tags(text).strip(),
                             metrics={"first_text_seconds": first,
                             "total_seconds": time.monotonic() - started, "attempts": attempt + 1,
@@ -413,7 +430,7 @@ class MiMoProvider:
             except Cancelled:
                 raise
             except (httpx.HTTPError, httpx.InvalidURL, ValueError):
-                error = ProviderError("MiMo 网络连接或响应解析失败，请检查公司网络／VPN", retryable=True)
+                error = ProviderError("云端语音网络连接或响应解析失败，请检查网络或代理", retryable=True)
             except ProviderError as exc:
                 error = exc
             if not error.retryable or attempt == 4:
@@ -426,7 +443,7 @@ class MiMoProvider:
 
 
 # New vendors register their own protocol implementation here.
-PROVIDERS = {"local": LocalProvider, "mimo": MiMoProvider}
+PROVIDERS = {"local": LocalProvider, "mimo": CloudASRProvider}
 
 
 def status():
@@ -434,19 +451,19 @@ def status():
     account = config.get("key_account") or "mimo"
     try:
         has_key = bool(credential(account))
-        mify_has_key = bool(credential("mimo"))
+        default_has_key = bool(credential("mimo"))
         custom_has_key = bool(credential(ASR_CUSTOM_ACCOUNT))
         key_error = ""
     except ProviderError as exc:
-        has_key, mify_has_key, custom_has_key = False, False, False
+        has_key, default_has_key, custom_has_key = False, False, False
         key_error = str(exc)
     data = settings.get_all()
     custom_base = (data.get("asr_custom_base") or "").strip()
     custom_model = (data.get("asr_custom_model") or "").strip()
     from dataclasses import asdict
     return {"default_provider": config["provider"], "base_url": config["base_url"], "model": config["model"],
-            "mify_base_url": data.get("mimo_base_url", DEFAULT_URL), "mify_model": data.get("mimo_model", DEFAULT_MODEL),
-            "has_api_key": has_key, "mify_has_key": mify_has_key, "credential_error": key_error, "ready": ready(config),
+            "default_base_url": data.get("mimo_base_url", DEFAULT_URL), "default_model": data.get("mimo_model", DEFAULT_MODEL),
+            "has_api_key": has_key, "default_has_key": default_has_key, "credential_error": key_error, "ready": ready(config),
             "custom": {"base_url": custom_base, "model": custom_model,
                        "enabled": bool(custom_base and custom_model), "has_key": custom_has_key},
             "providers": [{"id": name, "capabilities": asdict(cls.capabilities)} for name, cls in PROVIDERS.items()]}

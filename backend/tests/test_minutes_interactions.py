@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import shutil
 import time
 import unittest
 import uuid
@@ -41,6 +42,8 @@ class MinutesInteractionTests(unittest.TestCase):
         cls.environment = patch.dict(os.environ, {
             "ZHIBO_DATA_DIR": cls.data.name,
             "MEETCLIP_AI_KEY": "test-key",
+            "MEETCLIP_AI_BASE_URL": "https://gateway.example.test/v1",
+            "MEETCLIP_AI_MODEL": "demo-text",
             "MEETCLIP_AI_SPACING": "0",
         })
         cls.environment.start()
@@ -74,9 +77,7 @@ class MinutesInteractionTests(unittest.TestCase):
             self.db.execute(f"DELETE FROM {table}")
         card_dir = Path(self.data.name) / self.cards.CARD_DIR_NAME
         if card_dir.exists():
-            for item in card_dir.iterdir():
-                item.unlink()
-            card_dir.rmdir()
+            shutil.rmtree(card_dir, ignore_errors=True)
         self.settings.update(minutes_auto="final", minutes_language="简体中文")
 
     def session(self, with_minutes=True):

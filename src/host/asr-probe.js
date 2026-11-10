@@ -1,5 +1,6 @@
-const DEFAULT_BASE_URL = 'https://api.llm.mioffice.cn/v1'
-const DEFAULT_MODEL = 'xiaomi/mimo-v2.5-asr'
+// 不预置任何网关地址与模型：开源版由用户在设置里填写自己的 OpenAI 兼容服务。
+const DEFAULT_BASE_URL = ''
+const DEFAULT_MODEL = ''
 const MAX_KEY = 4096
 
 function silenceWav(seconds = 0.5) {
@@ -27,8 +28,11 @@ function silenceWav(seconds = 0.5) {
 export async function probeMimo({ apiKey, baseUrl = DEFAULT_BASE_URL, model = DEFAULT_MODEL } = {}) {
   const key = String(apiKey || '').trim()
   if (!key || key.length > MAX_KEY || /\s/.test(key)) throw new Error('API Key 不能为空、不能包含空白字符，且最多 4096 字符')
+  const base = String(baseUrl || DEFAULT_BASE_URL).trim()
+  if (!base) throw new Error('请先填写服务地址（Base URL）')
+  if (!String(model || DEFAULT_MODEL).trim()) throw new Error('请先填写模型 ID')
   let url
-  try { url = new URL(String(baseUrl || DEFAULT_BASE_URL)) } catch { throw new Error('网关地址无效') }
+  try { url = new URL(base) } catch { throw new Error('网关地址无效') }
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
     throw new Error('网关地址必须是 HTTPS，且不能包含凭证、查询参数或片段')
   }
@@ -74,7 +78,7 @@ export async function probeMimo({ apiKey, baseUrl = DEFAULT_BASE_URL, model = DE
     if (/"error"\s*:/.test(text)) throw new Error('云端语音返回错误，请检查 API Key 与模型权限')
     return { ok: true, message: 'API Key 验证通过', latency: Date.now() - started, model: String(model || DEFAULT_MODEL) }
   } catch (error) {
-    if (error?.name === 'AbortError') throw new Error('云端语音测试超时，请检查网络或 VPN')
+    if (error?.name === 'AbortError') throw new Error('云端语音测试超时，请检查网络或代理')
     throw error
   } finally {
     clearTimeout(timer)

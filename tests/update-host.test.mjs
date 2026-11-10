@@ -88,6 +88,35 @@ function writeTarget(version = '0.9.0') {
   return dir
 }
 
+/** 完整的安装副本（与 validatePackage 要求的文件一致），用于回退测试。 */
+function writePackage(dir, version, extra = {}) {
+  const files = {
+    ...REQUIRED,
+    'package.json': JSON.stringify({ name: PACKAGE_NAME, version }),
+    'index.js': `index ${version}`,
+    ...extra
+  }
+  for (const [name, data] of Object.entries(files)) {
+    const file = path.join(dir, ...name.split('/'))
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, data)
+  }
+  return dir
+}
+
+function rollbackTarget(version = '0.9.1') {
+  const parent = tempDir('mc-rollback-')
+  return { parent, target: writePackage(path.join(parent, 'dsh-meetclip'), version) }
+}
+
+function backupDir(parent, version, stamp = '20261110-135408-48172') {
+  return writePackage(path.join(parent, `dsh-meetclip.update-bak-${version}-${stamp}`), version)
+}
+
+function readVersion(dir) {
+  return JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).version
+}
+
 async function startServer({ tgz, feed, chunkDelay = 0 }) {
   let port = 0
   const requests = []
@@ -459,6 +488,169 @@ test('a repository without releases reports a friendly error', async () => {
   assert.equal(job.state, 'error')
   assert.match(job.error, /还没有发布版本|HTTP 404|连不上/)
   await cleanupTarget(target)
+})
+
+test('rollback puts the pre-upgrade local copy back and keeps the current one as a backup', async () => {
+  const { parent, target } = rollbackTarget('0.9.1')
+  backupDir(parent, '0.9.0')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.1', allowSourceTarget: true }
+  )
+
+  const before = manager.status()
+  assert.equal(before.rollback.canRollback, true)
+  assert.deepEqual(before.rollback.available.map((row) => row.version), ['0.9.0'])
+  assert.equal(before.rollback.available[0].direction, 'older')
+
+  const started = manager.startRollback()
+  assert.equal(started.kind, 'rollback')
+  assert.equal(started.state, 'installing')
+  await manager.whenIdle()
+  const done = manager.jobSnapshot()
+  assert.equal(done.state, 'done')
+  assert.equal(done.kind, 'rollback')
+  assert.match(done.message, /已回退到 v0\.9\.0/)
+
+  // 换回来的是升级前的本地副本，不是从 GitHub 下载的包。
+  assert.equal(readVersion(target), '0.9.0')
+  assert.equal(fs.readFileSync(path.join(target, 'src/host/routes.js'), 'utf8'), REQUIRED['src/host/routes.js'])
+
+  const after = manager.status()
+  assert.equal(after.installedVersion, '0.9.0')
+  assert.equal(after.restartRequired, true)
+  assert.equal(after.restartDirection, 'rollback')
+  assert.deepEqual(after.rollback.available.map((row) => row.version), ['0.9.1'])
+  assert.equal(after.rollback.available[0].direction, 'newer')
+
+  // 回退前的版本也被留成备份，所以回退本身还能再切回来。
+  manager.startRollback('0.9.1')
+  await manager.whenIdle()
+  assert.equal(readVersion(target), '0.9.1')
+  assert.equal(manager.jobSnapshot().state, 'done')
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
+test('rollback can pick a specific older local backup', async () => {
+  const { parent, target } = rollbackTarget('0.9.2')
+  backupDir(parent, '0.8.11', '20261110-122613-73983')
+  backupDir(parent, '0.9.0')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.2', allowSourceTarget: true }
+  )
+  assert.deepEqual(manager.status().rollback.available.map((row) => row.version), ['0.9.0', '0.8.11'])
+  manager.startRollback('0.8.11')
+  await manager.whenIdle()
+  assert.equal(readVersion(target), '0.8.11')
+  // 另一个本地备份没有被吃掉，随时可以再换。
+  assert.deepEqual(manager.status().rollback.available.map((row) => row.version), ['0.9.2', '0.9.0'])
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
+test('incomplete or unknown local backups are not offered', async () => {
+  const { parent, target } = rollbackTarget('0.9.1')
+  const broken = path.join(parent, 'dsh-meetclip.update-bak-0.9.0-20261110-135408-48172')
+  fs.mkdirSync(broken, { recursive: true })
+  fs.writeFileSync(path.join(broken, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version: '0.9.0' }))
+  fs.writeFileSync(path.join(broken, 'index.js'), 'x')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.1', allowSourceTarget: true }
+  )
+  assert.deepEqual(manager.status().rollback.available, [])
+  assert.equal(manager.status().rollback.canRollback, false)
+  assert.throws(() => manager.startRollback(), (error) => {
+    assert.equal(error.code, 'no-rollback')
+    assert.match(error.message, /没有可回退/)
+    return true
+  })
+  // 直接调用时也要先拒绝残缺备份，别把能用的版本换掉。
+  await assert.rejects(
+    () => manager.performRollback({ version: '0.9.0', path: broken }, '0.9.1'),
+    /备份 v0\.9\.0 不完整/
+  )
+  assert.equal(readVersion(target), '0.9.1')
+  assert.ok(fs.existsSync(broken))
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
+test('a failed swap restores the installed version and keeps the rollback backup', async () => {
+  const { parent, target } = rollbackTarget('0.9.1')
+  const backup = backupDir(parent, '0.9.0')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.1', allowSourceTarget: true }
+  )
+  const original = manager.validatePackage.bind(manager)
+  let calls = 0
+  manager.validatePackage = async (...args) => {
+    calls += 1
+    // 第一次校验备份，第二次校验换过去的目录：模拟交换后校验失败。
+    if (calls === 2) throw new Error('模拟校验失败')
+    return original(...args)
+  }
+  manager.startRollback()
+  const job = await manager.whenIdle()
+  assert.equal(job.state, 'error')
+  assert.match(job.error, /回退失败：模拟校验失败/)
+  assert.equal(readVersion(target), '0.9.1')
+  assert.equal(readVersion(backup), '0.9.0')
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
+test('rollback rejects an unknown version and lists what is available', async () => {
+  const { parent, target } = rollbackTarget('0.9.1')
+  backupDir(parent, '0.9.0')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.1', allowSourceTarget: true }
+  )
+  assert.throws(() => manager.startRollback('0.9.9'), (error) => {
+    assert.equal(error.code, 'no-rollback')
+    assert.match(error.message, /没有 v0\.9\.9/)
+    assert.match(error.message, /v0\.9\.0/)
+    return true
+  })
+  assert.equal(readVersion(target), '0.9.1')
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
+test('a source checkout refuses to roll back the installed copy', async () => {
+  const { parent, target } = rollbackTarget('0.9.1')
+  backupDir(parent, '0.9.0')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.1' }
+  )
+  assert.equal(manager.status().rollback.available.length, 1)
+  assert.equal(manager.status().rollback.canRollback, false)
+  assert.throws(() => manager.startRollback(), (error) => error.code === 'target-source')
+
+  await cleanupTarget(target)
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
 })
 
 function sha256(buffer) {

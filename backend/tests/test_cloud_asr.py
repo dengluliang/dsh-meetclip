@@ -18,6 +18,9 @@ import numpy as np
 
 TASK_DATA = tempfile.TemporaryDirectory(prefix="meetclip-cloud-tests-")
 os.environ["ZHIBO_DATA_DIR"] = TASK_DATA.name
+# 插件不再内置网关地址与模型，测试显式给一份示例配置。
+os.environ.setdefault("MEETCLIP_ASR_BASE_URL", "https://gateway.example.test/v1")
+os.environ.setdefault("MEETCLIP_ASR_MODEL", "demo-asr")
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 import asr_engines as engines
 import cloud_transcription as cloud
@@ -44,7 +47,7 @@ def sse(text="你好", finish="stop"):
 class CloudTests(unittest.TestCase):
     def setUp(self):
         self.config = engines.default_config("mimo")
-        self.provider = engines.MiMoProvider(self.config)
+        self.provider = engines.CloudASRProvider(self.config)
         self.key_patch = patch.object(engines, "credential", return_value="test-key")
         self.key_patch.start()
         self.events = []
@@ -337,7 +340,7 @@ class CloudTests(unittest.TestCase):
         task._push_chunk([np.ones(16000, dtype=np.int16) * 1000], [1000], 0)
         self.assertIsInstance(task._asr_q.queue[0], str)
         task._asr_q.put(None)
-        with patch.object(engines.MiMoProvider, "recognize", return_value=engines.Recognition("尾段")):
+        with patch.object(engines.CloudASRProvider, "recognize", return_value=engines.Recognition("尾段")):
             task._asr_worker()
         self.assertIsNone(task._asr_error)
         self.assertEqual(database.db.get_transcripts(sid)[0]["text"], "尾段")
@@ -351,7 +354,7 @@ class CloudTests(unittest.TestCase):
         done = cloud.save_chunk(sid, run, 0, self.audio)
         with patch.object(self.provider, "recognize", return_value=engines.Recognition("已有新段")):
             cloud.recognize(sid, run, done, self.provider, self.cancel, self.emit)
-        with patch.object(engines.MiMoProvider, "recognize", return_value=engines.Recognition("续段")) as infer:
+        with patch.object(engines.CloudASRProvider, "recognize", return_value=engines.Recognition("续段")) as infer:
             rows = cloud.transcribe_file(task, wav, self.config)
         self.assertEqual(rows[0][2], "已有新段")
         self.assertEqual(infer.call_count, len(rows) - 1)
@@ -366,7 +369,7 @@ class CloudTests(unittest.TestCase):
         done = cloud.save_chunk(sid, run, 0, self.audio)
         with patch.object(self.provider, "recognize", return_value=engines.Recognition("云端。")):
             cloud.recognize(sid, run, done, self.provider, self.cancel, self.emit)
-        with patch.object(engines.MiMoProvider, "recognize", return_value=engines.Recognition("云端。")):
+        with patch.object(engines.CloudASRProvider, "recognize", return_value=engines.Recognition("云端。")):
             rows = cloud.transcribe_file(task, wav, self.config)
         self.assertEqual("".join(r[2] for r in rows), "云端。")
         self.assertEqual(rows[0][3], None)
@@ -382,7 +385,7 @@ class CloudTests(unittest.TestCase):
         for index in range(240):
             task._push_chunk([block], [1000], index * len(block))
         task._asr_q.put(None)
-        with patch.object(engines.MiMoProvider, "recognize", return_value=engines.Recognition("模拟直播")) as infer:
+        with patch.object(engines.CloudASRProvider, "recognize", return_value=engines.Recognition("模拟直播")) as infer:
             task._asr_worker()
         self.assertEqual(infer.call_count, 240)
         self.assertEqual(len(database.db.get_transcripts(sid)), 240)
@@ -391,12 +394,19 @@ class CloudTests(unittest.TestCase):
         self.assertIsNone(task._asr_error)
 
     def test_configuration_does_not_leak_key_and_old_records_remain_local(self):
-        response = self.client.post("/api/asr/engines", json={"provider": "mimo", "api_key": "sensitive-test-key"})
+        # 服务地址不再是内置常量：不填就明确拒绝，填了才保存。
+        missing = self.client.post("/api/asr/engines", json={"provider": "mimo", "api_key": "sensitive-test-key"})
+        self.assertEqual(missing.status_code, 400)
+        self.assertIn("Base URL", missing.text)
+        response = self.client.post("/api/asr/engines", json={
+            "provider": "mimo", "base_url": "https://gateway.example.test/v1",
+            "model": "demo-asr", "api_key": "sensitive-test-key"
+        })
         self.assertEqual(response.status_code, 200, response.text)
         self.assertNotIn("sensitive-test-key", response.text)
         self.assertNotIn("sensitive-test-key", settings.PATH.read_text())
         self.assertEqual(engines.session_config({})["provider"], "local")
-        self.assertFalse(engines.MiMoProvider.capabilities.audio_streaming)
+        self.assertFalse(engines.CloudASRProvider.capabilities.audio_streaming)
         for url in ["http://example.com", "https://user:password@example.com", "https://example.com?v=secret"]:
             self.assertEqual(self.client.post("/api/asr/engines", json={"provider": "mimo", "base_url": url}).status_code, 400)
 
@@ -408,7 +418,7 @@ class CloudTests(unittest.TestCase):
         task = meeting.MeetingTask(sid, params={})
         def extract(source, target):
             target.write_bytes(source.read_bytes())
-        with patch.dict(capture.DEPS, {"ffmpeg": "/usr/bin/true"}), patch.object(task, "_extract_audio", side_effect=extract), patch.object(asr.manager, "is_ready", return_value=False), patch.object(engines.MiMoProvider, "recognize", return_value=engines.Recognition("云端会议")):
+        with patch.dict(capture.DEPS, {"ffmpeg": "/usr/bin/true"}), patch.object(task, "_extract_audio", side_effect=extract), patch.object(asr.manager, "is_ready", return_value=False), patch.object(engines.CloudASRProvider, "recognize", return_value=engines.Recognition("云端会议")):
             task._run()
         self.assertEqual(database.db.get_session(sid)["status"], "done")
         self.assertEqual(database.db.get_transcripts(sid)[0]["text"], "云端会议")
@@ -423,7 +433,7 @@ class CloudTests(unittest.TestCase):
         task = meeting.MeetingTask(sid, params={})
         def extract(source, target):
             target.write_bytes(source.read_bytes())
-        with patch.dict(capture.DEPS, {"ffmpeg": "/usr/bin/true"}), patch.object(task, "_extract_audio", side_effect=extract), patch.object(engines.MiMoProvider, "recognize", side_effect=engines.ProviderError("无权限", fatal=True)):
+        with patch.dict(capture.DEPS, {"ffmpeg": "/usr/bin/true"}), patch.object(task, "_extract_audio", side_effect=extract), patch.object(engines.CloudASRProvider, "recognize", side_effect=engines.ProviderError("无权限", fatal=True)):
             task._run()
         self.assertEqual(database.db.get_session(sid)["status"], "error")
         self.assertEqual(database.db.get_transcripts(sid)[0]["text"], "旧转录")

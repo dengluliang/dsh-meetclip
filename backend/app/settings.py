@@ -10,9 +10,10 @@ PATH = SHARED_DIR / "settings.json"
 COOKIE_BROWSERS = ("chrome", "safari", "firefox", "edge", "brave", "chromium")
 DEFAULTS = {
     "asr_provider": "mimo",
-    "mimo_base_url": "https://api.llm.mioffice.cn/v1",
-    "mimo_model": "xiaomi/mimo-v2.5-asr",
-    # 语音转文字的自定义 API（留空表示使用 Mify 默认）
+    # 默认网关地址与模型不预置，由用户在设置 →模型里填写自己的 OpenAI 兼容服务。
+    "mimo_base_url": "",
+    "mimo_model": "",
+    # 语音转文字的自定义 API（留空表示使用上方默认网关）
     "asr_custom_base": "",
     "asr_custom_model": "",
     "shot_sensitivity": 0.6,
@@ -22,7 +23,7 @@ DEFAULTS = {
     "link_max_height": 0,
     # ---- AI 纪要（文本模型与 ASR 是两回事，可以指向不同服务） ----
     "ai_provider": "mimo",
-    "ai_base_url": "",          # 空 = 用供应商默认地址（Mify 网关照旧）
+    "ai_base_url": "",          # 空 = 用上方默认网关地址
     "ai_text_model": "",        # 空 = 用供应商推荐模型
     "minutes_auto": "final",    # off 不开 | final 结束时生成一次 | live 边录边更新
     "minutes_interval": 120,    # live 模式下的最小更新间隔（秒）

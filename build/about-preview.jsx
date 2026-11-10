@@ -82,6 +82,10 @@ const base = {
   },
   updateAvailable: true,
   lastCheckAt: now,
+  rollback: {
+    available: [{ version: '0.8.11', at: now - 172_800_000, direction: 'older' }],
+    canRollback: true
+  },
   job: null
 }
 
@@ -119,6 +123,55 @@ function snapshot() {
         state: 'done', phase: '已是最新版本', percent: null,
         received: 0, total: 0, speed: 0, version: '0.9.0', error: '',
         message: '当前 v0.9.0 已经是最新版本', startedAt: now, updatedAt: now, finishedAt: now
+      }
+    }
+  }
+  if (state === 'rollback') {
+    return {
+      ...base,
+      job: {
+        state: 'installing', phase: '回退中', kind: 'rollback', percent: null,
+        received: 0, total: 0, speed: 0, version: '0.9.0', error: '',
+        message: '把 v0.9.0 的备份换回插件目录…',
+        startedAt: now, updatedAt: now, finishedAt: 0
+      }
+    }
+  }
+  if (state === 'rollback-done') {
+    return {
+      ...base,
+      installedVersion: '0.9.0',
+      restartRequired: true,
+      restartDirection: 'rollback',
+      updateAvailable: false,
+      rollback: {
+        available: [{ version: '0.9.1', at: now, direction: 'newer' }],
+        canRollback: true
+      },
+      job: {
+        state: 'done', phase: '回退完成', kind: 'rollback', percent: 100,
+        received: 0, total: 0, speed: 0, version: '0.9.0', error: '',
+        message: '已回退到 v0.9.0，重启 DeepSeek Harness 后生效',
+        startedAt: now, updatedAt: now, finishedAt: now
+      }
+    }
+  }
+  if (state === 'rollback-none') {
+    return {
+      ...base,
+      rollback: { available: [], canRollback: false }
+    }
+  }
+  if (state === 'rollback-ready' || state === 'rollback-confirm') {
+    return {
+      ...base,
+      installedVersion: '0.9.1',
+      restartRequired: true,
+      restartDirection: 'update',
+      updateAvailable: false,
+      rollback: {
+        available: [{ version: '0.9.0', at: now - 86_400_000, direction: 'older' }],
+        canRollback: true
       }
     }
   }
@@ -160,3 +213,10 @@ function Frame() {
 }
 
 createRoot(document.getElementById('root')).render(<Frame />)
+
+if (state === 'rollback-confirm') {
+  setTimeout(() => {
+    const button = document.querySelector('[data-action="rollback"]')
+    if (button) button.click()
+  }, 50)
+}

@@ -45,32 +45,32 @@ const json = (data) => ({ ok: true, status: 200, text: async () => JSON.stringif
 window.fetch = async (url) => {
   const target = String(url)
   if (target.includes('/api/asr/engines/test')) {
-    return json({ ok: true, model: 'xiaomi/mimo-v2.5-asr', base_url: 'https://api.llm.mioffice.cn/v1',
+    return json({ ok: true, model: 'demo-asr', base_url: 'https://gateway.example.test/v1',
       message: '已完成 1 秒测试音频请求；识别效果与直播延迟需使用真实音频验证', metrics: {}, capabilities: {} })
   }
   if (target.includes('/api/ai/test')) {
-    return json({ ok: true, seconds: 0.42, provider: 'mimo', model: 'mimo-v2.6-flash',
-      wire_model: 'xiaomi/mimo-v2.6-flash', base_url: 'https://api.llm.mioffice.cn/v1' })
+    return json({ ok: true, seconds: 0.42, provider: 'mimo', model: 'demo-flash',
+      wire_model: 'demo-flash', base_url: 'https://gateway.example.test/v1' })
   }
   if (target.includes('/api/asr/engines')) {
     return json({
-      default_provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1',
-      model: 'xiaomi/mimo-v2.5-asr', mify_model: 'xiaomi/mimo-v2.5-asr',
-      mify_has_key: true, has_api_key: true, has_key: true, credential_error: '', ready: true,
+      default_provider: 'mimo', base_url: 'https://gateway.example.test/v1',
+      model: 'demo-asr', default_model: 'demo-asr',
+      default_has_key: true, has_api_key: true, has_key: true, credential_error: '', ready: true,
       custom: { base_url: '', enabled: false, has_key: false, model: '' }, providers: []
     })
   }
   if (target.includes('/api/ai/status')) {
     return json({
-      provider: 'mimo', provider_name: 'Mify（MiMo）', base_url: 'https://api.llm.mioffice.cn/v1',
-      model: 'mimo-v2.6-flash', has_key: true, own_key: false, key_masked: 'sk-••••••••••••AJ2g',
+      provider: 'mimo', provider_name: '默认网关（OpenAI 兼容）', base_url: 'https://gateway.example.test/v1',
+      model: 'demo-flash', has_key: true, own_key: false, key_masked: 'sk-••••••••••••AJ2g',
       credential_error: '', json_mode: true, providers: [], minutes_auto: 'final', minutes_interval: 120,
       notes_language: '简体中文', minutes_language: '简体中文', auto_end_silence: 'prompt',
       auto_end_after: 600, languages: ['简体中文']
     })
   }
   if (target.includes('/api/models/catalog')) {
-    return json({ models: ['xiaomi/mimo-v2.5-asr', 'mimo-v2.6-flash', 'mimo-v2.6-pro', 'deepseek-v3.1'],
+    return json({ models: ['demo-asr', 'demo-flash', 'mimo-v2.6-pro', 'deepseek-v3.1'],
       count: 4, has_key: true, error: '' })
   }
   return json({ detail: `未模拟：${target}` })

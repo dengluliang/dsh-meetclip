@@ -22,6 +22,7 @@ export function Panel({ t }) {
   const [newInitialUrl, setNewInitialUrl] = React.useState('')
   const [newInitialKind, setNewInitialKind] = React.useState('')
   const [batchFocus, setBatchFocus] = React.useState(null)
+  const [packFocus, setPackFocus] = React.useState(null)
   const [homeRevision, setHomeRevision] = React.useState(0)
   const [searchOpen, setSearchOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState('')
@@ -205,6 +206,24 @@ export function Panel({ t }) {
       }
       return
     }
+    if (payload && typeof payload === 'object' && Array.isArray(payload.ids)) {
+      setView('home')
+      const summary = payload.summary || {}
+      const parts = [`已导入 ${payload.ids.length} 个文件`]
+      if (payload.pack?.title) parts.push(`已收进「${payload.pack.title}」`)
+      if (payload.pack_error) parts.push(`卡包创建失败：${payload.pack_error}`)
+      const failedNames = (Array.isArray(payload.results) ? payload.results : [])
+        .filter((row) => !row.ok)
+        .map((row) => row.name || row.title)
+        .filter(Boolean)
+      if (summary.failed) {
+        const shown = failedNames.slice(0, 2).join('、')
+        parts.push(`${summary.failed} 个失败${shown ? `：${shown}${failedNames.length > 2 ? ' 等' : ''}` : ''}`)
+      }
+      setNotice(parts.join('，'))
+      if (payload.pack?.id) setPackFocus({ id: payload.pack.id, nonce: Date.now() })
+      return
+    }
     const id = payload && typeof payload === 'object' ? payload.id : payload
     if (!id) return
     const summary = payload && typeof payload === 'object' ? payload.summary : null
@@ -299,6 +318,8 @@ export function Panel({ t }) {
           onCaptureCreated={handleCaptureCreated}
           batchFocus={batchFocus}
           onBatchFocusHandled={() => setBatchFocus(null)}
+          packFocus={packFocus}
+          onPackFocusHandled={() => setPackFocus(null)}
           library={activeLibrary}
           dataDir={data?.locations?.dataDirCanonical || data?.locations?.dataDir || data?.library?.dataDir || ''}
         />

@@ -39,6 +39,25 @@
   white-space: nowrap;
 }
 
+.mc-about-rollback-select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mc-rollback-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mc-rollback-confirm .mc-actions { margin-top: 0; }
+
+.mc-rollback-confirm .mc-about-warning strong {
+  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 550;
+}
+
 .mc-link-button {
   padding: 0;
   border: 0;

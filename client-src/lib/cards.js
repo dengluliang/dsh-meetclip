@@ -44,14 +44,19 @@ export function cardMention(path) {
 }
 
 /** 一张卡片 → inputTriggers 候选行。 */
+const CARD_KINDS = ['meeting', 'link_video', 'live', 'doc', 'pack', 'note', 'highlight', 'image', 'batch']
+
 export function cardCandidate(card, t, locale) {
   if (!card || !card.id || !card.title || !card.path) return null
-  const kind = ['meeting', 'link_video', 'live', 'doc'].includes(card.kind) ? card.kind : 'live'
+  const kind = CARD_KINDS.includes(card.kind) ? card.kind : 'live'
   const active = ['pending', 'queued', 'recording', 'processing'].includes(card.status)
   const bits = []
   if (active) bits.push(t('list.active'))
   bits.push(t(`kind.${kind}`))
   if (kind === 'doc' && card.has_content === false) bits.push(t('cards.linkOnly'))
+  if (kind === 'pack') bits.push(`${Number(card.count) || 0} ${t('cards.cardsUnit')}`)
+  if (kind === 'batch' && Number(card.count) > 0) bits.push(`${Number(card.count)} ${t('cards.itemsUnit')}`)
+  if (kind === 'highlight' && card.session_title) bits.push(String(card.session_title).slice(0, 40))
   const stamp = card.updated_at || card.started_at || card.created_at
   if (stamp) bits.push(dateTime(stamp, localeId(locale)))
   if (Number(card.duration) > 0) bits.push(clock(card.duration))

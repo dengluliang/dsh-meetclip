@@ -82,7 +82,7 @@ def _export_meeting(sess, out_dir=None):
         lines.append(f"- 平台：{sess.get('platform') or '-'}")
         if meta.get("transcription_source"):
             kind = {"automatic": "自动字幕", "translated": "自动翻译字幕"}.get(meta.get("subtitle_kind"), "人工字幕")
-            lines.append(f"- 转写来源：{'平台' + kind if meta['transcription_source'] == 'subtitle' else 'MiMo 云端 ASR' if (meta.get('asr_engine') or {}).get('provider') == 'mimo' else '本地 ASR'}")
+            lines.append(f"- 转写来源：{'平台' + kind if meta['transcription_source'] == 'subtitle' else '云端 ASR' if (meta.get('asr_engine') or {}).get('provider') == 'mimo' else '本地 ASR'}")
             if meta.get("subtitle_kind") == "translated" and meta.get("subtitle_source_language"):
                 lines.append(f"- 字幕翻译来源语言：{meta['subtitle_source_language']}")
     if sess.get("started_at"):

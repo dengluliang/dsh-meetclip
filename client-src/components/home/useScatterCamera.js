@@ -44,28 +44,39 @@ function cancelFrame(id) {
   else clearTimeout(id)
 }
 
-export function useScatterCamera({ stageRef, worldRef }) {
+// 点阵层比舞台大一圈，平移时用「与格距同模」的位移把图案接回去（图案周期就是格距，看不出跳），
+// 于是每帧只改合成层的 transform，不再重绘整屏背景，也不会让舞台整棵子树重算样式。
+const GRID_EDGE = 64
+
+export function useScatterCamera({ stageRef, worldRef, gridRef }) {
   const cam = React.useRef({
     x: 0, y: 0, s: 1,
     tx: 0, ty: 0, ts: 1,
     vx: 0, vy: 0, vs: 0,
     stiffness: 90, damping: 17,
+    gridSpan: 0,
     raf: 0
   })
 
   const apply = React.useCallback(() => {
     const current = cam.current
     const world = worldRef?.current
-    const stage = stageRef?.current
+    const grid = gridRef?.current
     if (world?.style) {
       world.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) scale(${current.s})`
     }
-    if (stage?.style && typeof stage.style.setProperty === 'function') {
-      stage.style.setProperty('--grid-x', `${current.x}px`)
-      stage.style.setProperty('--grid-y', `${current.y}px`)
-      stage.style.setProperty('--grid-size', `${GRID * current.s}px`)
+    if (grid?.style) {
+      const span = GRID * (current.s > 0 ? current.s : 1)
+      // 只在缩放变化时换格距（换格距才会重绘点阵），平移永远只动 transform。
+      if (current.gridSpan !== span) {
+        current.gridSpan = span
+        grid.style.setProperty('--grid-size', `${span}px`)
+      }
+      const gx = ((current.x + GRID_EDGE) % span + span) % span
+      const gy = ((current.y + GRID_EDGE) % span + span) % span
+      grid.style.transform = `translate3d(${gx}px, ${gy}px, 0)`
     }
-  }, [stageRef, worldRef])
+  }, [stageRef, worldRef, gridRef])
 
   const tick = React.useCallback(() => {
     const current = cam.current

@@ -1,10 +1,14 @@
 import {
-  addLinks, createSession, deps, importMeeting, listSessions, meetingOptions, pickFile,
+  addLinks, createSession, deps, importMeeting, importMeetings, listSessions, meetingOptions, pickFile,
   precheckLive, previewLink, startSession, uploadFile
 } from '../lib/api.js'
 import { bytes, clock, dateTime, duration } from '../lib/format.js'
 import { DocCardForm } from './capture/DocCardForm.jsx'
 import { MAX_BATCH_LINKS, parseLinks, platformLabel, skipSummary } from '../lib/links.js'
+import {
+  MAX_MEETING_FILES, batchImportBody, defaultPackTitle, filesFromPaths, mediaKind,
+  mergeMeetingFiles, singleImportBody, titleFromName
+} from '../lib/meetingFiles.js'
 
 const KINDS = ['launch', 'video', 'meeting', 'doc']
 
@@ -523,130 +527,296 @@ function VideoEntry({ t, entry, removable, onRemove, onChangeTrack, onChangeMode
   )
 }
 
-export function MeetingForm({ t, options, optionsError, initialFile = null, onClose, onCreated }) {
-  const [file, setFile] = React.useState(initialFile)
-  const [uploading, setUploading] = React.useState(0)
-  const [dragging, setDragging] = React.useState(false)
-  const [title, setTitle] = React.useState(() => initialFile?.name ? initialFile.name.replace(/\.[^.]+$/, '') : '')
+export function MeetingForm({ t, options, optionsError, initialFile = null, initialFiles = null, onClose, onCreated }) {
+  const [files, setFiles] = React.useState(() => initialMeetingFiles(initialFiles, initialFile))
+  const [title, setTitle] = React.useState(() => {
+    const initial = initialMeetingFiles(initialFiles, initialFile)
+    return initial.length === 1 ? titleFromName(initial[0].name) : ''
+  })
+  const [packTitle, setPackTitle] = React.useState('')
   const [language, setLanguage] = React.useState('')
+  const [dragging, setDragging] = React.useState(false)
+  const [notice, setNotice] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState('')
+  const [result, setResult] = React.useState(null)
 
   const asrReady = options?.asr_ready !== false
-  const MEDIA_EXT = ['mp4', 'mov', 'mkv', 'flv', 'webm', 'm4v', 'ts', 'mp3', 'm4a', 'wav', 'aac', 'flac', 'ogg', 'opus']
+  const busyUploading = files.some((file) => file.status === 'uploading')
+  const multi = files.length > 1
+  const ready = files.length > 0 && files.every((file) => file.status === 'ready' && file.path)
+  const canSubmit = ready && !busyUploading && !submitting && asrReady
+
+  function patchFile(key, patch) {
+    setFiles((current) => current.map((file) => (file.key === key ? { ...file, ...patch } : file)))
+  }
+
+  function applyMerged(merged) {
+    setFiles(merged.files)
+    const messages = []
+    if (merged.rejected.length) messages.push(`已跳过不支持的文件：${merged.rejected.join('、')}`)
+    if (merged.duplicates) messages.push(`已跳过 ${merged.duplicates} 个重复文件`)
+    if (merged.overflow) messages.push(`单次最多 ${MAX_MEETING_FILES} 个文件，已忽略 ${merged.overflow} 个`)
+    setNotice(messages.join('；'))
+  }
 
   async function choose() {
+    if (busyUploading || submitting) return
     setError('')
+    setNotice('')
     try {
-      const result = await pickFile('media')
-      if (result?.ok && result.path) {
-        const name = result.path.split('/').pop()
-        setFile({ path: result.path, name })
-        if (!title) setTitle(name.replace(/\.[^.]+$/, ''))
-      } else if (result && !result.cancelled) {
-        setError(result.error || t('settings.pickFailed'))
+      const picked = await pickFile('media', { multiple: true })
+      const paths = Array.isArray(picked?.paths) && picked.paths.length
+        ? picked.paths
+        : (picked?.path ? [picked.path] : [])
+      if (!paths.length) {
+        if (picked && !picked.cancelled) setError(picked.error || t('settings.pickFailed'))
+        return
+      }
+      const merged = mergeMeetingFiles(files, filesFromPaths(paths))
+      applyMerged(merged)
+      if (!title.trim()) {
+        const first = merged.files.find((file) => file.path)
+        if (first && merged.files.length === 1) setTitle(titleFromName(first.name))
       }
     } catch (failure) {
       setError(failure?.message || String(failure))
     }
   }
 
-  async function upload(files) {
-    const chosen = files?.[0]
-    if (!chosen) return
-    const extension = String(chosen.name || '').split('.').pop()?.toLowerCase()
-    if (!MEDIA_EXT.includes(extension)) {
-      setError(`不支持的文件格式：.${extension || '未知'}`)
-      return
-    }
-    setUploading(0.001)
-    setError('')
+  async function uploadEntry(entry) {
+    patchFile(entry.key, { status: 'uploading', progress: 0, error: '' })
     try {
-      const result = await uploadFile(chosen, (ratio) => setUploading(ratio))
-      setFile({ path: result.path, name: result.name, bytes: result.bytes })
-      if (!title) setTitle((result.name || '').replace(/\.[^.]+$/, ''))
-      setUploading(0)
+      const uploaded = await uploadFile(entry.file, (ratio) => patchFile(entry.key, { progress: ratio }))
+      if (!uploaded?.path) throw new Error(t('new.uploadFailed'))
+      patchFile(entry.key, {
+        status: 'ready',
+        path: uploaded.path,
+        name: uploaded.name || entry.name,
+        bytes: uploaded.bytes || entry.bytes || 0,
+        progress: 1,
+        file: null,
+        error: ''
+      })
     } catch (failure) {
-      setUploading(0)
-      setError(failure?.message || String(failure))
+      patchFile(entry.key, {
+        status: 'error',
+        progress: 0,
+        error: failure?.message || String(failure)
+      })
     }
+  }
+
+  async function addUploads(rawFiles) {
+    if (!rawFiles.length) return
+    const stamp = Date.now()
+    const incoming = rawFiles.map((file, index) => ({
+      key: `drop:${stamp}:${index}:${file.name || ''}`,
+      file,
+      name: file.name || `文件 ${index + 1}`,
+      path: '',
+      bytes: Number(file.size) || 0,
+      status: 'pending',
+      progress: 0,
+      error: ''
+    }))
+    const before = new Set(files.map((file) => file.key))
+    const merged = mergeMeetingFiles(files, incoming)
+    applyMerged(merged)
+    const added = merged.files.filter((file) => file.file && !before.has(file.key))
+    if (!title.trim() && merged.files.length === 1 && added.length) {
+      setTitle(titleFromName(added[0].name))
+    }
+    for (const entry of added) {
+      await uploadEntry(entry)
+    }
+  }
+
+  function handleDrop(event) {
+    event.preventDefault()
+    setDragging(false)
+    if (busyUploading || submitting) return
+    const dropped = Array.from(event.dataTransfer?.files || [])
+    if (!dropped.length) return
+    addUploads(dropped)
+  }
+
+  function removeFile(key) {
+    setFiles((current) => current.filter((file) => file.key !== key))
+  }
+
+  function languageField() {
+    return (
+      <label className="mc-field mc-field-lang">
+        <span>{t('new.language')}</span>
+        <select className="mc-input mc-select" value={language} onChange={(event) => setLanguage(event.target.value)}>
+          <option value="">{t('new.auto')}</option>
+          {(options?.languages || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        </select>
+      </label>
+    )
   }
 
   async function submit() {
     setSubmitting(true)
     setError('')
+    setResult(null)
     try {
-      const created = await importMeeting({
-        path: file.path,
-        title: title.trim(),
-        language
+      if (files.length === 1) {
+        const created = await importMeeting(singleImportBody(files[0], { title, language }))
+        onCreated?.(created.id)
+        onClose?.()
+        return
+      }
+      const response = await importMeetings(batchImportBody(files, { language, packTitle }))
+      const rows = Array.isArray(response?.results) ? response.results : []
+      const okRows = rows.filter((row) => row.ok && row.id)
+      const failedRows = rows.filter((row) => !row.ok)
+      const ids = Array.isArray(response?.ids) && response.ids.length
+        ? response.ids
+        : okRows.map((row) => row.id).filter(Boolean)
+      if (!ids.length) {
+        setResult({ rows })
+        setError(t('new.noImported'))
+        return
+      }
+      onCreated?.({
+        ids,
+        pack: response?.pack || null,
+        pack_error: response?.pack_error || '',
+        results: rows,
+        summary: { added: ids.length, failed: failedRows.length }
       })
-      onCreated?.(created.id)
-      onClose()
+      onClose?.()
     } catch (failure) {
-      setError(failure?.message || String(failure))
+      const rows = failure?.data?.results
+      if (Array.isArray(rows) && rows.length) {
+        setResult({ rows })
+        setError(failure?.message || t('new.noImported'))
+      } else {
+        setError(failure?.message || String(failure))
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
-  const suffix = file?.name?.includes('.') ? file.name.split('.').pop().toUpperCase().slice(0, 4) : ''
-
   return (
     <div className="mc-new-form">
-      <div className="mc-file-field" data-filled={file ? 'true' : 'false'} data-drag={dragging ? 'true' : 'false'}
+      <p className="mc-card-text">
+        {multi
+          ? t('new.batchMeetingHint').replace('{n}', String(files.length))
+          : t('new.meetingHint')}
+      </p>
+      <div className="mc-file-field" data-filled={files.length ? 'true' : 'false'} data-drag={dragging ? 'true' : 'false'}
         title={t('new.meetingHint')}
         onDragOver={(event) => { event.preventDefault(); if (!dragging) setDragging(true) }}
         onDragLeave={(event) => { const next = event.relatedTarget; if (!next || !event.currentTarget.contains(next)) setDragging(false) }}
-        onDrop={(event) => { event.preventDefault(); setDragging(false); upload(event.dataTransfer?.files) }}>
+        onDrop={handleDrop}>
         <div className="mc-file-row">
-          {file ? (
+          {files.length ? (
             <>
-              <span className="mc-file-badge" aria-hidden="true">{suffix || 'FILE'}</span>
-              <span className="mc-file-name">{file.name}</span>
-              {file.bytes ? <span className="mc-file-size">{(file.bytes / 1024 / 1024).toFixed(1)} MB</span> : null}
-              <button type="button" className="mc-button mc-button-small" onClick={choose}>{t('new.replaceFile')}</button>
+              <span className="mc-file-hint">{t('new.filesSelected').replace('{n}', String(files.length))}</span>
+              <button type="button" className="mc-button mc-button-small" onClick={choose}
+                disabled={busyUploading || submitting}>{t('new.addFiles')}</button>
             </>
           ) : (
             <>
               <span className="mc-file-hint">{t('new.dropHint')}</span>
-              <button type="button" className="mc-button mc-button-small" onClick={choose}>{t('new.chooseFile')}</button>
+              <button type="button" className="mc-button mc-button-small" onClick={choose}
+                disabled={busyUploading || submitting}>{t('new.chooseFile')}</button>
             </>
           )}
         </div>
-        {uploading > 0 ? (
-          <div className="mc-file-upload">
-            <span className="mc-progress"><span style={{ width: `${Math.max(1, Math.min(100, uploading * 100))}%` }} /></span>
-            <span className="mc-file-upload-text">{t('new.uploadProgress').replace('{p}', String(Math.round(uploading * 100)))}</span>
-          </div>
+        {files.length ? (
+          <ul className="mc-file-list">
+            {files.map((file) => {
+              const kind = mediaKind(file.name)
+              const extension = file.name.includes('.') ? file.name.split('.').pop().toUpperCase().slice(0, 4) : ''
+              const percent = Math.round((file.progress || 0) * 100)
+              return (
+                <li key={file.key} className="mc-file-item" data-state={file.status}>
+                  <span className="mc-file-badge" aria-hidden="true">{extension || 'FILE'}</span>
+                  <span className="mc-file-name" title={file.name}>{file.name}</span>
+                  <span className="mc-file-size">
+                    {kind === 'video' ? t('new.videoFile') : t('new.audioFile')}
+                    {file.bytes ? ` · ${(file.bytes / 1024 / 1024).toFixed(1)} MB` : ''}
+                  </span>
+                  {file.status === 'uploading' ? (
+                    <span className="mc-file-progress">
+                      <span className="mc-progress"><span style={{ width: `${Math.max(1, Math.min(100, percent))}%` }} /></span>
+                      <em>{percent}%</em>
+                    </span>
+                  ) : null}
+                  {file.status === 'error' ? (
+                    <span className="mc-file-error" title={file.error}>{file.error || t('new.uploadFailed')}</span>
+                  ) : null}
+                  <button type="button" className="mc-file-remove" aria-label={t('new.removeFile')} title={t('new.removeFile')}
+                    disabled={busyUploading || submitting} onClick={() => removeFile(file.key)}>×</button>
+                </li>
+              )
+            })}
+          </ul>
         ) : null}
+        {notice ? <div className="mc-file-note" role="status">{notice}</div> : null}
       </div>
 
       <div className="mc-field-pair">
         <label className="mc-field mc-field-grow">
-          <span>{t('new.titleLabel')}</span>
-          <input className="mc-input" value={title} placeholder={t('new.titlePlaceholder')} onChange={(event) => setTitle(event.target.value)} />
+          <span>{multi ? t('new.packTitle') : t('new.titleLabel')}</span>
+          {multi ? (
+            <input className="mc-input" value={packTitle} maxLength={80}
+              placeholder={defaultPackTitle()} onChange={(event) => setPackTitle(event.target.value)} />
+          ) : (
+            <input className="mc-input" value={title} placeholder={t('new.titlePlaceholder')}
+              onChange={(event) => setTitle(event.target.value)} />
+          )}
         </label>
-        <label className="mc-field mc-field-lang">
-          <span>{t('new.language')}</span>
-          <select className="mc-input mc-select" value={language} onChange={(event) => setLanguage(event.target.value)}>
-            <option value="">{t('new.auto')}</option>
-            {(options?.languages || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-          </select>
-        </label>
+        {languageField()}
       </div>
 
       {!asrReady ? <div className="mc-error-text">{t('new.asrNotReady')}</div> : null}
       {optionsError ? <div className="mc-error-text">{optionsError}</div> : null}
       {error ? <div className="mc-error-text" role="alert">{error}</div> : null}
+      {result?.rows?.length ? (
+        <div className="mc-result-list">
+          {result.rows.map((row, index) => (
+            <div key={index} className="mc-result-row">
+              <span className={row.ok ? 'mc-ok-text' : 'mc-error-text'}>{row.ok ? '✓' : '×'}</span>
+              <span className="mc-result-title">{row.title || row.name || row.path || `文件 ${index + 1}`}</span>
+              <span>{row.ok ? t('new.queueAdded') : row.message}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="mc-modal-actions">
         <button type="button" className="mc-button" onClick={onClose}>{t('new.cancel')}</button>
         <button type="button" className="mc-button" data-variant="primary" data-new-submit="true"
-          disabled={!file || submitting || uploading > 0 || !asrReady} onClick={submit}>
-          {submitting ? t('new.checking') : t('new.submit')}
+          disabled={!canSubmit} onClick={submit}>
+          {submitting
+            ? t('new.checking')
+            : multi ? t('new.importBatch').replace('{n}', String(files.length)) : t('new.submit')}
         </button>
       </div>
     </div>
   )
+}
+
+function initialMeetingFiles(initialFiles, initialFile) {
+  const source = Array.isArray(initialFiles) && initialFiles.length
+    ? initialFiles
+    : (initialFile ? [initialFile] : [])
+  const entries = source
+    .map((file, index) => {
+      const path = typeof file === 'string' ? file : file?.path
+      if (!path) return null
+      return {
+        ...filesFromPaths([path])[0],
+        key: `path:${path}:${index}`,
+        bytes: typeof file === 'object' ? Number(file?.bytes) || 0 : 0
+      }
+    })
+    .filter(Boolean)
+  return mergeMeetingFiles([], entries).files
 }

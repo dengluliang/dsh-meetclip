@@ -75,12 +75,12 @@ if (invalid) {
   window.fetch = async (url) => {
     const target = String(url)
     if (target.includes('/ai/status')) {
-      return json({ provider: 'mimo', provider_name: 'Mify（MiMo）', base_url: 'https://api.llm.mioffice.cn/v1',
-        model: 'mimo-v2.6-flash', has_key: true, own_key: false, key_masked: 'sk-••••••••••••AJ2g', credential_error: '' })
+      return json({ provider: 'mimo', provider_name: '默认网关（OpenAI 兼容）', base_url: 'https://gateway.example.test/v1',
+        model: 'demo-flash', has_key: true, own_key: false, key_masked: 'sk-••••••••••••AJ2g', credential_error: '' })
     }
     if (target.includes('/ai/check')) {
       return json({ ok: false, kind: 'invalid_key', message: 'AI Key 无效或无模型权限',
-        provider: 'mimo', model: 'mimo-v2.6-flash' })
+        provider: 'mimo', model: 'demo-flash' })
     }
     return json({ detail: 'not mocked' })
   }

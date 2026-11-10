@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import shutil
 import time
 import unittest
 from unittest.mock import patch
@@ -47,9 +48,7 @@ class HomeFeedTests(unittest.TestCase):
         self.db.execute("DELETE FROM doc_cards")
         card_dir = Path(self.data.name) / "会摘卡片"
         if card_dir.exists():
-            for item in card_dir.iterdir():
-                item.unlink()
-            card_dir.rmdir()
+            shutil.rmtree(card_dir, ignore_errors=True)
 
     def session(self, title, kind="live", status="done", duration=60, notes="", cover=True):
         sid = uuid.uuid4().hex[:12]

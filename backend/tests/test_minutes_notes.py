@@ -44,6 +44,8 @@ class MinutesNotesTests(unittest.TestCase):
         cls.environment = patch.dict(os.environ, {
             "ZHIBO_DATA_DIR": cls.data.name,
             "MEETCLIP_AI_KEY": "test-key",
+            "MEETCLIP_AI_BASE_URL": "https://gateway.example.test/v1",
+            "MEETCLIP_AI_MODEL": "demo-text",
             "MEETCLIP_AI_SPACING": "0",
         })
         cls.environment.start()

@@ -27,8 +27,10 @@ export function SettingsFeishu() {
   const auth = status?.auth || {}
   const installed = Boolean(dsh.entryPresent)
   const signedIn = Boolean(auth.loggedIn)
+  const pkg = status?.package || {}
+  const pkgReady = Boolean(pkg.configured)
   const disabled = Boolean(busy) || running
-  const canInstall = Boolean(status) && runtime.npxOk && !dsh.conflict
+  const canInstall = Boolean(status) && runtime.npxOk && !dsh.conflict && pkgReady
 
   let primary = null
   if (status && !installed) {
@@ -76,6 +78,13 @@ export function SettingsFeishu() {
 
         {status && !installed && canInstall ? (
           <p className="mc-feishu-note">安装后 Agent 就能读写飞书文档、多维表格、云盘与 Wiki。</p>
+        ) : null}
+        {status && !pkgReady ? (
+          <p className="mc-feishu-note" data-tone="warn">
+            本插件不内置飞书 MCP 包：请在 cordis.patch.yml 的 meetclip config 里填
+            {' '}<code>feishuPackage</code> 与 <code>feishuRegistry</code>，或设置环境变量
+            {' '}<code>MEETCLIP_FEISHU_PACKAGE</code> / <code>MEETCLIP_FEISHU_REGISTRY</code>。
+          </p>
         ) : null}
         {summary.detail ? <p className="mc-feishu-note" data-tone={summary.tone}>{summary.detail}</p> : null}
         {notice ? <p className="mc-feishu-note" role="status">{notice}</p> : null}

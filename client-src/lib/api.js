@@ -45,9 +45,15 @@ export function listSessions() {
 }
 
 /** @ 菜单的会摘卡片：q 匹配标题与卡片摘要关键词。 */
-export function listCards(query = '', { signal } = {}) {
-  const params = new URLSearchParams({ q: String(query || ''), limit: '20' })
+export function listCards(query = '', { signal, id = '', limit = 20 } = {}) {
+  const params = new URLSearchParams({ q: String(query || ''), limit: String(limit) })
+  if (id) params.set('id', String(id))
   return api(`/cards?${params.toString()}`, { signal })
+}
+
+/** 把记录/文档/便利签/标记/图片/批次/卡包落成可 @ 的 Markdown 卡片。 */
+export function syncCards(force = false) {
+  return api(`/cards/sync${force ? '?force=1' : ''}`, { method: 'POST', body: JSON.stringify({}) })
 }
 
 export function homeFeed({ limit = 60, offset = 0 } = {}) {
@@ -167,6 +173,10 @@ export function importMeeting(body) {
   return api('/meetings/import', { method: 'POST', body: JSON.stringify(body) })
 }
 
+export function importMeetings(body) {
+  return api('/meetings/import-batch', { method: 'POST', body: JSON.stringify(body) })
+}
+
 export function retryLink(id) {
   return api(`/link-videos/${encodeURIComponent(id)}/retry`, { method: 'POST', body: '{}' })
 }
@@ -251,8 +261,8 @@ export function testAsrEngine(probe) {
   return api('/asr/engines/test', { method: 'POST', body: JSON.stringify(probe || {}) })
 }
 
-export function pickFile(kind = 'media') {
-  return app('/pick-file', { method: 'POST', body: JSON.stringify({ kind }) })
+export function pickFile(kind = 'media', { multiple = false } = {}) {
+  return app('/pick-file', { method: 'POST', body: JSON.stringify({ kind, multiple: Boolean(multiple) }) })
 }
 
 export function uploadFile(file, onProgress) {
@@ -381,6 +391,43 @@ export function boardImageUrl(id) {
 
 export function deleteBoardImage(id) {
   return api(`/board/images/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+export function createPack(body) {
+  return api('/packs', { method: 'POST', body: JSON.stringify(body) })
+}
+
+export function getPack(id) {
+  return api(`/packs/${encodeURIComponent(id)}`)
+}
+
+export function renamePack(id, title) {
+  return api(`/packs/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify({ title }) })
+}
+
+export function addPackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: 'POST',
+    body: JSON.stringify({ members })
+  })
+}
+
+export function removePackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: 'DELETE',
+    body: JSON.stringify({ members })
+  })
+}
+export function reorderPackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: 'PATCH',
+    body: JSON.stringify({ members })
+  })
+}
+
+
+export function deletePack(id) {
+  return api(`/packs/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 export function testMimoKey(apiKey, { baseUrl, model } = {}) {
@@ -625,6 +672,14 @@ export function updateCheck({ autoInstall = true } = {}) {
 /** 安装已经检查到的最新版本。 */
 export function updateInstall() {
   return app('/update', { method: 'POST', body: JSON.stringify({ action: 'install' }) })
+}
+
+/** 把更新器留下的某个旧版本备份换回安装目录；不传版本时用最近的一份。 */
+export function updateRollback(version = '') {
+  return app('/update', {
+    method: 'POST',
+    body: JSON.stringify({ action: 'rollback', version: String(version || '') })
+  })
 }
 
 export function updateCancel() {

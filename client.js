@@ -2797,6 +2797,68 @@ var styles_default = `.mc-root {
 .mc-file-upload .mc-progress { flex: 1 1 auto; }
 .mc-file-upload-text { flex: 0 0 auto; color: var(--dsw-alias-label-tertiary); font-size: 10px; font-variant-numeric: tabular-nums; }
 
+/* \u4F1A\u8BAE\u6279\u91CF\u5BFC\u5165\uFF1A\u591A\u6587\u4EF6\u5217\u8868\u3001\u9010\u884C\u4E0A\u4F20\u8FDB\u5EA6\u4E0E\u5931\u8D25\u539F\u56E0 */
+.mc-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 190px;
+  overflow-y: auto;
+}
+.mc-file-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 3px 4px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 55%, transparent);
+}
+.mc-file-item[data-state='pending'] { opacity: .75; }
+.mc-file-item[data-state='error'] { background: color-mix(in srgb, #c1443d 9%, transparent); }
+.mc-file-item .mc-file-badge { flex: 0 0 auto; }
+.mc-file-item .mc-file-name { flex: 1 1 auto; }
+.mc-file-item .mc-file-size { flex: 0 0 auto; font-size: 10px; }
+.mc-file-progress { flex: 0 0 92px; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.mc-file-progress .mc-progress { flex: 1 1 auto; width: 62px; height: 4px; }
+.mc-file-progress em {
+  flex: 0 0 30px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 9.5px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.mc-file-error {
+  flex: 0 1 150px;
+  min-width: 0;
+  overflow: hidden;
+  color: #c1443d;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mc-file-remove {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--dsw-alias-label-tertiary);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.mc-file-remove:hover:not(:disabled) { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.mc-file-remove:disabled { opacity: .35; cursor: default; }
+.mc-file-note { color: var(--dsw-alias-label-tertiary); font-size: 10.5px; line-height: 1.45; }
+
 /* \u6807\u9898\u4E0E\u8BED\u79CD\u5E76\u6392\uFF0C\u7701\u6389\u4E00\u6574\u884C */
 .mc-field-pair { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .mc-field { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; }
@@ -3028,6 +3090,9 @@ var styles_default = `.mc-root {
 
 @media (max-width: 1100px) {
   .mc-cal-side { width: 288px; flex-basis: 288px; }
+}
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
 }
 @media (max-width: 900px) {
   .mc-cal-side { display: none; }
@@ -3393,6 +3458,429 @@ var styles_default = `.mc-root {
 .mc-batch-member-open { flex: 0 0 auto; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; }
 .mc-batch-member:hover .mc-batch-member-open { color: var(--dsw-alias-label-primary); }
 
+
+/* ---------- \u5361\u5305\uFF1A\u771F\u5B9E\u6210\u5458\u5361\u53E0\u653E\u3001\u7070\u8272\u547C\u5438\u70ED\u533A\u3001\u5168\u5361\u7247\u6D6E\u5C42 ---------- */
+.mc-pack-card {
+  position: relative;
+  display: block;
+  height: 100%;
+  min-height: 208px;
+  box-sizing: border-box;
+  color: var(--dsw-alias-label-primary);
+  outline: none;
+}
+.mc-pack-card:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 4px; border-radius: 20px; }
+.mc-pack-tab {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 22px);
+  box-sizing: border-box;
+  padding: 5px 10px;
+  border: .5px solid var(--mc-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: var(--dsw-alias-label-secondary);
+  box-shadow: 0 8px 20px -14px rgb(0 0 0 / .35);
+  backdrop-filter: blur(16px) saturate(150%);
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.mc-pack-tab-label { flex: 0 0 auto; padding: 1px 5px; border-radius: 999px; background: color-mix(in srgb, var(--dsw-alias-brand-primary) 13%, transparent); color: var(--dsw-alias-brand-primary); font-size: 9.5px; font-weight: 600; }
+.mc-pack-tab strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--dsw-alias-label-primary); font-size: 10.5px; font-weight: 550; }
+.mc-pack-tab em { flex: 0 0 auto; color: var(--dsw-alias-label-tertiary); font-style: normal; font-variant-numeric: tabular-nums; }
+.mc-pack-tab-active { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: #d9862f; box-shadow: 0 0 0 3px color-mix(in srgb, #d9862f 16%, transparent); animation: mc-pack-dot 1.4s ease-in-out infinite; }
+.mc-pack-back,
+.mc-pack-front {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+}
+.mc-pack-back {
+  display: block;
+  border: .5px solid var(--mc-line);
+  background-color: var(--dsw-alias-bg-layer-2);
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 10px 24px -20px rgb(0 0 0 / .4);
+  pointer-events: none;
+  transition: transform .34s cubic-bezier(.2, 1.1, .3, 1);
+}
+.mc-pack-back[data-type='session'] { background-image: linear-gradient(145deg, #dbe6ff, #f5e2ee 55%, #e6f3e7); }
+.mc-pack-back[data-type='session'][data-kind='meeting'] { background-image: linear-gradient(145deg, #e2defc, #d9e9ff 55%, #f7e2ec); }
+.mc-pack-back[data-type='note'] { background-image: linear-gradient(160deg, #fbf2ce, #f4e6b8); }
+.mc-pack-back[data-type='note'][data-kind='todo'] { background-image: linear-gradient(160deg, #edf5fc, #dceaf7); }
+.mc-pack-back[data-type='highlight'] { background-image: linear-gradient(145deg, #f1e9fb, #e7edf9 55%, #f8ecf1); }
+.mc-pack-back[data-type='image'] { background-color: #3b3b44; background-image: linear-gradient(145deg, #59606f, #8a6a48); }
+.mc-pack-back[data-type='doc'] { background-image: linear-gradient(155deg, #f4f7fc, #e8eef8); }
+.mc-pack-back[data-type='batch'] { background-image: linear-gradient(155deg, #fff0dc, #f7e6dc 60%, #f1ebff); }
+.mc-pack-back[data-slot='1'] { transform: translate(7px, 7px) rotate(1.1deg); }
+.mc-pack-back[data-slot='2'] { transform: translate(14px, 13px) rotate(-.8deg); }
+.mc-pack-card:hover .mc-pack-back[data-slot='1'],
+.mc-pack-card:focus-visible .mc-pack-back[data-slot='1'] { transform: translate(10px, 10px) rotate(1.5deg); }
+.mc-pack-card:hover .mc-pack-back[data-slot='2'],
+.mc-pack-card:focus-visible .mc-pack-back[data-slot='2'] { transform: translate(18px, 17px) rotate(-1.2deg); }
+.mc-pack-front {
+  z-index: 3;
+  overflow: hidden;
+  background: var(--dsw-alias-bg-layer-2);
+  box-shadow: 0 14px 30px -22px rgb(0 0 0 / .42);
+}
+.mc-pack-front-card { width: 100%; height: 100%; box-sizing: border-box; border-radius: 20px; }
+.mc-pack-front .mc-home-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  box-shadow: none;
+}
+.mc-pack-front .mc-home-card:hover { transform: none; box-shadow: none; }
+.mc-pack-front .mc-home-cover { flex: 0 0 auto; height: 56%; margin: 0; border-radius: 0; }
+.mc-pack-front .mc-home-card-body { flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 9px 12px 10px; }
+.mc-pack-front .mc-home-card-title { margin-top: 5px; font-size: 12.5px; line-height: 1.42; -webkit-line-clamp: 2; }
+.mc-pack-front .mc-home-card-snippet { margin-top: 3px; font-size: 10.5px; line-height: 1.45; -webkit-line-clamp: 2; }
+.mc-pack-front .mc-home-card-foot { margin-top: 6px; font-size: 9.5px; }
+.mc-pack-front .mc-home-quote { padding: 13px 13px 11px; height: 100%; overflow: hidden; }
+.mc-pack-front .mc-home-quote blockquote { display: -webkit-box; margin-top: 2px; overflow: hidden; font-size: 14px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
+.mc-pack-front .mc-home-quote .mc-home-card-foot { margin-top: 8px; font-size: 9.5px; }
+.mc-pack-front .mc-sticky-card { height: 100%; padding: 11px 12px 10px; gap: 5px; }
+.mc-pack-front .mc-sticky-head { font-size: 9px; }
+.mc-pack-front .mc-sticky-text { display: -webkit-box; overflow: hidden; font-size: 13px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 6; }
+.mc-pack-todo-preview { display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden; }
+.mc-pack-todo-preview span { display: flex; align-items: flex-start; gap: 5px; overflow: hidden; font-size: 10.5px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.mc-pack-todo-preview span[data-done='true'] { opacity: .55; text-decoration: line-through; }
+.mc-pack-todo-preview i { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 2px; border: 1px solid currentColor; border-radius: 2px; opacity: .55; }
+.mc-pack-front .mc-doc-wall-card { display: flex; flex: 1 1 auto; width: 100%; min-height: 0; height: 100%; padding: 10px 12px; gap: 5px; }
+.mc-pack-front .mc-doc-wall-title { font-size: 12.5px; line-height: 1.42; -webkit-line-clamp: 4; }
+.mc-pack-front .mc-doc-wall-top,
+.mc-pack-front .mc-doc-wall-foot { font-size: 9.5px; }
+.mc-pack-front .mc-image-card { height: 100%; }
+.mc-pack-front .mc-image-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mc-pack-front .mc-batch-card { height: 100%; min-height: 0; padding: 11px 12px 10px; gap: 5px; }
+.mc-pack-front .mc-batch-title { font-size: 12.5px; }
+.mc-pack-front .mc-batch-counts,
+.mc-pack-front .mc-batch-foot,
+.mc-pack-front .mc-batch-head { font-size: 9.5px; }
+.mc-pack-empty-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  padding: 18px;
+  border: 1px dashed color-mix(in srgb, var(--dsw-alias-label-tertiary) 42%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 78%, transparent);
+  color: var(--dsw-alias-label-tertiary);
+  text-align: center;
+}
+.mc-pack-empty-face span { font-size: 9.5px; letter-spacing: .08em; }
+.mc-pack-empty-face strong { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 550; }
+.mc-pack-empty-face em { font-style: normal; font-size: 10.5px; }
+
+/* \u62D6\u62FD\u70ED\u533A\uFF1A\u53EA\u4FDD\u7559\u4E00\u5708\u7070\u8272\u547C\u5438\u5149\uFF0C\u4E0D\u518D\u753B\u865A/\u5B9E\u8FB9\u6846 */
+.mc-scatter-card.is-pack-hover,
+.mc-scatter-card.is-pack-ready { z-index: 15; }
+.mc-pack-glow {
+  position: absolute;
+  z-index: 25;
+  display: block;
+  border: 2px solid rgb(128 128 128 / .42);
+  border-radius: 25px;
+  pointer-events: none;
+  box-shadow: 0 0 30px 9px rgb(128 128 128 / .22);
+  animation: mc-pack-glow-breathe 1.45s ease-in-out infinite;
+}
+.mc-pack-glow[data-ready='true'] {
+  border-color: rgb(128 128 128 / .58);
+  box-shadow: 0 0 38px 13px rgb(128 128 128 / .3);
+  animation-duration: 1.05s;
+}
+.mc-pack-hint {
+  position: absolute;
+  z-index: 35;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 250px;
+  padding: 7px 11px;
+  border: .5px solid var(--mc-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-overlay) 92%, transparent);
+  color: var(--dsw-alias-label-secondary);
+  box-shadow: 0 14px 34px -18px rgb(0 0 0 / .4);
+  backdrop-filter: blur(18px) saturate(150%);
+  font-size: 11.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: color .18s ease, border-color .18s ease, background .18s ease;
+}
+.mc-pack-hint i { width: 6px; height: 6px; border-radius: 50%; background: #8a8a8a; box-shadow: 0 0 0 3px rgb(128 128 128 / .16); animation: mc-pack-dot 1.15s ease-in-out infinite; }
+.mc-pack-hint.is-ready { color: var(--dsw-alias-label-primary); border-color: color-mix(in srgb, var(--dsw-alias-label-tertiary) 42%, var(--mc-line)); background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, var(--dsw-alias-bg-overlay)); }
+.mc-pack-hint.is-busy { color: var(--dsw-alias-label-tertiary); }
+.mc-pack-hint.is-busy i { animation: none; opacity: .5; }
+@keyframes mc-pack-glow-breathe { 0%, 100% { opacity: .62; } 50% { opacity: 1; } }
+@keyframes mc-pack-dot { 0%, 100% { opacity: 1; } 50% { opacity: .38; } }
+
+/* \u64A4\u9500\u6761 */
+.mc-pack-undo {
+  position: absolute;
+  left: 50%;
+  bottom: 86px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(460px, calc(100vw - 32px));
+  padding: 8px 10px 8px 13px;
+  border: .5px solid var(--mc-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-overlay) 94%, transparent);
+  color: var(--dsw-alias-label-secondary);
+  box-shadow: 0 18px 44px -20px rgb(0 0 0 / .42);
+  backdrop-filter: blur(20px) saturate(150%);
+  font-size: 11.5px;
+  transform: translateX(-50%);
+  animation: mc-pack-undo-in .24s ease both;
+}
+.mc-pack-undo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc-pack-undo button { flex: 0 0 auto; height: 24px; padding: 0 10px; border: .5px solid var(--mc-line); border-radius: 999px; background: transparent; color: var(--dsw-alias-brand-primary); font: inherit; font-size: 11px; cursor: pointer; }
+.mc-pack-undo button:hover { background: var(--dsw-alias-interactive-bg-hover); }
+@keyframes mc-pack-undo-in { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* \u5361\u5305\u6D6E\u5C42\uFF1A\u590D\u7528\u5899\u9762\u5361\u7247\uFF0C\u4FE1\u606F\u6D41\u5F0F\u591A\u5217\u5E73\u94FA\uFF0C\u53F3\u4E0A\u89D2\u628A\u624B\u6392\u5E8F */
+.mc-pack-modal { width: min(980px, calc(100vw - 48px)); max-height: min(88vh, 900px); }
+.mc-pack-modal-head { flex: 0 0 auto; align-items: flex-start; }
+.mc-pack-modal-title { display: flex; flex: 1 1 auto; flex-direction: column; gap: 2px; min-width: 0; }
+.mc-pack-title-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 1px 4px;
+  border: .5px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-primary);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+  outline: none;
+}
+.mc-pack-title-input:hover { border-color: var(--mc-line); }
+.mc-pack-title-input:focus { border-color: var(--dsw-alias-brand-primary); background: var(--dsw-alias-bg-layer-1); }
+.mc-pack-card-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 8px 2px 12px;
+  overflow: auto;
+  columns: 3;
+  column-gap: 14px;
+}
+.mc-pack-row {
+  position: relative;
+  break-inside: avoid;
+  margin: 0 0 14px;
+  border-radius: 22px;
+  transition: opacity .16s ease, filter .16s ease;
+}
+.mc-pack-row-card { position: relative; width: 100%; cursor: grab; touch-action: pan-y; }
+.mc-pack-row-card > * { width: 100%; max-width: 100%; }
+.mc-pack-row-card .mc-home-card,
+.mc-pack-row-card .mc-sticky-card,
+.mc-pack-row-card .mc-image-card,
+.mc-pack-row-card .mc-doc-wall-card,
+.mc-pack-row-card .mc-batch-card { width: 100%; }
+.mc-pack-row-card .mc-home-card,
+.mc-pack-row-card .mc-sticky-card,
+.mc-pack-row-card .mc-image-card,
+.mc-pack-row-card .mc-doc-wall-card,
+.mc-pack-row-card .mc-batch-card { cursor: grab; }
+.mc-pack-row-card img { -webkit-user-drag: none; user-select: none; }
+body.mc-pack-reordering .mc-pack-row-card .mc-home-card:hover,
+body.mc-pack-reordering .mc-pack-row-card .mc-image-card:hover,
+body.mc-pack-reordering .mc-pack-row-card .mc-doc-wall-card:hover { transform: none !important; }
+.mc-pack-row-card a,
+.mc-pack-row-card button,
+.mc-pack-row-card input,
+.mc-pack-row-card label,
+.mc-pack-row-card select,
+.mc-pack-row-card textarea { cursor: pointer; }
+.mc-pack-row-card .mc-doc-wall-card { flex: 0 0 auto; }
+.mc-pack-row-card .mc-home-card-actions,
+.mc-pack-row-card .mc-card-actions,
+.mc-pack-row-card .mc-batch-delete { display: none !important; }
+.mc-pack-row-card .mc-sticky-todos { max-height: 138px; }
+.mc-pack-row-tools {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity .16s ease, transform .18s ease;
+}
+.mc-pack-row:hover .mc-pack-row-tools,
+.mc-pack-row:focus-within .mc-pack-row-tools,
+.mc-pack-row.is-dragging .mc-pack-row-tools { opacity: 1; transform: none; }
+.mc-pack-row-tools button {
+  height: 24px;
+  padding: 0 8px;
+  border: .5px solid rgb(255 255 255 / .5);
+  border-radius: 999px;
+  background: rgb(255 255 255 / .82);
+  color: #3a3a3f;
+  box-shadow: 0 4px 12px -6px rgb(0 0 0 / .25);
+  backdrop-filter: blur(12px);
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+.mc-pack-row-tools button:hover { background: #fff; }
+.mc-pack-row-tools button:disabled { opacity: .45; cursor: default; }
+.mc-pack-row.is-dragging { opacity: .16; filter: saturate(.8); }
+.mc-pack-row.is-dragging .mc-pack-row-tools { opacity: 0 !important; }
+body.mc-pack-reordering .mc-pack-row-tools { opacity: 0 !important; }
+.mc-pack-drag-ghost {
+  position: fixed !important;
+  z-index: 60;
+  margin: 0 !important;
+  border-radius: 22px;
+  opacity: .5;
+  pointer-events: none !important;
+  box-shadow: 0 30px 70px -20px rgb(0 0 0 / .42), 0 0 0 .5px var(--mc-line);
+  transform: scale(1.02);
+  transform-origin: center;
+  will-change: left, top;
+}
+.mc-pack-drag-ghost * { pointer-events: none !important; }
+.mc-pack-drop-marker {
+  position: fixed;
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 22px;
+  pointer-events: none;
+}
+.mc-pack-drop-line {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dsw-alias-brand-primary) 58%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dsw-alias-brand-primary) 6%, transparent);
+}
+.mc-pack-drop-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-bg-layer-1);
+  box-shadow: 0 10px 24px -12px rgb(0 0 0 / .45);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  animation: mc-pack-drop-in .16s ease both;
+}
+.mc-pack-drop-pill::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .7;
+}
+@keyframes mc-pack-drop-in {
+  from { opacity: 0; transform: scale(.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+body.mc-pack-reordering { user-select: none; cursor: grabbing; }
+body.mc-pack-reordering * { cursor: grabbing !important; }
+.mc-pack-fallback-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 108px;
+  box-sizing: border-box;
+  padding: 12px;
+  border: .5px solid var(--mc-line);
+  border-radius: 18px;
+  background: var(--dsw-alias-bg-layer-2);
+  color: var(--dsw-alias-label-primary);
+  box-shadow: var(--mc-shadow);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mc-pack-fallback-card.is-static { cursor: default; }
+.mc-pack-fallback-badge { flex: 0 0 auto; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9px; background: color-mix(in srgb, var(--dsw-alias-brand-primary) 13%, transparent); color: var(--dsw-alias-brand-primary); font-family: var(--mc-serif); font-size: 17px; }
+.mc-pack-fallback-main { display: flex; flex: 1 1 auto; flex-direction: column; gap: 3px; min-width: 0; }
+.mc-pack-fallback-top { display: flex; gap: 6px; overflow: hidden; color: var(--dsw-alias-label-tertiary); font-size: 10px; white-space: nowrap; }
+.mc-pack-fallback-top span:first-child { flex: 0 0 auto; color: var(--dsw-alias-brand-primary); }
+.mc-pack-fallback-top span:last-child { overflow: hidden; text-overflow: ellipsis; }
+.mc-pack-fallback-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; font-weight: 550; }
+.mc-pack-fallback-open { flex: 0 0 auto; color: var(--dsw-alias-label-tertiary); font-size: 10px; }
+.mc-pack-modal-empty { display: flex; flex: 1 1 auto; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 54px 16px 48px; text-align: center; color: var(--dsw-alias-label-tertiary); }
+.mc-pack-modal-empty strong { color: var(--dsw-alias-label-primary); font-family: var(--mc-serif); font-size: 19px; font-weight: 500; }
+.mc-pack-modal-empty p { margin: 0; font-size: 12px; }
+.mc-pack-modal-actions { flex: 0 0 auto; align-items: center; justify-content: flex-end; padding-top: 2px; }
+.mc-pack-modal-hint { flex: 1 1 auto; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; text-align: left; }
+
+[data-theme='dark'] .mc-pack-tab { background: rgba(26, 26, 32, .94); border-color: rgba(255, 255, 255, .14); }
+[data-theme='dark'] .mc-pack-back { border-color: rgba(255, 255, 255, .13); filter: brightness(.8) saturate(.9); }
+[data-theme='dark'] .mc-pack-front { background: #202027; }
+[data-theme='dark'] .mc-pack-empty-face { background: rgba(32, 32, 39, .7); border-color: rgba(255, 255, 255, .18); }
+[data-theme='dark'] .mc-pack-glow { border-color: rgba(255, 255, 255, .3); box-shadow: 0 0 30px 9px rgba(255, 255, 255, .16); }
+[data-theme='dark'] .mc-pack-glow[data-ready='true'] { border-color: rgba(255, 255, 255, .45); box-shadow: 0 0 38px 13px rgba(255, 255, 255, .24); }
+[data-theme='dark'] .mc-pack-row-tools button { background: rgba(26, 26, 32, .86); border-color: rgba(255, 255, 255, .18); color: #f0f0f4; }
+[data-theme='dark'] .mc-pack-row-tools button:hover { background: rgba(38, 38, 46, .96); }
+[data-theme='dark'] .mc-pack-fallback-card { background: rgba(255, 255, 255, .035); border-color: rgba(255, 255, 255, .1); }
+[data-theme='dark'] .mc-pack-undo { background: rgba(26, 26, 32, .95); border-color: rgba(255, 255, 255, .14); }
+
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
+@media (max-width: 900px) {
+  .mc-pack-card-grid { columns: 2; }
+}
+@media (max-width: 640px) {
+  .mc-pack-card-grid { columns: 1; }
+  .mc-pack-modal { width: calc(100vw - 20px); max-height: 90vh; }
+  .mc-pack-undo { bottom: 82px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-pack-back,
+  .mc-pack-tab-active,
+  .mc-pack-glow,
+  .mc-pack-hint,
+  .mc-pack-hint i,
+  .mc-pack-undo,
+  .mc-pack-drop-pill { animation: none !important; transition: none !important; }
+  .mc-pack-card:hover .mc-pack-back[data-slot='1'],
+  .mc-pack-card:hover .mc-pack-back[data-slot='2'] { transform: none; }
+}
+
 .mc-home-quote { padding: 22px 20px 14px; background: var(--dsw-alias-bg-layer-2); }
 .mc-home-quote-mark { font-family: var(--mc-serif); font-size: 44px; line-height: .6; color: var(--dsw-alias-label-tertiary); }
 .mc-home-quote blockquote { margin: 4px 0 0; font-family: var(--mc-serif); font-size: 19px; line-height: 1.55; font-weight: 500; }
@@ -3430,6 +3918,9 @@ var styles_default = `.mc-root {
   .mc-search-trigger { min-width: 160px; }
   .mc-home-wall { columns: 232px; }
 }
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
 @media (max-width: 900px) {
   .mc-root { padding-left: 16px; padding-right: 16px; }
   .mc-topbar-brand span:last-child { display: none; }
@@ -3458,7 +3949,9 @@ var styles_default = `.mc-root {
 
 /* \u6563\u843D\u753B\u5E03 */
 .mc-home.is-scatter { overflow: hidden; }
-.mc-scatter { position: absolute; inset: 0; overflow: hidden; background-image: radial-gradient(circle, color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent) 1px, transparent 1.2px); background-size: var(--grid-size, 28px) var(--grid-size, 28px); background-position: var(--grid-x, 0) var(--grid-y, 0); cursor: grab; touch-action: none; user-select: none; }
+.mc-scatter { position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; user-select: none; }
+/* \u70B9\u9635\u72EC\u7ACB\u6210\u5408\u6210\u5C42\uFF1A\u5E73\u79FB\u53EA\u6539 transform\uFF08\u8DDF\u683C\u8DDD\u540C\u6A21\uFF0C\u56FE\u6848\u63A5\u5F97\u4E0A\uFF09\uFF0C\u4E0D\u518D\u6574\u5C4F\u91CD\u5EFA\u80CC\u666F\u3002*/
+.mc-scatter-grid { position: absolute; left: -64px; top: -64px; width: calc(100% + 128px); height: calc(100% + 128px); pointer-events: none; will-change: transform; background-image: radial-gradient(circle, color-mix(in srgb, var(--dsw-alias-label-primary) 10%, transparent) 1px, transparent 1.2px); background-size: var(--grid-size, 28px) var(--grid-size, 28px); }
 .mc-scatter.is-panning, .mc-scatter.is-panning .mc-scatter-card { cursor: grabbing; }
 .mc-scatter-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
 .mc-scatter-hero { position: absolute; z-index: 10; padding: 10px 4px; cursor: default; user-select: text; }
@@ -3469,7 +3962,7 @@ var styles_default = `.mc-root {
 /* \u5916\u58F3\u4E0E\u5361\u7247\u540C\u5706\u89D2\uFF1A\u62D6\u52A8\u6001\u7684 box-shadow \u753B\u5728\u5916\u58F3\u4E0A\uFF0C\u76F4\u89D2\u4F1A\u5728\u5361\u7247\u56DB\u89D2\u9732\u51FA\u63A5\u7F1D\u3002 */
 .mc-scatter-card { position: absolute; border-radius: 20px; transform: rotate(var(--tilt, 0deg)); transition: left .55s cubic-bezier(.22,.82,.24,1), top .55s cubic-bezier(.22,.82,.24,1), transform .25s ease, box-shadow .25s ease; cursor: grab; will-change: left, top; }
 .mc-scatter-card:hover { transform: rotate(0deg) translateY(-4px); z-index: 4; }
-.mc-scatter-card.is-dragging { z-index: 20; cursor: grabbing; transition: transform .18s ease, box-shadow .18s ease; transform: rotate(calc(var(--tilt, 0deg) * .35)) scale(1.04); box-shadow: 0 0 0 .5px var(--mc-line), 0 24px 48px -12px rgb(0 0 0 / .32); }
+.mc-scatter-card.is-dragging { z-index: 20; cursor: grabbing; transition: box-shadow .18s ease; transform: rotate(calc(var(--tilt, 0deg) * .35)) scale(1.04); will-change: transform; box-shadow: 0 0 0 .5px var(--mc-line), 0 24px 48px -12px rgb(0 0 0 / .32); }
 .mc-scatter-card.is-dragging .mc-home-card,
 .mc-scatter-card.is-dragging .mc-sticky-card,
 .mc-scatter-card.is-dragging .mc-image-card { box-shadow: none; }
@@ -3512,6 +4005,9 @@ var styles_default = `.mc-root {
 .mc-tr { border-radius: 10px; }
 .mc-tr:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .mc-notes { border: .5px solid var(--mc-line); border-radius: 18px; background: var(--dsw-alias-bg-layer-2); box-shadow: var(--mc-shadow); }
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
 @media (max-width: 900px) {
   .mc-side { width: 250px; flex-basis: 250px; }
 }
@@ -3594,6 +4090,9 @@ var styles_default = `.mc-root {
   .mc-detail-body { position: relative; }
   .mc-inspector { display: flex; position: absolute; right: 10px; top: 10px; bottom: 10px; z-index: 20; width: min(320px, calc(100% - 20px)); border: .5px solid var(--mc-line); border-radius: 16px; box-shadow: 0 24px 60px -20px rgb(0 0 0 / .35); overflow: hidden; }
   .mc-detail-body[data-inspector='false'] .mc-inspector { display: none; }
+}
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
 }
 @media (max-width: 900px) {
   .mc-calendar { overflow: auto; }
@@ -3709,6 +4208,9 @@ var styles_default = `.mc-root {
 .mc-cal-side .mc-agenda { flex: 1 1 auto; border: .5px solid var(--mc-line); border-radius: 16px; background: var(--dsw-alias-bg-layer-2); box-shadow: var(--mc-shadow); overflow: hidden; }
 .mc-cal-side .mc-event-detail { border: .5px solid var(--mc-line); border-radius: 16px; background: var(--dsw-alias-bg-layer-2); box-shadow: var(--mc-shadow); overflow: hidden; }
 @media (max-width: 1180px) { .mc-cal-side { width: 318px; flex-basis: 318px; } .mc-cal-hero-stats { display: none; } }
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
 @media (max-width: 900px) {
   .mc-cal-hero-month { min-width: 0; }
   .mc-cal-hero { gap: 12px; }
@@ -4238,6 +4740,9 @@ var styles_default = `.mc-root {
 .mc-progress-key .mc-input { min-width: 0; }
 .mc-progress-key .mc-progress-error { grid-column: 1 / -1; }
 .mc-progress-error { width: 100%; margin: 0; color: var(--dsw-alias-state-error-primary); font-size: 10.5px; line-height: 1.45; }
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
 @media (max-width: 900px) {
   .mc-progress-cards.is-scatter { position: static; width: auto; max-height: none; margin: 6px 14px 0; }
   .mc-progress-cards.is-feed .mc-progress-list { grid-template-columns: 1fr; }
@@ -4324,6 +4829,9 @@ var styles_default = `.mc-root {
 .mc-md-task[data-checked='true']::after { content: '\u2713'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--dsw-alias-bg-base); font-size: 9px; line-height: 1; }
 .mc-md-task-item { list-style: none; margin-left: -18px; }
 .mc-md-task-item[data-checked='true'] { color: var(--dsw-alias-label-tertiary); text-decoration: line-through; }
+@media (hover: none) {
+  .mc-pack-row-tools { opacity: 1; transform: none; }
+}
 @media (max-width: 900px) {
   .mc-jottings-head { flex-direction: column; }
   .mc-jottings-actions { width: 100%; justify-content: flex-start; }
@@ -4718,6 +5226,9 @@ body.mc-stage-resizing-stack, body.mc-stage-resizing-stack * { cursor: row-resiz
 }
 .mc-doc-wall-card {
   flex: 0 0 252px;
+  box-sizing: border-box;
+  font: inherit;
+  user-select: none;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -4790,7 +5301,7 @@ var libraries_default = "/* \u8D44\u6599\u7A7A\u95F4\u5207\u6362\u5668\u4E0E\u76
 var settings_spacing_default = "/* \u8BBE\u7F6E\u9875\u7EDF\u4E00\u8282\u594F\u3002\n *\n * \u80CC\u666F\uFF1A\u5BBF\u4E3B\u6837\u5F0F\u91CC\u8FD9\u4E9B\u5757\u5404\u81EA\u5E26 margin\uFF08.mc-actions 10px\u3001.mc-foot-meta 0\u3001\n * .mc-card-hint 8px\u3001.mc-form-note 6px\u2026\uFF09\uFF0C\u53E0\u5728\u4E00\u8D77\u65F6\u300C\u6309\u94AE \u2192 \u8BF4\u660E\u6587\u5B57\u300D\u6709\u65F6 0px\u3001\n * \u6709\u65F6 14px\uFF0C\u770B\u8D77\u6765\u5FFD\u7D27\u5FFD\u677E\u3002\u8FD9\u91CC\u628A\u5361\u7247\u6539\u6210 flex \u5217 + \u7EDF\u4E00 gap\uFF0C\n * \u5E76\u628A\u5361\u7247\u5185\u5B50\u5757\u7684\u4E0A\u4E0B margin \u5F52\u96F6\uFF0C\u95F4\u8DDD\u53EA\u7531\u4E00\u5957\u6570\u503C\u51B3\u5B9A\uFF1A\n *\n *   \u5C0F\u8282\u4E4B\u95F4 22px \xB7 \u5C0F\u8282\u6807\u9898 \u2194 \u5361\u7247 10px \xB7 \u5361\u7247\u5185\u5757\u95F4\u9694 14px \xB7 \u6309\u94AE\u6A2A\u6392 8px\n *\n * \u53EA\u4F5C\u7528\u4E8E\u8BBE\u7F6E\u9875\u4E0E\u8BBE\u7F6E\u91CC\u7684\u5361\u7247\uFF08.mc-settings-shell / .mc-lib-card\uFF09\uFF0C\n * \u4E0D\u5F71\u54CD\u9996\u9875\u3001\u8D44\u6599\u5E93\u4E0E\u5F39\u7A97\u91CC\u540C\u540D\u7C7B\uFF08\u5B83\u4EEC\u7528 .mc-card-text \u7B49\u66F4\u7EC6\u7684\u5143\u7D20\uFF09\u3002\n */\n\n.mc-settings-shell { gap: 18px; }\n.mc-settings-panel { gap: 22px; }\n.mc-settings-panel .mc-section { gap: 10px; }\n\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card,\n.mc-lib-card {\n  display: flex;\n  flex-direction: column;\n  gap: 14px;\n}\n\n/* \u95F4\u8DDD\u7EDF\u4E00\u7531\u5361\u7247\u7684 gap \u8D1F\u8D23\uFF0C\u5B50\u5757\u81EA\u5DF1\u7684 margin \u5168\u90E8\u5F52\u96F6\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > *,\n.mc-lib-card > * {\n  margin-top: 0;\n  margin-bottom: 0;\n}\n\n/* \u4F8B\u5916\uFF1A\u6807\u9898\u548C\u300C\u884C\u4E0B\u9762\u7684\u8BF4\u660E\u300D\u4E0E\u4E3B\u4F53\u5C5E\u4E8E\u4E00\u7EC4\uFF0C\u6BD4\u5E38\u89C4\u5757\u95F4\u8DDD\u7565\u7D27\uFF0C\n   \u4F46\u4ECD\u7559\u51FA 10px\uFF0C\u4E0D\u4F1A\u8D34\u5728\u4E00\u8D77\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-title { margin-bottom: -4px; }\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note { margin-top: -4px; }\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-divider { margin: -2px 0; }\n\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,\n.mc-lib-card .mc-actions {\n  gap: 8px;\n  margin-top: 0;\n}\n\n/* \u8BF4\u660E\u6587\u5B57\uFF1A\u540C\u4E00\u9875\u91CC\u522B\u518D\u6DF7\u7528 10.5/11/11.5/12 \u56DB\u79CD\u5B57\u53F7\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-foot-meta,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-hint,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-text,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note,\n.mc-lib-card > .mc-foot-meta,\n.mc-lib-card > .mc-lib-foot,\n.mc-lib-card > .mc-lib-empty-text {\n  font-size: 12px;\n  line-height: 1.65;\n  color: var(--dsw-alias-label-secondary);\n}\n\n/* \u8BBE\u7F6E \u2192 \u8D44\u6599\u7A7A\u95F4\uFF1A\u5F39\u5C42\u91CC\u7684\u5757\u95F4\u8DDD\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4 */\n.mc-lib-panel { gap: 12px; }\n.mc-lib-modal > .mc-lib-panel { padding: 14px 16px 16px; }\n\n/* \u884C\u5F0F\u4FE1\u606F\u540E\u9762\u63A5\u6309\u94AE\u65F6\uFF0C\u884C\u4E0E\u884C\u4E4B\u95F4\u7684\u5206\u9694\u7EBF\u5DF2\u7ECF\u63D0\u4F9B\u89C6\u89C9\u5206\u7EC4\uFF0C\n   \u8FD9\u91CC\u8BA9\u6700\u540E\u4E00\u884C\u4E0E\u6309\u94AE\u4E4B\u95F4\u4FDD\u6301 14px\uFF08\u7531\u5361\u7247 gap \u7ED9\uFF09\uFF0C\u4E0D\u518D\u989D\u5916\u52A0 margin\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-rows:last-child { margin-bottom: 0; }\n\n@media (max-width: 640px) {\n  .mc-settings-panel { gap: 18px; }\n  :is(.mc-settings-shell, .mc-settings-panel) .mc-card,\n  .mc-lib-card { gap: 12px; }\n  :is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,\n  .mc-lib-card .mc-actions { gap: 6px; }\n}\n";
 
 // client-src/update.css
-var update_default = "/* \u8BBE\u7F6E \u2192 \u5173\u4E8E\uFF1A\u7248\u672C\u4FE1\u606F\u3001\u66F4\u65B0\u8FDB\u5EA6\u548C\u53D1\u5E03\u8BF4\u660E\u3002\n   \u4F7F\u7528\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4\u7684\u5361\u7247\u8282\u594F\uFF1B\u8FDB\u5EA6\u6761\u590D\u7528 .mc-progress \u7684\u89C6\u89C9\u8BED\u8A00\u3002 */\n\n.mc-about-head {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.mc-about-head .mc-card-title { margin-bottom: 4px; }\n\n.mc-about-version {\n  flex: 0 0 auto;\n  padding: 5px 10px;\n  border: .5px solid var(--mc-line);\n  border-radius: 999px;\n  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  line-height: 1.2;\n}\n\n.mc-about-meta {\n  margin-left: 8px;\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  font-style: normal;\n}\n\n.mc-about-path {\n  display: inline-block;\n  max-width: min(420px, 100%);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: bottom;\n  white-space: nowrap;\n}\n\n.mc-link-button {\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-brand-primary);\n  cursor: pointer;\n  font: inherit;\n  text-align: left;\n}\n\n.mc-link-button:hover { text-decoration: underline; }\n.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }\n\n.mc-update-summary {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n  padding: 10px 12px;\n  border: .5px solid var(--mc-line);\n  border-radius: 12px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);\n}\n\n.mc-update-summary strong { font-size: 13px; font-weight: 550; }\n.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }\n.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }\n.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }\n\n.mc-about-warning {\n  margin: 0;\n  padding: 9px 12px;\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n  line-height: 1.6;\n}\n\n.mc-update-card { gap: 10px; }\n\n.mc-update-head {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 13px;\n}\n\n.mc-update-head strong { font-weight: 550; }\n\n.mc-update-percent {\n  margin-left: auto;\n  color: var(--dsw-alias-label-secondary);\n  font-variant-numeric: tabular-nums;\n  font-size: 12px;\n}\n\n.mc-update-bar {\n  flex: 1 1 auto !important;\n  width: 100%;\n  height: 7px !important;\n}\n\n.mc-update-bar span {\n  transition: width .25s ease;\n}\n\n.mc-update-bar span.is-indeterminate {\n  width: 35%;\n  animation: mc-update-sweep 1.15s ease-in-out infinite;\n}\n\n@keyframes mc-update-sweep {\n  0% { transform: translateX(-110%); }\n  100% { transform: translateX(320%); }\n}\n\n.mc-update-notes-card .mc-update-notes {\n  max-height: 260px;\n  margin: 0;\n  padding: 10px 12px;\n  overflow: auto;\n  border: .5px solid var(--mc-line);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: inherit;\n  font-size: 12px;\n  line-height: 1.65;\n  white-space: pre-wrap;\n  word-break: break-word;\n}\n\n@media (max-width: 640px) {\n  .mc-about-head { gap: 10px; }\n  .mc-about-version { font-size: 11px; }\n  .mc-about-path { max-width: 100%; }\n}\n";
+var update_default = "/* \u8BBE\u7F6E \u2192 \u5173\u4E8E\uFF1A\u7248\u672C\u4FE1\u606F\u3001\u66F4\u65B0\u8FDB\u5EA6\u548C\u53D1\u5E03\u8BF4\u660E\u3002\n   \u4F7F\u7528\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4\u7684\u5361\u7247\u8282\u594F\uFF1B\u8FDB\u5EA6\u6761\u590D\u7528 .mc-progress \u7684\u89C6\u89C9\u8BED\u8A00\u3002 */\n\n.mc-about-head {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.mc-about-head .mc-card-title { margin-bottom: 4px; }\n\n.mc-about-version {\n  flex: 0 0 auto;\n  padding: 5px 10px;\n  border: .5px solid var(--mc-line);\n  border-radius: 999px;\n  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  line-height: 1.2;\n}\n\n.mc-about-meta {\n  margin-left: 8px;\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  font-style: normal;\n}\n\n.mc-about-path {\n  display: inline-block;\n  max-width: min(420px, 100%);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: bottom;\n  white-space: nowrap;\n}\n\n.mc-about-rollback-select {\n  min-width: 0;\n  max-width: 100%;\n}\n\n.mc-rollback-confirm {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.mc-rollback-confirm .mc-actions { margin-top: 0; }\n\n.mc-rollback-confirm .mc-about-warning strong {\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-variant-numeric: tabular-nums;\n  font-weight: 550;\n}\n\n.mc-link-button {\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-brand-primary);\n  cursor: pointer;\n  font: inherit;\n  text-align: left;\n}\n\n.mc-link-button:hover { text-decoration: underline; }\n.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }\n\n.mc-update-summary {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n  padding: 10px 12px;\n  border: .5px solid var(--mc-line);\n  border-radius: 12px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);\n}\n\n.mc-update-summary strong { font-size: 13px; font-weight: 550; }\n.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }\n.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }\n.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }\n\n.mc-about-warning {\n  margin: 0;\n  padding: 9px 12px;\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n  line-height: 1.6;\n}\n\n.mc-update-card { gap: 10px; }\n\n.mc-update-head {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 13px;\n}\n\n.mc-update-head strong { font-weight: 550; }\n\n.mc-update-percent {\n  margin-left: auto;\n  color: var(--dsw-alias-label-secondary);\n  font-variant-numeric: tabular-nums;\n  font-size: 12px;\n}\n\n.mc-update-bar {\n  flex: 1 1 auto !important;\n  width: 100%;\n  height: 7px !important;\n}\n\n.mc-update-bar span {\n  transition: width .25s ease;\n}\n\n.mc-update-bar span.is-indeterminate {\n  width: 35%;\n  animation: mc-update-sweep 1.15s ease-in-out infinite;\n}\n\n@keyframes mc-update-sweep {\n  0% { transform: translateX(-110%); }\n  100% { transform: translateX(320%); }\n}\n\n.mc-update-notes-card .mc-update-notes {\n  max-height: 260px;\n  margin: 0;\n  padding: 10px 12px;\n  overflow: auto;\n  border: .5px solid var(--mc-line);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: inherit;\n  font-size: 12px;\n  line-height: 1.65;\n  white-space: pre-wrap;\n  word-break: break-word;\n}\n\n@media (max-width: 640px) {\n  .mc-about-head { gap: 10px; }\n  .mc-about-version { font-size: 11px; }\n  .mc-about-path { max-width: 100%; }\n}\n";
 
 // client-src/components/Icon.jsx
 init_react_shim();
@@ -4864,9 +5375,13 @@ function backendAction(action) {
 function listSessions() {
   return api("/sessions");
 }
-function listCards(query = "", { signal } = {}) {
-  const params = new URLSearchParams({ q: String(query || ""), limit: "20" });
+function listCards(query = "", { signal, id = "", limit = 20 } = {}) {
+  const params = new URLSearchParams({ q: String(query || ""), limit: String(limit) });
+  if (id) params.set("id", String(id));
   return api(`/cards?${params.toString()}`, { signal });
+}
+function syncCards(force = false) {
+  return api(`/cards/sync${force ? "?force=1" : ""}`, { method: "POST", body: JSON.stringify({}) });
 }
 function homeFeed({ limit = 60, offset = 0 } = {}) {
   return api(`/home?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`);
@@ -4953,6 +5468,9 @@ function meetingOptions() {
 function importMeeting(body) {
   return api("/meetings/import", { method: "POST", body: JSON.stringify(body) });
 }
+function importMeetings(body) {
+  return api("/meetings/import-batch", { method: "POST", body: JSON.stringify(body) });
+}
 function retryLink(id) {
   return api(`/link-videos/${encodeURIComponent(id)}/retry`, { method: "POST", body: "{}" });
 }
@@ -5016,8 +5534,8 @@ function saveAsrEngine(body) {
 function testAsrEngine(probe2) {
   return api("/asr/engines/test", { method: "POST", body: JSON.stringify(probe2 || {}) });
 }
-function pickFile(kind = "media") {
-  return app("/pick-file", { method: "POST", body: JSON.stringify({ kind }) });
+function pickFile(kind = "media", { multiple = false } = {}) {
+  return app("/pick-file", { method: "POST", body: JSON.stringify({ kind, multiple: Boolean(multiple) }) });
 }
 function uploadFile(file, onProgress) {
   return new Promise((resolve, reject) => {
@@ -5133,6 +5651,33 @@ function boardImageUrl(id) {
 }
 function deleteBoardImage(id) {
   return api(`/board/images/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+function createPack(body) {
+  return api("/packs", { method: "POST", body: JSON.stringify(body) });
+}
+function renamePack(id, title) {
+  return api(`/packs/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ title }) });
+}
+function addPackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: "POST",
+    body: JSON.stringify({ members })
+  });
+}
+function removePackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: "DELETE",
+    body: JSON.stringify({ members })
+  });
+}
+function reorderPackMembers(id, members) {
+  return api(`/packs/${encodeURIComponent(id)}/members`, {
+    method: "PATCH",
+    body: JSON.stringify({ members })
+  });
+}
+function deletePack(id) {
+  return api(`/packs/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
 function testMimoKey(apiKey, { baseUrl, model } = {}) {
   return app("/asr/test", {
@@ -5301,6 +5846,12 @@ function updateCheck({ autoInstall = true } = {}) {
 }
 function updateInstall() {
   return app("/update", { method: "POST", body: JSON.stringify({ action: "install" }) });
+}
+function updateRollback(version2 = "") {
+  return app("/update", {
+    method: "POST",
+    body: JSON.stringify({ action: "rollback", version: String(version2 || "") })
+  });
 }
 function updateCancel() {
   return app("/update", { method: "POST", body: JSON.stringify({ action: "cancel" }) });
@@ -39132,7 +39683,7 @@ function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
       setBusy("");
     }
   }
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-event-editor" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u8F6C\u5199\u9009\u9879"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u4FEE\u6539\u540E\u53EF\u6CBF\u7528\u5230\u4E0B\u6B21\u8F6C\u5F55\uFF1B\u5DF2\u5B8C\u6210\u7684\u7247\u6BB5\u4E0D\u4F1A\u91CD\u590D\u8BC6\u522B\uFF0C\u65E7\u6587\u5B57\u4F1A\u4FDD\u7559\u5230\u65B0\u7ED3\u679C\u6210\u529F\u3002", missing > 0 ? ` \u5F53\u524D\u6709 ${missing} \u4E2A\u7247\u6BB5\u6CA1\u5B8C\u6210\uFF0C\u4E0D\u6539\u5F15\u64CE/\u8BED\u79CD\u65F6\u53EA\u8865\u8FD9\u4E9B\u7247\u6BB5\u3002` : "", restartRequired ? " \u5F15\u64CE\u6216\u8BED\u79CD\u5DF2\u6539\u53D8\uFF0C\u4FDD\u5B58\u540E\u4F1A\u4ECE\u5934\u8F6C\u5F55\u3002" : ""), legacySpeakers ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u6761\u8BB0\u5F55\u5DF2\u6709\u53D1\u8A00\u4EBA\u6807\u7B7E\uFF1B\u91CD\u65B0\u8F6C\u5199\u4F1A\u6E05\u9664\u5B83\u4EEC\uFF0C\u4E14\u4E0D\u4F1A\u518D\u751F\u6210\u65B0\u7684\u53D1\u8A00\u4EBA\u3002") : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5F15\u64CE"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: provider, onChange: (event) => setProvider(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "default" }, "\u8DDF\u968F\u9ED8\u8BA4\u8BBE\u7F6E"), /* @__PURE__ */ React.createElement("option", { value: "mimo" }, "MiMo \u4E91\u7AEF"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u79CD"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u81EA\u52A8"), languages.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u70ED\u8BCD"), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-event-editor" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u8F6C\u5199\u9009\u9879"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u4FEE\u6539\u540E\u53EF\u6CBF\u7528\u5230\u4E0B\u6B21\u8F6C\u5F55\uFF1B\u5DF2\u5B8C\u6210\u7684\u7247\u6BB5\u4E0D\u4F1A\u91CD\u590D\u8BC6\u522B\uFF0C\u65E7\u6587\u5B57\u4F1A\u4FDD\u7559\u5230\u65B0\u7ED3\u679C\u6210\u529F\u3002", missing > 0 ? ` \u5F53\u524D\u6709 ${missing} \u4E2A\u7247\u6BB5\u6CA1\u5B8C\u6210\uFF0C\u4E0D\u6539\u5F15\u64CE/\u8BED\u79CD\u65F6\u53EA\u8865\u8FD9\u4E9B\u7247\u6BB5\u3002` : "", restartRequired ? " \u5F15\u64CE\u6216\u8BED\u79CD\u5DF2\u6539\u53D8\uFF0C\u4FDD\u5B58\u540E\u4F1A\u4ECE\u5934\u8F6C\u5F55\u3002" : ""), legacySpeakers ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u6761\u8BB0\u5F55\u5DF2\u6709\u53D1\u8A00\u4EBA\u6807\u7B7E\uFF1B\u91CD\u65B0\u8F6C\u5199\u4F1A\u6E05\u9664\u5B83\u4EEC\uFF0C\u4E14\u4E0D\u4F1A\u518D\u751F\u6210\u65B0\u7684\u53D1\u8A00\u4EBA\u3002") : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5F15\u64CE"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: provider, onChange: (event) => setProvider(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "default" }, "\u8DDF\u968F\u9ED8\u8BA4\u8BBE\u7F6E"), /* @__PURE__ */ React.createElement("option", { value: "mimo" }, "\u4E91\u7AEF\u8BC6\u522B"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u79CD"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u81EA\u52A8"), languages.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u70ED\u8BCD"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -42659,7 +43210,7 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
         label: t("detail.missingChunks"),
         value: t("detail.missingValue").replace("{count}", String(missingCount)).replace("{time}", duration(missingSeconds))
       }
-    ) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.shotCount"), value: String(shots.length) }), /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.markCount"), value: String(marks.length) }), /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.source"), value: view2.source_url || "-", mono: true }), detail?.stream_quality ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u753B\u8D28", value: detail.stream_quality }) : null, detail?.language ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u8BED\u79CD", value: detail.language }) : null, detail?.transcription_source ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u8F6C\u5199\u6765\u6E90", value: detail.transcription_source === "subtitle" ? "\u5E73\u53F0\u5B57\u5E55" : detail.asr_engine?.provider === "mimo" ? "MiMo \u4E91\u7AEF" : "\u672C\u5730 ASR" }) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: "\u65F6\u95F4\u6233", value: detail?.aligned ? "\u7CBE\u786E\u5230\u8BCD" : detail?.timing_precision === "chunk" ? "\u7247\u6BB5\u7EA7" : "\u6309\u53E5" }), detail?.hotwords ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u70ED\u8BCD", value: detail.hotwords }) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: "\u521B\u5EFA", value: dateTime(view2.created_at) }), view2.error && !partial ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u9519\u8BEF", value: view2.error }) : null, kind === "meeting" || kind === "link_video" ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setOptionsOpen(true) }, t("detail.transcribeOptions"))) : null, detail?.media_path ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions mc-actions-column" }, partial ? /* @__PURE__ */ React.createElement(
+    ) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.shotCount"), value: String(shots.length) }), /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.markCount"), value: String(marks.length) }), /* @__PURE__ */ React.createElement(InfoRow, { label: t("detail.source"), value: view2.source_url || "-", mono: true }), detail?.stream_quality ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u753B\u8D28", value: detail.stream_quality }) : null, detail?.language ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u8BED\u79CD", value: detail.language }) : null, detail?.transcription_source ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u8F6C\u5199\u6765\u6E90", value: detail.transcription_source === "subtitle" ? "\u5E73\u53F0\u5B57\u5E55" : detail.asr_engine?.provider === "mimo" ? "\u4E91\u7AEF ASR" : "\u672C\u5730 ASR" }) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: "\u65F6\u95F4\u6233", value: detail?.aligned ? "\u7CBE\u786E\u5230\u8BCD" : detail?.timing_precision === "chunk" ? "\u7247\u6BB5\u7EA7" : "\u6309\u53E5" }), detail?.hotwords ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u70ED\u8BCD", value: detail.hotwords }) : null, /* @__PURE__ */ React.createElement(InfoRow, { label: "\u521B\u5EFA", value: dateTime(view2.created_at) }), view2.error && !partial ? /* @__PURE__ */ React.createElement(InfoRow, { label: "\u9519\u8BEF", value: view2.error }) : null, kind === "meeting" || kind === "link_video" ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setOptionsOpen(true) }, t("detail.transcribeOptions"))) : null, detail?.media_path ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions mc-actions-column" }, partial ? /* @__PURE__ */ React.createElement(
       "button",
       {
         type: "button",
@@ -44206,6 +44757,14 @@ function feishuSummary(status3) {
   const auth = status3.auth || {};
   const dsh = status3.dsh || {};
   const runtime = status3.runtime || {};
+  const pkg = status3.package || {};
+  if (!pkg.configured && !dsh.entryPresent) {
+    return {
+      tone: "pending",
+      text: "\u672A\u914D\u7F6E MCP \u6E90",
+      detail: "\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B feishuPackage \u4E0E feishuRegistry\uFF08\u4F60\u7EC4\u7EC7\u7684\u98DE\u4E66 MCP \u5305\u540D\u4E0E npm \u6E90\uFF09\uFF0C\u518D\u56DE\u6765\u5B89\u88C5\u3002"
+    };
+  }
   if (dsh.conflict) {
     return { tone: "error", text: "\u914D\u7F6E\u51B2\u7A81", detail: `serverName\u300C${dsh.serverName}\u300D\u5DF2\u6709\u5176\u4ED6\u6761\u76EE\u5728\u7528` };
   }
@@ -44551,6 +45110,116 @@ function parseLinks(text, { max = MAX_BATCH_LINKS } = {}) {
     accepted.length -= overflow;
   }
   return { accepted, live, skipped, total: matched.length };
+}
+
+// client-src/lib/meetingFiles.js
+init_react_shim();
+var MAX_MEETING_FILES = 20;
+var MEDIA_EXTENSIONS = [
+  "mp4",
+  "mov",
+  "mkv",
+  "flv",
+  "webm",
+  "m4v",
+  "ts",
+  "mp3",
+  "m4a",
+  "wav",
+  "aac",
+  "flac",
+  "ogg",
+  "opus"
+];
+var MEDIA_SET = new Set(MEDIA_EXTENSIONS);
+var VIDEO_SET = /* @__PURE__ */ new Set(["mp4", "mov", "mkv", "flv", "webm", "m4v", "ts"]);
+function baseName(name) {
+  return String(name || "").split(/[\\/]/).pop() || "";
+}
+function mediaExtension(name) {
+  const base = baseName(name);
+  const index = base.lastIndexOf(".");
+  return index > 0 ? base.slice(index + 1).toLowerCase() : "";
+}
+function isMediaName(name) {
+  return MEDIA_SET.has(mediaExtension(name));
+}
+function mediaKind(name) {
+  const extension = mediaExtension(name);
+  if (VIDEO_SET.has(extension)) return "video";
+  if (MEDIA_SET.has(extension)) return "audio";
+  return "";
+}
+function titleFromName(name) {
+  const base = baseName(name);
+  const index = base.lastIndexOf(".");
+  const title = (index > 0 ? base.slice(0, index) : base).trim();
+  return title || "\u672A\u547D\u540D\u4F1A\u8BAE";
+}
+function defaultPackTitle(date = /* @__PURE__ */ new Date()) {
+  const pad2 = (value) => String(value).padStart(2, "0");
+  return `\u4F1A\u8BAE\u5F55\u97F3 \xB7 ${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+function fileFromPath(value, index = 0) {
+  const path = String(value || "").trim();
+  return {
+    key: `path:${path}:${index}`,
+    path,
+    name: baseName(path) || path,
+    bytes: 0,
+    status: "ready",
+    progress: 0,
+    error: ""
+  };
+}
+function filesFromPaths(paths) {
+  return (Array.isArray(paths) ? paths : []).map((value) => String(value || "").trim()).filter(Boolean).map((value, index) => fileFromPath(value, index));
+}
+function sameFile(a, b) {
+  if (!a || !b) return false;
+  if (a.path && b.path) return String(a.path) === String(b.path);
+  const name = String(a.name || "");
+  if (!name || name !== String(b.name || "")) return false;
+  return Number(a.bytes || 0) === Number(b.bytes || 0);
+}
+function mergeMeetingFiles(current, incoming, limit = MAX_MEETING_FILES) {
+  const rows = Array.isArray(current) ? [...current] : [];
+  const rejected = [];
+  let duplicates = 0;
+  let overflow = 0;
+  for (const item of Array.isArray(incoming) ? incoming : []) {
+    if (!item || !isMediaName(item.name)) {
+      rejected.push(String(item?.name || "\u672A\u77E5\u6587\u4EF6"));
+      continue;
+    }
+    if (rows.some((row) => sameFile(row, item))) {
+      duplicates += 1;
+      continue;
+    }
+    if (rows.length >= limit) {
+      overflow += 1;
+      continue;
+    }
+    rows.push(item);
+  }
+  return { files: rows, rejected, duplicates, overflow };
+}
+function singleImportBody(file, { title = "", language = "" } = {}) {
+  return {
+    path: String(file?.path || ""),
+    title: String(title || "").trim() || titleFromName(file?.name),
+    language: String(language || "")
+  };
+}
+function batchImportBody(files, { language = "", packTitle = "" } = {}) {
+  return {
+    items: (Array.isArray(files) ? files : []).filter((file) => file?.path).map((file) => ({
+      path: String(file.path),
+      title: titleFromName(file.name)
+    })),
+    language: String(language || ""),
+    pack_title: String(packTitle || "").trim()
+  };
 }
 
 // client-src/components/NewCaptureDialog.jsx
@@ -44934,74 +45603,162 @@ function VideoEntry({ t, entry, removable, onRemove, onChangeTrack, onChangeMode
     }
   ) : /* @__PURE__ */ React.createElement("span", { className: "mc-preview-thumb-placeholder" }, platformLabel(preview?.platform || entry.platform)), /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, preview?.title && preview.title !== "\u672A\u547D\u540D\u89C6\u9891" ? preview.title : entry.url), /* @__PURE__ */ React.createElement("span", null, [platformLabel(preview?.platform || entry.platform), preview?.uploader, preview?.duration ? duration(preview.duration) : "", preview?.filesize ? bytes(preview.filesize) : "", preview?.ok ? preview?.message : ""].filter(Boolean).join(" \xB7 ")), entry.loading ? /* @__PURE__ */ React.createElement("span", null, t("new.checking")) : null, entry.error ? /* @__PURE__ */ React.createElement("span", { className: "mc-error-text" }, entry.error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-entry-controls" }, preview?.ok && preview?.subtitle_status === "available" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: entry.mode, onChange: (event) => onChangeMode(event.target.value), "aria-label": "\u8F6C\u5199\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("option", { value: "auto" }, "\u5B57\u5E55\u4F18\u5148"), /* @__PURE__ */ React.createElement("option", { value: "asr" }, "\u8BED\u97F3\u8BC6\u522B")), entry.mode === "auto" && tracks.length > 1 ? /* @__PURE__ */ React.createElement("select", { className: `mc-input mc-select${needsTrack ? " mc-invalid" : ""}`, value: entry.trackId, onChange: (event) => onChangeTrack(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u5B57\u5E55\u8BED\u8A00"), tracks.map((track) => /* @__PURE__ */ React.createElement("option", { key: track.id, value: track.id }, track.title || track.language))) : null) : null, entry.error || preview?.ok === false ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, "\u91CD\u8BD5") : !preview ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, t("new.preview")) : null), preview?.ok && preview?.subtitle_status !== "available" ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u672A\u53D1\u73B0\u53EF\u7528\u5B57\u5E55\uFF0C\u5C06\u4F7F\u7528\u4E91\u7AEF ASR \u8F6C\u5199\u3002") : null));
 }
-function MeetingForm({ t, options, optionsError, initialFile = null, onClose, onCreated }) {
-  const [file, setFile] = React.useState(initialFile);
-  const [uploading, setUploading] = React.useState(0);
-  const [dragging, setDragging] = React.useState(false);
-  const [title, setTitle] = React.useState(() => initialFile?.name ? initialFile.name.replace(/\.[^.]+$/, "") : "");
+function MeetingForm({ t, options, optionsError, initialFile = null, initialFiles = null, onClose, onCreated }) {
+  const [files, setFiles] = React.useState(() => initialMeetingFiles(initialFiles, initialFile));
+  const [title, setTitle] = React.useState(() => {
+    const initial = initialMeetingFiles(initialFiles, initialFile);
+    return initial.length === 1 ? titleFromName(initial[0].name) : "";
+  });
+  const [packTitle, setPackTitle] = React.useState("");
   const [language, setLanguage] = React.useState("");
+  const [dragging, setDragging] = React.useState(false);
+  const [notice, setNotice] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [result, setResult] = React.useState(null);
   const asrReady = options?.asr_ready !== false;
-  const MEDIA_EXT = ["mp4", "mov", "mkv", "flv", "webm", "m4v", "ts", "mp3", "m4a", "wav", "aac", "flac", "ogg", "opus"];
+  const busyUploading = files.some((file) => file.status === "uploading");
+  const multi = files.length > 1;
+  const ready = files.length > 0 && files.every((file) => file.status === "ready" && file.path);
+  const canSubmit = ready && !busyUploading && !submitting && asrReady;
+  function patchFile(key, patch) {
+    setFiles((current) => current.map((file) => file.key === key ? { ...file, ...patch } : file));
+  }
+  function applyMerged(merged) {
+    setFiles(merged.files);
+    const messages = [];
+    if (merged.rejected.length) messages.push(`\u5DF2\u8DF3\u8FC7\u4E0D\u652F\u6301\u7684\u6587\u4EF6\uFF1A${merged.rejected.join("\u3001")}`);
+    if (merged.duplicates) messages.push(`\u5DF2\u8DF3\u8FC7 ${merged.duplicates} \u4E2A\u91CD\u590D\u6587\u4EF6`);
+    if (merged.overflow) messages.push(`\u5355\u6B21\u6700\u591A ${MAX_MEETING_FILES} \u4E2A\u6587\u4EF6\uFF0C\u5DF2\u5FFD\u7565 ${merged.overflow} \u4E2A`);
+    setNotice(messages.join("\uFF1B"));
+  }
   async function choose() {
+    if (busyUploading || submitting) return;
     setError("");
+    setNotice("");
     try {
-      const result = await pickFile("media");
-      if (result?.ok && result.path) {
-        const name = result.path.split("/").pop();
-        setFile({ path: result.path, name });
-        if (!title) setTitle(name.replace(/\.[^.]+$/, ""));
-      } else if (result && !result.cancelled) {
-        setError(result.error || t("settings.pickFailed"));
+      const picked = await pickFile("media", { multiple: true });
+      const paths = Array.isArray(picked?.paths) && picked.paths.length ? picked.paths : picked?.path ? [picked.path] : [];
+      if (!paths.length) {
+        if (picked && !picked.cancelled) setError(picked.error || t("settings.pickFailed"));
+        return;
+      }
+      const merged = mergeMeetingFiles(files, filesFromPaths(paths));
+      applyMerged(merged);
+      if (!title.trim()) {
+        const first = merged.files.find((file) => file.path);
+        if (first && merged.files.length === 1) setTitle(titleFromName(first.name));
       }
     } catch (failure) {
       setError(failure?.message || String(failure));
     }
   }
-  async function upload(files) {
-    const chosen = files?.[0];
-    if (!chosen) return;
-    const extension = String(chosen.name || "").split(".").pop()?.toLowerCase();
-    if (!MEDIA_EXT.includes(extension)) {
-      setError(`\u4E0D\u652F\u6301\u7684\u6587\u4EF6\u683C\u5F0F\uFF1A.${extension || "\u672A\u77E5"}`);
-      return;
-    }
-    setUploading(1e-3);
-    setError("");
+  async function uploadEntry(entry) {
+    patchFile(entry.key, { status: "uploading", progress: 0, error: "" });
     try {
-      const result = await uploadFile(chosen, (ratio) => setUploading(ratio));
-      setFile({ path: result.path, name: result.name, bytes: result.bytes });
-      if (!title) setTitle((result.name || "").replace(/\.[^.]+$/, ""));
-      setUploading(0);
+      const uploaded = await uploadFile(entry.file, (ratio) => patchFile(entry.key, { progress: ratio }));
+      if (!uploaded?.path) throw new Error(t("new.uploadFailed"));
+      patchFile(entry.key, {
+        status: "ready",
+        path: uploaded.path,
+        name: uploaded.name || entry.name,
+        bytes: uploaded.bytes || entry.bytes || 0,
+        progress: 1,
+        file: null,
+        error: ""
+      });
     } catch (failure) {
-      setUploading(0);
-      setError(failure?.message || String(failure));
+      patchFile(entry.key, {
+        status: "error",
+        progress: 0,
+        error: failure?.message || String(failure)
+      });
     }
+  }
+  async function addUploads(rawFiles) {
+    if (!rawFiles.length) return;
+    const stamp = Date.now();
+    const incoming = rawFiles.map((file, index) => ({
+      key: `drop:${stamp}:${index}:${file.name || ""}`,
+      file,
+      name: file.name || `\u6587\u4EF6 ${index + 1}`,
+      path: "",
+      bytes: Number(file.size) || 0,
+      status: "pending",
+      progress: 0,
+      error: ""
+    }));
+    const before = new Set(files.map((file) => file.key));
+    const merged = mergeMeetingFiles(files, incoming);
+    applyMerged(merged);
+    const added = merged.files.filter((file) => file.file && !before.has(file.key));
+    if (!title.trim() && merged.files.length === 1 && added.length) {
+      setTitle(titleFromName(added[0].name));
+    }
+    for (const entry of added) {
+      await uploadEntry(entry);
+    }
+  }
+  function handleDrop(event) {
+    event.preventDefault();
+    setDragging(false);
+    if (busyUploading || submitting) return;
+    const dropped = Array.from(event.dataTransfer?.files || []);
+    if (!dropped.length) return;
+    addUploads(dropped);
+  }
+  function removeFile(key) {
+    setFiles((current) => current.filter((file) => file.key !== key));
+  }
+  function languageField() {
+    return /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-lang" }, /* @__PURE__ */ React.createElement("span", null, t("new.language")), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, t("new.auto")), (options?.languages || []).map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name))));
   }
   async function submit() {
     setSubmitting(true);
     setError("");
+    setResult(null);
     try {
-      const created = await importMeeting({
-        path: file.path,
-        title: title.trim(),
-        language
+      if (files.length === 1) {
+        const created = await importMeeting(singleImportBody(files[0], { title, language }));
+        onCreated?.(created.id);
+        onClose?.();
+        return;
+      }
+      const response = await importMeetings(batchImportBody(files, { language, packTitle }));
+      const rows = Array.isArray(response?.results) ? response.results : [];
+      const okRows = rows.filter((row) => row.ok && row.id);
+      const failedRows = rows.filter((row) => !row.ok);
+      const ids = Array.isArray(response?.ids) && response.ids.length ? response.ids : okRows.map((row) => row.id).filter(Boolean);
+      if (!ids.length) {
+        setResult({ rows });
+        setError(t("new.noImported"));
+        return;
+      }
+      onCreated?.({
+        ids,
+        pack: response?.pack || null,
+        pack_error: response?.pack_error || "",
+        results: rows,
+        summary: { added: ids.length, failed: failedRows.length }
       });
-      onCreated?.(created.id);
-      onClose();
+      onClose?.();
     } catch (failure) {
-      setError(failure?.message || String(failure));
+      const rows = failure?.data?.results;
+      if (Array.isArray(rows) && rows.length) {
+        setResult({ rows });
+        setError(failure?.message || t("new.noImported"));
+      } else {
+        setError(failure?.message || String(failure));
+      }
     } finally {
       setSubmitting(false);
     }
   }
-  const suffix = file?.name?.includes(".") ? file.name.split(".").pop().toUpperCase().slice(0, 4) : "";
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-new-form" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-new-form" }, /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, multi ? t("new.batchMeetingHint").replace("{n}", String(files.length)) : t("new.meetingHint")), /* @__PURE__ */ React.createElement(
     "div",
     {
       className: "mc-file-field",
-      "data-filled": file ? "true" : "false",
+      "data-filled": files.length ? "true" : "false",
       "data-drag": dragging ? "true" : "false",
       title: t("new.meetingHint"),
       onDragOver: (event) => {
@@ -45012,26 +45769,87 @@ function MeetingForm({ t, options, optionsError, initialFile = null, onClose, on
         const next = event.relatedTarget;
         if (!next || !event.currentTarget.contains(next)) setDragging(false);
       },
-      onDrop: (event) => {
-        event.preventDefault();
-        setDragging(false);
-        upload(event.dataTransfer?.files);
-      }
+      onDrop: handleDrop
     },
-    /* @__PURE__ */ React.createElement("div", { className: "mc-file-row" }, file ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-file-badge", "aria-hidden": "true" }, suffix || "FILE"), /* @__PURE__ */ React.createElement("span", { className: "mc-file-name" }, file.name), file.bytes ? /* @__PURE__ */ React.createElement("span", { className: "mc-file-size" }, (file.bytes / 1024 / 1024).toFixed(1), " MB") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: choose }, t("new.replaceFile"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-file-hint" }, t("new.dropHint")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: choose }, t("new.chooseFile")))),
-    uploading > 0 ? /* @__PURE__ */ React.createElement("div", { className: "mc-file-upload" }, /* @__PURE__ */ React.createElement("span", { className: "mc-progress" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${Math.max(1, Math.min(100, uploading * 100))}%` } })), /* @__PURE__ */ React.createElement("span", { className: "mc-file-upload-text" }, t("new.uploadProgress").replace("{p}", String(Math.round(uploading * 100))))) : null
-  ), /* @__PURE__ */ React.createElement("div", { className: "mc-field-pair" }, /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-grow" }, /* @__PURE__ */ React.createElement("span", null, t("new.titleLabel")), /* @__PURE__ */ React.createElement("input", { className: "mc-input", value: title, placeholder: t("new.titlePlaceholder"), onChange: (event) => setTitle(event.target.value) })), /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-lang" }, /* @__PURE__ */ React.createElement("span", null, t("new.language")), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, t("new.auto")), (options?.languages || []).map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name))))), !asrReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text" }, t("new.asrNotReady")) : null, optionsError ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text" }, optionsError) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement("div", { className: "mc-file-row" }, files.length ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-file-hint" }, t("new.filesSelected").replace("{n}", String(files.length))), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        className: "mc-button mc-button-small",
+        onClick: choose,
+        disabled: busyUploading || submitting
+      },
+      t("new.addFiles")
+    )) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-file-hint" }, t("new.dropHint")), /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        className: "mc-button mc-button-small",
+        onClick: choose,
+        disabled: busyUploading || submitting
+      },
+      t("new.chooseFile")
+    ))),
+    files.length ? /* @__PURE__ */ React.createElement("ul", { className: "mc-file-list" }, files.map((file) => {
+      const kind = mediaKind(file.name);
+      const extension = file.name.includes(".") ? file.name.split(".").pop().toUpperCase().slice(0, 4) : "";
+      const percent = Math.round((file.progress || 0) * 100);
+      return /* @__PURE__ */ React.createElement("li", { key: file.key, className: "mc-file-item", "data-state": file.status }, /* @__PURE__ */ React.createElement("span", { className: "mc-file-badge", "aria-hidden": "true" }, extension || "FILE"), /* @__PURE__ */ React.createElement("span", { className: "mc-file-name", title: file.name }, file.name), /* @__PURE__ */ React.createElement("span", { className: "mc-file-size" }, kind === "video" ? t("new.videoFile") : t("new.audioFile"), file.bytes ? ` \xB7 ${(file.bytes / 1024 / 1024).toFixed(1)} MB` : ""), file.status === "uploading" ? /* @__PURE__ */ React.createElement("span", { className: "mc-file-progress" }, /* @__PURE__ */ React.createElement("span", { className: "mc-progress" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${Math.max(1, Math.min(100, percent))}%` } })), /* @__PURE__ */ React.createElement("em", null, percent, "%")) : null, file.status === "error" ? /* @__PURE__ */ React.createElement("span", { className: "mc-file-error", title: file.error }, file.error || t("new.uploadFailed")) : null, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "mc-file-remove",
+          "aria-label": t("new.removeFile"),
+          title: t("new.removeFile"),
+          disabled: busyUploading || submitting,
+          onClick: () => removeFile(file.key)
+        },
+        "\xD7"
+      ));
+    })) : null,
+    notice ? /* @__PURE__ */ React.createElement("div", { className: "mc-file-note", role: "status" }, notice) : null
+  ), /* @__PURE__ */ React.createElement("div", { className: "mc-field-pair" }, /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-grow" }, /* @__PURE__ */ React.createElement("span", null, multi ? t("new.packTitle") : t("new.titleLabel")), multi ? /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: packTitle,
+      maxLength: 80,
+      placeholder: defaultPackTitle(),
+      onChange: (event) => setPackTitle(event.target.value)
+    }
+  ) : /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: title,
+      placeholder: t("new.titlePlaceholder"),
+      onChange: (event) => setTitle(event.target.value)
+    }
+  )), languageField()), !asrReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text" }, t("new.asrNotReady")) : null, optionsError ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text" }, optionsError) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error) : null, result?.rows?.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-result-list" }, result.rows.map((row, index) => /* @__PURE__ */ React.createElement("div", { key: index, className: "mc-result-row" }, /* @__PURE__ */ React.createElement("span", { className: row.ok ? "mc-ok-text" : "mc-error-text" }, row.ok ? "\u2713" : "\xD7"), /* @__PURE__ */ React.createElement("span", { className: "mc-result-title" }, row.title || row.name || row.path || `\u6587\u4EF6 ${index + 1}`), /* @__PURE__ */ React.createElement("span", null, row.ok ? t("new.queueAdded") : row.message)))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
       className: "mc-button",
       "data-variant": "primary",
       "data-new-submit": "true",
-      disabled: !file || submitting || uploading > 0 || !asrReady,
+      disabled: !canSubmit,
       onClick: submit
     },
-    submitting ? t("new.checking") : t("new.submit")
+    submitting ? t("new.checking") : multi ? t("new.importBatch").replace("{n}", String(files.length)) : t("new.submit")
   )));
+}
+function initialMeetingFiles(initialFiles, initialFile) {
+  const source = Array.isArray(initialFiles) && initialFiles.length ? initialFiles : initialFile ? [initialFile] : [];
+  const entries = source.map((file, index) => {
+    const path = typeof file === "string" ? file : file?.path;
+    if (!path) return null;
+    return {
+      ...filesFromPaths([path])[0],
+      key: `path:${path}:${index}`,
+      bytes: typeof file === "object" ? Number(file?.bytes) || 0 : 0
+    };
+  }).filter(Boolean);
+  return mergeMeetingFiles([], entries).files;
 }
 
 // client-src/components/GlobalSearchDialog.jsx
@@ -45496,6 +46314,7 @@ function entryKey(entry) {
 }
 function widthOf(entry) {
   const hash2 = textHash(entry?.item?.id);
+  if (entry?.type === "pack") return 272;
   if (entry?.type === "batch") return 268;
   if (entry?.type === "note") return 246;
   if (entry?.type === "image") return 232 + hash2 % 3 * 18;
@@ -45504,6 +46323,7 @@ function widthOf(entry) {
   return entry?.item?.cover?.value ? 242 + hash2 % 4 * 16 : 220 + hash2 % 4 * 16;
 }
 function heightOf(entry, width = widthOf(entry)) {
+  if (entry?.type === "pack") return 208;
   if (entry?.type === "batch") return 196;
   if (entry?.type === "note") return entry?.item?.kind === "todo" ? 224 : 190;
   if (entry?.type === "image") {
@@ -45797,6 +46617,141 @@ function buildLayout(entries, options = {}) {
   };
 }
 
+// client-src/components/home/pack-model.js
+init_react_shim();
+var PACK_TYPE = "pack";
+var PACK_ARM_DELAY_MS = 160;
+var PACK_MAX_MEMBERS = 60;
+var PACK_HOT_INSET = 12;
+var ACTIVE_STATUSES = ["recording", "processing", "queued"];
+var FILTER_KINDS = ["live", "link_video", "meeting"];
+function packKey(id) {
+  return `${PACK_TYPE}-${String(id ?? "")}`;
+}
+function packMemberKey(member) {
+  if (!member) return "";
+  return `${member.type || ""}-${member.id ?? ""}`;
+}
+function packById(packs, id) {
+  return (Array.isArray(packs) ? packs : []).find((pack) => String(pack?.id) === String(id)) || null;
+}
+function nextPackTitle(packs) {
+  const numbers = [];
+  for (const pack of Array.isArray(packs) ? packs : []) {
+    const match = /^卡包\s*(\d+)$/.exec(String(pack?.title || "").trim());
+    if (match) numbers.push(Number(match[1]));
+  }
+  return `\u5361\u5305 ${numbers.length ? Math.max(...numbers) + 1 : 1}`;
+}
+function isEntryActive(entry) {
+  if (!entry) return false;
+  if (entry.type === "session") return ACTIVE_STATUSES.includes(entry.item?.status);
+  if (entry.type === "batch") return Number(entry.item?.active) > 0;
+  if (entry.type === PACK_TYPE) return Number(entry.item?.active_count) > 0;
+  return false;
+}
+function entryMember(entry) {
+  if (!entry?.item?.id) return null;
+  return { type: entry.type, id: String(entry.item.id) };
+}
+function applyPacks(entries, packs) {
+  const rows = Array.isArray(entries) ? entries : [];
+  const list = Array.isArray(packs) ? packs : [];
+  const packed = /* @__PURE__ */ new Set();
+  for (const pack of list) {
+    for (const member of pack?.members || []) packed.add(packMemberKey(member));
+  }
+  const out = rows.filter((entry) => !packed.has(entryKey(entry)));
+  const seen = /* @__PURE__ */ new Set();
+  for (const pack of list) {
+    if (!pack?.id || seen.has(String(pack.id))) continue;
+    seen.add(String(pack.id));
+    out.push({
+      type: PACK_TYPE,
+      at: Number(pack.created_at) || 0,
+      item: pack
+    });
+  }
+  return out;
+}
+function packMatchesFilter(pack, kind) {
+  if (kind === "all" || !kind) return true;
+  const members = Array.isArray(pack?.members) ? pack.members : [];
+  if (!members.length) return true;
+  if (kind === "active") {
+    if (Number(pack?.active_count) > 0) return true;
+    return members.some((member) => member.type === "session" && ACTIVE_STATUSES.includes(member.status) || member.type === "batch" && Boolean(member.active));
+  }
+  if (kind === "mark") return members.some((member) => ["highlight", "note", "image"].includes(member.type));
+  if (kind === "doc") return members.some((member) => member.type === "doc");
+  if (FILTER_KINDS.includes(kind)) {
+    return members.some((member) => member.type === "session" && member.kind === kind || member.type === "batch" && kind === "link_video");
+  }
+  return false;
+}
+function isPackTargetEligible({ entry, sourceEntry, pins = {} } = {}) {
+  if (!entry || !sourceEntry) return false;
+  const sourceKey = entryKey(sourceEntry);
+  const targetKey = entryKey(entry);
+  if (sourceKey === targetKey) return false;
+  if (sourceEntry.type === PACK_TYPE) return false;
+  if (isEntryActive(sourceEntry)) return false;
+  if (entry.type !== PACK_TYPE && isEntryActive(entry)) return false;
+  if (pins && pins[targetKey]) return false;
+  if (entry.type === PACK_TYPE && Number(entry.item?.count) >= PACK_MAX_MEMBERS) return false;
+  return true;
+}
+function hitTestPackTarget({ entries, positions, point, sourceKey, pins = {}, inset = PACK_HOT_INSET }) {
+  const rows = Array.isArray(entries) ? entries : [];
+  const sourceEntry = rows.find((entry) => entryKey(entry) === sourceKey) || null;
+  if (!sourceEntry || sourceEntry.type === PACK_TYPE || isEntryActive(sourceEntry)) return null;
+  if (!point || !Number.isFinite(Number(point.x)) || !Number.isFinite(Number(point.y))) return null;
+  for (const entry of rows) {
+    const key = entryKey(entry);
+    if (key === sourceKey) continue;
+    const position = positions?.[key];
+    if (!position) continue;
+    const left = Number(position.x) - Number(position.w) / 2 + inset;
+    const right = Number(position.x) + Number(position.w) / 2 - inset;
+    const top = Number(position.y) - Number(position.h) / 2 + inset;
+    const bottom = Number(position.y) + Number(position.h) / 2 - inset;
+    if (point.x < left || point.x > right || point.y < top || point.y > bottom) continue;
+    if (!isPackTargetEligible({ entry, sourceEntry, pins })) continue;
+    return {
+      key,
+      entry,
+      mode: entry.type === PACK_TYPE ? "add" : "merge"
+    };
+  }
+  return null;
+}
+function movePackMemberToSlot(members, key, targetIndex) {
+  const rows = Array.isArray(members) ? members : [];
+  const from = rows.findIndex((member) => packMemberKey(member) === key);
+  const index = Number(targetIndex);
+  if (from < 0 || !Number.isInteger(index) || index < 0 || index >= rows.length) return rows;
+  if (index === from) return rows;
+  const next = rows.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(index, 0, moved);
+  return next;
+}
+function fanPositions(center2, count) {
+  const total = Math.max(0, Math.floor(Number(count) || 0));
+  if (!total) return [];
+  const cx = Number(center2?.x) || 0;
+  const cy = Number(center2?.y) || 0;
+  if (total === 1) return [{ x: Math.round(cx), y: Math.round(cy) }];
+  return Array.from({ length: total }, (_, index) => {
+    const angle = index * 2.39996 - Math.PI / 2;
+    const radius = 118 + Math.sqrt(index + 1) * 26;
+    return {
+      x: Math.round(cx + Math.cos(angle) * radius * 1.18),
+      y: Math.round(cy + Math.sin(angle) * radius * 0.9)
+    };
+  });
+}
+
 // client-src/components/home/scatter-camera.js
 init_react_shim();
 var ZOOM_MIN = 0.35;
@@ -45899,7 +46854,8 @@ function cancelFrame(id) {
   if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(id);
   else clearTimeout(id);
 }
-function useScatterCamera({ stageRef, worldRef }) {
+var GRID_EDGE = 64;
+function useScatterCamera({ stageRef, worldRef, gridRef }) {
   const cam = import_react.default.useRef({
     x: 0,
     y: 0,
@@ -45912,21 +46868,27 @@ function useScatterCamera({ stageRef, worldRef }) {
     vs: 0,
     stiffness: 90,
     damping: 17,
+    gridSpan: 0,
     raf: 0
   });
   const apply2 = import_react.default.useCallback(() => {
     const current = cam.current;
     const world = worldRef?.current;
-    const stage = stageRef?.current;
+    const grid = gridRef?.current;
     if (world?.style) {
       world.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) scale(${current.s})`;
     }
-    if (stage?.style && typeof stage.style.setProperty === "function") {
-      stage.style.setProperty("--grid-x", `${current.x}px`);
-      stage.style.setProperty("--grid-y", `${current.y}px`);
-      stage.style.setProperty("--grid-size", `${GRID * current.s}px`);
+    if (grid?.style) {
+      const span = GRID * (current.s > 0 ? current.s : 1);
+      if (current.gridSpan !== span) {
+        current.gridSpan = span;
+        grid.style.setProperty("--grid-size", `${span}px`);
+      }
+      const gx = ((current.x + GRID_EDGE) % span + span) % span;
+      const gy = ((current.y + GRID_EDGE) % span + span) % span;
+      grid.style.transform = `translate3d(${gx}px, ${gy}px, 0)`;
     }
-  }, [stageRef, worldRef]);
+  }, [stageRef, worldRef, gridRef]);
   const tick = import_react.default.useCallback(() => {
     const current = cam.current;
     const dt = 1 / 60;
@@ -46049,17 +47011,25 @@ function ScatterCanvas({
   pinningKey = "",
   focusKey = "",
   onShowAll,
-  onToast
+  onToast,
+  onMergeCards,
+  onBlankContextMenu,
+  layoutApiRef = null
 }) {
   const stageRef = import_react2.default.useRef(null);
   const worldRef = import_react2.default.useRef(null);
-  const { cam, flyTo, halt, zoomAt, home, stageSize: getStageSize } = useScatterCamera({ stageRef, worldRef });
+  const gridRef = import_react2.default.useRef(null);
+  const { cam, flyTo, halt, zoomAt, home, stageSize: getStageSize } = useScatterCamera({ stageRef, worldRef, gridRef });
   const [manual, setManual] = import_react2.default.useState(readManual);
   const manualRef = import_react2.default.useRef(manual);
   manualRef.current = manual;
   const [drag, setDrag] = import_react2.default.useState(null);
   const dragRef = import_react2.default.useRef(null);
+  const armTimerRef = import_react2.default.useRef(null);
+  const packBusyRef = import_react2.default.useRef(false);
   const panRef = import_react2.default.useRef(null);
+  const camRafRef = import_react2.default.useRef(0);
+  const camTargetRef = import_react2.default.useRef(null);
   const suppressRef = import_react2.default.useRef({});
   const enteredRef = import_react2.default.useRef(/* @__PURE__ */ new Set());
   const knownRef = import_react2.default.useRef(null);
@@ -46070,11 +47040,39 @@ function ScatterCanvas({
   const [resetEpoch, setResetEpoch] = import_react2.default.useState(0);
   const visible = visibleKeys instanceof Set ? visibleKeys : null;
   const isVisible = import_react2.default.useCallback((key) => !visible || visible.has(key), [visible]);
+  const flyInstant = import_react2.default.useCallback((target) => {
+    camTargetRef.current = target;
+    if (camRafRef.current) return;
+    const schedule = typeof requestAnimationFrame === "function" ? requestAnimationFrame : (callback) => setTimeout(() => callback(Date.now()), 16);
+    camRafRef.current = schedule(() => {
+      camRafRef.current = 0;
+      const next = camTargetRef.current;
+      camTargetRef.current = null;
+      if (next) flyTo(next, { instant: true });
+    });
+  }, [flyTo]);
+  const flushCam = import_react2.default.useCallback(() => {
+    if (!camRafRef.current && !camTargetRef.current) return;
+    if (camRafRef.current) {
+      if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(camRafRef.current);
+      else clearTimeout(camRafRef.current);
+      camRafRef.current = 0;
+    }
+    const next = camTargetRef.current;
+    camTargetRef.current = null;
+    if (next) flyTo(next, { instant: true });
+  }, [flyTo]);
+  import_react2.default.useEffect(() => () => {
+    if (!camRafRef.current) return;
+    if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(camRafRef.current);
+    else clearTimeout(camRafRef.current);
+    camRafRef.current = 0;
+  }, []);
   const entriesSig = import_react2.default.useMemo(() => entries.map((entry) => {
     const key = entryKey(entry);
     const item = entry?.item || {};
     const seed = entry?.type === "note" || entry?.type === "image" ? `${Number(item.x) || 0},${Number(item.y) || 0}` : "";
-    const size = entry?.type === "batch" ? "batch" : entry?.type === "note" ? "246x" + (item.kind === "todo" ? 224 : 190) : entry?.type === "image" ? `img${Number(item.width) || 0}x${Number(item.height) || 0}` : entry?.type === "highlight" ? "196" : `s${item.cover?.value ? 1 : 0}${String(item.id).length}`;
+    const size = entry?.type === "pack" ? "pack" : entry?.type === "batch" ? "batch" : entry?.type === "note" ? "246x" + (item.kind === "todo" ? 224 : 190) : entry?.type === "image" ? `img${Number(item.width) || 0}x${Number(item.height) || 0}` : entry?.type === "highlight" ? "196" : `s${item.cover?.value ? 1 : 0}${String(item.id).length}`;
     return `${key}:${size}:${seed}`;
   }).join("|"), [entries]);
   const pinsSig = import_react2.default.useMemo(() => Object.keys(pins).sort().join(","), [pins]);
@@ -46145,7 +47143,8 @@ function ScatterCanvas({
       if (event.ctrlKey || event.metaKey) {
         zoomAt(Math.exp(-event.deltaY * 0.01), event.clientX - rect.left, event.clientY - rect.top, true);
       } else {
-        flyTo({ x: cam.current.tx - event.deltaX, y: cam.current.ty - event.deltaY, s: cam.current.ts }, { instant: true });
+        const base = camTargetRef.current || { x: cam.current.tx, y: cam.current.ty, s: cam.current.ts };
+        flyInstant({ x: base.x - event.deltaX, y: base.y - event.deltaY, s: base.s });
       }
     };
     stage.addEventListener("wheel", onWheel, { passive: false });
@@ -46197,7 +47196,10 @@ function ScatterCanvas({
   import_react2.default.useEffect(() => {
     if (!drag) return void 0;
     const onKey = (event) => {
-      if (event.key !== "Escape") return;
+      if (event.key !== "Escape" || packBusyRef.current) return;
+      if (armTimerRef.current) clearTimeout(armTimerRef.current);
+      armTimerRef.current = null;
+      resetDragVisual(dragRef.current?.key);
       dragRef.current = null;
       setDrag(null);
     };
@@ -46207,10 +47209,55 @@ function ScatterCanvas({
     }
     return void 0;
   }, [drag]);
+  import_react2.default.useEffect(() => () => {
+    if (armTimerRef.current) clearTimeout(armTimerRef.current);
+    armTimerRef.current = null;
+  }, []);
   function applyManual(next) {
     manualRef.current = next;
     setManual(next);
     writeManual(next);
+  }
+  import_react2.default.useEffect(() => {
+    const ref = layoutApiRef;
+    if (!ref || typeof ref !== "object") return void 0;
+    function place(key, point) {
+      if (!key || key === "null" || !isFinitePoint(point)) return;
+      applyManual({
+        ...manualRef.current,
+        [key]: { x: Math.round(Number(point.x)), y: Math.round(Number(point.y)) }
+      });
+    }
+    function placeMany(map) {
+      if (!map || typeof map !== "object") return;
+      const next = { ...manualRef.current };
+      let changed = false;
+      for (const [key, point] of Object.entries(map)) {
+        if (!key || !isFinitePoint(point)) continue;
+        next[key] = { x: Math.round(Number(point.x)), y: Math.round(Number(point.y)) };
+        changed = true;
+      }
+      if (changed) applyManual(next);
+    }
+    function remove(key) {
+      if (!key || !(key in manualRef.current)) return;
+      const next = { ...manualRef.current };
+      delete next[key];
+      applyManual(next);
+    }
+    function getPosition(key) {
+      const position = layoutRef.current?.positions?.[key];
+      return position ? { x: position.x, y: position.y, w: position.w, h: position.h } : null;
+    }
+    const api2 = { place, placeMany, remove, getPosition };
+    ref.current = api2;
+    return () => {
+      if (ref.current === api2) ref.current = null;
+    };
+  }, [layoutApiRef]);
+  function clearArmTimer() {
+    if (armTimerRef.current) clearTimeout(armTimerRef.current);
+    armTimerRef.current = null;
   }
   function fixedObstacles(exceptKey) {
     const heroRect2 = { x: 0, y: 0, w: layout.hero.w, h: layout.hero.h };
@@ -46224,21 +47271,30 @@ function ScatterCanvas({
     return obstacles;
   }
   function beginCardDrag(event, key) {
-    if (event.button !== 0 || pins[key]) return;
+    if (packBusyRef.current || event.button !== 0 || pins[key]) return;
     if (event.target?.closest?.('button, a, input, textarea, label, select, [contenteditable="true"]')) return;
     const position = layout.positions[key];
     if (!position) return;
     event.stopPropagation?.();
+    flushCam();
     halt();
+    const node = cardRefs.current.get(key);
+    if (node?.style) node.style.transform = "";
     dragRef.current = {
       key,
+      stageRect: stageRect(stageRef.current),
       startX: event.clientX,
       startY: event.clientY,
       originX: position.x,
       originY: position.y,
+      tilt: position.tilt || 0,
       x: position.x,
       y: position.y,
-      moved: false
+      moved: false,
+      targetKey: "",
+      armed: false,
+      mode: "",
+      sealing: false
     };
   }
   function moveCardDrag(event) {
@@ -46250,44 +47306,158 @@ function ScatterCanvas({
     current.x = current.originX + dx;
     current.y = current.originY + dy;
     if (!current.moved && Math.hypot(dx, dy) < 4) return;
+    let stateChanged = false;
     if (!current.moved) {
       current.moved = true;
+      stateChanged = true;
       try {
         event.currentTarget?.setPointerCapture?.(event.pointerId);
       } catch {
       }
     }
     event.stopPropagation?.();
-    setDrag({ key: current.key, x: current.x, y: current.y });
+    const node = cardRefs.current.get(current.key);
+    if (node?.style) {
+      node.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${Number(current.tilt || 0) * 0.35}deg) scale(1.04)`;
+    }
+    if (!packBusyRef.current) {
+      const point = screenToWorld(cam.current, current.stageRect, event.clientX, event.clientY);
+      const hit = hitTestPackTarget({
+        entries: visibleEntries,
+        positions: layout.positions,
+        point,
+        sourceKey: current.key,
+        pins
+      });
+      const targetKey = hit?.key || "";
+      if (targetKey !== current.targetKey) {
+        current.targetKey = targetKey;
+        current.armed = false;
+        current.mode = hit?.mode || "";
+        stateChanged = true;
+        clearArmTimer();
+        if (targetKey) {
+          armTimerRef.current = setTimeout(() => {
+            const live = dragRef.current;
+            if (!live || live.key !== current.key || live.targetKey !== targetKey) return;
+            live.armed = true;
+            setDrag({
+              key: live.key,
+              targetKey: live.targetKey,
+              armed: true,
+              mode: live.mode,
+              sealing: false
+            });
+          }, PACK_ARM_DELAY_MS);
+        }
+      }
+    }
+    if (stateChanged) {
+      setDrag({
+        key: current.key,
+        targetKey: current.targetKey,
+        armed: current.armed,
+        mode: current.mode,
+        sealing: false
+      });
+    }
   }
-  function finishCardDrag() {
+  function resetDragVisual(key) {
+    const node = key ? cardRefs.current.get(key) : null;
+    if (node?.style) node.style.transform = "";
+  }
+  async function finishCardDrag(event) {
     const current = dragRef.current;
     if (!current) return;
+    clearArmTimer();
     dragRef.current = null;
-    if (!current.moved) return;
-    const position = layout.positions[current.key];
-    if (!position) {
+    if (!current.moved) {
+      resetDragVisual(current.key);
       setDrag(null);
       return;
     }
+    const position = layout.positions[current.key];
+    if (!position) {
+      resetDragVisual(current.key);
+      setDrag(null);
+      return;
+    }
+    suppressRef.current[current.key] = true;
+    setTimeout(() => {
+      suppressRef.current[current.key] = false;
+    }, 0);
+    let targetKey = current.targetKey || "";
+    let armed = Boolean(current.armed);
+    let mode = current.mode || "";
+    if (event && Number.isFinite(Number(event.clientX)) && Number.isFinite(Number(event.clientY))) {
+      const hit = packBusyRef.current ? null : hitTestPackTarget({
+        entries: visibleEntries,
+        positions: layout.positions,
+        point: screenToWorld(cam.current, current.stageRect, event.clientX, event.clientY),
+        sourceKey: current.key,
+        pins
+      });
+      if (!hit || hit.key !== targetKey) {
+        targetKey = hit?.key || "";
+        armed = false;
+        mode = hit?.mode || "";
+      }
+    }
+    const targetEntry = targetKey ? visibleEntries.find((entry) => entryKey(entry) === targetKey) : null;
+    const targetPosition = targetKey ? layout.positions[targetKey] : null;
+    if (targetKey && armed && targetEntry && targetPosition && typeof onMergeCards === "function") {
+      const sourceEntry = entries.find((entry) => entryKey(entry) === current.key) || null;
+      packBusyRef.current = true;
+      setDrag({ key: current.key, targetKey, armed: true, mode, sealing: true });
+      let merged = false;
+      try {
+        merged = Boolean(await onMergeCards({
+          sourceKey: current.key,
+          targetKey,
+          sourceEntry,
+          targetEntry,
+          sourceOrigin: { x: current.originX, y: current.originY },
+          dropPoint: { x: current.x, y: current.y },
+          targetPosition: { x: targetPosition.x, y: targetPosition.y, w: targetPosition.w, h: targetPosition.h }
+        }));
+      } catch {
+        merged = false;
+      } finally {
+        packBusyRef.current = false;
+        resetDragVisual(current.key);
+        setDrag(null);
+      }
+      if (!merged) {
+        applyManual({
+          ...manualRef.current,
+          [current.key]: { x: Math.round(current.x), y: Math.round(current.y) }
+        });
+      }
+      return;
+    }
+    resetDragVisual(current.key);
+    setDrag(null);
     const settled = nudgeOutOf(
       { x: current.x, y: current.y, w: position.w, h: position.h },
       fixedObstacles(current.key),
       SCATTER_GAP
     );
-    setDrag(null);
-    suppressRef.current[current.key] = true;
-    setTimeout(() => {
-      suppressRef.current[current.key] = false;
-    }, 0);
     applyManual({
       ...manualRef.current,
       [current.key]: { x: Math.round(settled.x), y: Math.round(settled.y) }
     });
   }
+  function cancelCardDrag() {
+    const current = dragRef.current;
+    clearArmTimer();
+    dragRef.current = null;
+    resetDragVisual(current?.key);
+    setDrag(null);
+  }
   function onStagePointerDown(event) {
     if (event.button !== 0) return;
     if (event.target?.closest?.(".mc-scatter-card, .mc-scatter-hero, .mc-scatter-controls, .mc-note-editor, .mc-scatter-empty")) return;
+    flushCam();
     halt();
     const stage = stageRef.current;
     try {
@@ -46322,9 +47492,10 @@ function ScatterCanvas({
     pan.lastX = event.clientX;
     pan.lastY = event.clientY;
     pan.lastT = now2;
-    flyTo({ x: pan.baseX + dx, y: pan.baseY + dy, s: cam.current.ts }, { instant: true });
+    flyInstant({ x: pan.baseX + dx, y: pan.baseY + dy, s: cam.current.ts });
   }
   function endPan() {
+    flushCam();
     const pan = panRef.current;
     if (!pan) return;
     panRef.current = null;
@@ -46360,6 +47531,51 @@ function ScatterCanvas({
   }
   function worldPointOf(event) {
     return screenToWorld(cam.current, stageRect(stageRef.current), event.clientX, event.clientY);
+  }
+  function onStageContextMenu(event) {
+    if (typeof onBlankContextMenu !== "function") return;
+    if (event.target?.closest?.(".mc-scatter-card, .mc-scatter-hero, .mc-scatter-controls, .mc-note-editor, .mc-scatter-empty, .mc-drop-zone, .mc-pack-hint, .mc-context")) return;
+    event.preventDefault?.();
+    event.stopPropagation?.();
+    onBlankContextMenu(event, worldPointOf(event));
+  }
+  function packHintNode() {
+    if (!drag?.targetKey) return null;
+    const position = layout.positions[drag.targetKey];
+    if (!position) return null;
+    const entry = visibleEntries.find((row) => entryKey(row) === drag.targetKey);
+    if (!entry) return null;
+    const rect = screenRectOf(cam.current, position);
+    const box = getStageSize();
+    const below = rect.top < 54;
+    const left = Math.max(86, Math.min(Math.max(86, box.w - 86), rect.left + rect.width / 2));
+    const top = Math.max(8, Math.min(Math.max(8, box.h - 52), below ? rect.bottom + 12 : rect.top - 42));
+    const count = Number(entry.item?.count) || 0;
+    const text = drag.sealing ? "\u6B63\u5728\u6536\u8FDB\u5361\u5305\u2026" : drag.armed ? drag.mode === "add" ? `\u677E\u624B\u653E\u8FDB\u5361\u5305 \xB7 ${count} \u5F20` : "\u677E\u624B\u53E0\u6210\u5361\u5305" : drag.mode === "add" ? "\u505C\u4E00\u4E0B\uFF0C\u653E\u8FDB\u5361\u5305" : "\u505C\u4E00\u4E0B\uFF0C\u53E0\u6210\u5361\u5305";
+    return /* @__PURE__ */ import_react2.default.createElement(import_react2.default.Fragment, { key: "pack-hint" }, /* @__PURE__ */ import_react2.default.createElement(
+      "span",
+      {
+        className: "mc-pack-glow",
+        "data-ready": drag.armed ? "true" : "false",
+        style: {
+          left: rect.left - 6,
+          top: rect.top - 6,
+          width: rect.width + 12,
+          height: rect.height + 12
+        },
+        "aria-hidden": "true"
+      }
+    ), /* @__PURE__ */ import_react2.default.createElement(
+      "div",
+      {
+        className: `mc-pack-hint${drag.armed ? " is-ready" : ""}${drag.sealing ? " is-busy" : ""}`,
+        style: { left, top },
+        role: "status",
+        "aria-live": "polite"
+      },
+      /* @__PURE__ */ import_react2.default.createElement("i", { "aria-hidden": "true" }),
+      /* @__PURE__ */ import_react2.default.createElement("span", null, text)
+    ));
   }
   function openEditor(event) {
     if (event.target?.closest?.(".mc-scatter-card, .mc-scatter-hero, .mc-scatter-controls, .mc-note-editor, .mc-scatter-empty")) return;
@@ -46432,12 +47648,14 @@ function ScatterCanvas({
       onPointerUp: endPan,
       onPointerCancel: endPan,
       onDoubleClick: openEditor,
+      onContextMenu: onStageContextMenu,
       onFocus: revealFocused,
       onDragOver,
       onDragEnter: onDragOver,
       onDragLeave,
       onDrop
     },
+    /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-grid", ref: gridRef, "aria-hidden": "true" }),
     /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-world", ref: worldRef }, /* @__PURE__ */ import_react2.default.createElement(
       "div",
       {
@@ -46455,9 +47673,10 @@ function ScatterCanvas({
       const position = layout.positions[key];
       if (!position) return null;
       const moved = drag?.key === key ? drag : null;
-      const x = moved ? moved.x : position.x;
-      const y = moved ? moved.y : position.y;
+      const x = position.x;
+      const y = position.y;
       const pinned = Boolean(pins[key]);
+      const isPackTarget = Boolean(drag?.targetKey) && drag.targetKey === key;
       return /* @__PURE__ */ import_react2.default.createElement(
         "div",
         {
@@ -46466,25 +47685,26 @@ function ScatterCanvas({
             if (node) cardRefs.current.set(key, node);
             else cardRefs.current.delete(key);
           },
-          className: `mc-scatter-card${pinned ? " is-pinned" : ""}${pinned && pinningKey === key ? " is-pinning" : ""}${moved ? " is-dragging" : ""}`,
+          className: `mc-scatter-card${pinned ? " is-pinned" : ""}${pinned && pinningKey === key ? " is-pinning" : ""}${moved ? " is-dragging" : ""}${isPackTarget ? drag.armed ? " is-pack-ready" : " is-pack-hover" : ""}${isPackTarget && drag.sealing ? " is-pack-sealing" : ""}`,
           "data-node": key,
           "data-type": entry.type,
           "data-active": entry.type === "session" && ["recording", "processing", "queued"].includes(entry.item?.status) ? "true" : void 0,
           "data-pinned": pinned ? "true" : void 0,
+          "data-pack-target": isPackTarget ? "true" : void 0,
           style: {
             left: x - position.w / 2,
             top: y - position.h / 2,
             width: position.w || CARD_W,
             height: position.h,
             "--tilt": `${position.tilt ?? 0}deg`,
-            zIndex: moved ? 20 : void 0
+            zIndex: moved ? 20 : isPackTarget ? 15 : void 0
           },
           draggable: false,
           onDragStart: (event) => event.preventDefault(),
           onPointerDown: (event) => beginCardDrag(event, key),
           onPointerMove: moveCardDrag,
           onPointerUp: finishCardDrag,
-          onPointerCancel: finishCardDrag,
+          onPointerCancel: cancelCardDrag,
           onClickCapture: (event) => {
             if (suppressRef.current[key]) {
               event.preventDefault();
@@ -46496,6 +47716,7 @@ function ScatterCanvas({
         renderEntry(entry)
       );
     })),
+    packHintNode(),
     dropActive ? /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-drop-zone" }, /* @__PURE__ */ import_react2.default.createElement("span", null, "\u677E\u5F00\u9F20\u6807\uFF0C\u628A\u56FE\u7247\u8D34\u5230\u753B\u677F"), /* @__PURE__ */ import_react2.default.createElement("em", null, "PNG / JPEG / WebP / GIF / HEIC \xB7 \u5355\u5F20\u6700\u5927 25 MB")) : null,
     visibleEntries.length === 0 && entries.length > 0 ? /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-empty" }, /* @__PURE__ */ import_react2.default.createElement("p", null, "\u6CA1\u6709\u7B26\u5408\u6761\u4EF6\u7684\u6458\u5F55"), /* @__PURE__ */ import_react2.default.createElement("span", null, "\u6362\u4E00\u4E2A\u7B5B\u9009\uFF0C\u6216\u8005\u56DE\u5230\u5168\u90E8\u3002"), /* @__PURE__ */ import_react2.default.createElement("div", null, /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => onShowAll?.(), onPointerDown: (event) => event.stopPropagation() }, "\u67E5\u770B\u5168\u90E8"))) : null,
     editor ? /* @__PURE__ */ import_react2.default.createElement(
@@ -46510,7 +47731,7 @@ function ScatterCanvas({
       }
     ) : null,
     /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-controls", onPointerDown: (event) => event.stopPropagation() }, /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => zoomAt(0.85, ...center2(), false), "aria-label": "\u7F29\u5C0F", title: "\u7F29\u5C0F" }, "\u2212"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => home(), "aria-label": "\u56DE\u5230\u4E2D\u5FC3", title: "\u56DE\u5230\u4E2D\u5FC3" }, "\u25CE"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: () => zoomAt(1.18, ...center2(), false), "aria-label": "\u653E\u5927", title: "\u653E\u5927" }, "\uFF0B"), /* @__PURE__ */ import_react2.default.createElement("button", { type: "button", onClick: resetLayout, "aria-label": "\u91CD\u65B0\u6563\u843D", title: "\u91CD\u65B0\u6563\u843D\uFF08\u6E05\u9664\u624B\u52A8\u4F4D\u7F6E\uFF09" }, "\u21BA")),
-    /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-hint" }, "\u62D6\u52A8\u5361\u7247\u91CD\u6392 \xB7 \u53CC\u51FB\u7A7A\u767D\u5199\u4FBF\u5229\u7B7E \xB7 \u53CC\u51FB\u5361\u7247\u7F16\u8F91 \xB7 \u62D6\u5165\u6216 \u2318V \u7C98\u8D34")
+    /* @__PURE__ */ import_react2.default.createElement("div", { className: "mc-scatter-hint" }, "\u62D6\u52A8\u91CD\u6392 \xB7 \u5361\u7247\u76F8\u53E0\u6210\u5361\u5305 \xB7 \u53CC\u51FB\u7A7A\u767D\u5199\u4FBF\u5229\u7B7E \xB7 \u2318V \u7C98\u8D34")
   );
 }
 
@@ -46639,15 +47860,564 @@ function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh,
   ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, "\u5173\u95ED")))));
 }
 
+// client-src/components/home/PackCard.jsx
+init_react_shim();
+function cleanText(value, limit = 160) {
+  return String(value || "").replace(/\s+/g, " ").trim().slice(0, limit);
+}
+function coverToUrl(item, cover) {
+  if (!cover?.value) return null;
+  return cover.type === "remote" ? cover.value : fileUrl(item.id, cover.value);
+}
+function coverSources(item) {
+  if (!item) return [];
+  return [...new Set([
+    coverToUrl(item, item.cover),
+    coverToUrl(item, item.cover?.fallback)
+  ].filter(Boolean))];
+}
+function memberLabel(member) {
+  if (!member) return "";
+  if (member.type === "session") return kindInfo(member.kind).label;
+  if (member.type === "batch") return "\u6279\u6B21";
+  if (member.type === "highlight") return "\u6807\u8BB0";
+  if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E" : "\u4FBF\u5229\u7B7E";
+  if (member.type === "image") return "\u56FE\u7247";
+  if (member.type === "doc") return "\u6587\u6863";
+  return "\u5361\u7247";
+}
+function todoLines(text) {
+  return String(text || "").split("\n").map((line) => line.match(/^\s*-\s+(.*)$/)).filter(Boolean).map((match) => match[1].replace(/^\[[ xX]\]\s*/, "").trim()).filter(Boolean);
+}
+function SessionFace({ entry, member, t }) {
+  const item = entry?.item || member;
+  const info = kindInfo(member.kind);
+  const sources = coverSources(entry?.item);
+  const [sourceIndex, setSourceIndex] = React.useState(0);
+  const source = sources[sourceIndex];
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-home-card mc-pack-front-card${source ? "" : " is-text"}`, "data-kind": info.tone }, source ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-cover", "data-kind": info.tone }, /* @__PURE__ */ React.createElement(
+    "img",
+    {
+      src: source,
+      alt: "",
+      loading: "lazy",
+      decoding: "async",
+      draggable: false,
+      referrerPolicy: "no-referrer",
+      onError: () => {
+        if (sourceIndex + 1 < sources.length) setSourceIndex(sourceIndex + 1);
+        else setSourceIndex(sources.length);
+      }
+    }
+  )) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: `mc-home-type-inline mc-home-tone-${info.tone}` }, info.label), /* @__PURE__ */ React.createElement("span", { className: "mc-home-status", "data-status": member.status }, /* @__PURE__ */ React.createElement("i", null), statusText(member.status, t))), /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, cleanText(item.title, 90) || "\u672A\u547D\u540D\u8BB0\u5F55"), item.snippet ? /* @__PURE__ */ React.createElement("p", { className: "mc-home-card-snippet" }, cleanText(item.snippet, 100)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, item.platform && item.platform !== "bilibili" ? item.platform : info.label), /* @__PURE__ */ React.createElement("span", null, dateTime(member.created_at), member.duration ? ` \xB7 ${clock(member.duration)}` : ""))));
+}
+function NoteFace({ entry, member }) {
+  const item = entry?.item || {};
+  const text = item.text || member.title || "";
+  const todos = member.kind === "todo" ? todoLines(text) : [];
+  const body = text.split("\n").filter((line) => !/^\s*-\s+/.test(line)).join("\n").trim();
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-sticky-card mc-pack-front-card", "data-kind": member.kind || "note" }, /* @__PURE__ */ React.createElement("div", { className: "mc-sticky-head" }, /* @__PURE__ */ React.createElement("span", null, member.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E")), body ? /* @__PURE__ */ React.createElement("p", { className: "mc-sticky-text" }, cleanText(body, 140)) : null, todos.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-todo-preview" }, todos.slice(0, 4).map((textLine, index) => /* @__PURE__ */ React.createElement("span", { key: `${index}-${textLine}`, "data-done": Boolean(item.checked?.[index]) }, /* @__PURE__ */ React.createElement("i", null), cleanText(textLine, 60)))) : null);
+}
+function HighlightFace({ entry, member }) {
+  const item = entry?.item || member;
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-card mc-home-quote mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-quote-mark" }, "\u201C"), /* @__PURE__ */ React.createElement("blockquote", null, cleanText(item.note || member.title, 120)), /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, cleanText(item.session_title || member.subtitle, 60)), /* @__PURE__ */ React.createElement("span", null, clock(item.ts ?? member.ts ?? 0))));
+}
+function DocFace({ entry, member, t }) {
+  const item = entry?.item || member;
+  const label = item.doc_type === "wiki" ? "\u98DE\u4E66\u77E5\u8BC6\u5E93" : item.doc_type === "sheet" ? "\u98DE\u4E66\u8868\u683C" : item.doc_type === "base" ? "\u98DE\u4E66\u591A\u7EF4\u8868\u683C" : "\u98DE\u4E66\u6587\u6863";
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-doc-wall-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-top" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, dateTime(item.updated_at || member.created_at))), /* @__PURE__ */ React.createElement("strong", { className: "mc-doc-wall-title" }, cleanText(item.title || member.title, 90) || "\u98DE\u4E66\u6587\u6863"), /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-foot" }, /* @__PURE__ */ React.createElement("span", null, item.has_content === false ? "\u4EC5\u94FE\u63A5" : "\u6709\u6B63\u6587\u5FEB\u7167"), /* @__PURE__ */ React.createElement("span", null, t?.("home.docs.open") || "\u6253\u5F00", " \u2197")));
+}
+function ImageFace({ entry, member }) {
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-image-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("img", { src: boardImageUrl(member.id), alt: "", loading: "lazy", draggable: false }));
+}
+function BatchFace({ entry, member }) {
+  const item = entry?.item || member;
+  const total = Number(item.total) || Number(member.count) || 0;
+  const done = Number(item.counts?.done) || 0;
+  const percent = total > 0 ? Math.min(100, Math.round(done / total * 100)) : 0;
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-batch-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-batch-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-batch-tag" }, "\u6279\u6B21"), /* @__PURE__ */ React.createElement("span", { className: "mc-batch-head-meta" }, dateTime(member.created_at))), /* @__PURE__ */ React.createElement("h3", { className: "mc-batch-title" }, cleanText(item.title || member.title, 80) || "\u6279\u91CF\u89C6\u9891"), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-progress", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${percent}%` } })), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-counts" }, /* @__PURE__ */ React.createElement("span", null, done, "/", total, " \u5B8C\u6210"), Number(item.active) ? /* @__PURE__ */ React.createElement("span", { className: "is-active" }, item.active, " \u8FDB\u884C\u4E2D") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-foot" }, /* @__PURE__ */ React.createElement("span", null, "\u67E5\u770B ", total, " \u6761"), /* @__PURE__ */ React.createElement("span", null, Number(item.active) ? "\u5904\u7406\u4E2D" : "\u5DF2\u5B8C\u6210")));
+}
+function UnknownFace({ member }) {
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-card is-text mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: "mc-home-type-inline" }, memberLabel(member))), /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, cleanText(member.title, 90) || "\u5361\u7247")));
+}
+function FrontFace({ entry, member, t }) {
+  if (member.type === "session") return /* @__PURE__ */ React.createElement(SessionFace, { entry, member, t });
+  if (member.type === "note") return /* @__PURE__ */ React.createElement(NoteFace, { entry, member });
+  if (member.type === "highlight") return /* @__PURE__ */ React.createElement(HighlightFace, { entry, member });
+  if (member.type === "doc") return /* @__PURE__ */ React.createElement(DocFace, { entry, member, t });
+  if (member.type === "image") return /* @__PURE__ */ React.createElement(ImageFace, { entry, member });
+  if (member.type === "batch") return /* @__PURE__ */ React.createElement(BatchFace, { entry, member });
+  return /* @__PURE__ */ React.createElement(UnknownFace, { member });
+}
+function BackFace({ entry, member, slot }) {
+  const item = entry?.item || {};
+  const type = member.type;
+  const cover = type === "session" ? coverSources(item)[0] : type === "image" ? boardImageUrl(member.id) : type === "doc" ? null : null;
+  const backgroundImage = cover ? `linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.12)), url("${cover}")` : void 0;
+  return /* @__PURE__ */ React.createElement(
+    "span",
+    {
+      className: "mc-pack-back",
+      "data-type": type,
+      "data-kind": member.kind || type,
+      "data-slot": slot,
+      style: { ...backgroundImage ? { backgroundImage } : {}, zIndex: 3 - slot },
+      "aria-hidden": "true"
+    }
+  );
+}
+function PackCard({ item, memberEntries = null, t, onOpen, onMenu }) {
+  const members = Array.isArray(item?.members) ? item.members : [];
+  const count = Number(item?.count) || members.length;
+  const active2 = Number(item?.active_count) || members.filter((member) => member.active).length;
+  const empty = count === 0;
+  const frontMember = members[0] || null;
+  const frontEntry = frontMember ? memberEntries?.get?.(`${frontMember.type}-${frontMember.id}`) : null;
+  const backs = members.slice(1, 3);
+  return /* @__PURE__ */ React.createElement(
+    "article",
+    {
+      className: `mc-pack-card${empty ? " is-empty" : ""}${active2 ? " is-active" : ""}`,
+      "data-pack-id": item?.id,
+      role: "button",
+      tabIndex: 0,
+      "aria-label": `\u5361\u5305\uFF1A${item?.title || "\u672A\u547D\u540D\u5361\u5305"}\uFF0C${count} \u5F20\u5361\u7247`,
+      onClick: () => onOpen?.(item),
+      onContextMenu: (event) => onMenu?.(event),
+      onKeyDown: (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen?.(item);
+        }
+      }
+    },
+    /* @__PURE__ */ React.createElement("span", { className: "mc-pack-tab" }, !/^卡包/.test(item?.title || "") ? /* @__PURE__ */ React.createElement("span", { className: "mc-pack-tab-label" }, "\u5361\u5305") : null, /* @__PURE__ */ React.createElement("strong", null, item?.title || "\u672A\u547D\u540D\u5361\u5305"), /* @__PURE__ */ React.createElement("em", null, count, " \u5F20"), active2 ? /* @__PURE__ */ React.createElement("i", { className: "mc-pack-tab-active", "aria-label": "\u5305\u542B\u8FDB\u884C\u4E2D\u7684\u5361\u7247" }) : null),
+    empty ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-empty-face" }, /* @__PURE__ */ React.createElement("span", null, "\u5361\u5305"), /* @__PURE__ */ React.createElement("strong", null, item?.title || "\u672A\u547D\u540D\u5361\u5305"), /* @__PURE__ */ React.createElement("em", null, "\u628A\u5361\u7247\u62D6\u5230\u8FD9\u91CC")) : /* @__PURE__ */ React.createElement(React.Fragment, null, backs.map((member, index) => /* @__PURE__ */ React.createElement(
+      BackFace,
+      {
+        key: `${member.type}-${member.id}`,
+        entry: memberEntries?.get?.(`${member.type}-${member.id}`),
+        member,
+        slot: index + 1
+      }
+    )), /* @__PURE__ */ React.createElement("div", { className: "mc-pack-front", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(FrontFace, { entry: frontEntry, member: frontMember, t })))
+  );
+}
+
+// client-src/components/home/PackOverlay.jsx
+init_react_shim();
+function memberLabel2(member) {
+  if (!member) return "";
+  if (member.type === "session") return kindInfo(member.kind).label;
+  if (member.type === "batch") return "\u6279\u6B21";
+  if (member.type === "highlight") return "\u6807\u8BB0";
+  if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E";
+  if (member.type === "image") return "\u56FE\u7247";
+  if (member.type === "doc") {
+    return member.doc_type === "wiki" ? "\u98DE\u4E66\u77E5\u8BC6\u5E93" : member.doc_type === "sheet" ? "\u98DE\u4E66\u8868\u683C" : member.doc_type === "base" ? "\u98DE\u4E66\u591A\u7EF4\u8868\u683C" : "\u98DE\u4E66\u6587\u6863";
+  }
+  return "\u5361\u7247";
+}
+function memberMeta(member, t) {
+  if (!member) return "";
+  if (member.type === "session") {
+    return [
+      statusText(member.status, t),
+      member.duration ? clock(member.duration) : "",
+      dateTime(member.created_at)
+    ].filter(Boolean).join(" \xB7 ");
+  }
+  if (member.type === "batch") {
+    return [member.count ? `${member.count} \u6761` : "", member.active ? `${member.active} \u8FDB\u884C\u4E2D` : "\u6279\u6B21"].filter(Boolean).join(" \xB7 ");
+  }
+  if (member.type === "highlight") return `${dateTime(member.created_at)} \xB7 ${clock(member.ts)}`;
+  if (member.type === "note") return dateTime(member.created_at);
+  if (member.type === "image") return [member.width && member.height ? `${member.width}\xD7${member.height}` : "", dateTime(member.created_at)].filter(Boolean).join(" \xB7 ");
+  if (member.type === "doc") return [member.has_content ? "\u6709\u6B63\u6587\u5FEB\u7167" : "\u4EC5\u94FE\u63A5", dateTime(member.created_at)].filter(Boolean).join(" \xB7 ");
+  return dateTime(member.created_at);
+}
+function canOpen(member) {
+  return ["session", "batch", "highlight", "doc"].includes(member?.type);
+}
+function FallbackCard({ member, t, onOpen }) {
+  const body = /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-pack-fallback-badge", "data-tone": member?.type, "aria-hidden": "true" }, memberLabel2(member).slice(0, 1)), /* @__PURE__ */ React.createElement("span", { className: "mc-pack-fallback-main" }, /* @__PURE__ */ React.createElement("span", { className: "mc-pack-fallback-top" }, /* @__PURE__ */ React.createElement("span", null, memberLabel2(member)), /* @__PURE__ */ React.createElement("span", null, memberMeta(member, t))), /* @__PURE__ */ React.createElement("strong", null, member?.title || member?.id)), canOpen(member) ? /* @__PURE__ */ React.createElement("span", { className: "mc-pack-fallback-open" }, "\u6253\u5F00") : null);
+  return canOpen(member) ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-pack-fallback-card", onClick: onOpen }, body) : /* @__PURE__ */ React.createElement("div", { className: "mc-pack-fallback-card is-static" }, body);
+}
+function PackOverlay({
+  pack,
+  t,
+  busy = false,
+  renameFocus = false,
+  memberEntries = null,
+  renderEntry,
+  onClose,
+  onOpenMember,
+  onRemoveMember,
+  onDissolve,
+  onRename,
+  onReorder
+}) {
+  const inputRef = React.useRef(null);
+  const cancelRef = React.useRef(false);
+  const reorderRef = React.useRef(null);
+  const bodyClassRef = React.useRef(false);
+  const rowRefs = React.useRef(/* @__PURE__ */ new Map());
+  const layerRef = React.useRef(null);
+  const ghostRef = React.useRef(null);
+  const suppressClickRef = React.useRef(/* @__PURE__ */ new Map());
+  const [title, setTitle] = React.useState(pack?.title || "");
+  const [saving, setSaving] = React.useState(false);
+  const [order, setOrder] = React.useState(() => Array.isArray(pack?.members) ? pack.members : []);
+  const orderRef = React.useRef(order);
+  orderRef.current = order;
+  const [pendingKey, setPendingKey] = React.useState("");
+  const [draggingKey, setDraggingKey] = React.useState("");
+  const [dropTarget, setDropTarget] = React.useState(null);
+  const [savingOrder, setSavingOrder] = React.useState(false);
+  React.useEffect(() => {
+    setTitle(pack?.title || "");
+  }, [pack?.id, pack?.title]);
+  React.useEffect(() => {
+    if (reorderRef.current || pendingKey || draggingKey || savingOrder) return;
+    const next = Array.isArray(pack?.members) ? pack.members : [];
+    orderRef.current = next;
+    setOrder(next);
+  }, [pack?.id, pack?.members, pendingKey, draggingKey, savingOrder]);
+  React.useEffect(() => {
+    if (!renameFocus) return;
+    const node = inputRef.current;
+    if (!node) return;
+    node.focus();
+    try {
+      node.select();
+    } catch {
+    }
+  }, [renameFocus, pack?.id]);
+  React.useEffect(() => {
+    function onKey(event) {
+      if (event.key !== "Escape") return;
+      if (event.target === inputRef.current) return;
+      if (reorderRef.current) {
+        event.stopPropagation();
+        cancelReorder();
+        return;
+      }
+      event.stopPropagation();
+      onClose?.();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  React.useEffect(() => () => {
+    removeGhost();
+    if (bodyClassRef.current) {
+      document.body.classList.remove("mc-pack-reordering");
+      bodyClassRef.current = false;
+    }
+  }, []);
+  function setBodyReordering(on) {
+    bodyClassRef.current = on;
+    try {
+      if (on) document.body.classList.add("mc-pack-reordering");
+      else document.body.classList.remove("mc-pack-reordering");
+    } catch {
+    }
+  }
+  function removeGhost() {
+    const ghost = ghostRef.current;
+    ghostRef.current = null;
+    try {
+      ghost?.remove?.();
+    } catch {
+    }
+  }
+  function createGhost(current) {
+    removeGhost();
+    const card = current?.card;
+    const layer = layerRef.current;
+    if (!card || !layer?.appendChild) return;
+    const rect = current.rect;
+    const clone = card.cloneNode(true);
+    clone.classList.add("mc-pack-drag-ghost");
+    clone.setAttribute("aria-hidden", "true");
+    clone.style.width = `${rect.width}px`;
+    clone.style.height = `${rect.height}px`;
+    clone.style.left = `${rect.left}px`;
+    clone.style.top = `${rect.top}px`;
+    clone.style.margin = "0";
+    clone.style.pointerEvents = "none";
+    layer.appendChild(clone);
+    ghostRef.current = clone;
+  }
+  function moveGhost(event, current) {
+    const ghost = ghostRef.current;
+    if (!ghost) return;
+    ghost.style.left = `${event.clientX - current.grabX}px`;
+    ghost.style.top = `${event.clientY - current.grabY}px`;
+  }
+  React.useEffect(() => {
+    if (!pendingKey) return void 0;
+    const key = pendingKey;
+    function onMove(event) {
+      const current = reorderRef.current;
+      if (!current || current.key !== key) return;
+      const distance = Math.hypot(event.clientX - current.startX, event.clientY - current.startY);
+      if (!current.moved && distance < 7) return;
+      if (!current.moved) {
+        current.moved = true;
+        try {
+          event.preventDefault?.();
+        } catch {
+        }
+        setBodyReordering(true);
+        setDraggingKey(key);
+        createGhost(current);
+      }
+      moveGhost(event, current);
+      const row = document.elementFromPoint(event.clientX, event.clientY)?.closest?.("[data-pack-member-key]");
+      if (!row) {
+        current.drop = null;
+        setDropTarget((previous) => previous ? null : previous);
+        return;
+      }
+      const targetKey = row.getAttribute("data-pack-member-key");
+      if (!targetKey || targetKey === current.key) {
+        current.drop = null;
+        setDropTarget((previous) => previous ? null : previous);
+        return;
+      }
+      const index = orderRef.current.findIndex((member) => packMemberKey(member) === targetKey);
+      if (index < 0) {
+        current.drop = null;
+        setDropTarget((previous) => previous ? null : previous);
+        return;
+      }
+      const card = row.querySelector(".mc-pack-row-card") || row;
+      const box = card.getBoundingClientRect();
+      const drop = {
+        key: targetKey,
+        index,
+        rect: { left: box.left, top: box.top, width: box.width, height: box.height }
+      };
+      current.drop = drop;
+      setDropTarget((previous) => {
+        if (previous && previous.key === drop.key && previous.rect.left === drop.rect.left && previous.rect.top === drop.rect.top && previous.rect.width === drop.rect.width && previous.rect.height === drop.rect.height) return previous;
+        return drop;
+      });
+    }
+    function onUp() {
+      void finishReorder();
+    }
+    function onCancel() {
+      cancelReorder();
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    window.addEventListener("blur", onCancel);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("blur", onCancel);
+    };
+  }, [pendingKey]);
+  async function finishReorder() {
+    const current = reorderRef.current;
+    reorderRef.current = null;
+    removeGhost();
+    setBodyReordering(false);
+    setPendingKey("");
+    setDraggingKey("");
+    setDropTarget(null);
+    if (!current) return;
+    if (!current.moved) return;
+    suppressClickRef.current.set(current.key, true);
+    setTimeout(() => suppressClickRef.current.delete(current.key), 0);
+    if (!current.drop) return;
+    const next = movePackMemberToSlot(orderRef.current, current.key, current.drop.index);
+    if (next === orderRef.current) return;
+    orderRef.current = next;
+    setOrder(next);
+    if (typeof onReorder !== "function") return;
+    setSavingOrder(true);
+    const original = current.original;
+    try {
+      const ok = await onReorder(next);
+      if (!ok) {
+        orderRef.current = original;
+        setOrder(original);
+      }
+    } catch {
+      orderRef.current = original;
+      setOrder(original);
+    } finally {
+      setSavingOrder(false);
+    }
+  }
+  function cancelReorder() {
+    reorderRef.current = null;
+    removeGhost();
+    setBodyReordering(false);
+    setPendingKey("");
+    setDraggingKey("");
+    setDropTarget(null);
+  }
+  function startPendingDrag(event, key) {
+    if (event.button !== 0 || busy || savingOrder || reorderRef.current) return;
+    if (event.target?.closest?.('.mc-pack-row-tools, input, textarea, select, label, a, [contenteditable="true"]')) return;
+    const row = rowRefs.current.get(key);
+    if (!row) return;
+    const card = row.querySelector(".mc-pack-row-card") || row;
+    const rect = card.getBoundingClientRect();
+    reorderRef.current = {
+      key,
+      startX: event.clientX,
+      startY: event.clientY,
+      grabX: event.clientX - rect.left,
+      grabY: event.clientY - rect.top,
+      row,
+      card,
+      rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+      moved: false,
+      drop: null,
+      original: orderRef.current.slice()
+    };
+    setPendingKey(key);
+  }
+  async function commitTitle() {
+    if (cancelRef.current) {
+      cancelRef.current = false;
+      return true;
+    }
+    if (saving || busy) return false;
+    const value = String(title || "").trim();
+    if (!value) {
+      setTitle(pack?.title || "");
+      return true;
+    }
+    if (value === (pack?.title || "")) return true;
+    setSaving(true);
+    try {
+      const ok = Boolean(await onRename?.(value));
+      if (!ok) setTitle(pack?.title || "");
+      return ok;
+    } finally {
+      setSaving(false);
+    }
+  }
+  function runAfterTitleSave(event, action) {
+    event.preventDefault();
+    if (saving || savingOrder) return;
+    const value = String(title || "").trim();
+    if (value && value !== (pack?.title || "")) {
+      commitTitle().finally(() => action());
+    } else {
+      action();
+    }
+  }
+  if (!pack) return null;
+  const members = order;
+  const count = members.length;
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": `\u5361\u5305\uFF1A${pack.title || "\u672A\u547D\u540D\u5361\u5305"}`, ref: layerRef }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-pack-modal", "data-pack-id": pack.id }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head mc-pack-modal-head" }, /* @__PURE__ */ React.createElement("div", { className: "mc-pack-modal-title" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      ref: inputRef,
+      className: "mc-pack-title-input",
+      value: title,
+      maxLength: 80,
+      disabled: busy || saving || savingOrder,
+      "aria-label": "\u5361\u5305\u540D\u79F0",
+      onChange: (event) => setTitle(event.target.value),
+      onBlur: commitTitle,
+      onKeyDown: (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          event.currentTarget.blur();
+        } else if (event.key === "Escape") {
+          event.stopPropagation();
+          cancelRef.current = true;
+          setTitle(pack.title || "");
+          event.currentTarget.blur();
+        }
+      }
+    }
+  ), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, count, " \u5F20\u5361\u7247 \xB7 \u6309\u4F4F\u5361\u7247\u62D6\u52A8\u6392\u5E8F \xB7 \u66F4\u65B0 ", dateTime(pack.updated_at || pack.created_at), busy || saving || savingOrder ? " \xB7 \u6B63\u5728\u4FDD\u5B58\u2026" : "")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose, "aria-label": "\u5173\u95ED\u5361\u5305" }, "\xD7")), members.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-modal-empty" }, /* @__PURE__ */ React.createElement("strong", null, "\u7A7A\u5361\u5305"), /* @__PURE__ */ React.createElement("p", null, "\u628A\u5899\u9762\u4E0A\u7684\u5361\u7247\u62D6\u5230\u8FD9\u5F20\u5361\u5305\u4E0A\uFF0C\u5C31\u4F1A\u6536\u8FDB\u6765\u3002")) : /* @__PURE__ */ React.createElement("div", { className: "mc-pack-card-grid" }, members.map((member) => {
+    const key = packMemberKey(member);
+    const entry = memberEntries?.get?.(key) || null;
+    return /* @__PURE__ */ React.createElement(
+      "div",
+      {
+        key,
+        className: `mc-pack-row${draggingKey === key ? " is-dragging" : ""}`,
+        "data-pack-member-key": key,
+        "data-type": member.type,
+        ref: (node) => {
+          if (node) rowRefs.current.set(key, node);
+          else rowRefs.current.delete(key);
+        },
+        onPointerDown: (event) => startPendingDrag(event, key),
+        onClickCapture: (event) => {
+          if (!suppressClickRef.current.get(key)) return;
+          suppressClickRef.current.delete(key);
+          event.preventDefault();
+          event.stopPropagation();
+        },
+        onContextMenuCapture: (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "mc-pack-row-card" }, entry && typeof renderEntry === "function" ? renderEntry(entry, { packMode: true, onOpenMember: () => onOpenMember?.(pack, member) }) : /* @__PURE__ */ React.createElement(FallbackCard, { member, t, onOpen: () => onOpenMember?.(pack, member) })),
+      /* @__PURE__ */ React.createElement("div", { className: "mc-pack-row-tools" }, /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "mc-pack-row-remove",
+          disabled: busy || savingOrder,
+          onMouseDown: (event) => event.preventDefault(),
+          onClick: (event) => runAfterTitleSave(event, () => onRemoveMember?.(pack, member))
+        },
+        "\u79FB\u51FA"
+      ))
+    );
+  })), /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions mc-pack-modal-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": "danger",
+      disabled: busy || savingOrder,
+      onMouseDown: (event) => event.preventDefault(),
+      onClick: (event) => runAfterTitleSave(event, () => onDissolve?.(pack))
+    },
+    count ? "\u89E3\u6563\u5361\u5305" : "\u5220\u9664\u5361\u5305"
+  ), /* @__PURE__ */ React.createElement("span", { className: "mc-pack-modal-hint" }, count ? "\u6309\u4F4F\u4EFB\u610F\u5361\u7247\u62D6\u52A8\u8C03\u6574\u987A\u5E8F\uFF1B\u89E3\u6563\u53EA\u628A\u5361\u7247\u653E\u56DE\u5899\u9762\uFF0C\u4E0D\u4F1A\u5220\u9664\u8BB0\u5F55" : ""), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: onClose }, "\u5173\u95ED"))), dropTarget?.rect ? /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      className: "mc-pack-drop-marker",
+      style: {
+        left: dropTarget.rect.left,
+        top: dropTarget.rect.top,
+        width: dropTarget.rect.width,
+        height: dropTarget.rect.height
+      },
+      "aria-hidden": "true"
+    },
+    /* @__PURE__ */ React.createElement("span", { className: "mc-pack-drop-line" }),
+    /* @__PURE__ */ React.createElement("span", { className: "mc-pack-drop-pill" }, "\u63D2\u5165\u5230\u8FD9\u91CC")
+  ) : null);
+}
+
 // client-src/components/capture/CaptureInline.jsx
 init_react_shim();
 var TITLES = {
   launch: ["\u53D1\u5E03\u4F1A\u76F4\u64AD", "\u7C98\u8D34\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u9884\u68C0\u901A\u8FC7\u540E\u5F00\u59CB\u91C7\u96C6"],
   video: ["\u89C6\u9891\u94FE\u63A5", "B\u7AD9\u3001YouTube \u7B49\u94FE\u63A5\u5BFC\u5165\uFF0C\u6216\u6279\u91CF\u7C98\u8D34"],
-  meeting: ["\u4F1A\u8BAE\u5F55\u97F3", "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u786E\u8BA4\u6807\u9898\u4E0E\u8BED\u79CD\u540E\u5F00\u59CB\u8F6C\u5199"],
+  meeting: ["\u4F1A\u8BAE\u5F55\u97F3", "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u53EF\u591A\u9009\uFF1B\u5BFC\u5165\u540E\u81EA\u52A8\u6536\u8FDB\u5361\u5305"],
   doc: ["\u98DE\u4E66\u6587\u6863", "\u8BFB\u53D6\u6587\u6863\u6B63\u6587\uFF0C\u751F\u6210\u53EF\u5728\u4F1A\u8BDD\u91CC @ \u7684\u4F1A\u6458\u5361\u7247"]
 };
-function CaptureInline({ t, type = "launch", url = "", file = null, onClose, onCreated, onSubmitted }) {
+function CaptureInline({ t, type = "launch", url = "", file = null, files = null, onClose, onCreated, onSubmitted }) {
   const [options, setOptions] = React.useState(null);
   const [optionsError, setOptionsError] = React.useState("");
   const [health, setHealth] = React.useState({ depsReady: null, asrReady: null, active: 0 });
@@ -46740,14 +48510,25 @@ function CaptureInline({ t, type = "launch", url = "", file = null, onClose, onC
         onCreated,
         onSubmitted
       }
-    ) : null, type === "meeting" ? /* @__PURE__ */ React.createElement(MeetingForm, { t, options, optionsError, initialFile: file, onClose, onCreated }) : null, type === "doc" ? /* @__PURE__ */ React.createElement(DocCardForm, { t, onClose, onCreated }) : null)
+    ) : null, type === "meeting" ? /* @__PURE__ */ React.createElement(
+      MeetingForm,
+      {
+        t,
+        options,
+        optionsError,
+        initialFile: file,
+        initialFiles: files,
+        onClose,
+        onCreated
+      }
+    ) : null, type === "doc" ? /* @__PURE__ */ React.createElement(DocCardForm, { t, onClose, onCreated }) : null)
   );
 }
 
 // client-src/components/home/SetupProgressCards.jsx
 init_react_shim();
-var MIMO_BASE = "https://api.llm.mioffice.cn/v1";
-var MIMO_MODEL = "xiaomi/mimo-v2.5-asr";
+var BASE_PLACEHOLDER = "https://your-gateway.example/v1";
+var MODEL_PLACEHOLDER = "your-asr-model";
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -46755,6 +48536,8 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
   const [state2, setState] = React.useState(null);
   const [busy, setBusy] = React.useState("");
   const [keyOpen, setKeyOpen] = React.useState(false);
+  const [baseUrl, setBaseUrl] = React.useState("");
+  const [model, setModel] = React.useState("");
   const [key, setKey] = React.useState("");
   const [keyError, setKeyError] = React.useState("");
   const [failure, setFailure] = React.useState(null);
@@ -46798,6 +48581,14 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
     }
   }
   async function saveKey() {
+    if (!baseUrl.trim()) {
+      setKeyError("\u8BF7\u586B\u5199\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
+    if (!model.trim()) {
+      setKeyError("\u8BF7\u586B\u5199\u6A21\u578B ID");
+      return;
+    }
     if (!key.trim()) {
       setKeyError("\u8BF7\u8F93\u5165 API Key");
       return;
@@ -46806,8 +48597,8 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
     setKeyError("");
     setFailure(null);
     try {
-      await testMimoKey(key.trim(), { baseUrl: MIMO_BASE, model: MIMO_MODEL });
-      await saveAsrEngine({ provider: "mimo", base_url: MIMO_BASE, model: MIMO_MODEL, api_key: key.trim() });
+      await testMimoKey(key.trim(), { baseUrl: baseUrl.trim(), model: model.trim() });
+      await saveAsrEngine({ provider: "mimo", base_url: baseUrl.trim(), model: model.trim(), api_key: key.trim() });
       await testAsrEngine();
       setKey("");
       setKeyOpen(false);
@@ -46825,7 +48616,7 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
     cards.push({
       id: "asr",
       title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E",
-      detail: "\u914D\u7F6E Mify API Key \u540E\u5373\u53EF\u8F6C\u5199\u76F4\u64AD\u3001\u89C6\u9891\u548C\u4F1A\u8BAE\u3002",
+      detail: "\u914D\u7F6E\u4E91\u7AEF\u8BED\u97F3\u670D\u52A1\u5730\u5740\u4E0E API Key \u540E\u5373\u53EF\u8F6C\u5199\u76F4\u64AD\u3001\u89C6\u9891\u548C\u4F1A\u8BAE\u3002",
       action: /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setKeyOpen((v) => !v) }, keyOpen ? "\u6536\u8D77" : "\u914D\u7F6E")
     });
   }
@@ -46842,9 +48633,33 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
     "input",
     {
       className: "mc-input",
+      value: baseUrl,
+      spellCheck: false,
+      placeholder: BASE_PLACEHOLDER,
+      onChange: (event) => {
+        setBaseUrl(event.target.value);
+        setKeyError("");
+      }
+    }
+  ), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: model,
+      spellCheck: false,
+      placeholder: MODEL_PLACEHOLDER,
+      onChange: (event) => {
+        setModel(event.target.value);
+        setKeyError("");
+      }
+    }
+  ), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
       type: "password",
       value: key,
-      placeholder: "Mify API Key",
+      placeholder: "API Key",
       autoComplete: "off",
       onChange: (event) => {
         setKey(event.target.value);
@@ -46856,6 +48671,1091 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
 
 // client-src/lib/agent.js
 init_react_shim();
+
+// client-src/lib/cards.js
+init_react_shim();
+
+// client-src/lib/i18n.js
+init_react_shim();
+var zh = {
+  "panel.title": "\u4F1A\u6458",
+  "panel.subtitle": "\u91C7\u96C6\u3001\u8F6C\u5199\u3001\u8FB9\u770B\u8FB9\u8BB0",
+  "home.entry.title": "\u65B0\u5EFA\u91C7\u96C6",
+  "home.entry.launch": "\u53D1\u5E03\u4F1A\u76F4\u64AD",
+  "home.entry.launchHint": "\u8D34\u4E0A\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u8FB9\u5F55\u8FB9\u8F6C\u5199",
+  "home.entry.video": "\u89C6\u9891\u94FE\u63A5",
+  "home.entry.videoHint": "B\u7AD9\u3001YouTube \u7B49\u94FE\u63A5\u5BFC\u5165",
+  "home.entry.meeting": "\u4F1A\u8BAE\u5F55\u97F3",
+  "home.entry.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u652F\u6301\u591A\u9009\u6279\u91CF\u5BFC\u5165",
+  "home.entry.doc": "\u98DE\u4E66\u6587\u6863",
+  "home.entry.docHint": "\u7C98\u8D34\u6587\u6863\u94FE\u63A5\uFF0C\u8BFB\u6210\u53EF @ \u7684\u5361\u7247",
+  "home.doc.url": "\u6587\u6863\u94FE\u63A5",
+  "home.doc.titleLabel": "\u6807\u9898\uFF08\u53EF\u9009\uFF09",
+  "home.doc.titlePlaceholder": "\u7559\u7A7A\u5219\u7528\u6587\u6863\u6807\u9898",
+  "home.doc.titleAutoPlaceholder": "\u8BFB\u53D6\u540E\u81EA\u52A8\u586B\u5165\uFF0C\u53EF\u4FEE\u6539",
+  "home.doc.previewing": "\u6B63\u5728\u8BFB\u53D6\u6587\u6863\u6807\u9898\u2026",
+  "home.doc.previewFailed": "\u8BFB\u53D6\u6587\u6863\u6807\u9898\u5931\u8D25",
+  "home.doc.noTitle": "\uFF08\u6587\u6863\u672A\u8FD4\u56DE\u6807\u9898\uFF09",
+  "home.doc.chars": " \u5B57\u6B63\u6587",
+  "home.doc.rePreview": "\u91CD\u65B0\u8BFB\u53D6",
+  "home.doc.create": "\u751F\u6210\u5361\u7247",
+  "home.doc.hint": "\u7C98\u8D34\u94FE\u63A5\u540E\u4F1A\u5148\u8BFB\u53D6\u6587\u6863\u6807\u9898\uFF0C\u786E\u8BA4\u540E\u518D\u751F\u6210\u5361\u7247\uFF1B\u8BFB\u4E0D\u5230\u6B63\u6587\u65F6\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5\u3002",
+  "home.doc.read": "\u8BFB\u53D6\u5E76\u751F\u6210\u5361\u7247",
+  "home.doc.reading": "\u6B63\u5728\u8BFB\u53D6\u98DE\u4E66\u6587\u6863\u2026",
+  "home.doc.linkOnly": "\u4EC5\u767B\u8BB0\u94FE\u63A5",
+  "home.doc.linking": "\u6B63\u5728\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u2026",
+  "home.doc.urlRequired": "\u5148\u7C98\u8D34\u98DE\u4E66\u6587\u6863\u94FE\u63A5",
+  "home.doc.invalid": "\u53EA\u652F\u6301\u98DE\u4E66\u6587\u6863\u94FE\u63A5\uFF08/docx\u3001/wiki\u3001/sheets\u3001/base\uFF09",
+  "home.doc.failed": "\u767B\u8BB0\u5361\u7247\u5931\u8D25",
+  "home.doc.notReady": "\u98DE\u4E66 MCP \u672A\u767B\u5F55\u6216\u672A\u8FDE\u63A5\uFF1B\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5",
+  "home.docs.title": "\u98DE\u4E66\u6587\u6863",
+  "home.docs.add": "\uFF0B\u6DFB\u52A0\u6587\u6863",
+  "home.docs.hasContent": "\u6B63\u6587\u5DF2\u6536\u5F55",
+  "home.docs.linkOnly": "\u4EC5\u94FE\u63A5",
+  "home.docs.open": "\u6253\u5F00",
+  "home.agent.placeholder": "\u95EE\u4F1A\u6458 Agent\uFF1A\u7C98\u8D34\u94FE\u63A5\u6216\u8F93\u5165\u5185\u5BB9\uFF0C\u56DE\u8F66\u53D1\u9001\u2026",
+  "home.agent.aria": "\u8F93\u5165\u5185\u5BB9\u53D1\u7ED9\u4F1A\u6458 Agent",
+  "home.agent.sending": "\u6B63\u5728\u6253\u5F00\u4F1A\u6458\u5DE5\u4F5C\u533A\u2026",
+  "home.agent.captureOpen": "\u5728\u4E0B\u65B9\u7EE7\u7EED\u2026",
+  "home.agent.failed": "\u53D1\u9001\u5931\u8D25",
+  "topbar.search": "\u641C\u7D22",
+  "common.refresh": "\u5237\u65B0",
+  "common.retry": "\u91CD\u8BD5",
+  "status.backend": "\u672C\u5730\u5F15\u64CE",
+  "status.dataDir": "\u6570\u636E\u76EE\u5F55",
+  "status.token": "API \u51ED\u8BC1",
+  "status.venv": "\u8FD0\u884C\u73AF\u5883",
+  "status.port": "\u7AEF\u53E3",
+  "status.running": "\u5DF2\u8FDE\u63A5",
+  "status.stopped": "\u672A\u542F\u52A8",
+  "status.loading": "\u6B63\u5728\u8BFB\u53D6\u72B6\u6001\u2026",
+  "status.hostError": "\u65E0\u6CD5\u8FDE\u63A5\u63D2\u4EF6 Host",
+  "status.errorHint": "\u8BF7\u786E\u8BA4\u63D2\u4EF6\u5DF2\u542F\u7528\uFF0C\u5E76\u5728\u5B89\u88C5\u540E\u5237\u65B0\u9875\u9762\u3002",
+  "status.present": "\u5DF2\u5C31\u7EEA",
+  "status.missing": "\u7F3A\u5931",
+  "status.ready": "\u5DF2\u5B89\u88C5",
+  "status.notReady": "\u672A\u5B89\u88C5",
+  "skeleton.next": "\u4E0B\u4E00\u6B65\uFF1A\u63A5\u5165\u540E\u7AEF\u6258\u7BA1\u3001\u8BB0\u5F55\u5217\u8868\u4E0E\u64AD\u653E\u5668\u3002",
+  "settings.title": "\u4F1A\u6458",
+  "settings.language": "\u754C\u9762\u8BED\u8A00",
+  "settings.tab.models": "\u6A21\u578B",
+  "settings.tab.libraries": "\u8D44\u6599\u7A7A\u95F4",
+  "settings.tab.capture": "\u91C7\u96C6",
+  "settings.tab.feishu": "\u98DE\u4E66",
+  "settings.tab.about": "\u5173\u4E8E",
+  "about.title": "\u5173\u4E8E\u4F1A\u6458",
+  "about.subtitle": "\u672C\u5730\u76F4\u64AD\u3001\u89C6\u9891\u4E0E\u4F1A\u8BAE\u8D44\u6599\u5E93\uFF0C\u914D\u5957 DSH \u5DE5\u5177\u4E0E AI \u7EAA\u8981\u3002",
+  "about.currentVersion": "\u5F53\u524D\u8FD0\u884C\u7248\u672C",
+  "about.installedVersion": "\u5DF2\u5B89\u88C5\u7248\u672C",
+  "about.latestVersion": "\u6700\u65B0\u7248\u672C",
+  "about.repo": "\u53D1\u5E03\u4ED3\u5E93",
+  "about.lastCheck": "\u4E0A\u6B21\u68C0\u67E5",
+  "about.installPath": "\u5B89\u88C5\u4F4D\u7F6E",
+  "about.notChecked": "\u672A\u68C0\u67E5",
+  "about.never": "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7",
+  "about.check": "\u68C0\u67E5\u66F4\u65B0",
+  "about.install": "\u7ACB\u5373\u66F4\u65B0",
+  "about.cancel": "\u53D6\u6D88",
+  "about.refresh": "\u5237\u65B0\u72B6\u6001",
+  "about.releaseNotes": "\u53D1\u5E03\u8BF4\u660E",
+  "about.working": "\u66F4\u65B0\u4E2D\u2026",
+  "about.restartHintShort": "\u91CD\u542F\u540E\u751F\u6548",
+  "about.restart": "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002",
+  "about.sourceHint": "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002",
+  "about.privacy": "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002",
+  "about.notesTitle": "\u66F4\u65B0\u5185\u5BB9",
+  "about.rollbackRow": "\u53EF\u56DE\u9000\u7248\u672C",
+  "about.rollbackNone": "\u6CA1\u6709\u5347\u7EA7\u524D\u7684\u672C\u5730\u5907\u4EFD\uFF1B\u53EA\u6709\u5E94\u7528\u5185\u5347\u7EA7\u4F1A\u81EA\u52A8\u4FDD\u7559\u5347\u7EA7\u524D\u7684\u7248\u672C",
+  "about.rollbackSource": "\u6E90\u7801\u8FD0\u884C\u65F6\u6CA1\u6709\u5347\u7EA7\u5907\u4EFD\uFF0C\u8BF7\u7528 git \u5207\u6362\u7248\u672C",
+  "about.rollbackTo": "\u56DE\u9000\u5230",
+  "about.rollbackRestoreTo": "\u5207\u6362\u56DE",
+  "about.rollbackDisabled": "\u56DE\u9000\u5230\u5347\u7EA7\u524D\u7248\u672C",
+  "about.rollbackConfirm": "\u5C06\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u5728\u672C\u5730\u7684",
+  "about.rollbackConfirmDetail": "\uFF1B\u5F53\u524D\u7248\u672C\u4E5F\u4F1A\u53E6\u5B58\u4E3A\u672C\u5730\u5907\u4EFD\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u4E0D\u53D7\u5F71\u54CD\u3002",
+  "about.rollbackConfirmAction": "\u786E\u8BA4\u56DE\u9000",
+  "about.rollbackHint": "\u56DE\u9000\u53EA\u5728\u672C\u5730\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u7684\u526F\u672C\uFF0C\u4E0D\u8054\u7F51\u3001\u4E0D\u4ECE GitHub \u4E0B\u8F7D\uFF1B\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u90FD\u4E0D\u52A8\u3002",
+  "about.restartAfterRollback": "\u56DE\u9000\u540E\u7684\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002",
+  "settings.feishu": "\u98DE\u4E66 MCP Pro",
+  "settings.feishuDesc": "\u8BA9 Agent \u76F4\u63A5\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002",
+  "settings.description": "\u8FD0\u884C\u72B6\u6001\u3001\u8BED\u97F3\u8BC6\u522B\u3001\u91C7\u96C6\u7EC4\u4EF6\u4E0E\u6570\u636E\u76EE\u5F55\u3002",
+  "settings.open": "\u6253\u5F00\u8BBE\u7F6E\u4E2D\u67E5\u770B\u5B8C\u6574\u914D\u7F6E",
+  "settings.runtime": "\u672C\u5730\u5F15\u64CE",
+  "settings.runtimeDesc": "\u7531\u63D2\u4EF6\u6258\u7BA1\u7684 FastAPI \u540E\u7AEF\uFF1B\u540C\u4E00\u65F6\u95F4\u53EA\u8FD0\u884C\u4E00\u4E2A\u3002",
+  "settings.start": "\u542F\u52A8",
+  "settings.stop": "\u505C\u6B62",
+  "settings.restart": "\u91CD\u542F",
+  "settings.env": "\u8FD0\u884C\u73AF\u5883",
+  "settings.envDesc": "\u63D2\u4EF6\u81EA\u5DF1\u7684 Python \u73AF\u5883\uFF0C\u4E0D\u4F9D\u8D56\u539F\u5E94\u7528\u6216\u539F .venv\u3002",
+  "settings.installEnv": "\u5B89\u88C5\u8FD0\u884C\u73AF\u5883",
+  "settings.rebuildEnv": "\u91CD\u65B0\u5B89\u88C5",
+  "settings.installDiarize": "\u5B89\u88C5\u8BF4\u8BDD\u4EBA\u5206\u79BB\u4F9D\u8D56",
+  "settings.job": "\u5B89\u88C5\u8FDB\u5EA6",
+  "settings.cancel": "\u53D6\u6D88",
+  "settings.data": "\u6570\u636E",
+  "settings.capture": "\u91C7\u96C6\u7EC4\u4EF6",
+  "settings.speech": "\u4E91\u7AEF\u8BED\u97F3",
+  "settings.live": "\u76F4\u64AD",
+  "settings.video": "\u89C6\u9891",
+  "settings.calendar": "\u65E5\u5386",
+  "settings.dataDesc": "\u9ED8\u8BA4\u590D\u7528\u539F\u4ED3\u5E93 data/\uFF1B\u53EF\u5207\u6362\u5230\u4EFB\u610F\u53EF\u5199\u76EE\u5F55\u3002",
+  "settings.dataDir": "\u6570\u636E\u76EE\u5F55",
+  "settings.storage": "\u5B58\u50A8\u4F4D\u7F6E",
+  "settings.storageHint": "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002",
+  "settings.storageWorkspace": "DSH \u5DE5\u4F5C\u533A",
+  "settings.port": "\u7AEF\u53E3",
+  "settings.chooseDir": "\u9009\u62E9\u76EE\u5F55",
+  "settings.save": "\u4FDD\u5B58",
+  "settings.saveHint": "\u4FEE\u6539\u6570\u636E\u76EE\u5F55\u6216\u7AEF\u53E3\u524D\u9700\u8981\u5148\u505C\u6B62\u672C\u5730\u5F15\u64CE\u3002",
+  "settings.openData": "\u5728 Finder \u4E2D\u663E\u793A",
+  "settings.logs": "\u65E5\u5FD7",
+  "settings.backendLog": "\u540E\u7AEF\u65E5\u5FD7",
+  "settings.setupLog": "\u5B89\u88C5\u65E5\u5FD7",
+  "settings.loadLogs": "\u8BFB\u53D6\u65E5\u5FD7",
+  "settings.ready": "\u5DF2\u5B89\u88C5",
+  "settings.notReady": "\u672A\u5B89\u88C5",
+  "settings.mlx": "MLX",
+  "settings.version": "\u7248\u672C",
+  "settings.path": "\u8DEF\u5F84",
+  "settings.runningHint": "\u672C\u5730\u5F15\u64CE\u8FD0\u884C\u4E2D\u3002",
+  "settings.stoppedHint": "\u672C\u5730\u5F15\u64CE\u672A\u8FD0\u884C\u3002",
+  "settings.noJob": "\u6682\u65E0\u5B89\u88C5\u4EFB\u52A1\u3002",
+  "settings.saved": "\u5DF2\u4FDD\u5B58",
+  "settings.pickFailed": "\u65E0\u6CD5\u6253\u5F00\u9009\u62E9\u5668\uFF0C\u53EF\u624B\u52A8\u8F93\u5165\u8DEF\u5F84\u3002",
+  "view.records": "\u8BB0\u5F55",
+  "view.calendar": "\u65E5\u5386",
+  "list.search": "\u641C\u7D22\u6807\u9898",
+  "list.all": "\u5168\u90E8",
+  "list.live": "\u76F4\u64AD",
+  "list.video": "\u89C6\u9891",
+  "list.link_video": "\u89C6\u9891",
+  "list.today": "\u4ECA\u5929",
+  "list.yesterday": "\u6628\u5929",
+  "list.week": "\u672C\u5468",
+  "list.month": "\u672C\u6708",
+  "list.earlier": "\u66F4\u65E9",
+  "list.meeting": "\u4F1A\u8BAE",
+  "list.empty": "\u8FD8\u6CA1\u6709\u8BB0\u5F55",
+  "list.emptyHint": "\u76F4\u64AD\u91C7\u96C6\u3001\u89C6\u9891\u94FE\u63A5\u4E0E\u4F1A\u8BAE\u5BFC\u5165\u5C06\u5728\u4E0B\u4E00\u9636\u6BB5\u63A5\u5165\u3002",
+  "list.noMatch": "\u6CA1\u6709\u5339\u914D\u7684\u8BB0\u5F55",
+  "list.loading": "\u6B63\u5728\u8BFB\u53D6\u8BB0\u5F55\u2026",
+  "list.error": "\u8BFB\u53D6\u8BB0\u5F55\u5931\u8D25",
+  "list.startEngine": "\u542F\u52A8\u672C\u5730\u5F15\u64CE",
+  "list.new": "\u65B0\u5EFA",
+  "list.queue": "\u6392\u961F\u7B2C {n} \u4F4D",
+  "list.active": "\u8FDB\u884C\u4E2D",
+  "list.footer": "{count} \u6761\u8BB0\u5F55",
+  "cards.section": "\u4F1A\u6458\u5361\u7247",
+  "cards.linkOnly": "\u4EC5\u94FE\u63A5",
+  "list.readOnlyPhase": "\u5F53\u524D\u4E3A\u53EA\u8BFB\u6D4F\u89C8\u7248\u672C\uFF0C\u91C7\u96C6\u4E0E\u7F16\u8F91\u5C06\u5728\u540E\u7EED\u9636\u6BB5\u63A5\u5165\u3002",
+  "welcome.title": "\u628A\u4E00\u573A\u76F4\u64AD\uFF0C\u7559\u6210\u53EF\u56DE\u67E5\u7684\u8D44\u6599",
+  "welcome.desc": "\u91C7\u96C6\u76F4\u64AD\u3001\u5BFC\u5165\u4F1A\u8BAE\u5F55\u97F3\u6216\u89C6\u9891\u94FE\u63A5\uFF0C\u8FB9\u770B\u8FB9\u6253\u70B9\uFF0C\u7ED3\u675F\u540E\u6309\u65F6\u95F4\u56DE\u67E5\u4E0E\u5BFC\u51FA\u3002",
+  "welcome.live": "\u91C7\u96C6\u53D1\u5E03\u4F1A\u76F4\u64AD",
+  "welcome.video": "\u8F6C\u5199\u89C6\u9891\u94FE\u63A5",
+  "welcome.meeting": "\u5BFC\u5165\u4F1A\u8BAE\u5F55\u97F3",
+  "welcome.next": "\u4E0B\u4E00\u9636\u6BB5\u63A5\u5165",
+  "detail.content": "\u5185\u5BB9",
+  "detail.notes": "\u7B14\u8BB0",
+  "detail.minutes": "\u7EAA\u8981",
+  "minutes.generate": "\u751F\u6210\u7EAA\u8981",
+  "minutes.regenerate": "\u91CD\u65B0\u751F\u6210",
+  "minutes.updating": "\u6B63\u5728\u6574\u7406\u7EAA\u8981\u2026",
+  "minutes.final": "\u7EC8\u7A3F",
+  "minutes.live": "\u968F\u5F55\u5236\u66F4\u65B0",
+  "minutes.empty": "\u8FD8\u6CA1\u6709\u7EAA\u8981",
+  "minutes.conclusions": "\u7ED3\u8BBA",
+  "minutes.todos": "\u5F85\u529E",
+  "minutes.terms": "\u4EBA\u540D\u548C\u672F\u8BED",
+  "minutes.misheard": "\u542C\u4F5C",
+  "minutes.scenario.meeting": "\u4F1A\u8BAE\u6A21\u677F",
+  "minutes.scenario.video": "\u89C6\u9891\u6A21\u677F",
+  "minutes.scenario.live": "\u76F4\u64AD\u6A21\u677F",
+  "minutes.mergedHint": "AI \u751F\u6210\uFF1B\u7ED3\u6784\u5316\u89C6\u56FE\u53EF\u76F4\u63A5\u590D\u5236\uFF0C\u539F\u6587\u53EF\u7F16\u8F91",
+  "minutes.clickEdit": "\u70B9\u51FB\u4EFB\u610F\u4F4D\u7F6E\u7F16\u8F91",
+  "minutes.edit": "\u7F16\u8F91",
+  "minutes.preview": "\u9884\u89C8",
+  "minutes.writeToNotes": "\u5199\u5165\u7B14\u8BB0",
+  "minutes.writing": "\u5199\u5165\u4E2D\u2026",
+  "minutes.autoHint": "\u8F6C\u5199\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u751F\u6210\u7EAA\u8981\uFF0C\u5E76\u5199\u5165\u8FD9\u7BC7\u7B14\u8BB0\u3002",
+  "minutes.processingHint": "\u8F6C\u5199\u5B8C\u6210\u540E\u81EA\u52A8\u751F\u6210\u7EAA\u8981\uFF0C\u901A\u5E38\u5728\u4E00\u4E24\u5206\u949F\u5185\u51FA\u73B0\u3002",
+  "minutes.startWrite": "\u5199\u70B9\u4EC0\u4E48",
+  "minutes.stateReady": "AI \u7EAA\u8981",
+  "minutes.stateFailed": "\u4E0A\u6B21\u6574\u7406\u5931\u8D25",
+  "minutes.stateInvalidKey": "AI Key \u65E0\u6548",
+  "minutes.stateRetry": "\u53EF\u91CD\u65B0\u751F\u6210",
+  "minutes.stateNoKey": "\u672A\u914D\u7F6E\u6587\u5B57\u6A21\u578B",
+  "minutes.stateRateLimited": "\u9650\u6D41\uFF0C\u7A0D\u540E\u91CD\u8BD5",
+  "minutes.stateFromNotes": "\u6765\u81EA\u7B14\u8BB0",
+  "minutes.stateEmpty": "\u5C1A\u672A\u751F\u6210",
+  "minutes.synced": "AI \u7EAA\u8981\u5DF2\u5199\u5165\u7B14\u8BB0",
+  "minutes.view": "\u67E5\u770B",
+  "minutes.weakSupport": "\u4F9D\u636E\u8F83\u5C11",
+  "minutes.structured": "\u7ED3\u6784\u5316",
+  "minutes.source": "\u539F\u6587",
+  "minutes.editSource": "\u7F16\u8F91\u539F\u6587",
+  "minutes.myNotes": "\u6211\u7684\u7B14\u8BB0",
+  "minutes.editNotes": "\u7F16\u8F91\u7B14\u8BB0",
+  "minutes.timeline": "\u65F6\u95F4\u8F74",
+  "minutes.timelineCount": "{n} \u4E2A\u4E3B\u9898",
+  "minutes.copyAll": "\u590D\u5236\u5168\u90E8",
+  "minutes.highlightSelection": "\u9AD8\u4EAE\u6240\u9009",
+  "minutes.removeHighlight": "\u53D6\u6D88\u9AD8\u4EAE",
+  "minutes.copyHighlight": "\u590D\u5236\u9AD8\u4EAE\u6587\u5B57",
+  "minutes.highlight": "\u9AD8\u4EAE",
+  "minutes.highlightExists": "\u8FD9\u6BB5\u6587\u5B57\u5DF2\u7ECF\u9AD8\u4EAE\u8FC7\u4E86",
+  "minutes.selectForHighlight": "\u5148\u9009\u4E2D\u8981\u6807\u4EAE\u7684\u6587\u5B57",
+  "minutes.highlightHint": "\u9009\u4E2D\u6587\u5B57\u540E\u52A0\u9AD8\u4EAE",
+  "minutes.copySelection": "\u590D\u5236\u9009\u4E2D",
+  "minutes.copySection": "\u590D\u5236\u672C\u8282",
+  "minutes.copying": "\u590D\u5236\u4E2D\u2026",
+  "minutes.copied": "\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F",
+  "minutes.copiedSelection": "\u5DF2\u590D\u5236\u9009\u4E2D\u7684\u6587\u5B57",
+  "minutes.copiedSection": "\u5DF2\u590D\u5236",
+  "minutes.selectFirst": "\u5148\u9009\u4E2D\u8981\u590D\u5236\u7684\u6587\u5B57",
+  "minutes.selectHint": "\u53EF\u81EA\u7531\u9009\u62E9\u6587\u5B57\u590D\u5236\uFF0C\u4E5F\u53EF\u4EE5\u6574\u4EFD\u590D\u5236\uFF1B\u7ED3\u6784\u5316\u89C6\u56FE\u662F AI \u539F\u7A3F\uFF0C\u539F\u6587\u91CC\u7684\u4FEE\u6539\u4EE5\u539F\u6587\u4E3A\u51C6\u3002",
+  "minutes.selectHintFoot": "\u9009\u4E2D\u4EFB\u610F\u6587\u5B57\u5373\u53EF\u590D\u5236",
+  "minutes.regenerateHint": "\u91CD\u65B0\u6574\u7406\u4F1A\u8986\u76D6\u7B14\u8BB0\u91CC AI \u7EAA\u8981\u8FD9\u4E00\u8282\uFF0C\u4F60\u81EA\u5DF1\u5199\u7684\u5185\u5BB9\u4F1A\u4FDD\u7559\u3002",
+  "minutes.hintNoKey": "\u7EAA\u8981\u9700\u8981\u6587\u5B57\u6A21\u578B\uFF1A\u5230\u300C\u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B\u300D\u586B\u4E00\u628A API Key\u3002",
+  "minutes.hintInvalidKey": "AI Key \u65E0\u6548\u6216\u65E0\u6A21\u578B\u6743\u9650\uFF0C\u8BF7\u5230\u8BBE\u7F6E\u91CC\u91CD\u65B0\u4FDD\u5B58\u3002",
+  "minutes.hintRetry": "\u6587\u5B57\u6A21\u578B\u5DF2\u914D\u7F6E\uFF0C\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\u3002",
+  "minutes.hintInvalidConfigured": "AI Key \u5DF2\u914D\u7F6E{model}\uFF0C\u4F46\u4E0A\u6B21\u8C03\u7528\u88AB\u62D2\u7EDD{error}\u3002\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\uFF1B\u4ECD\u5931\u8D25\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B \u68C0\u67E5 Key \u548C\u6A21\u578B\u3002",
+  "minutes.checkModel": "\u68C0\u67E5\u6A21\u578B",
+  "minutes.checking": "\u68C0\u67E5\u4E2D\u2026",
+  "minutes.checkOk": "Key \u53EF\u7528",
+  "minutes.checkOkHint": "\u53EF\u4EE5\u70B9\u300C\u751F\u6210\u7EAA\u8981\u300D\u91CD\u65B0\u6574\u7406\u3002",
+  "minutes.stateVerified": "\u6A21\u578B\u53EF\u7528",
+  "minutes.hintVerified": "\u6A21\u578B\u68C0\u67E5\u901A\u8FC7\uFF0C\u70B9\u300C\u751F\u6210\u7EAA\u8981\u300D\u5373\u53EF\u91CD\u65B0\u6574\u7406\u5E76\u5199\u5165\u7B14\u8BB0\u3002",
+  "minutes.checkFailed": "\u68C0\u67E5\u5931\u8D25",
+  "minutes.hintInheritedKey": "\u6587\u5B57\u603B\u7ED3\u76EE\u524D\u6CBF\u7528\u4E91\u7AEF\u8BED\u97F3\u90A3\u628A Key\uFF1B\u5982\u679C\u5B83\u6CA1\u6709\u6587\u672C\u6A21\u578B\u6743\u9650\uFF0C\u8BF7\u5230\u300C\u6587\u5B57\u603B\u7ED3 \u2192 \u81EA\u5B9A\u4E49 API\u300D\u5355\u72EC\u586B\u4E00\u4E2A\u6709\u6743\u9650\u7684 Key\u3002",
+  "minutes.hintRateLimited": "AI \u670D\u52A1\u9650\u6D41\uFF0C\u7A0D\u540E\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002",
+  "minutes.hintFailed": "\u8FD9\u6B21\u6574\u7406\u6CA1\u6709\u6210\u529F\uFF0C\u5DF2\u4FDD\u7559\u4E0A\u4E00\u7248\u5185\u5BB9\u3002",
+  "minutes.hintSyncMissing": "AI \u7EAA\u8981\u8FD8\u6CA1\u6709\u5199\u5165\u7B14\u8BB0\u3002",
+  "minutes.saveFirst": "\u8BF7\u5148\u5904\u7406\u5F53\u524D\u7B14\u8BB0\u7684\u4FDD\u5B58\u6216\u51B2\u7A81\uFF0C\u518D\u7EE7\u7EED\u3002",
+  "minutes.backgroundUpdate": "\u7B14\u8BB0\u5DF2\u5728\u540E\u53F0\u66F4\u65B0",
+  "minutes.backgroundUpdateBody": "AI \u7EAA\u8981\u521A\u5199\u5165\u7B14\u8BB0\u3002\u8F7D\u5165\u6700\u65B0\u4F1A\u4FDD\u7559 AI \u5185\u5BB9\uFF1B\u4FDD\u7559\u8349\u7A3F\u53EF\u7A0D\u540E\u624B\u52A8\u5408\u5E76\u3002",
+  "minutes.loadLatest": "\u8F7D\u5165\u6700\u65B0",
+  "minutes.keepDraft": "\u4FDD\u7559\u8349\u7A3F",
+  "minutes.noTranscript": "\u8F6C\u5199\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u751F\u6210\u7EAA\u8981",
+  "speakers.guess": "\u4ECE\u5BF9\u8BDD\u91CC\u8BA4\u4EBA",
+  "speakers.undo": "\u64A4\u9500",
+  "speakers.accept": "\u5C31\u662F\u4ED6",
+  "speakers.reject": "\u4E0D\u662F",
+  "settings.minutes": "\u7EAA\u8981\uFF08AI\uFF09",
+  "settings.aiProvider": "\u670D\u52A1",
+  "settings.aiBase": "\u5730\u5740",
+  "settings.aiModel": "\u6A21\u578B",
+  "settings.aiModels": "\u62C9\u53D6\u6A21\u578B\u5217\u8868",
+  "settings.aiKey": "API Key",
+  "settings.aiSaveKey": "\u4FDD\u5B58\u5E76\u68C0\u67E5",
+  "settings.aiCheck": "\u68C0\u67E5 Key",
+  "settings.aiRemoveKey": "\u79FB\u9664 Key",
+  "settings.minutesWhen": "\u4EC0\u4E48\u65F6\u5019\u751F\u6210",
+  "settings.minutesMode": "\u6A21\u5F0F",
+  "settings.minutesLanguage": "\u7EAA\u8981\u8BED\u8A00",
+  "settings.minutesInterval": "\u66F4\u65B0\u95F4\u9694\uFF08\u79D2\uFF09",
+  "settings.autoEnd": "\u6CA1\u4EBA\u8BF4\u8BDD\u65F6\u81EA\u52A8\u7ED3\u675F",
+  "settings.autoEndMode": "\u65B9\u5F0F",
+  "settings.autoEndAfter": "\u9759\u97F3\u591A\u5C11\u5206\u949F",
+  "detail.marks": "\u6807\u8BB0",
+  "detail.shots": "\u622A\u56FE",
+  "detail.info": "\u4FE1\u606F",
+  "detail.transcript": "\u8F6C\u5199",
+  "detail.noTranscript": "\u6682\u65E0\u8F6C\u5199",
+  "detail.noTranscriptHint": "\u91C7\u96C6\u6216\u5BFC\u5165\u5B8C\u6210\u540E\u4F1A\u663E\u793A\u5E26\u65F6\u95F4\u6233\u7684\u6587\u5B57\u3002",
+  "detail.noMarks": "\u6682\u65E0\u6807\u8BB0",
+  "detail.noShots": "\u6682\u65E0\u622A\u56FE",
+  "detail.noNotes": "\u6682\u65E0\u7B14\u8BB0",
+  "detail.source": "\u6765\u6E90",
+  "detail.duration": "\u65F6\u957F",
+  "detail.status": "\u72B6\u6001",
+  "detail.kind": "\u7C7B\u578B",
+  "detail.queue": "\u961F\u5217",
+  "detail.shotCount": "\u622A\u56FE",
+  "detail.transcriptCount": "\u8F6C\u5199\u6BB5",
+  "detail.markCount": "\u6807\u8BB0",
+  "detail.speakers": "\u53D1\u8A00\u4EBA",
+  "detail.more": "\u66F4\u591A",
+  "detail.rename": "\u91CD\u547D\u540D",
+  "detail.duplicate": "\u521B\u5EFA\u526F\u672C",
+  "detail.delete": "\u5220\u9664\u8BB0\u5F55",
+  "detail.deleteBody": "\u8BB0\u5F55\u3001\u5A92\u4F53\u3001\u622A\u56FE\u4E0E\u8F6C\u5199\u4F1A\u79FB\u5230\u5E9F\u7EB8\u7BD3\uFF0C\u6E05\u7A7A\u5E9F\u7EB8\u7BD3\u524D\u53EF\u627E\u56DE\u3002",
+  "detail.deleted": "\u5DF2\u79FB\u5230\u5E9F\u7EB8\u7BD3",
+  "detail.find": "\u67E5\u627E",
+  "detail.findPlaceholder": "\u67E5\u627E\u8F6C\u5199\u3001\u6807\u8BB0\u6216\u622A\u56FE\u6587\u5B57",
+  "detail.noSpeakers": "\u6682\u65E0\u53D1\u8A00\u4EBA",
+  "detail.livePreview": "\u76F4\u64AD\u753B\u9762\u9884\u89C8",
+  "detail.hlsUnsupported": "\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u80FD\u76F4\u63A5\u64AD\u653E\u76F4\u64AD HLS\uFF0C\u4E0B\u4E00\u6B65\u5C06\u63A5\u5165\u64AD\u653E\u5668\u3002",
+  "detail.connecting": "\u6B63\u5728\u8FDE\u63A5\u76F4\u64AD\u6D41\u2026",
+  "detail.connectingHint": "\u5DF2\u5F00\u59CB\u91C7\u96C6\uFF0C\u6B63\u5728\u7B49\u7B2C\u4E00\u4E2A\u5173\u952E\u5E27\u5206\u7247\uFF0C\u901A\u5E38\u51E0\u79D2\u949F\uFF1B\u5C31\u7EEA\u540E\u4F1A\u81EA\u52A8\u64AD\u653E\u3002",
+  "detail.hlsReconnecting": "\u76F4\u64AD\u6D41\u4E2D\u65AD\uFF0C\u6B63\u5728\u91CD\u8FDE\u2026",
+  "detail.hlsFailed": "\u76F4\u64AD\u6D41\u6682\u65F6\u65E0\u6CD5\u64AD\u653E",
+  "detail.hlsOffline": "\u548C\u76F4\u64AD\u6E90\u7684\u8FDE\u63A5\u5DF2\u65AD\u5F00\uFF0C\u4F1A\u81EA\u52A8\u91CD\u8BD5\uFF1B\u4E5F\u53EF\u4EE5\u70B9\u300C\u91CD\u8BD5\u300D\u91CD\u65B0\u8FDE\u63A5\u3002",
+  "detail.hlsRetryHint": "\u64AD\u653E\u5668\u5DF2\u8FDE\u7EED\u91CD\u8BD5\u591A\u6B21\uFF0C\u53EF\u4EE5\u70B9\u300C\u91CD\u8BD5\u300D\u91CD\u65B0\u8FDE\u63A5\u3002",
+  "detail.mutedPlayback": "\u5DF2\u9759\u97F3\u64AD\u653E",
+  "detail.unmute": "\u70B9\u51FB\u5F00\u542F\u58F0\u97F3",
+  "detail.preparingReplay": "\u56DE\u653E\u6587\u4EF6\u751F\u6210\u4E2D\uFF0C\u5B8C\u6210\u540E\u5373\u53EF\u62D6\u52A8\u65F6\u95F4\u8F74\u3002",
+  "detail.readOnly": "\u53EA\u8BFB",
+  "detail.preview": "\u9884\u89C8",
+  "detail.error": "\u8BFB\u53D6\u8BE6\u60C5\u5931\u8D25",
+  "status.pending": "\u5F85\u5F00\u59CB",
+  "status.queued": "\u6392\u961F\u4E2D",
+  "status.recording": "\u91C7\u96C6\u4E2D",
+  "status.processing": "\u5904\u7406\u4E2D",
+  "status.done": "\u5DF2\u5B8C\u6210",
+  "status.error": "\u51FA\u9519",
+  "status.partial": "\u90E8\u5206\u5B8C\u6210",
+  "status.cancelled": "\u5DF2\u53D6\u6D88",
+  "kind.live": "\u76F4\u64AD",
+  "kind.link_video": "\u89C6\u9891",
+  "kind.meeting": "\u4F1A\u8BAE",
+  "kind.doc": "\u98DE\u4E66\u6587\u6863",
+  "kind.pack": "\u5361\u5305",
+  "kind.note": "\u4FBF\u5229\u7B7E",
+  "kind.highlight": "\u6807\u8BB0",
+  "kind.image": "\u56FE\u7247",
+  "kind.batch": "\u6279\u6B21",
+  "cards.cardsUnit": "\u5F20",
+  "cards.itemsUnit": "\u6761",
+  "new.title": "\u65B0\u5EFA",
+  "new.launch": "\u53D1\u5E03\u4F1A",
+  "new.video": "\u89C6\u9891",
+  "new.meeting": "\u4F1A\u8BAE",
+  "new.doc": "\u6587\u6863",
+  "new.url": "\u94FE\u63A5",
+  "new.precheck": "\u9884\u68C0",
+  "new.checking": "\u6B63\u5728\u8BFB\u53D6\u2026",
+  "new.start": "\u5F00\u59CB\u91C7\u96C6",
+  "new.add": "\u52A0\u5165\u961F\u5217",
+  "new.preview": "\u9884\u8BFB",
+  "new.previewAll": "\u9884\u8BFB\u5168\u90E8",
+  "new.close": "\u5173\u95ED",
+  "new.submit": "\u63D0\u4EA4",
+  "new.cancel": "\u53D6\u6D88",
+  "new.file": "\u6587\u4EF6",
+  "new.chooseFile": "\u9009\u62E9\u6587\u4EF6",
+  "new.addFiles": "\u6DFB\u52A0\u6587\u4EF6",
+  "new.filesSelected": "\u5DF2\u9009\u62E9 {n} \u4E2A\u6587\u4EF6",
+  "new.removeFile": "\u79FB\u9664",
+  "new.replaceFile": "\u91CD\u65B0\u9009\u62E9",
+  "new.videoFile": "\u89C6\u9891",
+  "new.audioFile": "\u97F3\u9891",
+  "new.uploadFailed": "\u4E0A\u4F20\u5931\u8D25",
+  "new.dropHint": "\u62D6\u5165\u6216\u9009\u62E9\u97F3\u9891 / \u89C6\u9891\uFF0C\u53EF\u591A\u9009\uFF0C\u6574\u6BB5\u79BB\u7EBF\u8F6C\u5199",
+  "new.titleLabel": "\u6807\u9898",
+  "new.titlePlaceholder": "\u9ED8\u8BA4\u4E0E\u6587\u4EF6\u540D\u4E00\u81F4",
+  "new.language": "\u8BED\u79CD",
+  "new.auto": "\u81EA\u52A8",
+  "new.uploading": "\u6B63\u5728\u4E0A\u4F20",
+  "new.ready": "\u53EF\u4EE5\u63D0\u4EA4",
+  "new.failed": "\u5904\u7406\u5931\u8D25",
+  "new.duplicate": "\u5DF2\u6709\u76F8\u540C\u94FE\u63A5",
+  "new.queueAdded": "\u5DF2\u52A0\u5165\u961F\u5217",
+  "new.addedCount": "\u5DF2\u52A0\u5165 {n} \u6761",
+  "new.duplicateCount": "{n} \u6761\u91CD\u590D",
+  "new.failedCount": "{n} \u6761\u5931\u8D25",
+  "new.continueHint": "\u7EE7\u7EED\u7C98\u8D34\u94FE\u63A5\u53EF\u518D\u52A0\u5165\u4E00\u6279",
+  "new.forceHint": "\u8FD9\u4E9B\u94FE\u63A5\u5DF2\u5728\u961F\u5217\u4E2D\uFF0C\u786E\u5B9E\u8981\u518D\u91C7\u96C6\u4E00\u6B21\u53EF\u70B9\u53F3\u4FA7\u6309\u94AE",
+  "new.forceDuplicates": "\u4ECD\u7136\u52A0\u5165\u91CD\u590D\u94FE\u63A5",
+  "new.finish": "\u5B8C\u6210",
+  "new.batchAdd": "\u52A0\u5165\u672C\u6279\u6B21",
+  "new.batchVideoHint": "\u52A0\u5165\u6279\u6B21\u300C{title}\u300D\uFF08\u73B0\u6709 {n} \u6761\uFF09\uFF1A\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u63D0\u4EA4\u540E\u4ECD\u5F52\u5728\u8FD9\u5F20\u6279\u6B21\u5361\u91CC\u3002",
+  "batch.append": "\u6279\u91CF\u52A0\u5165\u65B0\u94FE\u63A5",
+  "batch.appendTitle": "\u52A0\u5165\u65B0\u94FE\u63A5",
+  "new.videoHint": "\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u683C\u5F0F\u9519\u8BEF\u6216\u4E0D\u652F\u6301\u7684\u94FE\u63A5\u4F1A\u81EA\u52A8\u8DF3\u8FC7\u3002\u652F\u6301 B\u7AD9\u3001\u5FAE\u535A\u3001\u6296\u97F3\u3001YouTube\u3001X\u3002",
+  "new.launchHint": "\u8F93\u5165 B\u7AD9\u76F4\u64AD\u94FE\u63A5\uFF0C\u9884\u68C0\u901A\u8FC7\u540E\u53EF\u5F00\u59CB\u91C7\u96C6\u3002",
+  "new.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u6574\u6BB5\u79BB\u7EBF\u8F6C\u5199\uFF1B\u89C6\u9891\u4FDD\u7559\u7528\u4E8E\u56DE\u653E\u3002",
+  "new.packTitle": "\u5361\u5305\u540D\u79F0",
+  "new.importBatch": "\u5BFC\u5165 {n} \u4E2A\u6587\u4EF6\u5E76\u6536\u8FDB\u5361\u5305",
+  "new.noImported": "\u6CA1\u6709\u6587\u4EF6\u5BFC\u5165\u6210\u529F\uFF0C\u8BF7\u68C0\u67E5\u6587\u4EF6\u540E\u91CD\u8BD5\u3002",
+  "new.batchMeetingHint": "{n} \u4E2A\u6587\u4EF6\u4F1A\u9010\u6761\u8FDB\u5165\u8F6C\u5199\u961F\u5217\uFF0C\u5B8C\u6210\u540E\u6536\u8FDB\u540C\u4E00\u4E2A\u5361\u5305\uFF1B\u5355\u6761\u8BB0\u5F55\u4ECD\u53EF\u5355\u72EC\u6253\u5F00\u6216\u79FB\u51FA\u3002",
+  "new.maxLinks": "\u5355\u6B21\u6700\u591A 50 \u6761\u94FE\u63A5",
+  "new.mode.auto": "\u5B57\u5E55\u4F18\u5148",
+  "new.mode.asr": "\u4E91\u7AEF ASR",
+  "new.subtitle": "\u5B57\u5E55",
+  "new.noPreview": "\u672A\u9884\u8BFB",
+  "new.notSupported": "\u6682\u4E0D\u652F\u6301\u8BE5\u94FE\u63A5",
+  "new.notStarted": "\u5C1A\u672A\u5F00\u64AD",
+  "new.asrNotReady": "\u8F6C\u5F55\u5F15\u64CE\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u5728\u8BBE\u7F6E\u4E2D\u68C0\u67E5\u8BED\u97F3\u8BC6\u522B\u4E0E\u6A21\u578B\u3002",
+  "new.fileSelected": "\u5DF2\u9009\u62E9",
+  "new.queuedAt": "\u6392\u961F\u7B2C {n} \u4F4D",
+  "new.openRecord": "\u6253\u5F00\u8BB0\u5F55",
+  "new.subtitleRequired": "\u8BF7\u9009\u62E9\u5B57\u5E55\u8BED\u8A00",
+  "new.uploadProgress": "\u4E0A\u4F20\u4E2D {p}%",
+  "mark.add": "\u6253\u70B9",
+  "mark.placeholder": "\u5199\u4E00\u53E5\u6279\u6CE8\uFF0C\u56DE\u8F66\u4FDD\u5B58",
+  "mark.save": "\u4FDD\u5B58",
+  "mark.cancel": "\u53D6\u6D88",
+  "mark.edit": "\u7F16\u8F91",
+  "mark.delete": "\u5220\u9664",
+  "mark.undo": "\u64A4\u9500\u5220\u9664",
+  "mark.deleted": "\u5DF2\u5220\u9664\u6807\u8BB0",
+  "mark.added": "\u5DF2\u6DFB\u52A0\u6807\u8BB0",
+  "mark.error": "\u6807\u8BB0\u64CD\u4F5C\u5931\u8D25",
+  "mark.shortcut": "\u6309 M \u6253\u70B9\uFF0C\u2318Z \u64A4\u9500\u5220\u9664",
+  "detail.start": "\u5F00\u59CB\u91C7\u96C6",
+  "detail.stop": "\u505C\u6B62",
+  "detail.cancelQueue": "\u53D6\u6D88\u6392\u961F",
+  "detail.retry": "\u91CD\u8BD5",
+  "detail.retranscribe": "\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55",
+  "detail.fillMissing": "\u8865\u8F6C\u5F55",
+  "detail.fillMissingMenu": "\u8865\u8F6C\u5F55\uFF08\u7F3A {count} \u6BB5\uFF09",
+  "detail.fillMissingHint": "\u53EA\u8865 {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF0C\u4E0D\u4F1A\u91CD\u505A\u5DF2\u5B8C\u6210\u5185\u5BB9",
+  "detail.fillMissingTitle": "\u8865\u8F6C\u5F55\u672A\u5B8C\u6210\u7247\u6BB5",
+  "detail.fillMissingBody": "\u53EA\u4F1A\u8865 {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF08\u7EA6 {time}\uFF09\uFF0C\u5DF2\u5B8C\u6210\u7684 {done} \u6BB5\u4E0D\u4F1A\u91CD\u505A\u3002\u7EE7\u7EED\uFF1F",
+  "detail.fillMissingBodyAll": "\u4F1A\u8BC6\u522B {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF08\u7EA6 {time}\uFF09\uFF0C\u73B0\u6709\u5185\u5BB9\u4F1A\u4FDD\u7559\u3002\u7EE7\u7EED\uFF1F",
+  "detail.fillMissingStart": "\u5F00\u59CB\u8865\u8F6C\u5F55",
+  "detail.fillMissingStarted": "\u5DF2\u5F00\u59CB\u8865\u8F6C\u5F55\uFF0C\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u66F4\u65B0",
+  "detail.partialTitle": "\u8FD8\u6709 {count} \u4E2A\u7247\u6BB5\u6CA1\u6709\u8F6C\u5199",
+  "detail.partialBody": "\u7EA6 {time} \xB7 \u5DF2\u5B8C\u6210 {done} \u6BB5\u3002{reason}\uFF0C\u8865\u8F6C\u5F55\u53EA\u5904\u7406\u7F3A\u5931\u90E8\u5206\u3002",
+  "detail.partialReason429": "\u4E0A\u6B21\u56E0\u4E91\u7AEF\u9650\u6D41\u4E2D\u65AD",
+  "detail.partialReasonNetwork": "\u4E0A\u6B21\u56E0\u7F51\u7EDC\u4E2D\u65AD",
+  "detail.partialReasonGeneric": "\u4E0A\u6B21\u8F6C\u5F55\u4E2D\u65AD",
+  "detail.gapsShow": "\u67E5\u770B {count} \u4E2A\u7F3A\u53E3",
+  "detail.gapsHide": "\u6536\u8D77\u7F3A\u53E3",
+  "detail.gapJump": "\u8DF3\u5230 {start}\u2013{end}",
+  "detail.restart": "\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55",
+  "detail.restartBody": "\u4F1A\u91CD\u65B0\u8BC6\u522B\u5168\u90E8 {time} \u97F3\u9891\u5E76\u8986\u76D6\u73B0\u6709\u8F6C\u5199\uFF0C\u6BD4\u8865\u8F6C\u5F55\u6D88\u8017\u66F4\u591A\u989D\u5EA6\u3002\u786E\u5B9A\u7EE7\u7EED\uFF1F",
+  "detail.restartStarted": "\u5DF2\u5F00\u59CB\u4ECE\u5934\u8F6C\u5F55",
+  "detail.missingChunks": "\u672A\u5B8C\u6210\u7247\u6BB5",
+  "detail.missingValue": "{count} \u4E2A \xB7 \u7EA6 {time}",
+  "detail.resumeHint": "\u8865\u8F6C\u5F55\u53EA\u5904\u7406\u7F3A\u5931\u7247\u6BB5\uFF1B\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55\u4F1A\u91CD\u505A\u6574\u6761\u97F3\u9891\u3002",
+  "detail.fullRestartHint": "\u4F1A\u6309\u5F53\u524D\u8F6C\u5199\u9009\u9879\u91CD\u65B0\u8BC6\u522B\u5168\u90E8\u97F3\u9891\u3002",
+  "detail.startTranscribe": "\u5F00\u59CB\u8F6C\u5F55",
+  "detail.startTranscribeTitle": "\u5F00\u59CB\u8F6C\u5F55\u8FD9\u6761\u8BB0\u5F55",
+  "detail.startTranscribeBody": "\u4F1A\u8BC6\u522B\u5168\u90E8 {time} \u97F3\u9891\uFF0C\u8FC7\u7A0B\u4E2D\u53EF\u4EE5\u7EE7\u7EED\u67E5\u770B\u5DF2\u6709\u5185\u5BB9\u3002\u7EE7\u7EED\uFF1F",
+  "detail.startTranscribeStarted": "\u5DF2\u5F00\u59CB\u8F6C\u5F55",
+  "detail.transcribeOptions": "\u8F6C\u5199\u9009\u9879",
+  "detail.noTranscriptText": "\u8FD9\u6761\u8BB0\u5F55\u8FD8\u6CA1\u6709\u8F6C\u5199\u3002",
+  "detail.markAt": "\u5728 {time} \u6253\u70B9",
+  "detail.live": "\u76F4\u64AD",
+  "detail.actions": "\u64CD\u4F5C",
+  "detail.stopConfirm": "\u505C\u6B62\u5F53\u524D\u91C7\u96C6\u5E76\u4FDD\u5B58\u5DF2\u5199\u5165\u7684\u5185\u5BB9\uFF1F",
+  "detail.cancelConfirm": "\u53D6\u6D88\u6392\u961F\u4E2D\u7684\u4EFB\u52A1\uFF1F",
+  "engine.notReady": "\u8FD0\u884C\u73AF\u5883\u672A\u5C31\u7EEA",
+  "engine.install": "\u5B89\u88C5\u8FD0\u884C\u73AF\u5883"
+};
+var en = {
+  "panel.title": "MeetClip",
+  "panel.subtitle": "Capture, transcribe, note in context",
+  "home.entry.title": "New capture",
+  "home.entry.launch": "Live stream",
+  "home.entry.launchHint": "Paste a live-room link and record with transcription",
+  "home.entry.video": "Video link",
+  "home.entry.videoHint": "Import from Bilibili, YouTube and more",
+  "home.entry.meeting": "Meeting recording",
+  "home.entry.meetingHint": "Choose local audio or video, multiple files supported",
+  "home.entry.doc": "Feishu document",
+  "home.entry.docHint": "Paste a document link to create an @-mention card",
+  "home.doc.url": "Document link",
+  "home.doc.titleLabel": "Title (optional)",
+  "home.doc.titlePlaceholder": "Leave empty to use the document title",
+  "home.doc.titleAutoPlaceholder": "Filled from the document; edit if needed",
+  "home.doc.previewing": "Reading the document title\u2026",
+  "home.doc.previewFailed": "Could not read the document title",
+  "home.doc.noTitle": "(The document returned no title)",
+  "home.doc.chars": " chars",
+  "home.doc.rePreview": "Read again",
+  "home.doc.create": "Create card",
+  "home.doc.hint": "Paste a link to preview the document title first, then create the card; you can still register the link only.",
+  "home.doc.read": "Read and create card",
+  "home.doc.reading": "Reading the Feishu document\u2026",
+  "home.doc.linkOnly": "Register link only",
+  "home.doc.linking": "Registering the link card\u2026",
+  "home.doc.urlRequired": "Paste a Feishu document link first",
+  "home.doc.invalid": "Only Feishu document links are supported (/docx, /wiki, /sheets, /base)",
+  "home.doc.failed": "Could not create the card",
+  "home.doc.notReady": "Feishu MCP is not signed in or not connected; you can still register the link only",
+  "home.docs.title": "Feishu documents",
+  "home.docs.add": "\uFF0B Add document",
+  "home.docs.hasContent": "Content captured",
+  "home.docs.linkOnly": "Link only",
+  "home.docs.open": "Open",
+  "home.agent.placeholder": "Ask the MeetClip Agent: paste a link or type a request, then press Enter\u2026",
+  "home.agent.aria": "Send a request to the MeetClip Agent",
+  "home.agent.sending": "Opening the MeetClip workspace\u2026",
+  "home.agent.captureOpen": "Continue below\u2026",
+  "home.agent.failed": "Send failed",
+  "topbar.search": "Search",
+  "common.refresh": "Refresh",
+  "common.retry": "Retry",
+  "status.backend": "Local engine",
+  "status.dataDir": "Data directory",
+  "status.token": "API token",
+  "status.venv": "Runtime",
+  "status.port": "Port",
+  "status.running": "Connected",
+  "status.stopped": "Stopped",
+  "status.loading": "Reading status\u2026",
+  "status.hostError": "Cannot reach the plugin host",
+  "status.errorHint": "Confirm the plugin is enabled, then reload the page.",
+  "status.present": "Ready",
+  "status.missing": "Missing",
+  "status.ready": "Installed",
+  "status.notReady": "Not installed",
+  "skeleton.next": "Next: backend lifecycle, record list and player.",
+  "settings.title": "MeetClip",
+  "settings.language": "Language",
+  "settings.tab.models": "Models",
+  "settings.tab.libraries": "Libraries",
+  "settings.tab.capture": "Capture",
+  "settings.tab.feishu": "Feishu",
+  "settings.tab.about": "About",
+  "about.title": "About MeetClip",
+  "about.subtitle": "A local library for live streams, videos and meetings, with DSH tools and AI minutes.",
+  "about.currentVersion": "Running version",
+  "about.installedVersion": "Installed version",
+  "about.latestVersion": "Latest version",
+  "about.repo": "Repository",
+  "about.lastCheck": "Last check",
+  "about.installPath": "Install path",
+  "about.notChecked": "Not checked",
+  "about.never": "Never checked",
+  "about.check": "Check for updates",
+  "about.install": "Update now",
+  "about.cancel": "Cancel",
+  "about.refresh": "Refresh",
+  "about.releaseNotes": "Release notes",
+  "about.working": "Updating\u2026",
+  "about.restartHintShort": "available after restart",
+  "about.restart": "The new files are in place. Restart DeepSeek Harness to apply them.",
+  "about.sourceHint": "This is a source checkout, so automatic updates are disabled. Run git pull and restart instead.",
+  "about.privacy": "Checking for updates only talks to GitHub and never uploads your library, notes or transcripts. An update replaces the installed plug-in copy and takes effect after restarting DSH.",
+  "about.notesTitle": "What is new",
+  "about.rollbackRow": "Rollback version",
+  "about.rollbackNone": "No local pre-upgrade backup. Only in-app upgrades keep the previous version automatically.",
+  "about.rollbackSource": "A source checkout has no upgrade backups. Switch versions with git instead.",
+  "about.rollbackTo": "Roll back to",
+  "about.rollbackRestoreTo": "Switch back to",
+  "about.rollbackDisabled": "Roll back to pre-upgrade version",
+  "about.rollbackConfirm": "The install folder will be swapped back to the pre-upgrade local copy",
+  "about.rollbackConfirmDetail": ". The current version is saved as a local backup too; restart DeepSeek Harness to apply. Your library, notes and transcripts are unaffected.",
+  "about.rollbackConfirmAction": "Confirm rollback",
+  "about.rollbackHint": "Rolling back swaps the install folder back to the copy saved locally before the upgrade. It never contacts GitHub and never touches your library, notes or transcripts.",
+  "about.restartAfterRollback": "The rolled-back files are in place. Restart DeepSeek Harness to apply them.",
+  "settings.feishu": "Feishu MCP Pro",
+  "settings.feishuDesc": "Let the agent read and write Feishu docs, bitables, drive files and wiki pages.",
+  "settings.description": "Runtime, speech recognition, capture tools and data directory.",
+  "settings.open": "Open Settings for the full configuration",
+  "settings.runtime": "Local engine",
+  "settings.runtimeDesc": "Plugin-managed FastAPI backend; only one instance runs at a time.",
+  "settings.start": "Start",
+  "settings.stop": "Stop",
+  "settings.restart": "Restart",
+  "settings.env": "Runtime",
+  "settings.envDesc": "A Python environment owned by the plugin, independent of the old app and its .venv.",
+  "settings.installEnv": "Install runtime",
+  "settings.rebuildEnv": "Reinstall",
+  "settings.installDiarize": "Install speaker-diarization dependencies",
+  "settings.job": "Install progress",
+  "settings.cancel": "Cancel",
+  "settings.data": "Data",
+  "settings.capture": "Capture tools",
+  "settings.speech": "Cloud speech",
+  "settings.live": "Live",
+  "settings.video": "Video",
+  "settings.calendar": "Calendar",
+  "settings.dataDesc": "Defaults to the archived repository data/; choose any writable directory.",
+  "settings.dataDir": "Data directory",
+  "settings.storage": "Storage location",
+  "settings.storageHint": "Recordings, transcripts, notes and the database live here.",
+  "settings.storageWorkspace": "DSH workspace",
+  "settings.port": "Port",
+  "settings.chooseDir": "Choose folder",
+  "settings.save": "Save",
+  "settings.saveHint": "Stop the local engine before changing the data directory or port.",
+  "settings.openData": "Show in Finder",
+  "settings.logs": "Logs",
+  "settings.backendLog": "Backend log",
+  "settings.setupLog": "Setup log",
+  "settings.loadLogs": "Load logs",
+  "settings.ready": "Installed",
+  "settings.notReady": "Not installed",
+  "settings.mlx": "MLX",
+  "settings.version": "Version",
+  "settings.path": "Path",
+  "settings.runningHint": "The local engine is running.",
+  "settings.stoppedHint": "The local engine is stopped.",
+  "settings.noJob": "No setup job.",
+  "settings.saved": "Saved",
+  "settings.pickFailed": "The picker did not open; type the path instead.",
+  "view.records": "Records",
+  "view.calendar": "Calendar",
+  "list.search": "Search titles",
+  "list.all": "All",
+  "list.live": "Live",
+  "list.video": "Video",
+  "list.link_video": "Video",
+  "list.today": "Today",
+  "list.yesterday": "Yesterday",
+  "list.week": "This week",
+  "list.month": "This month",
+  "list.earlier": "Earlier",
+  "list.meeting": "Meeting",
+  "list.empty": "No records yet",
+  "list.emptyHint": "Live capture, link import and meeting import arrive in the next milestone.",
+  "list.noMatch": "No matching records",
+  "list.loading": "Loading records\u2026",
+  "list.error": "Could not load records",
+  "list.startEngine": "Start local engine",
+  "list.new": "New",
+  "list.queue": "Queue position {n}",
+  "list.active": "In progress",
+  "list.footer": "{count} records",
+  "cards.section": "MeetClip cards",
+  "cards.linkOnly": "link only",
+  "list.readOnlyPhase": "This is the read-only browsing milestone; capture and editing follow.",
+  "welcome.title": "Turn a live session into a record you can revisit",
+  "welcome.desc": "Capture a live stream, import a meeting recording or a video link, mark moments, and revisit the original media later.",
+  "welcome.live": "Capture a live stream",
+  "welcome.video": "Transcribe a video link",
+  "welcome.meeting": "Import a meeting recording",
+  "welcome.next": "Next milestone",
+  "detail.content": "Content",
+  "detail.notes": "Notes",
+  "detail.minutes": "Minutes",
+  "minutes.generate": "Generate minutes",
+  "minutes.regenerate": "Regenerate",
+  "minutes.updating": "Writing minutes\u2026",
+  "minutes.final": "Final",
+  "minutes.live": "Updated while recording",
+  "minutes.empty": "No minutes yet",
+  "minutes.conclusions": "Conclusions",
+  "minutes.todos": "To-dos",
+  "minutes.terms": "Names and terms",
+  "minutes.misheard": "heard as",
+  "minutes.scenario.meeting": "Meeting notes",
+  "minutes.scenario.video": "Video notes",
+  "minutes.scenario.live": "Live notes",
+  "minutes.mergedHint": "AI generated; copy from the structured view, or edit the source",
+  "minutes.clickEdit": "Click anywhere to edit",
+  "minutes.edit": "Edit",
+  "minutes.preview": "Preview",
+  "minutes.writeToNotes": "Write to notes",
+  "minutes.writing": "Writing\u2026",
+  "minutes.autoHint": "Minutes are generated automatically when transcription finishes and written into these notes.",
+  "minutes.processingHint": "Minutes are generated after transcription, usually within a minute or two.",
+  "minutes.startWrite": "Write something",
+  "minutes.stateReady": "AI minutes",
+  "minutes.stateFailed": "Last attempt failed",
+  "minutes.stateInvalidKey": "AI key invalid",
+  "minutes.stateRetry": "Ready to retry",
+  "minutes.stateNoKey": "No text model configured",
+  "minutes.stateRateLimited": "Rate limited, retrying later",
+  "minutes.stateFromNotes": "From notes",
+  "minutes.stateEmpty": "Not generated",
+  "minutes.synced": "AI minutes written to notes",
+  "minutes.view": "View",
+  "minutes.weakSupport": "Thin evidence",
+  "minutes.structured": "Structured",
+  "minutes.source": "Source",
+  "minutes.editSource": "Edit source",
+  "minutes.myNotes": "My notes",
+  "minutes.editNotes": "Edit notes",
+  "minutes.timeline": "Timeline",
+  "minutes.timelineCount": "{n} topics",
+  "minutes.copyAll": "Copy all",
+  "minutes.highlightSelection": "Highlight selection",
+  "minutes.removeHighlight": "Remove highlight",
+  "minutes.copyHighlight": "Copy highlighted text",
+  "minutes.highlight": "Highlight",
+  "minutes.highlightExists": "This text is already highlighted",
+  "minutes.selectForHighlight": "Select the text you want to highlight first",
+  "minutes.highlightHint": "Select text to highlight it",
+  "minutes.copySelection": "Copy selection",
+  "minutes.copySection": "Copy section",
+  "minutes.copying": "Copying\u2026",
+  "minutes.copied": "Copied to clipboard",
+  "minutes.copiedSelection": "Selected text copied",
+  "minutes.copiedSection": "Copied",
+  "minutes.selectFirst": "Select some text first",
+  "minutes.selectHint": "Select any text to copy, or copy the whole document. Edits made in the source stay in the source.",
+  "minutes.selectHintFoot": "Select any text to copy",
+  "minutes.regenerateHint": "Regenerating replaces the AI minutes section; your own notes are kept.",
+  "minutes.hintNoKey": "Minutes need a text model: add an API key in Settings \u2192 MeetClip \u2192 Models.",
+  "minutes.hintInvalidKey": "The AI key is invalid or has no model access. Save it again in Settings.",
+  "minutes.hintRetry": "A text model is configured; regenerate to try again.",
+  "minutes.hintInvalidConfigured": "A key is configured{model}, but the last call was rejected{error}. Regenerate to try again; if it keeps failing, check the key and model in Settings \u2192 MeetClip \u2192 Models.",
+  "minutes.checkModel": "Check model",
+  "minutes.checking": "Checking\u2026",
+  "minutes.checkOk": "Key works",
+  "minutes.checkOkHint": "Click Generate to retry.",
+  "minutes.stateVerified": "Model ready",
+  "minutes.hintVerified": "Model check passed. Click Generate to write these notes.",
+  "minutes.checkFailed": "Check failed",
+  "minutes.hintInheritedKey": "Text minutes currently reuse the speech key. If it has no text-model access, save a separate key under Text summary \u2192 Custom API.",
+  "minutes.hintRateLimited": "The AI service is rate limiting; retrying automatically.",
+  "minutes.hintFailed": "The last attempt failed; the previous version is kept.",
+  "minutes.hintSyncMissing": "The AI minutes have not been written to these notes yet.",
+  "minutes.saveFirst": "Finish saving the current notes (or resolve the conflict) first.",
+  "minutes.backgroundUpdate": "Notes updated in the background",
+  "minutes.backgroundUpdateBody": "AI minutes were just written. Load the latest to keep them, or keep the draft and merge later.",
+  "minutes.loadLatest": "Load latest",
+  "minutes.keepDraft": "Keep draft",
+  "minutes.noTranscript": "Minutes appear after transcription finishes",
+  "speakers.guess": "Recognise from the conversation",
+  "speakers.undo": "Undo",
+  "speakers.accept": "That is them",
+  "speakers.reject": "Not them",
+  "settings.minutes": "Minutes (AI)",
+  "settings.aiProvider": "Service",
+  "settings.aiBase": "Base URL",
+  "settings.aiModel": "Model",
+  "settings.aiModels": "List models",
+  "settings.aiKey": "API Key",
+  "settings.aiSaveKey": "Save and check",
+  "settings.aiCheck": "Check key",
+  "settings.aiRemoveKey": "Remove key",
+  "settings.minutesWhen": "When to write them",
+  "settings.minutesMode": "Mode",
+  "settings.minutesLanguage": "Language",
+  "settings.minutesInterval": "Interval (seconds)",
+  "settings.autoEnd": "End when nobody speaks",
+  "settings.autoEndMode": "Mode",
+  "settings.autoEndAfter": "Silent minutes",
+  "detail.marks": "Marks",
+  "detail.shots": "Screenshots",
+  "detail.info": "Info",
+  "detail.transcript": "Transcript",
+  "detail.noTranscript": "No transcript yet",
+  "detail.noTranscriptHint": "Timestamped text appears after capture or import completes.",
+  "detail.noMarks": "No marks",
+  "detail.noShots": "No screenshots",
+  "detail.noNotes": "No notes",
+  "detail.source": "Source",
+  "detail.duration": "Duration",
+  "detail.status": "Status",
+  "detail.kind": "Kind",
+  "detail.queue": "Queue",
+  "detail.shotCount": "Screenshots",
+  "detail.transcriptCount": "Segments",
+  "detail.markCount": "Marks",
+  "detail.speakers": "Speakers",
+  "detail.more": "More",
+  "detail.rename": "Rename",
+  "detail.duplicate": "Duplicate",
+  "detail.delete": "Delete record",
+  "detail.deleteBody": "The record, media, screenshots and transcript move to Trash and can be recovered before emptying it.",
+  "detail.deleted": "Moved to Trash",
+  "detail.find": "Find",
+  "detail.findPlaceholder": "Find in transcript, marks or OCR",
+  "detail.noSpeakers": "No speakers",
+  "detail.livePreview": "Live preview",
+  "detail.hlsUnsupported": "This browser cannot play live HLS directly; the player arrives in the next milestone.",
+  "detail.connecting": "Connecting to the live stream\u2026",
+  "detail.connectingHint": "Capture started; waiting for the first keyframe segment (a few seconds). Playback starts automatically.",
+  "detail.hlsReconnecting": "Live stream interrupted \u2014 reconnecting\u2026",
+  "detail.hlsFailed": "The live stream is not playable right now",
+  "detail.hlsOffline": "The connection to the live source dropped; retrying automatically. You can also retry manually.",
+  "detail.hlsRetryHint": "The player retried several times; press Retry to reconnect.",
+  "detail.mutedPlayback": "Playing muted",
+  "detail.unmute": "Click to unmute",
+  "detail.preparingReplay": "Preparing the replay file; seeking works once it is ready.",
+  "detail.readOnly": "Read only",
+  "detail.preview": "Preview",
+  "detail.error": "Could not load this record",
+  "status.pending": "Pending",
+  "status.queued": "Queued",
+  "status.recording": "Recording",
+  "status.processing": "Processing",
+  "status.done": "Done",
+  "status.error": "Error",
+  "status.partial": "Partly done",
+  "status.cancelled": "Cancelled",
+  "kind.live": "Live",
+  "kind.link_video": "Video",
+  "kind.meeting": "Meeting",
+  "kind.doc": "Feishu document",
+  "kind.pack": "Pack",
+  "kind.note": "Sticky note",
+  "kind.highlight": "Highlight",
+  "kind.image": "Image",
+  "kind.batch": "Batch",
+  "cards.cardsUnit": "cards",
+  "cards.itemsUnit": "items",
+  "new.title": "New",
+  "new.launch": "Live",
+  "new.video": "Video",
+  "new.meeting": "Meeting",
+  "new.doc": "Doc",
+  "new.url": "Link",
+  "new.precheck": "Check",
+  "new.checking": "Reading\u2026",
+  "new.start": "Start capture",
+  "new.add": "Add to queue",
+  "new.preview": "Preview",
+  "new.previewAll": "Preview all",
+  "new.close": "Close",
+  "new.submit": "Submit",
+  "new.cancel": "Cancel",
+  "new.file": "File",
+  "new.chooseFile": "Choose file",
+  "new.addFiles": "Add files",
+  "new.filesSelected": "{n} file(s) selected",
+  "new.removeFile": "Remove",
+  "new.replaceFile": "Choose another",
+  "new.videoFile": "Video",
+  "new.audioFile": "Audio",
+  "new.uploadFailed": "Upload failed",
+  "new.dropHint": "Drop or choose audio/video files; multiple files are transcribed offline",
+  "new.titleLabel": "Title",
+  "new.titlePlaceholder": "Defaults to the file name",
+  "new.language": "Language",
+  "new.auto": "Auto",
+  "new.uploading": "Uploading",
+  "new.ready": "Ready to submit",
+  "new.failed": "Failed",
+  "new.duplicate": "Duplicate link",
+  "new.queueAdded": "Added to queue",
+  "new.addedCount": "Added {n}",
+  "new.duplicateCount": "{n} duplicate",
+  "new.failedCount": "{n} failed",
+  "new.continueHint": "Paste more links to add another round",
+  "new.forceHint": "These links are already queued; use the button to add them again",
+  "new.forceDuplicates": "Add duplicates anyway",
+  "new.finish": "Done",
+  "new.batchAdd": "Add to this batch",
+  "new.batchVideoHint": "Adding to \u201C{title}\u201D ({n} so far): one link per line, up to 50; new links stay in this batch card.",
+  "batch.append": "Add more links",
+  "batch.appendTitle": "Add links",
+  "new.videoHint": "One link per line, up to 50; malformed or unsupported links are skipped. Bilibili, Weibo, Douyin, YouTube and X.",
+  "new.launchHint": "Paste a Bilibili live URL and start after the check passes.",
+  "new.meetingHint": "Choose a local audio or video file; transcription is offline and the video stays for playback.",
+  "new.packTitle": "Card pack name",
+  "new.importBatch": "Import {n} files into a card pack",
+  "new.noImported": "No files were imported; check the files and try again.",
+  "new.batchMeetingHint": "The {n} files are transcribed one by one and grouped into one card pack; each record can still be opened or moved out separately.",
+  "new.maxLinks": "At most 50 links at a time",
+  "new.mode.auto": "Subtitle first",
+  "new.mode.asr": "Cloud ASR",
+  "new.subtitle": "Subtitle",
+  "new.noPreview": "Not previewed",
+  "new.notSupported": "Unsupported link",
+  "new.notStarted": "Not started",
+  "new.asrNotReady": "The transcription engine is not ready; check speech recognition and models in Settings.",
+  "new.fileSelected": "Selected",
+  "new.queuedAt": "Queue position {n}",
+  "new.openRecord": "Open record",
+  "new.subtitleRequired": "Choose a subtitle language",
+  "new.uploadProgress": "Uploading {p}%",
+  "mark.add": "Mark",
+  "mark.placeholder": "Add a note, Enter to save",
+  "mark.save": "Save",
+  "mark.cancel": "Cancel",
+  "mark.edit": "Edit",
+  "mark.delete": "Delete",
+  "mark.undo": "Undo delete",
+  "mark.deleted": "Mark deleted",
+  "mark.added": "Mark added",
+  "mark.error": "Mark action failed",
+  "mark.shortcut": "M to mark, \u2318Z to undo a delete",
+  "detail.start": "Start capture",
+  "detail.stop": "Stop",
+  "detail.cancelQueue": "Cancel queue",
+  "detail.retry": "Retry",
+  "detail.retranscribe": "Restart transcription",
+  "detail.fillMissing": "Fill missing",
+  "detail.fillMissingMenu": "Fill missing ({count} chunks)",
+  "detail.fillMissingHint": "Only {count} unfinished chunks; completed text is kept",
+  "detail.fillMissingTitle": "Fill unfinished chunks",
+  "detail.fillMissingBody": "Only {count} unfinished chunks (about {time}) will be transcribed; the {done} finished chunks are kept. Continue?",
+  "detail.fillMissingBodyAll": "{count} unfinished chunks (about {time}) will be transcribed; existing content is kept. Continue?",
+  "detail.fillMissingStart": "Start catching up",
+  "detail.fillMissingStarted": "Catching up on unfinished chunks",
+  "detail.partialTitle": "{count} chunks are not transcribed",
+  "detail.partialBody": "About {time} \xB7 {done} chunks done. {reason}; only the missing parts will be transcribed.",
+  "detail.partialReason429": "Cloud ASR was rate-limited",
+  "detail.partialReasonNetwork": "The network dropped",
+  "detail.partialReasonGeneric": "The last run was interrupted",
+  "detail.gapsShow": "Show {count} gaps",
+  "detail.gapsHide": "Hide gaps",
+  "detail.gapJump": "Jump to {start}\u2013{end}",
+  "detail.restart": "Restart transcription",
+  "detail.restartBody": "All {time} of audio will be transcribed again and replace the current transcript. This costs more than filling gaps. Continue?",
+  "detail.restartStarted": "Restarting transcription",
+  "detail.missingChunks": "Unfinished chunks",
+  "detail.missingValue": "{count} \xB7 about {time}",
+  "detail.resumeHint": "Fill missing only processes gaps; restart redoes the whole recording.",
+  "detail.fullRestartHint": "Re-runs the whole recording with the current transcription options.",
+  "detail.startTranscribe": "Start transcription",
+  "detail.startTranscribeTitle": "Start transcribing this record",
+  "detail.startTranscribeBody": "All {time} of audio will be transcribed. You can keep reading existing content while it runs. Continue?",
+  "detail.startTranscribeStarted": "Transcription started",
+  "detail.transcribeOptions": "Transcription options",
+  "detail.noTranscriptText": "This record has not been transcribed yet.",
+  "detail.markAt": "Mark at {time}",
+  "detail.live": "Live",
+  "detail.actions": "Actions",
+  "detail.stopConfirm": "Stop this capture and keep what has been saved?",
+  "detail.cancelConfirm": "Cancel this queued task?",
+  "engine.notReady": "Runtime not installed",
+  "engine.install": "Install runtime"
+};
+function localeId(locale) {
+  try {
+    const snapshot = locale?.getLocale?.() || locale?.getSnapshot?.();
+    const id = snapshot?.id || snapshot?.locale || "";
+    if (id) return String(id);
+  } catch {
+  }
+  try {
+    return String(navigator?.language || "zh-CN");
+  } catch {
+    return "zh-CN";
+  }
+}
+function isChinese(locale) {
+  return /^zh/i.test(localeId(locale));
+}
+function languagePreference() {
+  try {
+    const value = localStorage.getItem("meetclip.locale");
+    if (value === "zh" || value === "en" || value === "auto") return value;
+  } catch {
+  }
+  return "zh";
+}
+function documentIsChinese() {
+  try {
+    const lang = document?.documentElement?.lang || "";
+    return /^zh/i.test(lang);
+  } catch {
+    return false;
+  }
+}
+function translator(locale) {
+  const preference = languagePreference();
+  const chinese = preference === "zh" || preference === "auto" && (isChinese(locale) || documentIsChinese());
+  const dictionary = chinese ? zh : en;
+  return (key) => {
+    const local = dictionary[key];
+    if (typeof local === "string" && local.length > 0) return local;
+    try {
+      const bound = locale?.bind?.("meetclip");
+      const value = typeof bound === "function" ? bound(key) : void 0;
+      if (typeof value === "string" && value.length > 0 && value !== key) return value;
+    } catch {
+    }
+    return zh[key] ?? key;
+  };
+}
+
+// client-src/lib/cards.js
+var ROOT_TTL_MS = 15e3;
+var rootCache = { at: 0, value: { root: "", libraries: [] } };
+async function meetclipContext() {
+  const now2 = Date.now();
+  if (now2 - rootCache.at < ROOT_TTL_MS) return rootCache.value;
+  try {
+    const [result, libraries] = await Promise.all([
+      status2(),
+      listLibraries().catch(() => null)
+    ]);
+    const value = {
+      root: result?.locations?.dataDirCanonical || result?.locations?.dataDir || "",
+      libraries: libraries?.libraries || []
+    };
+    rootCache = { at: now2, value };
+    return value;
+  } catch {
+    rootCache = { at: now2, value: { root: "", libraries: [] } };
+    return rootCache.value;
+  }
+}
+function cardMention(path) {
+  const value = String(path || "");
+  if (!value || /[\u0000-\u001f\u007f-\u009f"]/u.test(value)) return null;
+  return /\s/u.test(value) ? `@"${value}"` : `@${value}`;
+}
+var CARD_KINDS = ["meeting", "link_video", "live", "doc", "pack", "note", "highlight", "image", "batch"];
+function cardCandidate(card, t, locale) {
+  if (!card || !card.id || !card.title || !card.path) return null;
+  const kind = CARD_KINDS.includes(card.kind) ? card.kind : "live";
+  const active2 = ["pending", "queued", "recording", "processing"].includes(card.status);
+  const bits = [];
+  if (active2) bits.push(t("list.active"));
+  bits.push(t(`kind.${kind}`));
+  if (kind === "doc" && card.has_content === false) bits.push(t("cards.linkOnly"));
+  if (kind === "pack") bits.push(`${Number(card.count) || 0} ${t("cards.cardsUnit")}`);
+  if (kind === "batch" && Number(card.count) > 0) bits.push(`${Number(card.count)} ${t("cards.itemsUnit")}`);
+  if (kind === "highlight" && card.session_title) bits.push(String(card.session_title).slice(0, 40));
+  const stamp = card.updated_at || card.started_at || card.created_at;
+  if (stamp) bits.push(dateTime(stamp, localeId(locale)));
+  if (Number(card.duration) > 0) bits.push(clock(card.duration));
+  return {
+    name: String(card.title).replace(/\s+/g, " ").trim(),
+    description: bits.filter(Boolean).join(" \xB7 "),
+    icon: "file",
+    section: t("cards.section"),
+    value: JSON.stringify({ id: card.id, title: card.title, path: card.path, kind, url: card.url || "" })
+  };
+}
+function registerCardReferenceSource(ctx, locale) {
+  const triggers = ctx?.get?.("inputTriggers");
+  const sessions = ctx?.get?.("sessions");
+  if (!triggers || typeof triggers.registerSource !== "function") return () => {
+  };
+  if (!sessions?.list?.getSnapshot) return () => {
+  };
+  const t = () => translator(locale);
+  const insertSource = () => {
+    const sources = triggers.live?.sources;
+    return Array.isArray(sources) && sources.some((item) => item.trigger === "@" && item.name === "reference") ? "reference" : "meetclip-cards";
+  };
+  const source = {
+    trigger: "@",
+    name: "meetclip-cards",
+    order: -10,
+    showGroupTitle: false,
+    async candidates(session, { query, signal } = {}) {
+      try {
+        const { root, libraries } = await meetclipContext();
+        if (!root) return [];
+        const cwd = sessions.list.getSnapshot()?.byId?.[session?.sessionId]?.cwd;
+        if (!sameDirectory(cwd, root)) {
+          const foreign = matchLibraryByDir(libraries, cwd);
+          publishLibraryHint(foreign ? { id: foreign.id, name: foreign.name, dataDir: foreign.dataDir } : null);
+          return [];
+        }
+        publishLibraryHint(null);
+        const result = await listCards(query || "", { signal });
+        if (signal?.aborted) return [];
+        return (result?.cards || []).map((card) => cardCandidate(card, t(), locale)).filter(Boolean);
+      } catch {
+        return [];
+      }
+    },
+    onPick({ candidate } = {}) {
+      let card;
+      try {
+        card = JSON.parse(candidate?.value || "{}");
+      } catch {
+        return void 0;
+      }
+      const mention = cardMention(card?.path);
+      if (!mention) return void 0;
+      return {
+        insert: {
+          source: insertSource(),
+          ref: mention,
+          label: card.title || card.id || mention,
+          appearance: "file",
+          clipboardText: mention
+        }
+      };
+    },
+    codec: {
+      clipboardText: (ref) => ref,
+      serialize: (ref) => Promise.resolve(ref)
+    }
+  };
+  try {
+    return triggers.registerSource(source);
+  } catch {
+    return () => {
+    };
+  }
+}
+
+// client-src/lib/agent.js
 var SOURCE = "meetclip";
 var DEFAULT_API = { workspaceStatus, ensureWorkspace };
 var AgentBridgeError = class extends Error {
@@ -46881,8 +49781,81 @@ async function sendPromptToAgent(text, { path = "" } = {}) {
   }
   return active.send(value, { path });
 }
-function createAgentBridge({ sessions, uiWorkspace, api: api2 = DEFAULT_API } = {}) {
+async function openCardAgentDraft(card, { path = "" } = {}) {
+  const cardPath = String(card?.path || "").trim();
+  if (!cardPath) throw new AgentBridgeError("empty", "\u8FD9\u5F20\u5361\u7247\u8FD8\u6CA1\u6709\u751F\u6210\u53EF @ \u7684\u6587\u4EF6\u3002");
+  if (!active) {
+    throw new AgentBridgeError("unavailable", "\u5F53\u524D\u754C\u9762\u4E0D\u652F\u6301\u628A\u5361\u7247\u5E26\u8FDB Agent\uFF0C\u8BF7\u5728 DSH Web \u4E2D\u4F7F\u7528\u3002");
+  }
+  return active.openDraft(card, { path });
+}
+function createAgentBridge({ sessions, uiWorkspace, conversation = null, api: api2 = DEFAULT_API } = {}) {
   return {
+    async openDraft(card, { path = "" } = {}) {
+      const cardPath = String(card?.path || "").trim();
+      const mention = cardMention(cardPath);
+      if (!mention) throw new AgentBridgeError("empty", "\u5361\u7247\u8DEF\u5F84\u65E0\u6548\uFF0C\u65E0\u6CD5\u63D2\u5165 @ \u5F15\u7528\u3002");
+      if (!sessions || typeof sessions.create !== "function" || typeof uiWorkspace?.openSession !== "function") {
+        throw new AgentBridgeError("unavailable", "\u5F53\u524D\u754C\u9762\u4E0D\u652F\u6301\u6253\u5F00 Agent \u4F1A\u8BDD\uFF0C\u8BF7\u5728 DSH Web \u4E2D\u4F7F\u7528\u3002");
+      }
+      const dataDir = String(path || "").trim();
+      if (!dataDir) throw new AgentBridgeError("no-data-dir", "\u627E\u4E0D\u5230\u4F1A\u6458\u7684\u6570\u636E\u76EE\u5F55\uFF0C\u65E0\u6CD5\u5B9A\u4F4D\u9ED8\u8BA4\u5DE5\u4F5C\u533A\u3002");
+      if (!conversation?.input?.shell) {
+        if (typeof uiWorkspace.startSession !== "function") {
+          throw new AgentBridgeError("unavailable", "\u5F53\u524D\u754C\u9762\u4E0D\u652F\u6301\u9884\u586B Agent \u8F93\u5165\u6846\u3002");
+        }
+        await uiWorkspace.startSession(void 0, { prompt: mention, whenDraftExists: "replace" });
+        return { sessionId: "" };
+      }
+      const workspace = await resolveWorkspace(api2, dataDir);
+      let sessionId;
+      try {
+        sessionId = await sessions.create({ workspaceId: workspace.id });
+      } catch (failure) {
+        throw new AgentBridgeError("session-create", `\u65E0\u6CD5\u65B0\u5EFA Agent \u4F1A\u8BDD\uFF1A${errorMessage(failure)}`, failure);
+      }
+      if (!sessionId) throw new AgentBridgeError("session-create", "\u65E0\u6CD5\u65B0\u5EFA Agent \u4F1A\u8BDD\uFF1ADSH \u6CA1\u6709\u8FD4\u56DE\u4F1A\u8BDD id\u3002");
+      try {
+        await withSession(sessions, sessionId, async () => {
+          const shell = conversation.input.shell(sessionId);
+          if (!shell || typeof shell.setDraft !== "function") {
+            throw new AgentBridgeError("draft", "\u5F53\u524D Agent \u8F93\u5165\u6846\u8FD8\u4E0D\u652F\u6301\u9884\u586B\u5F15\u7528\u3002");
+          }
+          const reference = {
+            source: "reference",
+            ref: mention,
+            offset: 0,
+            length: mention.length,
+            label: String(card?.title || "").trim() || mention,
+            clipboardText: mention,
+            appearance: "file"
+          };
+          try {
+            shell.setDraft({ text: `${mention} `, references: [reference] });
+          } catch {
+            shell.setDraft(mention);
+          }
+        });
+      } catch (failure) {
+        if (failure instanceof AgentBridgeError) throw failure;
+        throw new AgentBridgeError("draft", `\u65E0\u6CD5\u51C6\u5907 Agent \u8F93\u5165\u6846\uFF1A${errorMessage(failure)}`, failure);
+      }
+      try {
+        uiWorkspace.openSession(sessionId);
+      } catch (failure) {
+        throw new AgentBridgeError("open", `\u5F15\u7528\u5DF2\u51C6\u5907\u597D\uFF0C\u4F46\u6CA1\u80FD\u6253\u5F00\u4F1A\u8BDD\uFF1A${errorMessage(failure)}`, failure);
+      }
+      try {
+        setTimeout(() => {
+          try {
+            conversation.input.shell(sessionId).focus?.();
+          } catch {
+          }
+        }, 80);
+      } catch {
+      }
+      return { sessionId };
+    },
     async send(text, { path = "" } = {}) {
       const value = String(text ?? "").trim();
       if (!value) throw new AgentBridgeError("empty", "\u8FD8\u6CA1\u6709\u8F93\u5165\u5185\u5BB9\u3002");
@@ -46990,7 +49963,7 @@ var FILTERS2 = [
   { id: "mark", label: "\u6807\u8BB0" }
 ];
 var PINS_KEY = "meetclip.scatter.pins.v1";
-var ACTIVE_STATUSES = ["recording", "processing", "queued"];
+var ACTIVE_STATUSES2 = ["recording", "processing", "queued"];
 var EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]';
 var DIALOG_SELECTOR = '[role="dialog"], dialog';
 function pasteBusy(target) {
@@ -47019,7 +49992,7 @@ function pasteAnchor(pointRef, seqRef) {
   };
 }
 function isActiveTask(item) {
-  return Boolean(item) && ACTIVE_STATUSES.includes(item.status);
+  return Boolean(item) && ACTIVE_STATUSES2.includes(item.status);
 }
 function activeTaskLabel(item) {
   if (item?.status === "recording") return "\u5F55\u5236\u4E2D";
@@ -47045,12 +50018,12 @@ function readPins() {
     return {};
   }
 }
-function coverToUrl(item, cover) {
+function coverToUrl2(item, cover) {
   if (!cover?.value) return null;
   return cover.type === "remote" ? cover.value : fileUrl(item.id, cover.value);
 }
-function coverSources(item) {
-  const list = [coverToUrl(item, item?.cover), coverToUrl(item, item?.cover?.fallback)].filter(Boolean);
+function coverSources2(item) {
+  const list = [coverToUrl2(item, item?.cover), coverToUrl2(item, item?.cover?.fallback)].filter(Boolean);
   return [...new Set(list)];
 }
 function Cover({ item, sources, onBroken }) {
@@ -47078,7 +50051,7 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
   const active2 = isActiveTask(item);
   const info = kindInfo(item.kind);
   const [imageFailed, setImageFailed] = React.useState(false);
-  const sources = coverSources(item);
+  const sources = coverSources2(item);
   const hasCover = sources.length > 0 && !imageFailed;
   return /* @__PURE__ */ React.createElement(
     "article",
@@ -47112,7 +50085,7 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
         }
       },
       "\u5220\u9664"
-    ) : null, item.source_url ? /* @__PURE__ */ React.createElement("button", { type: "button", onClick: (event) => {
+    ) : null, onCopyLink && item.source_url ? /* @__PURE__ */ React.createElement("button", { type: "button", onClick: (event) => {
       event.stopPropagation();
       onCopyLink(item.source_url);
     } }, "\u590D\u5236\u94FE\u63A5") : null)
@@ -47125,15 +50098,23 @@ var DOC_TYPE_LABELS = {
   base: "\u98DE\u4E66\u591A\u7EF4\u8868\u683C",
   docs: "\u98DE\u4E66\u6587\u6863"
 };
-function DocWallCard({ doc, onOpen, t }) {
+function DocWallCard({ doc, onOpen, onMenu, t }) {
   const label = DOC_TYPE_LABELS[doc.doc_type] || t("home.docs.title");
   return /* @__PURE__ */ React.createElement(
-    "button",
+    "article",
     {
-      type: "button",
       className: "mc-doc-wall-card",
+      role: "button",
+      tabIndex: 0,
+      "aria-label": `${label}\uFF1A${doc.title}`,
       onClick: () => onOpen(doc),
-      "aria-label": `${label}\uFF1A${doc.title}`
+      onContextMenu: (event) => onMenu?.(doc, event),
+      onKeyDown: (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen(doc);
+        }
+      }
     },
     /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-top" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, dateTime(doc.updated_at))),
     /* @__PURE__ */ React.createElement("strong", { className: "mc-doc-wall-title" }, doc.title),
@@ -47208,10 +50189,18 @@ function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, 
     setPickingFile(true);
     setHint("");
     try {
-      const result = await pickFile("media");
-      if (result?.ok && result.path) {
-        const name = String(result.path).split("/").pop();
-        setCapture({ type: "meeting", file: { path: result.path, name, bytes: result.bytes || 0 } });
+      const result = await pickFile("media", { multiple: true });
+      const paths = Array.isArray(result?.paths) && result.paths.length ? result.paths : result?.path ? [result.path] : [];
+      if (paths.length) {
+        const merged = mergeMeetingFiles([], filesFromPaths(paths));
+        if (!merged.files.length) {
+          setHint("\u53EA\u652F\u6301\u97F3\u9891\u6216\u89C6\u9891\u6587\u4EF6\uFF08mp4/mov/mkv/flv/webm/m4v/ts \u4E0E\u5E38\u89C1\u97F3\u9891\u683C\u5F0F\uFF09");
+          return;
+        }
+        const ignored = merged.rejected.length + merged.duplicates;
+        if (merged.overflow) setHint(`\u5355\u6B21\u6700\u591A ${MAX_MEETING_FILES} \u4E2A\u6587\u4EF6\uFF0C\u5DF2\u5FFD\u7565 ${merged.overflow} \u4E2A`);
+        else if (ignored) setHint(`\u5DF2\u5FFD\u7565 ${ignored} \u4E2A\u4E0D\u652F\u6301\u7684\u6587\u4EF6`);
+        setCapture({ type: "meeting", files: merged.files });
       } else if (result && !result.cancelled) {
         setHint(result.error || "\u65E0\u6CD5\u6253\u5F00\u6587\u4EF6\u9009\u62E9\u5668");
       }
@@ -47300,11 +50289,12 @@ function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, 
   ), capture ? /* @__PURE__ */ React.createElement(
     CaptureInline,
     {
-      key: `${capture.type}-${capture.url || capture.file?.path || ""}`,
+      key: `${capture.type}-${capture.url || (capture.files || []).map((file) => file.path).join("|") || capture.file?.path || ""}`,
       t,
       type: capture.type,
       url: capture.url || "",
       file: capture.file || null,
+      files: capture.files || null,
       onClose: closeCapture,
       onCreated: created,
       onSubmitted: onCaptureSubmitted
@@ -47347,7 +50337,7 @@ function CardActions({ label, onDelete }) {
 }
 function ImageCard({ image, onDelete, onMenu }) {
   const ratio = image.width && image.height ? `${image.width} / ${image.height}` : "4 / 3";
-  return /* @__PURE__ */ React.createElement("article", { className: "mc-image-card", onContextMenu: (event) => onMenu?.(event) }, /* @__PURE__ */ React.createElement("img", { src: boardImageUrl(image.id), alt: "\u753B\u677F\u56FE\u7247", draggable: false, loading: "lazy", style: { aspectRatio: ratio } }), /* @__PURE__ */ React.createElement(CardActions, { label: "\u5220\u9664\u56FE\u7247\u5361", onDelete: () => onDelete(image) }));
+  return /* @__PURE__ */ React.createElement("article", { className: "mc-image-card", onContextMenu: (event) => onMenu?.(event) }, /* @__PURE__ */ React.createElement("img", { src: boardImageUrl(image.id), alt: "\u753B\u677F\u56FE\u7247", draggable: false, loading: "lazy", style: { aspectRatio: ratio } }), onDelete ? /* @__PURE__ */ React.createElement(CardActions, { label: "\u5220\u9664\u56FE\u7247\u5361", onDelete: () => onDelete(image) }) : null);
 }
 function StickyCard({ note, onToggle, onDelete, onMenu, onEdit }) {
   const todos = note.kind === "todo" ? todoItems(note.text) : [];
@@ -47376,7 +50366,7 @@ function StickyCard({ note, onToggle, onDelete, onMenu, onEdit }) {
       }
     ), /* @__PURE__ */ React.createElement("span", null, text)))) : null,
     !body && note.kind !== "todo" ? /* @__PURE__ */ React.createElement("p", { className: "mc-sticky-text" }, note.text) : null,
-    /* @__PURE__ */ React.createElement(CardActions, { label: note.kind === "todo" ? "\u5220\u9664\u5F85\u529E\u6E05\u5355" : "\u5220\u9664\u4FBF\u5229\u7B7E", onDelete: () => onDelete(note) })
+    onDelete ? /* @__PURE__ */ React.createElement(CardActions, { label: note.kind === "todo" ? "\u5220\u9664\u5F85\u529E\u6E05\u5355" : "\u5220\u9664\u4FBF\u5229\u7B7E", onDelete: () => onDelete(note) }) : null
   );
 }
 var CAPTURE_ENTRIES = [
@@ -47397,6 +50387,8 @@ function HomePage({
   onCaptureCreated,
   batchFocus = null,
   onBatchFocusHandled,
+  packFocus = null,
+  onPackFocusHandled,
   library = null,
   dataDir = ""
 }) {
@@ -47407,6 +50399,18 @@ function HomePage({
   const [openBatchId, setOpenBatchId] = React.useState("");
   const [batchAppend, setBatchAppend] = React.useState(false);
   const [focusedBatchId, setFocusedBatchId] = React.useState("");
+  const [packs, setPacks] = React.useState([]);
+  const packsRef = React.useRef(packs);
+  packsRef.current = packs;
+  const [openPackId, setOpenPackId] = React.useState("");
+  const [packRenameFocus, setPackRenameFocus] = React.useState(false);
+  const [packBusy, setPackBusy] = React.useState(false);
+  const [packUndo, setPackUndo] = React.useState(null);
+  const packBusyRef = React.useRef(false);
+  const askingCardRef = React.useRef(false);
+  const packUndoTimer = React.useRef(null);
+  const undoBusyRef = React.useRef(false);
+  const layoutApiRef = React.useRef(null);
   const [notes, setNotes] = React.useState([]);
   const [images, setImages] = React.useState([]);
   const [pins, setPins] = React.useState(readPins);
@@ -47427,6 +50431,7 @@ function HomePage({
   const [confirm, setConfirm] = React.useState(null);
   const [noteEditor, setNoteEditor] = React.useState(null);
   const focusHandledRef = React.useRef(0);
+  const packFocusHandledRef = React.useRef(0);
   const focusClearRef = React.useRef(null);
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
   const load = React.useCallback(async (reset = true) => {
@@ -47441,6 +50446,7 @@ function HomePage({
       });
       setHighlights(next.highlights || []);
       setBatches(Array.isArray(next.batches) ? next.batches : []);
+      setPacks(Array.isArray(next.packs) ? next.packs : []);
       setError("");
     } catch (failure) {
       setError(failure?.message || String(failure));
@@ -47546,26 +50552,33 @@ function HomePage({
     () => batches.map((batch) => ({ type: "batch", at: batch.created_at || 0, item: batch })),
     [batches]
   );
-  const allEntries = [
+  const rawEntries = React.useMemo(() => [
     ...items.filter((item) => !batchMemberIds.has(item.id)).map((item) => ({ type: "session", at: item.started_at || item.created_at || 0, item })),
     ...batchEntries,
     ...highlights.map((item) => ({ type: "highlight", at: item.created_at || 0, item })),
     ...notes.map((item) => ({ type: "note", at: item.created_at || 0, item })),
     ...images.map((item) => ({ type: "image", at: item.created_at || 0, item })),
     ...(data?.documents || []).map((item) => ({ type: "doc", at: item.updated_at || 0, item }))
-  ].sort((a, b) => {
+  ], [items, batchMemberIds, batchEntries, highlights, notes, images, data]);
+  const rawEntryByKey = React.useMemo(
+    () => new Map(rawEntries.map((entry) => [entryKey(entry), entry])),
+    [rawEntries]
+  );
+  const allEntries = React.useMemo(() => applyPacks(rawEntries, packs).sort((a, b) => {
     const pinnedA = pins[`${a.type}-${a.item.id}`] ? 1 : 0;
     const pinnedB = pins[`${b.type}-${b.item.id}`] ? 1 : 0;
     const activeOf2 = (entry) => {
       if (entry.type === "session") return ["recording", "processing", "queued"].includes(entry.item.status) ? 1 : 0;
       if (entry.type === "batch") return Number(entry.item.active) > 0 ? 1 : 0;
+      if (entry.type === PACK_TYPE) return Number(entry.item.active_count) > 0 ? 1 : 0;
       return 0;
     };
     return pinnedB - pinnedA || activeOf2(b) - activeOf2(a) || b.at - a.at;
-  });
+  }), [rawEntries, packs, pins]);
   const showHighlights = kind === "all" || kind === "mark";
   const showNotes = kind === "all" || kind === "mark";
-  const entries = allEntries.filter((entry) => {
+  const entries = React.useMemo(() => allEntries.filter((entry) => {
+    if (entry.type === PACK_TYPE) return packMatchesFilter(entry.item, kind);
     if (entry.type === "batch") {
       if (kind === "mark" || kind === "live" || kind === "meeting") return false;
       if (kind === "active") return Number(entry.item.active) > 0;
@@ -47580,7 +50593,22 @@ function HomePage({
     if (entry.type === "doc") return kind === "all" || kind === "doc";
     if (entry.type === "highlight") return showHighlights;
     return showNotes;
-  });
+  }), [allEntries, kind, showHighlights, showNotes]);
+  const openPack = React.useMemo(() => packById(packs, openPackId), [packs, openPackId]);
+  React.useEffect(() => {
+    if (!openPackId) return;
+    if (packById(packs, openPackId)) return;
+    setOpenPackId("");
+    setPackRenameFocus(false);
+  }, [packs, openPackId]);
+  React.useEffect(() => () => {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current);
+  }, []);
+  function openPackOverlay(pack, rename = false) {
+    if (!pack?.id) return;
+    setOpenPackId(pack.id);
+    setPackRenameFocus(Boolean(rename));
+  }
   const visibleKeys = new Set(entries.map(entryKey));
   React.useEffect(() => () => {
     if (focusClearRef.current) clearTimeout(focusClearRef.current);
@@ -47608,6 +50636,18 @@ function HomePage({
     }
     return void 0;
   }, [batchFocus?.nonce, batchFocus?.id, batches, mode, onBatchFocusHandled]);
+  React.useEffect(() => {
+    if (!packFocus?.id) return void 0;
+    if (packFocusHandledRef.current === packFocus.nonce) return void 0;
+    const found = packs.find((pack) => String(pack.id) === String(packFocus.id));
+    if (!found) return void 0;
+    packFocusHandledRef.current = packFocus.nonce;
+    setKind("all");
+    setOpenPackId(found.id);
+    setPackRenameFocus(false);
+    onPackFocusHandled?.();
+    return void 0;
+  }, [packFocus?.nonce, packFocus?.id, packs, onPackFocusHandled]);
   function togglePin(key) {
     const pinning = !pins[key];
     setPins((current) => {
@@ -47634,10 +50674,307 @@ function HomePage({
   function pinAction(key) {
     return { id: "pin", label: pins[key] ? "\u53D6\u6D88\u56FE\u9489" : "\u56FE\u9489\u56FA\u5B9A", onSelect: () => togglePin(key) };
   }
+  function clearPackUndo() {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current);
+    packUndoTimer.current = null;
+    setPackUndo(null);
+  }
+  function forgetPin(key) {
+    setPins((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      try {
+        localStorage.setItem(PINS_KEY, JSON.stringify(next));
+      } catch {
+      }
+      return next;
+    });
+  }
+  function beginPackBusy() {
+    if (packBusyRef.current) return false;
+    clearPackUndo();
+    packBusyRef.current = true;
+    setPackBusy(true);
+    return true;
+  }
+  function endPackBusy() {
+    packBusyRef.current = false;
+    setPackBusy(false);
+  }
+  function replacePack(updated) {
+    if (!updated?.id) return;
+    setPacks((current) => {
+      const found = current.some((pack) => String(pack.id) === String(updated.id));
+      if (!found) return [...current, updated];
+      return current.map((pack) => String(pack.id) === String(updated.id) ? updated : pack);
+    });
+  }
+  function schedulePackUndo(label, run) {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current);
+    setPackUndo({ label, run });
+    packUndoTimer.current = setTimeout(() => {
+      packUndoTimer.current = null;
+      setPackUndo(null);
+    }, 5200);
+  }
+  async function runPackUndo() {
+    if (undoBusyRef.current || !packUndo) return;
+    const action = packUndo;
+    undoBusyRef.current = true;
+    packBusyRef.current = true;
+    setPackBusy(true);
+    clearPackUndo();
+    try {
+      await action.run();
+    } catch (failure) {
+      onToast?.(failure?.message || "\u64A4\u9500\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5");
+    } finally {
+      undoBusyRef.current = false;
+      packBusyRef.current = false;
+      setPackBusy(false);
+    }
+  }
+  function newPackId() {
+    return `pack-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+  async function createEmptyPack(point) {
+    if (!beginPackBusy()) return;
+    try {
+      const result = await createPack({
+        id: newPackId(),
+        title: nextPackTitle(packsRef.current),
+        members: []
+      });
+      const pack = result?.pack;
+      if (!pack?.id) throw new Error("\u5361\u5305\u521B\u5EFA\u5931\u8D25");
+      layoutApiRef.current?.place(packKey(pack.id), point);
+      setPacks((current) => [...current, pack]);
+      schedulePackUndo(`\u5DF2\u65B0\u5EFA\u300C${pack.title}\u300D`, async () => {
+        await deletePack(pack.id);
+        layoutApiRef.current?.remove(packKey(pack.id));
+        forgetPin(packKey(pack.id));
+        setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)));
+        onToast?.("\u5DF2\u64A4\u9500\u65B0\u5EFA\u5361\u5305");
+      });
+    } catch (failure) {
+      onToast?.(failure?.message || "\u65B0\u5EFA\u5361\u5305\u5931\u8D25");
+    } finally {
+      endPackBusy();
+    }
+  }
+  async function mergeCards({ sourceKey, targetEntry, sourceEntry, targetPosition, sourceOrigin }) {
+    if (!sourceEntry || !targetEntry) return false;
+    if (!beginPackBusy()) return false;
+    try {
+      if (targetEntry.type === PACK_TYPE) {
+        const pack2 = packById(packsRef.current, targetEntry.item.id) || targetEntry.item;
+        const result2 = await addPackMembers(pack2.id, [entryMember(sourceEntry)]);
+        const updated = result2?.pack;
+        if (!updated?.id) throw new Error("\u653E\u8FDB\u5361\u5305\u5931\u8D25");
+        replacePack(updated);
+        schedulePackUndo(`\u5DF2\u653E\u8FDB\u300C${updated.title}\u300D`, async () => {
+          const undone = await removePackMembers(updated.id, [entryMember(sourceEntry)]);
+          if (undone?.pack) replacePack(undone.pack);
+          if (sourceKey && sourceOrigin) layoutApiRef.current?.place(sourceKey, sourceOrigin);
+          onToast?.("\u5DF2\u64A4\u9500\u653E\u5165\u5361\u5305");
+        });
+        return true;
+      }
+      const result = await createPack({
+        id: newPackId(),
+        title: nextPackTitle(packsRef.current),
+        members: [entryMember(targetEntry), entryMember(sourceEntry)]
+      });
+      const pack = result?.pack;
+      if (!pack?.id) throw new Error("\u5408\u6210\u5361\u5305\u5931\u8D25");
+      if (targetPosition) layoutApiRef.current?.place(packKey(pack.id), targetPosition);
+      setPacks((current) => [...current, pack]);
+      schedulePackUndo(`\u5DF2\u5408\u6210\u300C${pack.title}\u300D`, async () => {
+        await deletePack(pack.id);
+        layoutApiRef.current?.remove(packKey(pack.id));
+        forgetPin(packKey(pack.id));
+        if (sourceKey && sourceOrigin) layoutApiRef.current?.place(sourceKey, sourceOrigin);
+        if (targetPosition) layoutApiRef.current?.place(entryKey(targetEntry), targetPosition);
+        setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)));
+        onToast?.("\u5DF2\u64A4\u9500\u5408\u6210\uFF0C\u4E24\u5F20\u5361\u7247\u5DF2\u56DE\u5230\u539F\u5904");
+      });
+      return true;
+    } catch (failure) {
+      onToast?.(failure?.message || "\u5408\u6210\u5361\u5305\u5931\u8D25");
+      return false;
+    } finally {
+      endPackBusy();
+    }
+  }
+  async function renamePackById(pack, title) {
+    if (!pack?.id) return false;
+    if (!beginPackBusy()) return false;
+    try {
+      const result = await renamePack(pack.id, title);
+      const updated = result?.pack;
+      if (!updated?.id) throw new Error("\u6539\u540D\u5931\u8D25");
+      replacePack(updated);
+      onToast?.(`\u5DF2\u6539\u540D\u4E3A\u300C${updated.title}\u300D`);
+      return true;
+    } catch (failure) {
+      onToast?.(failure?.message || "\u5361\u5305\u6539\u540D\u5931\u8D25");
+      return false;
+    } finally {
+      endPackBusy();
+    }
+  }
+  async function reorderPackRows(pack, members) {
+    if (!pack?.id || !Array.isArray(members)) return false;
+    if (!beginPackBusy()) return false;
+    try {
+      const result = await reorderPackMembers(pack.id, members.map((member) => ({
+        type: member.type,
+        id: member.id
+      })));
+      const updated = result?.pack;
+      if (!updated?.id) throw new Error("\u4FDD\u5B58\u5361\u5305\u987A\u5E8F\u5931\u8D25");
+      replacePack(updated);
+      return true;
+    } catch (failure) {
+      onToast?.(failure?.message || "\u4FDD\u5B58\u5361\u5305\u987A\u5E8F\u5931\u8D25");
+      return false;
+    } finally {
+      endPackBusy();
+    }
+  }
+  function openPackMember(pack, member) {
+    if (!member) return;
+    setOpenPackId("");
+    setPackRenameFocus(false);
+    if (member.type === "session") {
+      onOpenRecord?.({ id: member.id, title: member.title, kind: member.kind });
+      return;
+    }
+    if (member.type === "batch") {
+      setBatchAppend(false);
+      setOpenBatchId(member.id);
+      return;
+    }
+    if (member.type === "highlight") {
+      onOpenRecord?.({ id: member.session_id, title: member.session_title || member.subtitle, kind: member.kind }, member.ts);
+      return;
+    }
+    if (member.type === "doc") {
+      openDoc({ url: member.url });
+    }
+  }
+  async function removePackMember(pack, member) {
+    if (!pack?.id || !member) return;
+    if (!beginPackBusy()) return;
+    try {
+      const packPosition = layoutApiRef.current?.getPosition(packKey(pack.id));
+      const result = await removePackMembers(pack.id, [{ type: member.type, id: member.id }]);
+      const updated = result?.pack;
+      if (!updated?.id) throw new Error("\u79FB\u51FA\u5361\u5305\u5931\u8D25");
+      replacePack(updated);
+      if (packPosition) {
+        layoutApiRef.current?.place(packMemberKey(member), {
+          x: packPosition.x + 96,
+          y: packPosition.y + 60
+        });
+      }
+      onToast?.(`\u5DF2\u4ECE\u300C${updated.title}\u300D\u79FB\u51FA 1 \u5F20\u5361\u7247`);
+    } catch (failure) {
+      onToast?.(failure?.message || "\u79FB\u51FA\u5361\u5305\u5931\u8D25");
+    } finally {
+      endPackBusy();
+    }
+  }
+  async function dissolvePack(pack) {
+    if (!pack?.id) return;
+    if (!beginPackBusy()) return;
+    try {
+      const packPosition = layoutApiRef.current?.getPosition(packKey(pack.id));
+      const members = Array.isArray(pack.members) ? pack.members : [];
+      const spots = fanPositions(packPosition || { x: 0, y: 0 }, members.length);
+      const placements = {};
+      if (packPosition) {
+        members.forEach((member, index) => {
+          if (spots[index]) placements[packMemberKey(member)] = spots[index];
+        });
+      }
+      await deletePack(pack.id);
+      if (Object.keys(placements).length) layoutApiRef.current?.placeMany(placements);
+      layoutApiRef.current?.remove(packKey(pack.id));
+      forgetPin(packKey(pack.id));
+      setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)));
+      setOpenPackId("");
+      setPackRenameFocus(false);
+      onToast?.(members.length ? `\u5DF2\u89E3\u6563\u300C${pack.title}\u300D\uFF0C${members.length} \u5F20\u5361\u7247\u79FB\u51FA\u5361\u5305` : `\u5DF2\u5220\u9664\u300C${pack.title}\u300D`);
+    } catch (failure) {
+      onToast?.(failure?.message || "\u89E3\u6563\u5361\u5305\u5931\u8D25");
+    } finally {
+      endPackBusy();
+    }
+  }
+  function askCardId(type, item) {
+    if (!item?.id) return "";
+    if (type === "session" || type === "doc") return String(item.id);
+    if (type === "pack") return `pack:${item.id}`;
+    return `${type}:${item.id}`;
+  }
+  async function askAgentAboutCard(type, item) {
+    if (askingCardRef.current) return;
+    const cardId = askCardId(type, item);
+    if (!cardId) {
+      onToast?.("\u8FD9\u5F20\u5361\u7247\u8FD8\u6CA1\u6709\u53EF\u7528\u7684\u6807\u8BC6");
+      return;
+    }
+    askingCardRef.current = true;
+    try {
+      const synced = await syncCards();
+      if (synced && synced.ok === false) {
+        throw new Error(synced.errors?.[0]?.message || "\u5361\u7247\u6587\u4EF6\u540C\u6B65\u5931\u8D25");
+      }
+      const result = await listCards("", { id: cardId, limit: 1 });
+      const card = result?.cards?.[0];
+      if (!card?.path) throw new Error("\u8FD9\u5F20\u5361\u7247\u8FD8\u6CA1\u6709\u751F\u6210\u53EF @ \u7684\u6587\u4EF6\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5");
+      await openCardAgentDraft(card, { path: dataDir });
+    } catch (failure) {
+      onToast?.(failure?.message || "\u65E0\u6CD5\u5728 Agent \u4E2D @ \u8FD9\u5F20\u5361\u7247");
+    } finally {
+      askingCardRef.current = false;
+    }
+  }
+  function packMenu(pack, event) {
+    const key = packKey(pack.id);
+    openMenu(event, [
+      { id: "ask-pack", label: "\u57FA\u4E8E\u6B64\u5361\u5305\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard("pack", pack) },
+      { separator: true },
+      { id: "open-pack", label: "\u6253\u5F00\u5361\u5305", onSelect: () => openPackOverlay(pack) },
+      { id: "rename-pack", label: "\u91CD\u547D\u540D", onSelect: () => openPackOverlay(pack, true) },
+      pinAction(key),
+      { separator: true },
+      {
+        id: "dissolve-pack",
+        label: Number(pack.count) > 0 ? "\u89E3\u6563\u5361\u5305" : "\u5220\u9664\u5361\u5305",
+        hint: Number(pack.count) > 0 ? "\u5361\u7247\u4E0D\u5220\u9664" : "",
+        danger: true,
+        onSelect: () => dissolvePack(pack)
+      }
+    ]);
+  }
+  function blankPackMenu(event, point) {
+    openMenu(event, [{
+      id: "new-pack",
+      label: "\u65B0\u5EFA\u5361\u5305",
+      hint: "\u628A\u5361\u7247\u62D6\u8FDB\u6765",
+      onSelect: () => createEmptyPack(point)
+    }]);
+  }
   function boardEntryMenu(entry, event) {
     const key = `${entry.type}-${entry.item.id}`;
-    const actions = [];
-    actions.push(pinAction(key), { separator: true });
+    const actions = [
+      { id: "ask-card", label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard(entry.type, entry.item) },
+      { separator: true },
+      pinAction(key)
+    ];
     if (entry.type === "highlight") {
       actions.push({ id: "open", label: "\u6253\u5F00\u8BB0\u5F55", onSelect: () => onOpenRecord({ id: entry.item.session_id, title: entry.item.session_title, kind: entry.item.kind }, entry.item.ts) });
     }
@@ -47647,11 +50984,13 @@ function HomePage({
     if (entry.type === "image") {
       actions.push({ id: "delete", label: "\u5220\u9664\u56FE\u7247\u5361", onSelect: () => removeImage(entry.item) });
     }
-    if (actions.length) openMenu(event, actions);
+    openMenu(event, actions);
   }
   function batchMenu(entry, event) {
     const key = `batch-${entry.item.id}`;
     openMenu(event, [
+      { id: "ask-batch", label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard("batch", entry.item) },
+      { separator: true },
       pinAction(key),
       { separator: true },
       { id: "open", label: "\u6253\u5F00\u6279\u6B21", onSelect: () => {
@@ -47883,6 +51222,8 @@ function HomePage({
   function cardMenu(item, event) {
     const pinKey = `session-${item.id}`;
     openMenu(event, [
+      { id: "ask-card", label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard("session", item) },
+      { separator: true },
       pinAction(pinKey),
       { separator: true },
       { id: "open", label: "\u6253\u5F00\u8BB0\u5F55", onSelect: () => onOpenRecord(item) },
@@ -47913,28 +51254,90 @@ function HomePage({
       dataDir
     }
   );
-  const renderEntry = (entry) => entry.type === "batch" ? /* @__PURE__ */ React.createElement(
-    BatchCard,
-    {
-      item: entry.item,
-      focused: focusedBatchId === entry.item.id,
-      onOpen: (batch) => {
-        setBatchAppend(false);
-        setOpenBatchId(batch.id);
-      },
-      onMenu: (event) => batchMenu(entry, event),
-      onDelete: askDeleteBatch
+  function docMenu(doc, event) {
+    openMenu(event, [
+      { id: "ask-doc", label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard("doc", doc) },
+      { separator: true },
+      { id: "open-doc", label: "\u6253\u5F00\u6587\u6863", onSelect: () => openDoc(doc) }
+    ]);
+  }
+  const renderEntry = (entry, options = {}) => {
+    const packMode = Boolean(options.packMode);
+    const openMember = options.onOpenMember;
+    if (entry.type === PACK_TYPE) {
+      return /* @__PURE__ */ React.createElement(
+        PackCard,
+        {
+          item: entry.item,
+          memberEntries: rawEntryByKey,
+          t,
+          onOpen: (pack) => openPackOverlay(pack),
+          onMenu: (event) => packMenu(entry.item, event)
+        }
+      );
     }
-  ) : entry.type === "note" ? /* @__PURE__ */ React.createElement(
-    StickyCard,
-    {
-      note: entry.item,
-      onToggle: toggleNote,
-      onDelete: removeNote,
-      onEdit: openNoteEditor,
-      onMenu: (event) => boardEntryMenu(entry, event)
+    if (entry.type === "batch") {
+      return /* @__PURE__ */ React.createElement(
+        BatchCard,
+        {
+          item: entry.item,
+          focused: !packMode && focusedBatchId === entry.item.id,
+          onOpen: packMode ? () => openMember?.(entry) : (batch) => {
+            setBatchAppend(false);
+            setOpenBatchId(batch.id);
+          },
+          onMenu: packMode ? void 0 : (event) => batchMenu(entry, event),
+          onDelete: packMode ? void 0 : askDeleteBatch
+        }
+      );
     }
-  ) : entry.type === "image" ? /* @__PURE__ */ React.createElement(ImageCard, { image: entry.item, onDelete: removeImage, onMenu: (event) => boardEntryMenu(entry, event) }) : entry.type === "highlight" ? /* @__PURE__ */ React.createElement(HighlightCard, { item: entry.item, onOpen: onOpenRecord, onMenu: (event) => boardEntryMenu(entry, event) }) : entry.type === "doc" ? /* @__PURE__ */ React.createElement(DocWallCard, { doc: entry.item, onOpen: openDoc, t }) : /* @__PURE__ */ React.createElement(SessionCard, { item: entry.item, t, onOpen: onOpenRecord, onCopyLink: copyLink, onDelete: askDelete, onMenu: cardMenu });
+    if (entry.type === "note") {
+      return /* @__PURE__ */ React.createElement(
+        StickyCard,
+        {
+          note: entry.item,
+          onToggle: toggleNote,
+          onDelete: packMode ? void 0 : removeNote,
+          onEdit: packMode ? void 0 : openNoteEditor,
+          onMenu: packMode ? void 0 : (event) => boardEntryMenu(entry, event)
+        }
+      );
+    }
+    if (entry.type === "image") {
+      return /* @__PURE__ */ React.createElement(
+        ImageCard,
+        {
+          image: entry.item,
+          onDelete: packMode ? void 0 : removeImage,
+          onMenu: packMode ? void 0 : (event) => boardEntryMenu(entry, event)
+        }
+      );
+    }
+    if (entry.type === "highlight") {
+      return /* @__PURE__ */ React.createElement(
+        HighlightCard,
+        {
+          item: entry.item,
+          onOpen: packMode ? () => openMember?.(entry) : onOpenRecord,
+          onMenu: packMode ? void 0 : (event) => boardEntryMenu(entry, event)
+        }
+      );
+    }
+    if (entry.type === "doc") {
+      return /* @__PURE__ */ React.createElement(DocWallCard, { doc: entry.item, onOpen: packMode ? () => openMember?.(entry) : openDoc, onMenu: packMode ? void 0 : docMenu, t });
+    }
+    return /* @__PURE__ */ React.createElement(
+      SessionCard,
+      {
+        item: entry.item,
+        t,
+        onOpen: packMode ? () => openMember?.(entry) : onOpenRecord,
+        onCopyLink: packMode ? void 0 : copyLink,
+        onDelete: packMode ? void 0 : askDelete,
+        onMenu: packMode ? void 0 : cardMenu
+      }
+    );
+  };
   return /* @__PURE__ */ React.createElement("div", { className: `mc-home ${mode === "scatter" ? "is-scatter" : "is-feed"}`, ref: homeRef }, mode === "scatter" && allEntries.length > 0 && !error ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(SetupProgressCards, { variant: "scatter", revision: localRevision }), /* @__PURE__ */ React.createElement(
     ScatterCanvas,
     {
@@ -47949,16 +51352,21 @@ function HomePage({
       pinningKey: pinFlash,
       focusKey: focusedBatchId ? `batch-${focusedBatchId}` : "",
       onShowAll: () => setKind("all"),
-      onToast
+      onToast,
+      onMergeCards: mergeCards,
+      onBlankContextMenu: blankPackMenu,
+      layoutApiRef
     }
   )) : /* @__PURE__ */ React.createElement("div", { className: "mc-home-scroll" }, hero, /* @__PURE__ */ React.createElement(SetupProgressCards, { variant: "feed", revision: localRevision }), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-error" }, /* @__PURE__ */ React.createElement("span", null, "\u6458\u5F55\u5899\u52A0\u8F7D\u5931\u8D25\uFF1A", error), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-ghost", onClick: () => load(true) }, "\u91CD\u8BD5")) : null, !error && entries.length === 0 ? data?.stats?.total ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-empty mc-home-empty-filter" }, /* @__PURE__ */ React.createElement("h2", null, "\u6CA1\u6709\u7B26\u5408\u6761\u4EF6\u7684\u6458\u5F55"), /* @__PURE__ */ React.createElement("p", null, "\u6362\u4E00\u4E2A\u7B5B\u9009\uFF0C\u6216\u8005\u56DE\u5230\u5168\u90E8\u3002"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-ghost", onClick: () => setKind("all") }, "\u67E5\u770B\u5168\u90E8")) : /* @__PURE__ */ React.createElement(Empty, { t, onNewCapture }) : null, entries.length > 0 ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-wall" }, entries.map((entry) => {
     const pinned = Boolean(pins[`${entry.type}-${entry.item.id}`]);
+    const active2 = entry.type === "session" && isActiveTask(entry.item) || entry.type === "batch" && Number(entry.item.active) > 0 || entry.type === PACK_TYPE && Number(entry.item.active_count) > 0;
     return /* @__PURE__ */ React.createElement(
       "div",
       {
-        className: `mc-home-cell${pinned ? " is-pinned" : ""}${pinned && pinFlash === `${entry.type}-${entry.item.id}` ? " is-pinning" : ""}${entry.type === "session" && isActiveTask(entry.item) || entry.type === "batch" && Number(entry.item.active) > 0 ? " is-active" : ""}`,
-        "data-active": entry.type === "session" && isActiveTask(entry.item) || entry.type === "batch" && Number(entry.item.active) > 0 ? "true" : void 0,
+        className: `mc-home-cell${pinned ? " is-pinned" : ""}${pinned && pinFlash === `${entry.type}-${entry.item.id}` ? " is-pinning" : ""}${active2 ? " is-active" : ""}`,
+        "data-active": active2 ? "true" : void 0,
         "data-batch-id": entry.type === "batch" ? entry.item.id : void 0,
+        "data-pack-id": entry.type === PACK_TYPE ? entry.item.id : void 0,
         key: `${entry.type}-${entry.item.id}`
       },
       pinned ? /* @__PURE__ */ React.createElement(PinMark, null) : null,
@@ -47976,7 +51384,7 @@ function HomePage({
     },
     filter.label,
     filter.id !== "all" ? /* @__PURE__ */ React.createElement("b", { className: "mc-home-chip-count" }, dockCounts[filter.id] ?? 0) : null
-  ))), /* @__PURE__ */ React.createElement("select", { className: "mc-home-sort", value: sort, onChange: (event) => setSort(event.target.value), "aria-label": "\u6392\u5E8F" }, /* @__PURE__ */ React.createElement("option", { value: "recent" }, "\u6700\u8FD1"), /* @__PURE__ */ React.createElement("option", { value: "longest" }, "\u6700\u957F"), /* @__PURE__ */ React.createElement("option", { value: "marks" }, "\u6807\u8BB0\u6700\u591A")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-count" }, count, " \u6761"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-add", "aria-label": "\u65B0\u5EFA\u91C7\u96C6", title: "\u65B0\u5EFA\u91C7\u96C6", onClick: () => onNewCapture({}) }, "\uFF0B")), noteEditor ? /* @__PURE__ */ React.createElement(
+  ))), /* @__PURE__ */ React.createElement("select", { className: "mc-home-sort", value: sort, onChange: (event) => setSort(event.target.value), "aria-label": "\u6392\u5E8F" }, /* @__PURE__ */ React.createElement("option", { value: "recent" }, "\u6700\u8FD1"), /* @__PURE__ */ React.createElement("option", { value: "longest" }, "\u6700\u957F"), /* @__PURE__ */ React.createElement("option", { value: "marks" }, "\u6807\u8BB0\u6700\u591A")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-count" }, count, " \u6761"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-add", "aria-label": "\u65B0\u5EFA\u91C7\u96C6", title: "\u65B0\u5EFA\u91C7\u96C6", onClick: () => onNewCapture({}) }, "\uFF0B")), packUndo ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-undo", role: "status" }, /* @__PURE__ */ React.createElement("span", null, packUndo.label), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: runPackUndo }, "\u64A4\u9500")) : null, noteEditor ? /* @__PURE__ */ React.createElement(
     NoteEditor,
     {
       key: noteEditor.note?.id || "note",
@@ -47989,7 +51397,26 @@ function HomePage({
       onCancel: () => setNoteEditor(null),
       onSave: saveNoteEditor
     }
-  ) : null, /* @__PURE__ */ React.createElement(ContextMenu, { menu, onClose: closeMenu }), openBatch ? /* @__PURE__ */ React.createElement(
+  ) : null, /* @__PURE__ */ React.createElement(ContextMenu, { menu, onClose: closeMenu }), openPack ? /* @__PURE__ */ React.createElement(
+    PackOverlay,
+    {
+      pack: openPack,
+      t,
+      busy: packBusy,
+      renameFocus: packRenameFocus,
+      memberEntries: rawEntryByKey,
+      renderEntry,
+      onClose: () => {
+        setOpenPackId("");
+        setPackRenameFocus(false);
+      },
+      onOpenMember: openPackMember,
+      onRemoveMember: removePackMember,
+      onDissolve: dissolvePack,
+      onRename: (title) => renamePackById(openPack, title),
+      onReorder: (members) => reorderPackRows(openPack, members)
+    }
+  ) : null, openBatch ? /* @__PURE__ */ React.createElement(
     BatchOverlay,
     {
       batch: openBatch,
@@ -48115,13 +51542,21 @@ function splitModels(ids = []) {
   }
   return { asr, text };
 }
+function familyOf(id) {
+  const value = String(id || "").trim();
+  if (!value) return "";
+  const slash = value.indexOf("/");
+  if (slash > 0) return value.slice(0, slash).toLowerCase();
+  return value.split(/[-_.]/)[0].toLowerCase();
+}
 function sortModels(list = [], current = "") {
   const cur = String(current || "").trim();
+  const family = familyOf(cur);
   return list.slice().sort((a, b) => {
     if (a === cur) return -1;
     if (b === cur) return 1;
-    const am = /^mimo/i.test(a) ? 0 : 1;
-    const bm = /^mimo/i.test(b) ? 0 : 1;
+    const am = family && familyOf(a) === family ? 0 : 1;
+    const bm = family && familyOf(b) === family ? 0 : 1;
     return am - bm || String(a).localeCompare(String(b));
   });
 }
@@ -48135,21 +51570,20 @@ function modelOptions(list = [], current = "") {
 }
 
 // client-src/components/SetupWizard.jsx
-var MIMO_BASE2 = "https://api.llm.mioffice.cn/v1";
-var DEFAULT_ASR = "xiaomi/mimo-v2.5-asr";
-var DEFAULT_TEXT = "xiaomi/mimo-v2.5";
+var BASE_PLACEHOLDER2 = "https://your-gateway.example/v1";
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function SetupWizard({ status: status3, onComplete }) {
   const [step, setStep] = React.useState(1);
+  const [baseUrl, setBaseUrl] = React.useState("");
   const [apiKey, setApiKey] = React.useState("");
   const [showKey, setShowKey] = React.useState(false);
   const [probing, setProbing] = React.useState(false);
   const [catalog, setCatalog] = React.useState(null);
   const [catalogError, setCatalogError] = React.useState("");
-  const [asrModel, setAsrModel] = React.useState(DEFAULT_ASR);
-  const [textModel, setTextModel] = React.useState(DEFAULT_TEXT);
+  const [asrModel, setAsrModel] = React.useState("");
+  const [textModel, setTextModel] = React.useState("");
   const [running, setRunning] = React.useState(false);
   const [detail, setDetail] = React.useState("");
   const [log, setLog] = React.useState("");
@@ -48173,7 +51607,7 @@ function SetupWizard({ status: status3, onComplete }) {
   React.useEffect(() => {
     const key = apiKey.trim();
     probeSeq.current += 1;
-    if (key.length < 16) {
+    if (key.length < 16 || !baseUrl.trim()) {
       probedKey.current = "";
       setCatalog(null);
       setCatalogError("");
@@ -48190,6 +51624,10 @@ function SetupWizard({ status: status3, onComplete }) {
   async function discover({ force = false } = {}) {
     const key = apiKey.trim();
     if (key.length < 16) return;
+    if (!baseUrl.trim()) {
+      setCatalogError("\u8BF7\u5148\u586B\u5199\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
     if (!force && key === probedKey.current) return;
     if (inflight.current.has(key)) return;
     inflight.current.add(key);
@@ -48200,7 +51638,7 @@ function SetupWizard({ status: status3, onComplete }) {
       let ids = null;
       let count = 0;
       try {
-        const result = await probeModels({ apiKey: key, baseUrl: MIMO_BASE2 });
+        const result = await probeModels({ apiKey: key, baseUrl: baseUrl.trim() });
         ids = Array.isArray(result?.models) ? result.models : [];
         count = Number(result?.count) || ids.length;
       } catch (failure) {
@@ -48296,11 +51734,11 @@ function SetupWizard({ status: status3, onComplete }) {
         setDetail("\u4FDD\u5B58\u6A21\u578B\u914D\u7F6E");
         await saveAsrEngine({
           provider: "mimo",
-          base_url: MIMO_BASE2,
-          model: asrModel || DEFAULT_ASR,
+          base_url: baseUrl.trim(),
+          model: asrModel,
           api_key: apiKey.trim()
         });
-        await saveAIConfig({ provider: "mimo", base_url: MIMO_BASE2, model: textModel || DEFAULT_TEXT });
+        await saveAIConfig({ provider: "mimo", base_url: baseUrl.trim(), model: textModel });
         setDetail("\u9A8C\u8BC1\u4E91\u7AEF\u8BED\u97F3");
         try {
           await testAsrEngine();
@@ -48380,7 +51818,19 @@ function SetupWizard({ status: status3, onComplete }) {
   }
   const asrOptions = modelOptions(catalog?.asr || [], asrModel);
   const textOptions = modelOptions(catalog?.text || [], textModel);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5 Mify" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u7C98\u8D34 API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF0C\u53EF\u9009\u63A5\u5165\u98DE\u4E66 MCP\u3002" : "\u672A\u5B8C\u6210\u9879\u4F1A\u5728\u9996\u9875\u63D0\u793A\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Mify API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF0C\u53EF\u9009\u63A5\u5165\u98DE\u4E66 MCP\u3002" : "\u672A\u5B8C\u6210\u9879\u4F1A\u5728\u9996\u9875\u63D0\u793A\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: baseUrl,
+      spellCheck: false,
+      onChange: (event) => setBaseUrl(event.target.value),
+      onBlur: () => {
+        discover();
+      },
+      placeholder: BASE_PLACEHOLDER2
+    }
+  )), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u4EFB\u610F OpenAI \u517C\u5BB9\u7F51\u5173\uFF1A\u4F8B\u5982\u4F60\u81EA\u5DF1\u7684\u4EE3\u7406\u3001\u516C\u53F8\u7F51\u5173\u6216 OpenAI \u5B98\u65B9\u5730\u5740\u3002"), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -48397,7 +51847,7 @@ function SetupWizard({ status: status3, onComplete }) {
       },
       placeholder: "\u7C98\u8D34 API Key"
     }
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim() || !baseUrl.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setSkippedKey(true);
     setStep(2);
   } }, "\u8DF3\u8FC7"))) : null, step === 2 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
@@ -48457,6 +51907,7 @@ function Panel({ t }) {
   const [newInitialUrl, setNewInitialUrl] = React.useState("");
   const [newInitialKind, setNewInitialKind] = React.useState("");
   const [batchFocus, setBatchFocus] = React.useState(null);
+  const [packFocus, setPackFocus] = React.useState(null);
   const [homeRevision, setHomeRevision] = React.useState(0);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -48609,6 +52060,21 @@ function Panel({ t }) {
       }
       return;
     }
+    if (payload && typeof payload === "object" && Array.isArray(payload.ids)) {
+      setView("home");
+      const summary2 = payload.summary || {};
+      const parts = [`\u5DF2\u5BFC\u5165 ${payload.ids.length} \u4E2A\u6587\u4EF6`];
+      if (payload.pack?.title) parts.push(`\u5DF2\u6536\u8FDB\u300C${payload.pack.title}\u300D`);
+      if (payload.pack_error) parts.push(`\u5361\u5305\u521B\u5EFA\u5931\u8D25\uFF1A${payload.pack_error}`);
+      const failedNames = (Array.isArray(payload.results) ? payload.results : []).filter((row) => !row.ok).map((row) => row.name || row.title).filter(Boolean);
+      if (summary2.failed) {
+        const shown = failedNames.slice(0, 2).join("\u3001");
+        parts.push(`${summary2.failed} \u4E2A\u5931\u8D25${shown ? `\uFF1A${shown}${failedNames.length > 2 ? " \u7B49" : ""}` : ""}`);
+      }
+      setNotice(parts.join("\uFF0C"));
+      if (payload.pack?.id) setPackFocus({ id: payload.pack.id, nonce: Date.now() });
+      return;
+    }
     const id = payload && typeof payload === "object" ? payload.id : payload;
     if (!id) return;
     const summary = payload && typeof payload === "object" ? payload.summary : null;
@@ -48678,6 +52144,8 @@ function Panel({ t }) {
       onCaptureCreated: handleCaptureCreated,
       batchFocus,
       onBatchFocusHandled: () => setBatchFocus(null),
+      packFocus,
+      onPackFocusHandled: () => setPackFocus(null),
       library: activeLibrary,
       dataDir: data?.locations?.dataDirCanonical || data?.locations?.dataDir || data?.library?.dataDir || ""
     }
@@ -48839,16 +52307,20 @@ function updateSummary(status3) {
     return { tone: "pending", text: `${job.phase || "\u66F4\u65B0\u4E2D"}${suffix}`, detail: "" };
   }
   if (job?.state === "error") {
-    return { tone: "error", text: "\u66F4\u65B0\u5931\u8D25", detail: job.error || job.message || "\u8BF7\u91CD\u8BD5" };
+    const label = job.kind === "rollback" ? "\u56DE\u9000\u5931\u8D25" : "\u66F4\u65B0\u5931\u8D25";
+    return { tone: "error", text: label, detail: job.error || job.message || "\u8BF7\u91CD\u8BD5" };
   }
   if (job?.state === "cancelled") {
     return { tone: "warn", text: "\u66F4\u65B0\u5DF2\u53D6\u6D88", detail: "\u5DF2\u4E0B\u8F7D\u7684\u4E34\u65F6\u6587\u4EF6\u5DF2\u6E05\u7406" };
+  }
+  if (job?.state === "done" && job.kind === "rollback" && job.version) {
+    return { tone: "warn", text: `\u5DF2\u56DE\u9000\u5230 v${job.version}`, detail: "\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548" };
   }
   if (status3.restartRequired) {
     return {
       tone: "warn",
       text: `\u5DF2\u5B89\u88C5 v${status3.installedVersion || "?"}`,
-      detail: ""
+      detail: status3.restartDirection === "rollback" ? "\u91CD\u542F\u540E\u56DE\u5230\u8FD9\u4E2A\u7248\u672C" : ""
     };
   }
   if (status3.updateAvailable && status3.latest) {
@@ -48861,6 +52333,24 @@ function updateSummary(status3) {
 }
 function isUpdateRunning(status3) {
   return Boolean(status3?.job && RUNNING_STATES.has(status3.job.state));
+}
+function rollbackCandidates(status3) {
+  const rows = Array.isArray(status3?.rollback?.available) ? status3.rollback.available : [];
+  const installed = typeof status3?.installedVersion === "string" ? status3.installedVersion : "";
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const row of rows) {
+    const version2 = typeof row?.version === "string" ? row.version.trim() : "";
+    if (!version2 || version2 === installed || seen.has(version2)) continue;
+    seen.add(version2);
+    const at = Number(row.at);
+    out.push({
+      version: version2,
+      at: Number.isFinite(at) && at > 0 ? at : 0,
+      direction: row.direction === "newer" ? "newer" : row.direction === "older" ? "older" : ""
+    });
+  }
+  return out;
 }
 function describeFailure2(failure) {
   if (failure?.status === 404) return "\u5BBF\u4E3B\u8FD8\u6CA1\u6709\u8F7D\u5165\u66F4\u65B0\u63A5\u53E3\uFF0C\u8BF7\u91CD\u542F DeepSeek Harness \u540E\u91CD\u8BD5";
@@ -48943,6 +52433,7 @@ function useUpdate({ enabled = true } = {}) {
     // A source checkout must not be overwritten; it still gets the check result.
     check: () => start("check", () => updateCheck({ autoInstall: status3?.target?.kind !== "source" })),
     install: () => start("install", updateInstall),
+    rollback: (version2) => start("rollback", () => updateRollback(version2)),
     cancel: () => run("cancel", async () => {
       const result = await updateCancel();
       if (result?.status === "too-late") {
@@ -48986,7 +52477,34 @@ function SettingsAbout({ t }) {
   const primaryDisabled = !status3 || Boolean(busy) || running;
   const showProgress = Boolean(job && (running || job.state === "error" || job.state === "cancelled" || job.percent === 100));
   const repo = status3?.repo || "dengluliang/dsh-meetclip";
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-about-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-about-head" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "mc-card-title" }, tr("about.title", "\u5173\u4E8E\u4F1A\u6458")), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.subtitle", "\u672C\u5730\u76F4\u64AD\u3001\u89C6\u9891\u4E0E\u4F1A\u8BAE\u8D44\u6599\u5E93\uFF0C\u914D\u5957 DSH \u5DE5\u5177\u4E0E AI \u7EAA\u8981\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-about-version", "aria-label": tr("about.currentVersion", "\u5F53\u524D\u7248\u672C") }, versionText(status3?.currentVersion))), /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.currentVersion", "\u5F53\u524D\u8FD0\u884C\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, versionText(status3?.currentVersion))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.installedVersion", "\u5DF2\u5B89\u88C5\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", "data-tone": restartRequired ? "warn" : void 0 }, versionText(status3?.installedVersion), restartRequired ? ` \xB7 ${tr("about.restartHintShort", "\u91CD\u542F\u540E\u751F\u6548")}` : "")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.latestVersion", "\u6700\u65B0\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", "data-tone": updateAvailable ? "warn" : void 0 }, latest ? versionText(latest.version) : tr("about.notChecked", "\u672A\u68C0\u67E5"), latest?.publishedAt ? /* @__PURE__ */ React.createElement("em", { className: "mc-about-meta" }, formatDate2(Date.parse(latest.publishedAt))) : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.repo", "\u53D1\u5E03\u4ED3\u5E93")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, /* @__PURE__ */ React.createElement(
+  const backups = rollbackCandidates(status3);
+  const [rollbackChoice, setRollbackChoice] = React.useState("");
+  const [pendingRollback, setPendingRollback] = React.useState("");
+  const selectedBackup = backups.find((row) => row.version === rollbackChoice) || backups[0] || null;
+  const pendingBackup = backups.find((row) => row.version === pendingRollback) || null;
+  const rollbackVerb = selectedBackup?.direction === "newer" ? tr("about.rollbackRestoreTo", "\u5207\u6362\u56DE") : tr("about.rollbackTo", "\u56DE\u9000\u5230");
+  const rollbackLabel = selectedBackup ? `${rollbackVerb} ${versionText(selectedBackup.version)}` : tr("about.rollbackDisabled", "\u56DE\u9000\u5230\u5347\u7EA7\u524D\u7248\u672C");
+  const rollbackDisabled = !status3 || !selectedBackup || running || Boolean(busy) || isSource || status3?.target?.writable === false || Boolean(pendingRollback);
+  function chooseRollback(version2) {
+    setPendingRollback("");
+    setRollbackChoice(version2);
+  }
+  async function confirmRollback() {
+    const version2 = pendingRollback;
+    setPendingRollback("");
+    await actions.rollback(version2);
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-about-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-about-head" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "mc-card-title" }, tr("about.title", "\u5173\u4E8E\u4F1A\u6458")), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.subtitle", "\u672C\u5730\u76F4\u64AD\u3001\u89C6\u9891\u4E0E\u4F1A\u8BAE\u8D44\u6599\u5E93\uFF0C\u914D\u5957 DSH \u5DE5\u5177\u4E0E AI \u7EAA\u8981\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-about-version", "aria-label": tr("about.currentVersion", "\u5F53\u524D\u7248\u672C") }, versionText(status3?.currentVersion))), /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.currentVersion", "\u5F53\u524D\u8FD0\u884C\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, versionText(status3?.currentVersion))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.installedVersion", "\u5DF2\u5B89\u88C5\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", "data-tone": restartRequired ? "warn" : void 0 }, versionText(status3?.installedVersion), restartRequired ? ` \xB7 ${tr("about.restartHintShort", "\u91CD\u542F\u540E\u751F\u6548")}` : "")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.latestVersion", "\u6700\u65B0\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", "data-tone": updateAvailable ? "warn" : void 0 }, latest ? versionText(latest.version) : tr("about.notChecked", "\u672A\u68C0\u67E5"), latest?.publishedAt ? /* @__PURE__ */ React.createElement("em", { className: "mc-about-meta" }, formatDate2(Date.parse(latest.publishedAt))) : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.rollbackRow", "\u53EF\u56DE\u9000\u7248\u672C")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, backups.length ? /* @__PURE__ */ React.createElement(
+    "select",
+    {
+      className: "mc-input mc-select mc-about-rollback-select",
+      value: selectedBackup.version,
+      disabled: running || Boolean(busy),
+      "aria-label": tr("about.rollbackRow", "\u53EF\u56DE\u9000\u7248\u672C"),
+      onChange: (event) => chooseRollback(event.target.value)
+    },
+    backups.map((row) => /* @__PURE__ */ React.createElement("option", { key: row.version, value: row.version }, `${versionText(row.version)}${row.at ? ` \xB7 ${formatDate2(row.at)}` : ""}`))
+  ) : /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, isSource ? tr("about.rollbackSource", "\u6E90\u7801\u8FD0\u884C\u65F6\u6CA1\u6709\u5347\u7EA7\u5907\u4EFD\uFF0C\u8BF7\u7528 git \u5207\u6362\u7248\u672C") : tr("about.rollbackNone", "\u6CA1\u6709\u5347\u7EA7\u524D\u7684\u672C\u5730\u5907\u4EFD\uFF1B\u53EA\u6709\u5E94\u7528\u5185\u5347\u7EA7\u4F1A\u81EA\u52A8\u4FDD\u7559\u5347\u7EA7\u524D\u7684\u7248\u672C")))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.repo", "\u53D1\u5E03\u4ED3\u5E93")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -49011,11 +52529,41 @@ function SettingsAbout({ t }) {
     {
       type: "button",
       className: "mc-button",
+      "data-action": "rollback",
+      disabled: rollbackDisabled,
+      title: selectedBackup?.at ? formatDate2(selectedBackup.at) : void 0,
+      onClick: () => setPendingRollback(selectedBackup.version)
+    },
+    rollbackLabel
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
       disabled: Boolean(busy) || running,
       onClick: actions.refresh
     },
     tr("about.refresh", "\u5237\u65B0\u72B6\u6001")
-  ), latest?.url ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openRelease }, tr("about.releaseNotes", "\u53D1\u5E03\u8BF4\u660E")) : null), isSource ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.sourceHint", "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002")) : null, restartRequired ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.restart", "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.privacy", "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002"))), showProgress ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-update-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026")), /* @__PURE__ */ React.createElement("span", { className: "mc-update-percent" }, percent === null ? "" : `${percent.toFixed(1)}%`)), /* @__PURE__ */ React.createElement(
+  ), latest?.url ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openRelease }, tr("about.releaseNotes", "\u53D1\u5E03\u8BF4\u660E")) : null), pendingBackup ? /* @__PURE__ */ React.createElement("div", { className: "mc-rollback-confirm" }, /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.rollbackConfirm", "\u5C06\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u5728\u672C\u5730\u7684"), " ", /* @__PURE__ */ React.createElement("strong", { className: "mc-mono" }, versionText(pendingBackup.version)), tr("about.rollbackConfirmDetail", "\uFF1B\u5F53\u524D\u7248\u672C\u4E5F\u4F1A\u53E6\u5B58\u4E3A\u672C\u5730\u5907\u4EFD\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u4E0D\u53D7\u5F71\u54CD\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": "danger",
+      disabled: Boolean(busy) || running,
+      onClick: confirmRollback
+    },
+    tr("about.rollbackConfirmAction", "\u786E\u8BA4\u56DE\u9000")
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      disabled: Boolean(busy) || running,
+      onClick: () => setPendingRollback("")
+    },
+    tr("about.cancel", "\u53D6\u6D88")
+  ))) : null, backups.length ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.rollbackHint", "\u56DE\u9000\u53EA\u5728\u672C\u5730\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u7684\u526F\u672C\uFF0C\u4E0D\u8054\u7F51\u3001\u4E0D\u4ECE GitHub \u4E0B\u8F7D\uFF1B\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u90FD\u4E0D\u52A8\u3002")) : null, isSource ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.sourceHint", "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002")) : null, restartRequired ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, status3?.restartDirection === "rollback" ? tr("about.restartAfterRollback", "\u56DE\u9000\u540E\u7684\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002") : tr("about.restart", "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.privacy", "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002"))), showProgress ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-update-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026")), /* @__PURE__ */ React.createElement("span", { className: "mc-update-percent" }, percent === null ? "" : `${percent.toFixed(1)}%`)), /* @__PURE__ */ React.createElement(
     "div",
     {
       className: "mc-progress mc-update-bar",
@@ -49243,8 +52791,10 @@ function SettingsFeishu() {
   const auth = status3?.auth || {};
   const installed = Boolean(dsh.entryPresent);
   const signedIn = Boolean(auth.loggedIn);
+  const pkg = status3?.package || {};
+  const pkgReady = Boolean(pkg.configured);
   const disabled = Boolean(busy) || running;
-  const canInstall = Boolean(status3) && runtime.npxOk && !dsh.conflict;
+  const canInstall = Boolean(status3) && runtime.npxOk && !dsh.conflict && pkgReady;
   let primary = null;
   if (status3 && !installed) {
     primary = {
@@ -49292,7 +52842,7 @@ function SettingsFeishu() {
       onClick: toggleMore
     },
     more ? "\u6536\u8D77" : "\u66F4\u591A"
-  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary.tone }, summary.detail) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, status3 && !pkgReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": "warn" }, "\u672C\u63D2\u4EF6\u4E0D\u5185\u7F6E\u98DE\u4E66 MCP \u5305\uFF1A\u8BF7\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B", " ", /* @__PURE__ */ React.createElement("code", null, "feishuPackage"), " \u4E0E ", /* @__PURE__ */ React.createElement("code", null, "feishuRegistry"), "\uFF0C\u6216\u8BBE\u7F6E\u73AF\u5883\u53D8\u91CF", " ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_PACKAGE"), " / ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_REGISTRY"), "\u3002") : null, summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary.tone }, summary.detail) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -49565,8 +53115,9 @@ function Row2({ label, value }) {
 
 // client-src/components/SettingsModels.jsx
 init_react_shim();
-var MIMO_BASE3 = "https://api.llm.mioffice.cn/v1";
-var DEFAULT_TEXT2 = "xiaomi/mimo-v2.5";
+var BASE_PLACEHOLDER3 = "https://your-gateway.example/v1";
+var MODEL_PLACEHOLDER2 = "your-asr-model";
+var TEXT_MODEL_PLACEHOLDER = "your-text-model";
 function mask(hasKey, placeholder) {
   return hasKey ? "\u5DF2\u914D\u7F6E\uFF1B\u7559\u7A7A\u5219\u4E0D\u4FEE\u6539" : placeholder;
 }
@@ -49576,8 +53127,10 @@ function SettingsModels({ t }) {
   const [models, setModels] = React.useState([]);
   const [catalogError, setCatalogError] = React.useState("");
   const [keyDraft, setKeyDraft] = React.useState("");
-  const [mifyAsr, setMifyAsr] = React.useState("");
-  const [mifyText, setMifyText] = React.useState(DEFAULT_TEXT2);
+  const [defaultAsr, setDefaultAsr] = React.useState("");
+  const [defaultText, setDefaultText] = React.useState("");
+  const [asrBase, setAsrBase] = React.useState("");
+  const [aiBase, setAiBase] = React.useState("");
   const [asrCustom, setAsrCustom] = React.useState({ base_url: "", model: "", api_key: "" });
   const [aiCustom, setAiCustom] = React.useState({ base_url: "", model: "", api_key: "" });
   const [busy, setBusy] = React.useState("");
@@ -49589,8 +53142,10 @@ function SettingsModels({ t }) {
     const [nextAsr, nextAi] = await Promise.all([asrEngines(), aiStatus()]);
     setAsr(nextAsr);
     setAi(nextAi);
-    setMifyAsr(nextAsr?.custom?.enabled ? nextAsr.mify_model || "" : nextAsr?.model || "");
-    setMifyText(nextAi?.provider === "mimo" ? nextAi?.model || DEFAULT_TEXT2 : DEFAULT_TEXT2);
+    setDefaultAsr(nextAsr?.custom?.enabled ? nextAsr.default_model || "" : nextAsr?.model || "");
+    setAsrBase(nextAsr?.custom?.enabled ? "" : nextAsr?.default_base_url || nextAsr?.base_url || "");
+    setDefaultText(nextAi?.provider === "mimo" ? nextAi?.model || "" : "");
+    setAiBase(nextAi?.provider === "mimo" ? nextAi?.base_url || "" : "");
     setAsrCustom({
       base_url: nextAsr?.custom?.base_url || "",
       model: nextAsr?.custom?.model || "",
@@ -49618,7 +53173,7 @@ function SettingsModels({ t }) {
   React.useEffect(() => {
     let cancelled = false;
     load().then((nextAsr) => {
-      if (!cancelled && (nextAsr?.mify_has_key ?? nextAsr?.has_api_key)) return pullCatalog();
+      if (!cancelled && (nextAsr?.default_has_key ?? nextAsr?.has_api_key)) return pullCatalog();
     }).catch((failure) => {
       if (!cancelled) setError(failure?.message || String(failure));
     });
@@ -49671,38 +53226,85 @@ function SettingsModels({ t }) {
   }
   async function chooseAsrModel(model) {
     if (!model) return;
+    if (!asrBase.trim()) {
+      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
     await run("asr-model", async () => {
-      await saveAsrEngine({ mode: "mify", provider: "mimo", base_url: MIMO_BASE3, model });
-      setMifyAsr(model);
+      await saveAsrEngine({ mode: "default", provider: "mimo", base_url: asrBase.trim(), model });
+      setDefaultAsr(model);
       await load();
+      setNotice(`\u8BED\u97F3\u8F6C\u6587\u5B57\u5DF2\u4F7F\u7528 ${model}`);
+    });
+  }
+  async function saveAsrBase() {
+    const base = asrBase.trim();
+    if (!base) {
+      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
+    if (!defaultAsr) {
+      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u6A21\u578B ID");
+      return;
+    }
+    await run("asr-base", async () => {
+      await saveAsrEngine({ mode: "default", provider: "mimo", base_url: base, model: defaultAsr });
+      await pullCatalog();
+      await load();
+      setNotice("\u8BED\u97F3\u670D\u52A1\u5730\u5740\u5DF2\u4FDD\u5B58");
+    });
+  }
+  async function saveAiBase() {
+    const base = aiBase.trim();
+    if (!base) {
+      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
+    if (!defaultText) {
+      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u6A21\u578B ID");
+      return;
+    }
+    await run("ai-base", async () => {
+      await saveAIConfig({ provider: "mimo", base_url: base, model: defaultText });
+      await load();
+      setNotice("\u6587\u5B57\u670D\u52A1\u5730\u5740\u5DF2\u4FDD\u5B58");
     });
   }
   async function chooseTextModel(model) {
     const value = String(model || "").trim();
     if (!value || ai?.provider === "mimo" && value === ai?.model && !ai?.own_key) return;
+    if (!aiBase.trim()) {
+      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
     await run("text-model", async () => {
-      await saveAIConfig({ provider: "mimo", base_url: "", model: value });
+      await saveAIConfig({ provider: "mimo", base_url: aiBase.trim(), model: value });
       if (ai?.own_key) {
         try {
           await removeAIKey();
         } catch {
         }
       }
-      setMifyText(value);
+      setDefaultText(value);
       await load();
     });
   }
   async function probeAsrModel() {
-    const model = String(asrCustomOn ? asrCustom.model : mifyAsr || asr?.model || "").trim();
+    const model = String(asrCustomOn ? asrCustom.model : defaultAsr || asr?.model || "").trim();
+    const base = String(asrCustomOn ? asrCustom.base_url.trim() : asrBase.trim()).trim();
     if (!model) {
       setAsrProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u6216\u586B\u5199\u6A21\u578B" });
+      return;
+    }
+    if (!base) {
+      setAsrProbe({ ok: false, text: "\u8BF7\u5148\u586B\u5199 Base URL" });
       return;
     }
     setAsrProbe({ state: "busy", text: "\u6B63\u5728\u7528 1 \u79D2\u9759\u97F3\u6D4B\u8BD5\u2026" });
     try {
       const result = await testAsrEngine({
         provider: "mimo",
-        base_url: asrCustomOn ? asrCustom.base_url.trim() : MIMO_BASE3,
+        base_url: base,
         model,
         api_key: asrCustomOn ? asrCustom.api_key.trim() : ""
       });
@@ -49713,12 +53315,13 @@ function SettingsModels({ t }) {
   }
   async function probeTextModel() {
     const custom = aiCustomOn;
-    const model = String(custom ? aiCustom.model : mifyText || ai?.model || "").trim();
+    const model = String(custom ? aiCustom.model : defaultText || ai?.model || "").trim();
+    const base = String(custom ? aiCustom.base_url : aiBase).trim();
     if (!model) {
       setTextProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u6216\u586B\u5199\u6A21\u578B" });
       return;
     }
-    if (custom && !aiCustom.base_url.trim()) {
+    if (!base) {
       setTextProbe({ ok: false, text: "\u8BF7\u5148\u586B\u5199 Base URL" });
       return;
     }
@@ -49726,7 +53329,7 @@ function SettingsModels({ t }) {
     try {
       const result = await testAIModel({
         provider: custom ? "custom" : "mimo",
-        base_url: custom ? aiCustom.base_url.trim() : "",
+        base_url: base,
         model,
         api_key: custom ? aiCustom.api_key.trim() : ""
       });
@@ -49761,9 +53364,14 @@ function SettingsModels({ t }) {
   }
   async function resetAsrCustom() {
     await run("asr-reset", async () => {
-      await saveAsrEngine({ mode: "mify", provider: "mimo", base_url: MIMO_BASE3, model: mifyAsr || asr?.mify_model });
+      await saveAsrEngine({
+        mode: "default",
+        provider: "mimo",
+        base_url: asrBase.trim() || asr?.default_base_url || "",
+        model: defaultAsr || asr?.default_model
+      });
       setAsrCustom({ base_url: "", model: "", api_key: "" });
-      setNotice("\u5DF2\u6062\u590D Mify");
+      setNotice("\u5DF2\u6062\u590D\u9ED8\u8BA4\u7F51\u5173");
       await load();
     });
   }
@@ -49790,7 +53398,7 @@ function SettingsModels({ t }) {
   }
   async function resetAiCustom() {
     await run("ai-reset", async () => {
-      await saveAIConfig({ provider: "mimo", base_url: "", model: mifyText || DEFAULT_TEXT2 });
+      await saveAIConfig({ provider: "mimo", base_url: aiBase.trim(), model: defaultText || ai?.model || "" });
       if (ai?.own_key) {
         try {
           await removeAIKey();
@@ -49798,16 +53406,16 @@ function SettingsModels({ t }) {
         }
       }
       setAiCustom({ base_url: "", model: "", api_key: "" });
-      setNotice("\u5DF2\u6062\u590D Mify");
+      setNotice("\u5DF2\u6062\u590D\u9ED8\u8BA4\u7F51\u5173");
       await load();
     });
   }
   const asrCustomOn = Boolean(asr?.custom?.enabled);
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== "mimo");
   const { asr: asrModels, text: textModels } = splitModels(models);
-  const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.mify_model : mifyAsr);
-  const textOptions = modelOptions(textModels, aiCustomOn ? DEFAULT_TEXT2 : mifyText);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "Mify API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
+  const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr);
+  const textOptions = modelOptions(textModels, aiCustomOn ? "" : defaultText);
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -49815,7 +53423,7 @@ function SettingsModels({ t }) {
       value: keyDraft,
       autoComplete: "off",
       spellCheck: false,
-      placeholder: /无效|401|403/.test(catalogError) ? "Key \u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u7C98\u8D34 Mify API Key" : mask(asr?.mify_has_key, "\u7C98\u8D34 Mify API Key"),
+      placeholder: /无效|401|403/.test(catalogError) ? "Key \u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u7C98\u8D34 API Key" : mask(asr?.default_has_key, "\u7C98\u8D34 API Key"),
       onChange: (event) => setKeyDraft(event.target.value),
       onKeyDown: (event) => {
         if (event.key === "Enter") saveKeyAndPull();
@@ -49825,7 +53433,7 @@ function SettingsModels({ t }) {
     "select",
     {
       className: "mc-input mc-select",
-      value: asrCustomOn ? "" : mifyAsr,
+      value: asrCustomOn ? "" : defaultAsr,
       disabled: Boolean(busy) || asrCustomOn,
       onChange: (event) => {
         setAsrProbe(null);
@@ -49843,13 +53451,32 @@ function SettingsModels({ t }) {
       onClick: probeAsrModel
     },
     asrProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"
+  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: asrCustomOn ? asrCustom.base_url : asrBase,
+      spellCheck: false,
+      disabled: Boolean(busy) || asrCustomOn,
+      placeholder: BASE_PLACEHOLDER3,
+      onChange: (event) => setAsrBase(event.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: Boolean(busy) || asrCustomOn,
+      onClick: saveAsrBase
+    },
+    busy === "asr-base" ? "\u4FDD\u5B58\u4E2D\u2026" : "\u4FDD\u5B58\u5730\u5740"
   ))), asrProbe && asrProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error", role: "status" }, asrProbe.text) : null, asrProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, asrProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: asrCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
       value: asrCustom.base_url,
       spellCheck: false,
-      placeholder: MIMO_BASE3,
+      placeholder: BASE_PLACEHOLDER3,
       onChange: (event) => setAsrCustom((value) => ({ ...value, base_url: event.target.value }))
     }
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B ID"), /* @__PURE__ */ React.createElement(
@@ -49858,7 +53485,7 @@ function SettingsModels({ t }) {
       className: "mc-input",
       value: asrCustom.model,
       spellCheck: false,
-      placeholder: "mimo-v2.5-asr",
+      placeholder: MODEL_PLACEHOLDER2,
       onChange: (event) => setAsrCustom((value) => ({ ...value, model: event.target.value }))
     }
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
@@ -49871,11 +53498,11 @@ function SettingsModels({ t }) {
       placeholder: mask(asr?.custom?.has_key, "\u7C98\u8D34\u81EA\u5B9A\u4E49 API Key"),
       onChange: (event) => setAsrCustom((value) => ({ ...value, api_key: event.target.value }))
     }
-  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAsrCustom }, busy === "asr-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), asrCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAsrCustom }, "\u6062\u590D Mify") : null))))), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAsrCustom }, busy === "asr-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), asrCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAsrCustom }, "\u6062\u590D\u9ED8\u8BA4") : null))))), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
     "select",
     {
       className: "mc-input mc-select",
-      value: aiCustomOn ? "" : mifyText,
+      value: aiCustomOn ? "" : defaultText,
       disabled: Boolean(busy) || aiCustomOn,
       onChange: (event) => {
         setTextProbe(null);
@@ -49893,13 +53520,32 @@ function SettingsModels({ t }) {
       onClick: probeTextModel
     },
     textProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"
+  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: aiCustomOn ? aiCustom.base_url : aiBase,
+      spellCheck: false,
+      disabled: Boolean(busy) || aiCustomOn,
+      placeholder: BASE_PLACEHOLDER3,
+      onChange: (event) => setAiBase(event.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: Boolean(busy) || aiCustomOn,
+      onClick: saveAiBase
+    },
+    busy === "ai-base" ? "\u4FDD\u5B58\u4E2D\u2026" : "\u4FDD\u5B58\u5730\u5740"
   ))), textProbe && textProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": textProbe.ok ? void 0 : "error", role: "status" }, textProbe.text) : null, textProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, textProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: aiCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
       value: aiCustom.base_url,
       spellCheck: false,
-      placeholder: MIMO_BASE3,
+      placeholder: BASE_PLACEHOLDER3,
       onChange: (event) => setAiCustom((value) => ({ ...value, base_url: event.target.value }))
     }
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B ID"), /* @__PURE__ */ React.createElement(
@@ -49908,7 +53554,7 @@ function SettingsModels({ t }) {
       className: "mc-input",
       value: aiCustom.model,
       spellCheck: false,
-      placeholder: "xiaomi/mimo-v2.5",
+      placeholder: TEXT_MODEL_PLACEHOLDER,
       onChange: (event) => setAiCustom((value) => ({ ...value, model: event.target.value }))
     }
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
@@ -49921,7 +53567,7 @@ function SettingsModels({ t }) {
       placeholder: mask(ai?.own_key, "\u7C98\u8D34\u81EA\u5B9A\u4E49 API Key"),
       onChange: (event) => setAiCustom((value) => ({ ...value, api_key: event.target.value }))
     }
-  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAiCustom }, busy === "ai-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), aiCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAiCustom }, "\u6062\u590D Mify") : null))))), notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAiCustom }, busy === "ai-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), aiCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAiCustom }, "\u6062\u590D\u9ED8\u8BA4") : null))))), notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
 }
 
 // client-src/components/SettingsVideo.jsx
@@ -50193,1029 +53839,6 @@ function Settings2({ t }) {
   ))), tab === "models" ? /* @__PURE__ */ React.createElement(SettingsModels, { t }) : null, tab === "libraries" ? /* @__PURE__ */ React.createElement(SettingsLibraries, { t }) : null, tab === "capture" ? /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement(SettingsCapture, { t }), /* @__PURE__ */ React.createElement(SettingsLive, { t }), /* @__PURE__ */ React.createElement(SettingsVideo, { t })) : null, tab === "feishu" ? /* @__PURE__ */ React.createElement(SettingsFeishu, null) : null, tab === "about" ? /* @__PURE__ */ React.createElement(SettingsAbout, { t }) : null);
 }
 
-// client-src/lib/cards.js
-init_react_shim();
-
-// client-src/lib/i18n.js
-init_react_shim();
-var zh = {
-  "panel.title": "\u4F1A\u6458",
-  "panel.subtitle": "\u91C7\u96C6\u3001\u8F6C\u5199\u3001\u8FB9\u770B\u8FB9\u8BB0",
-  "home.entry.title": "\u65B0\u5EFA\u91C7\u96C6",
-  "home.entry.launch": "\u53D1\u5E03\u4F1A\u76F4\u64AD",
-  "home.entry.launchHint": "\u8D34\u4E0A\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u8FB9\u5F55\u8FB9\u8F6C\u5199",
-  "home.entry.video": "\u89C6\u9891\u94FE\u63A5",
-  "home.entry.videoHint": "B\u7AD9\u3001YouTube \u7B49\u94FE\u63A5\u5BFC\u5165",
-  "home.entry.meeting": "\u4F1A\u8BAE\u5F55\u97F3",
-  "home.entry.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u5F00\u59CB\u8F6C\u5199",
-  "home.entry.doc": "\u98DE\u4E66\u6587\u6863",
-  "home.entry.docHint": "\u7C98\u8D34\u6587\u6863\u94FE\u63A5\uFF0C\u8BFB\u6210\u53EF @ \u7684\u5361\u7247",
-  "home.doc.url": "\u6587\u6863\u94FE\u63A5",
-  "home.doc.titleLabel": "\u6807\u9898\uFF08\u53EF\u9009\uFF09",
-  "home.doc.titlePlaceholder": "\u7559\u7A7A\u5219\u7528\u6587\u6863\u6807\u9898",
-  "home.doc.titleAutoPlaceholder": "\u8BFB\u53D6\u540E\u81EA\u52A8\u586B\u5165\uFF0C\u53EF\u4FEE\u6539",
-  "home.doc.previewing": "\u6B63\u5728\u8BFB\u53D6\u6587\u6863\u6807\u9898\u2026",
-  "home.doc.previewFailed": "\u8BFB\u53D6\u6587\u6863\u6807\u9898\u5931\u8D25",
-  "home.doc.noTitle": "\uFF08\u6587\u6863\u672A\u8FD4\u56DE\u6807\u9898\uFF09",
-  "home.doc.chars": " \u5B57\u6B63\u6587",
-  "home.doc.rePreview": "\u91CD\u65B0\u8BFB\u53D6",
-  "home.doc.create": "\u751F\u6210\u5361\u7247",
-  "home.doc.hint": "\u7C98\u8D34\u94FE\u63A5\u540E\u4F1A\u5148\u8BFB\u53D6\u6587\u6863\u6807\u9898\uFF0C\u786E\u8BA4\u540E\u518D\u751F\u6210\u5361\u7247\uFF1B\u8BFB\u4E0D\u5230\u6B63\u6587\u65F6\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5\u3002",
-  "home.doc.read": "\u8BFB\u53D6\u5E76\u751F\u6210\u5361\u7247",
-  "home.doc.reading": "\u6B63\u5728\u8BFB\u53D6\u98DE\u4E66\u6587\u6863\u2026",
-  "home.doc.linkOnly": "\u4EC5\u767B\u8BB0\u94FE\u63A5",
-  "home.doc.linking": "\u6B63\u5728\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u2026",
-  "home.doc.urlRequired": "\u5148\u7C98\u8D34\u98DE\u4E66\u6587\u6863\u94FE\u63A5",
-  "home.doc.invalid": "\u53EA\u652F\u6301\u98DE\u4E66\u6587\u6863\u94FE\u63A5\uFF08/docx\u3001/wiki\u3001/sheets\u3001/base\uFF09",
-  "home.doc.failed": "\u767B\u8BB0\u5361\u7247\u5931\u8D25",
-  "home.doc.notReady": "\u98DE\u4E66 MCP \u672A\u767B\u5F55\u6216\u672A\u8FDE\u63A5\uFF1B\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5",
-  "home.docs.title": "\u98DE\u4E66\u6587\u6863",
-  "home.docs.add": "\uFF0B\u6DFB\u52A0\u6587\u6863",
-  "home.docs.hasContent": "\u6B63\u6587\u5DF2\u6536\u5F55",
-  "home.docs.linkOnly": "\u4EC5\u94FE\u63A5",
-  "home.docs.open": "\u6253\u5F00",
-  "home.agent.placeholder": "\u95EE\u4F1A\u6458 Agent\uFF1A\u7C98\u8D34\u94FE\u63A5\u6216\u8F93\u5165\u5185\u5BB9\uFF0C\u56DE\u8F66\u53D1\u9001\u2026",
-  "home.agent.aria": "\u8F93\u5165\u5185\u5BB9\u53D1\u7ED9\u4F1A\u6458 Agent",
-  "home.agent.sending": "\u6B63\u5728\u6253\u5F00\u4F1A\u6458\u5DE5\u4F5C\u533A\u2026",
-  "home.agent.captureOpen": "\u5728\u4E0B\u65B9\u7EE7\u7EED\u2026",
-  "home.agent.failed": "\u53D1\u9001\u5931\u8D25",
-  "topbar.search": "\u641C\u7D22",
-  "common.refresh": "\u5237\u65B0",
-  "common.retry": "\u91CD\u8BD5",
-  "status.backend": "\u672C\u5730\u5F15\u64CE",
-  "status.dataDir": "\u6570\u636E\u76EE\u5F55",
-  "status.token": "API \u51ED\u8BC1",
-  "status.venv": "\u8FD0\u884C\u73AF\u5883",
-  "status.port": "\u7AEF\u53E3",
-  "status.running": "\u5DF2\u8FDE\u63A5",
-  "status.stopped": "\u672A\u542F\u52A8",
-  "status.loading": "\u6B63\u5728\u8BFB\u53D6\u72B6\u6001\u2026",
-  "status.hostError": "\u65E0\u6CD5\u8FDE\u63A5\u63D2\u4EF6 Host",
-  "status.errorHint": "\u8BF7\u786E\u8BA4\u63D2\u4EF6\u5DF2\u542F\u7528\uFF0C\u5E76\u5728\u5B89\u88C5\u540E\u5237\u65B0\u9875\u9762\u3002",
-  "status.present": "\u5DF2\u5C31\u7EEA",
-  "status.missing": "\u7F3A\u5931",
-  "status.ready": "\u5DF2\u5B89\u88C5",
-  "status.notReady": "\u672A\u5B89\u88C5",
-  "skeleton.next": "\u4E0B\u4E00\u6B65\uFF1A\u63A5\u5165\u540E\u7AEF\u6258\u7BA1\u3001\u8BB0\u5F55\u5217\u8868\u4E0E\u64AD\u653E\u5668\u3002",
-  "settings.title": "\u4F1A\u6458",
-  "settings.language": "\u754C\u9762\u8BED\u8A00",
-  "settings.tab.models": "\u6A21\u578B",
-  "settings.tab.libraries": "\u8D44\u6599\u7A7A\u95F4",
-  "settings.tab.capture": "\u91C7\u96C6",
-  "settings.tab.feishu": "\u98DE\u4E66",
-  "settings.tab.about": "\u5173\u4E8E",
-  "about.title": "\u5173\u4E8E\u4F1A\u6458",
-  "about.subtitle": "\u672C\u5730\u76F4\u64AD\u3001\u89C6\u9891\u4E0E\u4F1A\u8BAE\u8D44\u6599\u5E93\uFF0C\u914D\u5957 DSH \u5DE5\u5177\u4E0E AI \u7EAA\u8981\u3002",
-  "about.currentVersion": "\u5F53\u524D\u8FD0\u884C\u7248\u672C",
-  "about.installedVersion": "\u5DF2\u5B89\u88C5\u7248\u672C",
-  "about.latestVersion": "\u6700\u65B0\u7248\u672C",
-  "about.repo": "\u53D1\u5E03\u4ED3\u5E93",
-  "about.lastCheck": "\u4E0A\u6B21\u68C0\u67E5",
-  "about.installPath": "\u5B89\u88C5\u4F4D\u7F6E",
-  "about.notChecked": "\u672A\u68C0\u67E5",
-  "about.never": "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7",
-  "about.check": "\u68C0\u67E5\u66F4\u65B0",
-  "about.install": "\u7ACB\u5373\u66F4\u65B0",
-  "about.cancel": "\u53D6\u6D88",
-  "about.refresh": "\u5237\u65B0\u72B6\u6001",
-  "about.releaseNotes": "\u53D1\u5E03\u8BF4\u660E",
-  "about.working": "\u66F4\u65B0\u4E2D\u2026",
-  "about.restartHintShort": "\u91CD\u542F\u540E\u751F\u6548",
-  "about.restart": "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002",
-  "about.sourceHint": "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002",
-  "about.privacy": "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002",
-  "about.notesTitle": "\u66F4\u65B0\u5185\u5BB9",
-  "settings.feishu": "\u98DE\u4E66 MCP Pro",
-  "settings.feishuDesc": "\u8BA9 Agent \u76F4\u63A5\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002",
-  "settings.description": "\u8FD0\u884C\u72B6\u6001\u3001\u8BED\u97F3\u8BC6\u522B\u3001\u91C7\u96C6\u7EC4\u4EF6\u4E0E\u6570\u636E\u76EE\u5F55\u3002",
-  "settings.open": "\u6253\u5F00\u8BBE\u7F6E\u4E2D\u67E5\u770B\u5B8C\u6574\u914D\u7F6E",
-  "settings.runtime": "\u672C\u5730\u5F15\u64CE",
-  "settings.runtimeDesc": "\u7531\u63D2\u4EF6\u6258\u7BA1\u7684 FastAPI \u540E\u7AEF\uFF1B\u540C\u4E00\u65F6\u95F4\u53EA\u8FD0\u884C\u4E00\u4E2A\u3002",
-  "settings.start": "\u542F\u52A8",
-  "settings.stop": "\u505C\u6B62",
-  "settings.restart": "\u91CD\u542F",
-  "settings.env": "\u8FD0\u884C\u73AF\u5883",
-  "settings.envDesc": "\u63D2\u4EF6\u81EA\u5DF1\u7684 Python \u73AF\u5883\uFF0C\u4E0D\u4F9D\u8D56\u539F\u5E94\u7528\u6216\u539F .venv\u3002",
-  "settings.installEnv": "\u5B89\u88C5\u8FD0\u884C\u73AF\u5883",
-  "settings.rebuildEnv": "\u91CD\u65B0\u5B89\u88C5",
-  "settings.installDiarize": "\u5B89\u88C5\u8BF4\u8BDD\u4EBA\u5206\u79BB\u4F9D\u8D56",
-  "settings.job": "\u5B89\u88C5\u8FDB\u5EA6",
-  "settings.cancel": "\u53D6\u6D88",
-  "settings.data": "\u6570\u636E",
-  "settings.capture": "\u91C7\u96C6\u7EC4\u4EF6",
-  "settings.speech": "\u4E91\u7AEF\u8BED\u97F3",
-  "settings.live": "\u76F4\u64AD",
-  "settings.video": "\u89C6\u9891",
-  "settings.calendar": "\u65E5\u5386",
-  "settings.dataDesc": "\u9ED8\u8BA4\u590D\u7528\u539F\u4ED3\u5E93 data/\uFF1B\u53EF\u5207\u6362\u5230\u4EFB\u610F\u53EF\u5199\u76EE\u5F55\u3002",
-  "settings.dataDir": "\u6570\u636E\u76EE\u5F55",
-  "settings.storage": "\u5B58\u50A8\u4F4D\u7F6E",
-  "settings.storageHint": "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002",
-  "settings.storageWorkspace": "DSH \u5DE5\u4F5C\u533A",
-  "settings.port": "\u7AEF\u53E3",
-  "settings.chooseDir": "\u9009\u62E9\u76EE\u5F55",
-  "settings.save": "\u4FDD\u5B58",
-  "settings.saveHint": "\u4FEE\u6539\u6570\u636E\u76EE\u5F55\u6216\u7AEF\u53E3\u524D\u9700\u8981\u5148\u505C\u6B62\u672C\u5730\u5F15\u64CE\u3002",
-  "settings.openData": "\u5728 Finder \u4E2D\u663E\u793A",
-  "settings.logs": "\u65E5\u5FD7",
-  "settings.backendLog": "\u540E\u7AEF\u65E5\u5FD7",
-  "settings.setupLog": "\u5B89\u88C5\u65E5\u5FD7",
-  "settings.loadLogs": "\u8BFB\u53D6\u65E5\u5FD7",
-  "settings.ready": "\u5DF2\u5B89\u88C5",
-  "settings.notReady": "\u672A\u5B89\u88C5",
-  "settings.mlx": "MLX",
-  "settings.version": "\u7248\u672C",
-  "settings.path": "\u8DEF\u5F84",
-  "settings.runningHint": "\u672C\u5730\u5F15\u64CE\u8FD0\u884C\u4E2D\u3002",
-  "settings.stoppedHint": "\u672C\u5730\u5F15\u64CE\u672A\u8FD0\u884C\u3002",
-  "settings.noJob": "\u6682\u65E0\u5B89\u88C5\u4EFB\u52A1\u3002",
-  "settings.saved": "\u5DF2\u4FDD\u5B58",
-  "settings.pickFailed": "\u65E0\u6CD5\u6253\u5F00\u9009\u62E9\u5668\uFF0C\u53EF\u624B\u52A8\u8F93\u5165\u8DEF\u5F84\u3002",
-  "view.records": "\u8BB0\u5F55",
-  "view.calendar": "\u65E5\u5386",
-  "list.search": "\u641C\u7D22\u6807\u9898",
-  "list.all": "\u5168\u90E8",
-  "list.live": "\u76F4\u64AD",
-  "list.video": "\u89C6\u9891",
-  "list.link_video": "\u89C6\u9891",
-  "list.today": "\u4ECA\u5929",
-  "list.yesterday": "\u6628\u5929",
-  "list.week": "\u672C\u5468",
-  "list.month": "\u672C\u6708",
-  "list.earlier": "\u66F4\u65E9",
-  "list.meeting": "\u4F1A\u8BAE",
-  "list.empty": "\u8FD8\u6CA1\u6709\u8BB0\u5F55",
-  "list.emptyHint": "\u76F4\u64AD\u91C7\u96C6\u3001\u89C6\u9891\u94FE\u63A5\u4E0E\u4F1A\u8BAE\u5BFC\u5165\u5C06\u5728\u4E0B\u4E00\u9636\u6BB5\u63A5\u5165\u3002",
-  "list.noMatch": "\u6CA1\u6709\u5339\u914D\u7684\u8BB0\u5F55",
-  "list.loading": "\u6B63\u5728\u8BFB\u53D6\u8BB0\u5F55\u2026",
-  "list.error": "\u8BFB\u53D6\u8BB0\u5F55\u5931\u8D25",
-  "list.startEngine": "\u542F\u52A8\u672C\u5730\u5F15\u64CE",
-  "list.new": "\u65B0\u5EFA",
-  "list.queue": "\u6392\u961F\u7B2C {n} \u4F4D",
-  "list.active": "\u8FDB\u884C\u4E2D",
-  "list.footer": "{count} \u6761\u8BB0\u5F55",
-  "cards.section": "\u4F1A\u6458\u5361\u7247",
-  "cards.linkOnly": "\u4EC5\u94FE\u63A5",
-  "list.readOnlyPhase": "\u5F53\u524D\u4E3A\u53EA\u8BFB\u6D4F\u89C8\u7248\u672C\uFF0C\u91C7\u96C6\u4E0E\u7F16\u8F91\u5C06\u5728\u540E\u7EED\u9636\u6BB5\u63A5\u5165\u3002",
-  "welcome.title": "\u628A\u4E00\u573A\u76F4\u64AD\uFF0C\u7559\u6210\u53EF\u56DE\u67E5\u7684\u8D44\u6599",
-  "welcome.desc": "\u91C7\u96C6\u76F4\u64AD\u3001\u5BFC\u5165\u4F1A\u8BAE\u5F55\u97F3\u6216\u89C6\u9891\u94FE\u63A5\uFF0C\u8FB9\u770B\u8FB9\u6253\u70B9\uFF0C\u7ED3\u675F\u540E\u6309\u65F6\u95F4\u56DE\u67E5\u4E0E\u5BFC\u51FA\u3002",
-  "welcome.live": "\u91C7\u96C6\u53D1\u5E03\u4F1A\u76F4\u64AD",
-  "welcome.video": "\u8F6C\u5199\u89C6\u9891\u94FE\u63A5",
-  "welcome.meeting": "\u5BFC\u5165\u4F1A\u8BAE\u5F55\u97F3",
-  "welcome.next": "\u4E0B\u4E00\u9636\u6BB5\u63A5\u5165",
-  "detail.content": "\u5185\u5BB9",
-  "detail.notes": "\u7B14\u8BB0",
-  "detail.minutes": "\u7EAA\u8981",
-  "minutes.generate": "\u751F\u6210\u7EAA\u8981",
-  "minutes.regenerate": "\u91CD\u65B0\u751F\u6210",
-  "minutes.updating": "\u6B63\u5728\u6574\u7406\u7EAA\u8981\u2026",
-  "minutes.final": "\u7EC8\u7A3F",
-  "minutes.live": "\u968F\u5F55\u5236\u66F4\u65B0",
-  "minutes.empty": "\u8FD8\u6CA1\u6709\u7EAA\u8981",
-  "minutes.conclusions": "\u7ED3\u8BBA",
-  "minutes.todos": "\u5F85\u529E",
-  "minutes.terms": "\u4EBA\u540D\u548C\u672F\u8BED",
-  "minutes.misheard": "\u542C\u4F5C",
-  "minutes.scenario.meeting": "\u4F1A\u8BAE\u6A21\u677F",
-  "minutes.scenario.video": "\u89C6\u9891\u6A21\u677F",
-  "minutes.scenario.live": "\u76F4\u64AD\u6A21\u677F",
-  "minutes.mergedHint": "AI \u751F\u6210\uFF1B\u7ED3\u6784\u5316\u89C6\u56FE\u53EF\u76F4\u63A5\u590D\u5236\uFF0C\u539F\u6587\u53EF\u7F16\u8F91",
-  "minutes.clickEdit": "\u70B9\u51FB\u4EFB\u610F\u4F4D\u7F6E\u7F16\u8F91",
-  "minutes.edit": "\u7F16\u8F91",
-  "minutes.preview": "\u9884\u89C8",
-  "minutes.writeToNotes": "\u5199\u5165\u7B14\u8BB0",
-  "minutes.writing": "\u5199\u5165\u4E2D\u2026",
-  "minutes.autoHint": "\u8F6C\u5199\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u751F\u6210\u7EAA\u8981\uFF0C\u5E76\u5199\u5165\u8FD9\u7BC7\u7B14\u8BB0\u3002",
-  "minutes.processingHint": "\u8F6C\u5199\u5B8C\u6210\u540E\u81EA\u52A8\u751F\u6210\u7EAA\u8981\uFF0C\u901A\u5E38\u5728\u4E00\u4E24\u5206\u949F\u5185\u51FA\u73B0\u3002",
-  "minutes.startWrite": "\u5199\u70B9\u4EC0\u4E48",
-  "minutes.stateReady": "AI \u7EAA\u8981",
-  "minutes.stateFailed": "\u4E0A\u6B21\u6574\u7406\u5931\u8D25",
-  "minutes.stateInvalidKey": "AI Key \u65E0\u6548",
-  "minutes.stateRetry": "\u53EF\u91CD\u65B0\u751F\u6210",
-  "minutes.stateNoKey": "\u672A\u914D\u7F6E\u6587\u5B57\u6A21\u578B",
-  "minutes.stateRateLimited": "\u9650\u6D41\uFF0C\u7A0D\u540E\u91CD\u8BD5",
-  "minutes.stateFromNotes": "\u6765\u81EA\u7B14\u8BB0",
-  "minutes.stateEmpty": "\u5C1A\u672A\u751F\u6210",
-  "minutes.synced": "AI \u7EAA\u8981\u5DF2\u5199\u5165\u7B14\u8BB0",
-  "minutes.view": "\u67E5\u770B",
-  "minutes.weakSupport": "\u4F9D\u636E\u8F83\u5C11",
-  "minutes.structured": "\u7ED3\u6784\u5316",
-  "minutes.source": "\u539F\u6587",
-  "minutes.editSource": "\u7F16\u8F91\u539F\u6587",
-  "minutes.myNotes": "\u6211\u7684\u7B14\u8BB0",
-  "minutes.editNotes": "\u7F16\u8F91\u7B14\u8BB0",
-  "minutes.timeline": "\u65F6\u95F4\u8F74",
-  "minutes.timelineCount": "{n} \u4E2A\u4E3B\u9898",
-  "minutes.copyAll": "\u590D\u5236\u5168\u90E8",
-  "minutes.highlightSelection": "\u9AD8\u4EAE\u6240\u9009",
-  "minutes.removeHighlight": "\u53D6\u6D88\u9AD8\u4EAE",
-  "minutes.copyHighlight": "\u590D\u5236\u9AD8\u4EAE\u6587\u5B57",
-  "minutes.highlight": "\u9AD8\u4EAE",
-  "minutes.highlightExists": "\u8FD9\u6BB5\u6587\u5B57\u5DF2\u7ECF\u9AD8\u4EAE\u8FC7\u4E86",
-  "minutes.selectForHighlight": "\u5148\u9009\u4E2D\u8981\u6807\u4EAE\u7684\u6587\u5B57",
-  "minutes.highlightHint": "\u9009\u4E2D\u6587\u5B57\u540E\u52A0\u9AD8\u4EAE",
-  "minutes.copySelection": "\u590D\u5236\u9009\u4E2D",
-  "minutes.copySection": "\u590D\u5236\u672C\u8282",
-  "minutes.copying": "\u590D\u5236\u4E2D\u2026",
-  "minutes.copied": "\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F",
-  "minutes.copiedSelection": "\u5DF2\u590D\u5236\u9009\u4E2D\u7684\u6587\u5B57",
-  "minutes.copiedSection": "\u5DF2\u590D\u5236",
-  "minutes.selectFirst": "\u5148\u9009\u4E2D\u8981\u590D\u5236\u7684\u6587\u5B57",
-  "minutes.selectHint": "\u53EF\u81EA\u7531\u9009\u62E9\u6587\u5B57\u590D\u5236\uFF0C\u4E5F\u53EF\u4EE5\u6574\u4EFD\u590D\u5236\uFF1B\u7ED3\u6784\u5316\u89C6\u56FE\u662F AI \u539F\u7A3F\uFF0C\u539F\u6587\u91CC\u7684\u4FEE\u6539\u4EE5\u539F\u6587\u4E3A\u51C6\u3002",
-  "minutes.selectHintFoot": "\u9009\u4E2D\u4EFB\u610F\u6587\u5B57\u5373\u53EF\u590D\u5236",
-  "minutes.regenerateHint": "\u91CD\u65B0\u6574\u7406\u4F1A\u8986\u76D6\u7B14\u8BB0\u91CC AI \u7EAA\u8981\u8FD9\u4E00\u8282\uFF0C\u4F60\u81EA\u5DF1\u5199\u7684\u5185\u5BB9\u4F1A\u4FDD\u7559\u3002",
-  "minutes.hintNoKey": "\u7EAA\u8981\u9700\u8981\u6587\u5B57\u6A21\u578B\uFF1A\u5230\u300C\u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B\u300D\u586B\u4E00\u628A API Key\u3002",
-  "minutes.hintInvalidKey": "AI Key \u65E0\u6548\u6216\u65E0\u6A21\u578B\u6743\u9650\uFF0C\u8BF7\u5230\u8BBE\u7F6E\u91CC\u91CD\u65B0\u4FDD\u5B58\u3002",
-  "minutes.hintRetry": "\u6587\u5B57\u6A21\u578B\u5DF2\u914D\u7F6E\uFF0C\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\u3002",
-  "minutes.hintInvalidConfigured": "AI Key \u5DF2\u914D\u7F6E{model}\uFF0C\u4F46\u4E0A\u6B21\u8C03\u7528\u88AB\u62D2\u7EDD{error}\u3002\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\uFF1B\u4ECD\u5931\u8D25\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B \u68C0\u67E5 Key \u548C\u6A21\u578B\u3002",
-  "minutes.checkModel": "\u68C0\u67E5\u6A21\u578B",
-  "minutes.checking": "\u68C0\u67E5\u4E2D\u2026",
-  "minutes.checkOk": "Key \u53EF\u7528",
-  "minutes.checkOkHint": "\u53EF\u4EE5\u70B9\u300C\u751F\u6210\u7EAA\u8981\u300D\u91CD\u65B0\u6574\u7406\u3002",
-  "minutes.stateVerified": "\u6A21\u578B\u53EF\u7528",
-  "minutes.hintVerified": "\u6A21\u578B\u68C0\u67E5\u901A\u8FC7\uFF0C\u70B9\u300C\u751F\u6210\u7EAA\u8981\u300D\u5373\u53EF\u91CD\u65B0\u6574\u7406\u5E76\u5199\u5165\u7B14\u8BB0\u3002",
-  "minutes.checkFailed": "\u68C0\u67E5\u5931\u8D25",
-  "minutes.hintInheritedKey": "\u6587\u5B57\u603B\u7ED3\u76EE\u524D\u6CBF\u7528 Mify Key\uFF1B\u5982\u679C\u5B83\u6CA1\u6709\u6587\u672C\u6A21\u578B\u6743\u9650\uFF0C\u8BF7\u5230\u300C\u6587\u5B57\u603B\u7ED3 \u2192 \u81EA\u5B9A\u4E49 API\u300D\u5355\u72EC\u586B\u4E00\u4E2A\u6709\u6743\u9650\u7684 Key\u3002",
-  "minutes.hintRateLimited": "AI \u670D\u52A1\u9650\u6D41\uFF0C\u7A0D\u540E\u4F1A\u81EA\u52A8\u91CD\u8BD5\u3002",
-  "minutes.hintFailed": "\u8FD9\u6B21\u6574\u7406\u6CA1\u6709\u6210\u529F\uFF0C\u5DF2\u4FDD\u7559\u4E0A\u4E00\u7248\u5185\u5BB9\u3002",
-  "minutes.hintSyncMissing": "AI \u7EAA\u8981\u8FD8\u6CA1\u6709\u5199\u5165\u7B14\u8BB0\u3002",
-  "minutes.saveFirst": "\u8BF7\u5148\u5904\u7406\u5F53\u524D\u7B14\u8BB0\u7684\u4FDD\u5B58\u6216\u51B2\u7A81\uFF0C\u518D\u7EE7\u7EED\u3002",
-  "minutes.backgroundUpdate": "\u7B14\u8BB0\u5DF2\u5728\u540E\u53F0\u66F4\u65B0",
-  "minutes.backgroundUpdateBody": "AI \u7EAA\u8981\u521A\u5199\u5165\u7B14\u8BB0\u3002\u8F7D\u5165\u6700\u65B0\u4F1A\u4FDD\u7559 AI \u5185\u5BB9\uFF1B\u4FDD\u7559\u8349\u7A3F\u53EF\u7A0D\u540E\u624B\u52A8\u5408\u5E76\u3002",
-  "minutes.loadLatest": "\u8F7D\u5165\u6700\u65B0",
-  "minutes.keepDraft": "\u4FDD\u7559\u8349\u7A3F",
-  "minutes.noTranscript": "\u8F6C\u5199\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u751F\u6210\u7EAA\u8981",
-  "speakers.guess": "\u4ECE\u5BF9\u8BDD\u91CC\u8BA4\u4EBA",
-  "speakers.undo": "\u64A4\u9500",
-  "speakers.accept": "\u5C31\u662F\u4ED6",
-  "speakers.reject": "\u4E0D\u662F",
-  "settings.minutes": "\u7EAA\u8981\uFF08AI\uFF09",
-  "settings.aiProvider": "\u670D\u52A1",
-  "settings.aiBase": "\u5730\u5740",
-  "settings.aiModel": "\u6A21\u578B",
-  "settings.aiModels": "\u62C9\u53D6\u6A21\u578B\u5217\u8868",
-  "settings.aiKey": "API Key",
-  "settings.aiSaveKey": "\u4FDD\u5B58\u5E76\u68C0\u67E5",
-  "settings.aiCheck": "\u68C0\u67E5 Key",
-  "settings.aiRemoveKey": "\u79FB\u9664 Key",
-  "settings.minutesWhen": "\u4EC0\u4E48\u65F6\u5019\u751F\u6210",
-  "settings.minutesMode": "\u6A21\u5F0F",
-  "settings.minutesLanguage": "\u7EAA\u8981\u8BED\u8A00",
-  "settings.minutesInterval": "\u66F4\u65B0\u95F4\u9694\uFF08\u79D2\uFF09",
-  "settings.autoEnd": "\u6CA1\u4EBA\u8BF4\u8BDD\u65F6\u81EA\u52A8\u7ED3\u675F",
-  "settings.autoEndMode": "\u65B9\u5F0F",
-  "settings.autoEndAfter": "\u9759\u97F3\u591A\u5C11\u5206\u949F",
-  "detail.marks": "\u6807\u8BB0",
-  "detail.shots": "\u622A\u56FE",
-  "detail.info": "\u4FE1\u606F",
-  "detail.transcript": "\u8F6C\u5199",
-  "detail.noTranscript": "\u6682\u65E0\u8F6C\u5199",
-  "detail.noTranscriptHint": "\u91C7\u96C6\u6216\u5BFC\u5165\u5B8C\u6210\u540E\u4F1A\u663E\u793A\u5E26\u65F6\u95F4\u6233\u7684\u6587\u5B57\u3002",
-  "detail.noMarks": "\u6682\u65E0\u6807\u8BB0",
-  "detail.noShots": "\u6682\u65E0\u622A\u56FE",
-  "detail.noNotes": "\u6682\u65E0\u7B14\u8BB0",
-  "detail.source": "\u6765\u6E90",
-  "detail.duration": "\u65F6\u957F",
-  "detail.status": "\u72B6\u6001",
-  "detail.kind": "\u7C7B\u578B",
-  "detail.queue": "\u961F\u5217",
-  "detail.shotCount": "\u622A\u56FE",
-  "detail.transcriptCount": "\u8F6C\u5199\u6BB5",
-  "detail.markCount": "\u6807\u8BB0",
-  "detail.speakers": "\u53D1\u8A00\u4EBA",
-  "detail.more": "\u66F4\u591A",
-  "detail.rename": "\u91CD\u547D\u540D",
-  "detail.duplicate": "\u521B\u5EFA\u526F\u672C",
-  "detail.delete": "\u5220\u9664\u8BB0\u5F55",
-  "detail.deleteBody": "\u8BB0\u5F55\u3001\u5A92\u4F53\u3001\u622A\u56FE\u4E0E\u8F6C\u5199\u4F1A\u79FB\u5230\u5E9F\u7EB8\u7BD3\uFF0C\u6E05\u7A7A\u5E9F\u7EB8\u7BD3\u524D\u53EF\u627E\u56DE\u3002",
-  "detail.deleted": "\u5DF2\u79FB\u5230\u5E9F\u7EB8\u7BD3",
-  "detail.find": "\u67E5\u627E",
-  "detail.findPlaceholder": "\u67E5\u627E\u8F6C\u5199\u3001\u6807\u8BB0\u6216\u622A\u56FE\u6587\u5B57",
-  "detail.noSpeakers": "\u6682\u65E0\u53D1\u8A00\u4EBA",
-  "detail.livePreview": "\u76F4\u64AD\u753B\u9762\u9884\u89C8",
-  "detail.hlsUnsupported": "\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u80FD\u76F4\u63A5\u64AD\u653E\u76F4\u64AD HLS\uFF0C\u4E0B\u4E00\u6B65\u5C06\u63A5\u5165\u64AD\u653E\u5668\u3002",
-  "detail.connecting": "\u6B63\u5728\u8FDE\u63A5\u76F4\u64AD\u6D41\u2026",
-  "detail.connectingHint": "\u5DF2\u5F00\u59CB\u91C7\u96C6\uFF0C\u6B63\u5728\u7B49\u7B2C\u4E00\u4E2A\u5173\u952E\u5E27\u5206\u7247\uFF0C\u901A\u5E38\u51E0\u79D2\u949F\uFF1B\u5C31\u7EEA\u540E\u4F1A\u81EA\u52A8\u64AD\u653E\u3002",
-  "detail.hlsReconnecting": "\u76F4\u64AD\u6D41\u4E2D\u65AD\uFF0C\u6B63\u5728\u91CD\u8FDE\u2026",
-  "detail.hlsFailed": "\u76F4\u64AD\u6D41\u6682\u65F6\u65E0\u6CD5\u64AD\u653E",
-  "detail.hlsOffline": "\u548C\u76F4\u64AD\u6E90\u7684\u8FDE\u63A5\u5DF2\u65AD\u5F00\uFF0C\u4F1A\u81EA\u52A8\u91CD\u8BD5\uFF1B\u4E5F\u53EF\u4EE5\u70B9\u300C\u91CD\u8BD5\u300D\u91CD\u65B0\u8FDE\u63A5\u3002",
-  "detail.hlsRetryHint": "\u64AD\u653E\u5668\u5DF2\u8FDE\u7EED\u91CD\u8BD5\u591A\u6B21\uFF0C\u53EF\u4EE5\u70B9\u300C\u91CD\u8BD5\u300D\u91CD\u65B0\u8FDE\u63A5\u3002",
-  "detail.mutedPlayback": "\u5DF2\u9759\u97F3\u64AD\u653E",
-  "detail.unmute": "\u70B9\u51FB\u5F00\u542F\u58F0\u97F3",
-  "detail.preparingReplay": "\u56DE\u653E\u6587\u4EF6\u751F\u6210\u4E2D\uFF0C\u5B8C\u6210\u540E\u5373\u53EF\u62D6\u52A8\u65F6\u95F4\u8F74\u3002",
-  "detail.readOnly": "\u53EA\u8BFB",
-  "detail.preview": "\u9884\u89C8",
-  "detail.error": "\u8BFB\u53D6\u8BE6\u60C5\u5931\u8D25",
-  "status.pending": "\u5F85\u5F00\u59CB",
-  "status.queued": "\u6392\u961F\u4E2D",
-  "status.recording": "\u91C7\u96C6\u4E2D",
-  "status.processing": "\u5904\u7406\u4E2D",
-  "status.done": "\u5DF2\u5B8C\u6210",
-  "status.error": "\u51FA\u9519",
-  "status.partial": "\u90E8\u5206\u5B8C\u6210",
-  "status.cancelled": "\u5DF2\u53D6\u6D88",
-  "kind.live": "\u76F4\u64AD",
-  "kind.link_video": "\u89C6\u9891",
-  "kind.meeting": "\u4F1A\u8BAE",
-  "kind.doc": "\u98DE\u4E66\u6587\u6863",
-  "new.title": "\u65B0\u5EFA",
-  "new.launch": "\u53D1\u5E03\u4F1A",
-  "new.video": "\u89C6\u9891",
-  "new.meeting": "\u4F1A\u8BAE",
-  "new.doc": "\u6587\u6863",
-  "new.url": "\u94FE\u63A5",
-  "new.precheck": "\u9884\u68C0",
-  "new.checking": "\u6B63\u5728\u8BFB\u53D6\u2026",
-  "new.start": "\u5F00\u59CB\u91C7\u96C6",
-  "new.add": "\u52A0\u5165\u961F\u5217",
-  "new.preview": "\u9884\u8BFB",
-  "new.previewAll": "\u9884\u8BFB\u5168\u90E8",
-  "new.close": "\u5173\u95ED",
-  "new.submit": "\u63D0\u4EA4",
-  "new.cancel": "\u53D6\u6D88",
-  "new.file": "\u6587\u4EF6",
-  "new.chooseFile": "\u9009\u62E9\u6587\u4EF6",
-  "new.replaceFile": "\u91CD\u65B0\u9009\u62E9",
-  "new.dropHint": "\u62D6\u5165\u6216\u9009\u62E9\u97F3\u9891 / \u89C6\u9891\uFF0C\u6574\u6BB5\u79BB\u7EBF\u8F6C\u5199",
-  "new.titleLabel": "\u6807\u9898",
-  "new.titlePlaceholder": "\u9ED8\u8BA4\u4E0E\u6587\u4EF6\u540D\u4E00\u81F4",
-  "new.language": "\u8BED\u79CD",
-  "new.auto": "\u81EA\u52A8",
-  "new.uploading": "\u6B63\u5728\u4E0A\u4F20",
-  "new.ready": "\u53EF\u4EE5\u63D0\u4EA4",
-  "new.failed": "\u5904\u7406\u5931\u8D25",
-  "new.duplicate": "\u5DF2\u6709\u76F8\u540C\u94FE\u63A5",
-  "new.queueAdded": "\u5DF2\u52A0\u5165\u961F\u5217",
-  "new.addedCount": "\u5DF2\u52A0\u5165 {n} \u6761",
-  "new.duplicateCount": "{n} \u6761\u91CD\u590D",
-  "new.failedCount": "{n} \u6761\u5931\u8D25",
-  "new.continueHint": "\u7EE7\u7EED\u7C98\u8D34\u94FE\u63A5\u53EF\u518D\u52A0\u5165\u4E00\u6279",
-  "new.forceHint": "\u8FD9\u4E9B\u94FE\u63A5\u5DF2\u5728\u961F\u5217\u4E2D\uFF0C\u786E\u5B9E\u8981\u518D\u91C7\u96C6\u4E00\u6B21\u53EF\u70B9\u53F3\u4FA7\u6309\u94AE",
-  "new.forceDuplicates": "\u4ECD\u7136\u52A0\u5165\u91CD\u590D\u94FE\u63A5",
-  "new.finish": "\u5B8C\u6210",
-  "new.batchAdd": "\u52A0\u5165\u672C\u6279\u6B21",
-  "new.batchVideoHint": "\u52A0\u5165\u6279\u6B21\u300C{title}\u300D\uFF08\u73B0\u6709 {n} \u6761\uFF09\uFF1A\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u63D0\u4EA4\u540E\u4ECD\u5F52\u5728\u8FD9\u5F20\u6279\u6B21\u5361\u91CC\u3002",
-  "batch.append": "\u6279\u91CF\u52A0\u5165\u65B0\u94FE\u63A5",
-  "batch.appendTitle": "\u52A0\u5165\u65B0\u94FE\u63A5",
-  "new.videoHint": "\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u683C\u5F0F\u9519\u8BEF\u6216\u4E0D\u652F\u6301\u7684\u94FE\u63A5\u4F1A\u81EA\u52A8\u8DF3\u8FC7\u3002\u652F\u6301 B\u7AD9\u3001\u5FAE\u535A\u3001\u6296\u97F3\u3001YouTube\u3001X\u3002",
-  "new.launchHint": "\u8F93\u5165 B\u7AD9\u76F4\u64AD\u94FE\u63A5\uFF0C\u9884\u68C0\u901A\u8FC7\u540E\u53EF\u5F00\u59CB\u91C7\u96C6\u3002",
-  "new.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u6574\u6BB5\u79BB\u7EBF\u8F6C\u5199\uFF1B\u89C6\u9891\u4FDD\u7559\u7528\u4E8E\u56DE\u653E\u3002",
-  "new.maxLinks": "\u5355\u6B21\u6700\u591A 50 \u6761\u94FE\u63A5",
-  "new.mode.auto": "\u5B57\u5E55\u4F18\u5148",
-  "new.mode.asr": "\u4E91\u7AEF ASR",
-  "new.subtitle": "\u5B57\u5E55",
-  "new.noPreview": "\u672A\u9884\u8BFB",
-  "new.notSupported": "\u6682\u4E0D\u652F\u6301\u8BE5\u94FE\u63A5",
-  "new.notStarted": "\u5C1A\u672A\u5F00\u64AD",
-  "new.asrNotReady": "\u8F6C\u5F55\u5F15\u64CE\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u5728\u8BBE\u7F6E\u4E2D\u68C0\u67E5\u8BED\u97F3\u8BC6\u522B\u4E0E\u6A21\u578B\u3002",
-  "new.fileSelected": "\u5DF2\u9009\u62E9",
-  "new.queuedAt": "\u6392\u961F\u7B2C {n} \u4F4D",
-  "new.openRecord": "\u6253\u5F00\u8BB0\u5F55",
-  "new.subtitleRequired": "\u8BF7\u9009\u62E9\u5B57\u5E55\u8BED\u8A00",
-  "new.uploadProgress": "\u4E0A\u4F20\u4E2D {p}%",
-  "mark.add": "\u6253\u70B9",
-  "mark.placeholder": "\u5199\u4E00\u53E5\u6279\u6CE8\uFF0C\u56DE\u8F66\u4FDD\u5B58",
-  "mark.save": "\u4FDD\u5B58",
-  "mark.cancel": "\u53D6\u6D88",
-  "mark.edit": "\u7F16\u8F91",
-  "mark.delete": "\u5220\u9664",
-  "mark.undo": "\u64A4\u9500\u5220\u9664",
-  "mark.deleted": "\u5DF2\u5220\u9664\u6807\u8BB0",
-  "mark.added": "\u5DF2\u6DFB\u52A0\u6807\u8BB0",
-  "mark.error": "\u6807\u8BB0\u64CD\u4F5C\u5931\u8D25",
-  "mark.shortcut": "\u6309 M \u6253\u70B9\uFF0C\u2318Z \u64A4\u9500\u5220\u9664",
-  "detail.start": "\u5F00\u59CB\u91C7\u96C6",
-  "detail.stop": "\u505C\u6B62",
-  "detail.cancelQueue": "\u53D6\u6D88\u6392\u961F",
-  "detail.retry": "\u91CD\u8BD5",
-  "detail.retranscribe": "\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55",
-  "detail.fillMissing": "\u8865\u8F6C\u5F55",
-  "detail.fillMissingMenu": "\u8865\u8F6C\u5F55\uFF08\u7F3A {count} \u6BB5\uFF09",
-  "detail.fillMissingHint": "\u53EA\u8865 {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF0C\u4E0D\u4F1A\u91CD\u505A\u5DF2\u5B8C\u6210\u5185\u5BB9",
-  "detail.fillMissingTitle": "\u8865\u8F6C\u5F55\u672A\u5B8C\u6210\u7247\u6BB5",
-  "detail.fillMissingBody": "\u53EA\u4F1A\u8865 {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF08\u7EA6 {time}\uFF09\uFF0C\u5DF2\u5B8C\u6210\u7684 {done} \u6BB5\u4E0D\u4F1A\u91CD\u505A\u3002\u7EE7\u7EED\uFF1F",
-  "detail.fillMissingBodyAll": "\u4F1A\u8BC6\u522B {count} \u4E2A\u672A\u5B8C\u6210\u7247\u6BB5\uFF08\u7EA6 {time}\uFF09\uFF0C\u73B0\u6709\u5185\u5BB9\u4F1A\u4FDD\u7559\u3002\u7EE7\u7EED\uFF1F",
-  "detail.fillMissingStart": "\u5F00\u59CB\u8865\u8F6C\u5F55",
-  "detail.fillMissingStarted": "\u5DF2\u5F00\u59CB\u8865\u8F6C\u5F55\uFF0C\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u66F4\u65B0",
-  "detail.partialTitle": "\u8FD8\u6709 {count} \u4E2A\u7247\u6BB5\u6CA1\u6709\u8F6C\u5199",
-  "detail.partialBody": "\u7EA6 {time} \xB7 \u5DF2\u5B8C\u6210 {done} \u6BB5\u3002{reason}\uFF0C\u8865\u8F6C\u5F55\u53EA\u5904\u7406\u7F3A\u5931\u90E8\u5206\u3002",
-  "detail.partialReason429": "\u4E0A\u6B21\u56E0\u4E91\u7AEF\u9650\u6D41\u4E2D\u65AD",
-  "detail.partialReasonNetwork": "\u4E0A\u6B21\u56E0\u7F51\u7EDC\u4E2D\u65AD",
-  "detail.partialReasonGeneric": "\u4E0A\u6B21\u8F6C\u5F55\u4E2D\u65AD",
-  "detail.gapsShow": "\u67E5\u770B {count} \u4E2A\u7F3A\u53E3",
-  "detail.gapsHide": "\u6536\u8D77\u7F3A\u53E3",
-  "detail.gapJump": "\u8DF3\u5230 {start}\u2013{end}",
-  "detail.restart": "\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55",
-  "detail.restartBody": "\u4F1A\u91CD\u65B0\u8BC6\u522B\u5168\u90E8 {time} \u97F3\u9891\u5E76\u8986\u76D6\u73B0\u6709\u8F6C\u5199\uFF0C\u6BD4\u8865\u8F6C\u5F55\u6D88\u8017\u66F4\u591A\u989D\u5EA6\u3002\u786E\u5B9A\u7EE7\u7EED\uFF1F",
-  "detail.restartStarted": "\u5DF2\u5F00\u59CB\u4ECE\u5934\u8F6C\u5F55",
-  "detail.missingChunks": "\u672A\u5B8C\u6210\u7247\u6BB5",
-  "detail.missingValue": "{count} \u4E2A \xB7 \u7EA6 {time}",
-  "detail.resumeHint": "\u8865\u8F6C\u5F55\u53EA\u5904\u7406\u7F3A\u5931\u7247\u6BB5\uFF1B\u4ECE\u5934\u91CD\u65B0\u8F6C\u5F55\u4F1A\u91CD\u505A\u6574\u6761\u97F3\u9891\u3002",
-  "detail.fullRestartHint": "\u4F1A\u6309\u5F53\u524D\u8F6C\u5199\u9009\u9879\u91CD\u65B0\u8BC6\u522B\u5168\u90E8\u97F3\u9891\u3002",
-  "detail.startTranscribe": "\u5F00\u59CB\u8F6C\u5F55",
-  "detail.startTranscribeTitle": "\u5F00\u59CB\u8F6C\u5F55\u8FD9\u6761\u8BB0\u5F55",
-  "detail.startTranscribeBody": "\u4F1A\u8BC6\u522B\u5168\u90E8 {time} \u97F3\u9891\uFF0C\u8FC7\u7A0B\u4E2D\u53EF\u4EE5\u7EE7\u7EED\u67E5\u770B\u5DF2\u6709\u5185\u5BB9\u3002\u7EE7\u7EED\uFF1F",
-  "detail.startTranscribeStarted": "\u5DF2\u5F00\u59CB\u8F6C\u5F55",
-  "detail.transcribeOptions": "\u8F6C\u5199\u9009\u9879",
-  "detail.noTranscriptText": "\u8FD9\u6761\u8BB0\u5F55\u8FD8\u6CA1\u6709\u8F6C\u5199\u3002",
-  "detail.markAt": "\u5728 {time} \u6253\u70B9",
-  "detail.live": "\u76F4\u64AD",
-  "detail.actions": "\u64CD\u4F5C",
-  "detail.stopConfirm": "\u505C\u6B62\u5F53\u524D\u91C7\u96C6\u5E76\u4FDD\u5B58\u5DF2\u5199\u5165\u7684\u5185\u5BB9\uFF1F",
-  "detail.cancelConfirm": "\u53D6\u6D88\u6392\u961F\u4E2D\u7684\u4EFB\u52A1\uFF1F",
-  "engine.notReady": "\u8FD0\u884C\u73AF\u5883\u672A\u5C31\u7EEA",
-  "engine.install": "\u5B89\u88C5\u8FD0\u884C\u73AF\u5883"
-};
-var en = {
-  "panel.title": "MeetClip",
-  "panel.subtitle": "Capture, transcribe, note in context",
-  "home.entry.title": "New capture",
-  "home.entry.launch": "Live stream",
-  "home.entry.launchHint": "Paste a live-room link and record with transcription",
-  "home.entry.video": "Video link",
-  "home.entry.videoHint": "Import from Bilibili, YouTube and more",
-  "home.entry.meeting": "Meeting recording",
-  "home.entry.meetingHint": "Choose a local audio or video file to transcribe",
-  "home.entry.doc": "Feishu document",
-  "home.entry.docHint": "Paste a document link to create an @-mention card",
-  "home.doc.url": "Document link",
-  "home.doc.titleLabel": "Title (optional)",
-  "home.doc.titlePlaceholder": "Leave empty to use the document title",
-  "home.doc.titleAutoPlaceholder": "Filled from the document; edit if needed",
-  "home.doc.previewing": "Reading the document title\u2026",
-  "home.doc.previewFailed": "Could not read the document title",
-  "home.doc.noTitle": "(The document returned no title)",
-  "home.doc.chars": " chars",
-  "home.doc.rePreview": "Read again",
-  "home.doc.create": "Create card",
-  "home.doc.hint": "Paste a link to preview the document title first, then create the card; you can still register the link only.",
-  "home.doc.read": "Read and create card",
-  "home.doc.reading": "Reading the Feishu document\u2026",
-  "home.doc.linkOnly": "Register link only",
-  "home.doc.linking": "Registering the link card\u2026",
-  "home.doc.urlRequired": "Paste a Feishu document link first",
-  "home.doc.invalid": "Only Feishu document links are supported (/docx, /wiki, /sheets, /base)",
-  "home.doc.failed": "Could not create the card",
-  "home.doc.notReady": "Feishu MCP is not signed in or not connected; you can still register the link only",
-  "home.docs.title": "Feishu documents",
-  "home.docs.add": "\uFF0B Add document",
-  "home.docs.hasContent": "Content captured",
-  "home.docs.linkOnly": "Link only",
-  "home.docs.open": "Open",
-  "home.agent.placeholder": "Ask the MeetClip Agent: paste a link or type a request, then press Enter\u2026",
-  "home.agent.aria": "Send a request to the MeetClip Agent",
-  "home.agent.sending": "Opening the MeetClip workspace\u2026",
-  "home.agent.captureOpen": "Continue below\u2026",
-  "home.agent.failed": "Send failed",
-  "topbar.search": "Search",
-  "common.refresh": "Refresh",
-  "common.retry": "Retry",
-  "status.backend": "Local engine",
-  "status.dataDir": "Data directory",
-  "status.token": "API token",
-  "status.venv": "Runtime",
-  "status.port": "Port",
-  "status.running": "Connected",
-  "status.stopped": "Stopped",
-  "status.loading": "Reading status\u2026",
-  "status.hostError": "Cannot reach the plugin host",
-  "status.errorHint": "Confirm the plugin is enabled, then reload the page.",
-  "status.present": "Ready",
-  "status.missing": "Missing",
-  "status.ready": "Installed",
-  "status.notReady": "Not installed",
-  "skeleton.next": "Next: backend lifecycle, record list and player.",
-  "settings.title": "MeetClip",
-  "settings.language": "Language",
-  "settings.tab.models": "Models",
-  "settings.tab.libraries": "Libraries",
-  "settings.tab.capture": "Capture",
-  "settings.tab.feishu": "Feishu",
-  "settings.tab.about": "About",
-  "about.title": "About MeetClip",
-  "about.subtitle": "A local library for live streams, videos and meetings, with DSH tools and AI minutes.",
-  "about.currentVersion": "Running version",
-  "about.installedVersion": "Installed version",
-  "about.latestVersion": "Latest version",
-  "about.repo": "Repository",
-  "about.lastCheck": "Last check",
-  "about.installPath": "Install path",
-  "about.notChecked": "Not checked",
-  "about.never": "Never checked",
-  "about.check": "Check for updates",
-  "about.install": "Update now",
-  "about.cancel": "Cancel",
-  "about.refresh": "Refresh",
-  "about.releaseNotes": "Release notes",
-  "about.working": "Updating\u2026",
-  "about.restartHintShort": "available after restart",
-  "about.restart": "The new files are in place. Restart DeepSeek Harness to apply them.",
-  "about.sourceHint": "This is a source checkout, so automatic updates are disabled. Run git pull and restart instead.",
-  "about.privacy": "Checking for updates only talks to GitHub and never uploads your library, notes or transcripts. An update replaces the installed plug-in copy and takes effect after restarting DSH.",
-  "about.notesTitle": "What is new",
-  "settings.feishu": "Feishu MCP Pro",
-  "settings.feishuDesc": "Let the agent read and write Feishu docs, bitables, drive files and wiki pages.",
-  "settings.description": "Runtime, speech recognition, capture tools and data directory.",
-  "settings.open": "Open Settings for the full configuration",
-  "settings.runtime": "Local engine",
-  "settings.runtimeDesc": "Plugin-managed FastAPI backend; only one instance runs at a time.",
-  "settings.start": "Start",
-  "settings.stop": "Stop",
-  "settings.restart": "Restart",
-  "settings.env": "Runtime",
-  "settings.envDesc": "A Python environment owned by the plugin, independent of the old app and its .venv.",
-  "settings.installEnv": "Install runtime",
-  "settings.rebuildEnv": "Reinstall",
-  "settings.installDiarize": "Install speaker-diarization dependencies",
-  "settings.job": "Install progress",
-  "settings.cancel": "Cancel",
-  "settings.data": "Data",
-  "settings.capture": "Capture tools",
-  "settings.speech": "Cloud speech",
-  "settings.live": "Live",
-  "settings.video": "Video",
-  "settings.calendar": "Calendar",
-  "settings.dataDesc": "Defaults to the archived repository data/; choose any writable directory.",
-  "settings.dataDir": "Data directory",
-  "settings.storage": "Storage location",
-  "settings.storageHint": "Recordings, transcripts, notes and the database live here.",
-  "settings.storageWorkspace": "DSH workspace",
-  "settings.port": "Port",
-  "settings.chooseDir": "Choose folder",
-  "settings.save": "Save",
-  "settings.saveHint": "Stop the local engine before changing the data directory or port.",
-  "settings.openData": "Show in Finder",
-  "settings.logs": "Logs",
-  "settings.backendLog": "Backend log",
-  "settings.setupLog": "Setup log",
-  "settings.loadLogs": "Load logs",
-  "settings.ready": "Installed",
-  "settings.notReady": "Not installed",
-  "settings.mlx": "MLX",
-  "settings.version": "Version",
-  "settings.path": "Path",
-  "settings.runningHint": "The local engine is running.",
-  "settings.stoppedHint": "The local engine is stopped.",
-  "settings.noJob": "No setup job.",
-  "settings.saved": "Saved",
-  "settings.pickFailed": "The picker did not open; type the path instead.",
-  "view.records": "Records",
-  "view.calendar": "Calendar",
-  "list.search": "Search titles",
-  "list.all": "All",
-  "list.live": "Live",
-  "list.video": "Video",
-  "list.link_video": "Video",
-  "list.today": "Today",
-  "list.yesterday": "Yesterday",
-  "list.week": "This week",
-  "list.month": "This month",
-  "list.earlier": "Earlier",
-  "list.meeting": "Meeting",
-  "list.empty": "No records yet",
-  "list.emptyHint": "Live capture, link import and meeting import arrive in the next milestone.",
-  "list.noMatch": "No matching records",
-  "list.loading": "Loading records\u2026",
-  "list.error": "Could not load records",
-  "list.startEngine": "Start local engine",
-  "list.new": "New",
-  "list.queue": "Queue position {n}",
-  "list.active": "In progress",
-  "list.footer": "{count} records",
-  "cards.section": "MeetClip cards",
-  "cards.linkOnly": "link only",
-  "list.readOnlyPhase": "This is the read-only browsing milestone; capture and editing follow.",
-  "welcome.title": "Turn a live session into a record you can revisit",
-  "welcome.desc": "Capture a live stream, import a meeting recording or a video link, mark moments, and revisit the original media later.",
-  "welcome.live": "Capture a live stream",
-  "welcome.video": "Transcribe a video link",
-  "welcome.meeting": "Import a meeting recording",
-  "welcome.next": "Next milestone",
-  "detail.content": "Content",
-  "detail.notes": "Notes",
-  "detail.minutes": "Minutes",
-  "minutes.generate": "Generate minutes",
-  "minutes.regenerate": "Regenerate",
-  "minutes.updating": "Writing minutes\u2026",
-  "minutes.final": "Final",
-  "minutes.live": "Updated while recording",
-  "minutes.empty": "No minutes yet",
-  "minutes.conclusions": "Conclusions",
-  "minutes.todos": "To-dos",
-  "minutes.terms": "Names and terms",
-  "minutes.misheard": "heard as",
-  "minutes.scenario.meeting": "Meeting notes",
-  "minutes.scenario.video": "Video notes",
-  "minutes.scenario.live": "Live notes",
-  "minutes.mergedHint": "AI generated; copy from the structured view, or edit the source",
-  "minutes.clickEdit": "Click anywhere to edit",
-  "minutes.edit": "Edit",
-  "minutes.preview": "Preview",
-  "minutes.writeToNotes": "Write to notes",
-  "minutes.writing": "Writing\u2026",
-  "minutes.autoHint": "Minutes are generated automatically when transcription finishes and written into these notes.",
-  "minutes.processingHint": "Minutes are generated after transcription, usually within a minute or two.",
-  "minutes.startWrite": "Write something",
-  "minutes.stateReady": "AI minutes",
-  "minutes.stateFailed": "Last attempt failed",
-  "minutes.stateInvalidKey": "AI key invalid",
-  "minutes.stateRetry": "Ready to retry",
-  "minutes.stateNoKey": "No text model configured",
-  "minutes.stateRateLimited": "Rate limited, retrying later",
-  "minutes.stateFromNotes": "From notes",
-  "minutes.stateEmpty": "Not generated",
-  "minutes.synced": "AI minutes written to notes",
-  "minutes.view": "View",
-  "minutes.weakSupport": "Thin evidence",
-  "minutes.structured": "Structured",
-  "minutes.source": "Source",
-  "minutes.editSource": "Edit source",
-  "minutes.myNotes": "My notes",
-  "minutes.editNotes": "Edit notes",
-  "minutes.timeline": "Timeline",
-  "minutes.timelineCount": "{n} topics",
-  "minutes.copyAll": "Copy all",
-  "minutes.highlightSelection": "Highlight selection",
-  "minutes.removeHighlight": "Remove highlight",
-  "minutes.copyHighlight": "Copy highlighted text",
-  "minutes.highlight": "Highlight",
-  "minutes.highlightExists": "This text is already highlighted",
-  "minutes.selectForHighlight": "Select the text you want to highlight first",
-  "minutes.highlightHint": "Select text to highlight it",
-  "minutes.copySelection": "Copy selection",
-  "minutes.copySection": "Copy section",
-  "minutes.copying": "Copying\u2026",
-  "minutes.copied": "Copied to clipboard",
-  "minutes.copiedSelection": "Selected text copied",
-  "minutes.copiedSection": "Copied",
-  "minutes.selectFirst": "Select some text first",
-  "minutes.selectHint": "Select any text to copy, or copy the whole document. Edits made in the source stay in the source.",
-  "minutes.selectHintFoot": "Select any text to copy",
-  "minutes.regenerateHint": "Regenerating replaces the AI minutes section; your own notes are kept.",
-  "minutes.hintNoKey": "Minutes need a text model: add an API key in Settings \u2192 MeetClip \u2192 Models.",
-  "minutes.hintInvalidKey": "The AI key is invalid or has no model access. Save it again in Settings.",
-  "minutes.hintRetry": "A text model is configured; regenerate to try again.",
-  "minutes.hintInvalidConfigured": "A key is configured{model}, but the last call was rejected{error}. Regenerate to try again; if it keeps failing, check the key and model in Settings \u2192 MeetClip \u2192 Models.",
-  "minutes.checkModel": "Check model",
-  "minutes.checking": "Checking\u2026",
-  "minutes.checkOk": "Key works",
-  "minutes.checkOkHint": "Click Generate to retry.",
-  "minutes.stateVerified": "Model ready",
-  "minutes.hintVerified": "Model check passed. Click Generate to write these notes.",
-  "minutes.checkFailed": "Check failed",
-  "minutes.hintInheritedKey": "Text minutes currently reuse the Mify key. If it has no text-model access, save a separate key under Text summary \u2192 Custom API.",
-  "minutes.hintRateLimited": "The AI service is rate limiting; retrying automatically.",
-  "minutes.hintFailed": "The last attempt failed; the previous version is kept.",
-  "minutes.hintSyncMissing": "The AI minutes have not been written to these notes yet.",
-  "minutes.saveFirst": "Finish saving the current notes (or resolve the conflict) first.",
-  "minutes.backgroundUpdate": "Notes updated in the background",
-  "minutes.backgroundUpdateBody": "AI minutes were just written. Load the latest to keep them, or keep the draft and merge later.",
-  "minutes.loadLatest": "Load latest",
-  "minutes.keepDraft": "Keep draft",
-  "minutes.noTranscript": "Minutes appear after transcription finishes",
-  "speakers.guess": "Recognise from the conversation",
-  "speakers.undo": "Undo",
-  "speakers.accept": "That is them",
-  "speakers.reject": "Not them",
-  "settings.minutes": "Minutes (AI)",
-  "settings.aiProvider": "Service",
-  "settings.aiBase": "Base URL",
-  "settings.aiModel": "Model",
-  "settings.aiModels": "List models",
-  "settings.aiKey": "API Key",
-  "settings.aiSaveKey": "Save and check",
-  "settings.aiCheck": "Check key",
-  "settings.aiRemoveKey": "Remove key",
-  "settings.minutesWhen": "When to write them",
-  "settings.minutesMode": "Mode",
-  "settings.minutesLanguage": "Language",
-  "settings.minutesInterval": "Interval (seconds)",
-  "settings.autoEnd": "End when nobody speaks",
-  "settings.autoEndMode": "Mode",
-  "settings.autoEndAfter": "Silent minutes",
-  "detail.marks": "Marks",
-  "detail.shots": "Screenshots",
-  "detail.info": "Info",
-  "detail.transcript": "Transcript",
-  "detail.noTranscript": "No transcript yet",
-  "detail.noTranscriptHint": "Timestamped text appears after capture or import completes.",
-  "detail.noMarks": "No marks",
-  "detail.noShots": "No screenshots",
-  "detail.noNotes": "No notes",
-  "detail.source": "Source",
-  "detail.duration": "Duration",
-  "detail.status": "Status",
-  "detail.kind": "Kind",
-  "detail.queue": "Queue",
-  "detail.shotCount": "Screenshots",
-  "detail.transcriptCount": "Segments",
-  "detail.markCount": "Marks",
-  "detail.speakers": "Speakers",
-  "detail.more": "More",
-  "detail.rename": "Rename",
-  "detail.duplicate": "Duplicate",
-  "detail.delete": "Delete record",
-  "detail.deleteBody": "The record, media, screenshots and transcript move to Trash and can be recovered before emptying it.",
-  "detail.deleted": "Moved to Trash",
-  "detail.find": "Find",
-  "detail.findPlaceholder": "Find in transcript, marks or OCR",
-  "detail.noSpeakers": "No speakers",
-  "detail.livePreview": "Live preview",
-  "detail.hlsUnsupported": "This browser cannot play live HLS directly; the player arrives in the next milestone.",
-  "detail.connecting": "Connecting to the live stream\u2026",
-  "detail.connectingHint": "Capture started; waiting for the first keyframe segment (a few seconds). Playback starts automatically.",
-  "detail.hlsReconnecting": "Live stream interrupted \u2014 reconnecting\u2026",
-  "detail.hlsFailed": "The live stream is not playable right now",
-  "detail.hlsOffline": "The connection to the live source dropped; retrying automatically. You can also retry manually.",
-  "detail.hlsRetryHint": "The player retried several times; press Retry to reconnect.",
-  "detail.mutedPlayback": "Playing muted",
-  "detail.unmute": "Click to unmute",
-  "detail.preparingReplay": "Preparing the replay file; seeking works once it is ready.",
-  "detail.readOnly": "Read only",
-  "detail.preview": "Preview",
-  "detail.error": "Could not load this record",
-  "status.pending": "Pending",
-  "status.queued": "Queued",
-  "status.recording": "Recording",
-  "status.processing": "Processing",
-  "status.done": "Done",
-  "status.error": "Error",
-  "status.partial": "Partly done",
-  "status.cancelled": "Cancelled",
-  "kind.live": "Live",
-  "kind.link_video": "Video",
-  "kind.meeting": "Meeting",
-  "kind.doc": "Feishu document",
-  "new.title": "New",
-  "new.launch": "Live",
-  "new.video": "Video",
-  "new.meeting": "Meeting",
-  "new.doc": "Doc",
-  "new.url": "Link",
-  "new.precheck": "Check",
-  "new.checking": "Reading\u2026",
-  "new.start": "Start capture",
-  "new.add": "Add to queue",
-  "new.preview": "Preview",
-  "new.previewAll": "Preview all",
-  "new.close": "Close",
-  "new.submit": "Submit",
-  "new.cancel": "Cancel",
-  "new.file": "File",
-  "new.chooseFile": "Choose file",
-  "new.replaceFile": "Choose another",
-  "new.dropHint": "Drop or choose an audio/video file, transcribed offline",
-  "new.titleLabel": "Title",
-  "new.titlePlaceholder": "Defaults to the file name",
-  "new.language": "Language",
-  "new.auto": "Auto",
-  "new.uploading": "Uploading",
-  "new.ready": "Ready to submit",
-  "new.failed": "Failed",
-  "new.duplicate": "Duplicate link",
-  "new.queueAdded": "Added to queue",
-  "new.addedCount": "Added {n}",
-  "new.duplicateCount": "{n} duplicate",
-  "new.failedCount": "{n} failed",
-  "new.continueHint": "Paste more links to add another round",
-  "new.forceHint": "These links are already queued; use the button to add them again",
-  "new.forceDuplicates": "Add duplicates anyway",
-  "new.finish": "Done",
-  "new.batchAdd": "Add to this batch",
-  "new.batchVideoHint": "Adding to \u201C{title}\u201D ({n} so far): one link per line, up to 50; new links stay in this batch card.",
-  "batch.append": "Add more links",
-  "batch.appendTitle": "Add links",
-  "new.videoHint": "One link per line, up to 50; malformed or unsupported links are skipped. Bilibili, Weibo, Douyin, YouTube and X.",
-  "new.launchHint": "Paste a Bilibili live URL and start after the check passes.",
-  "new.meetingHint": "Choose a local audio or video file; transcription is offline and the video stays for playback.",
-  "new.maxLinks": "At most 50 links at a time",
-  "new.mode.auto": "Subtitle first",
-  "new.mode.asr": "Cloud ASR",
-  "new.subtitle": "Subtitle",
-  "new.noPreview": "Not previewed",
-  "new.notSupported": "Unsupported link",
-  "new.notStarted": "Not started",
-  "new.asrNotReady": "The transcription engine is not ready; check speech recognition and models in Settings.",
-  "new.fileSelected": "Selected",
-  "new.queuedAt": "Queue position {n}",
-  "new.openRecord": "Open record",
-  "new.subtitleRequired": "Choose a subtitle language",
-  "new.uploadProgress": "Uploading {p}%",
-  "mark.add": "Mark",
-  "mark.placeholder": "Add a note, Enter to save",
-  "mark.save": "Save",
-  "mark.cancel": "Cancel",
-  "mark.edit": "Edit",
-  "mark.delete": "Delete",
-  "mark.undo": "Undo delete",
-  "mark.deleted": "Mark deleted",
-  "mark.added": "Mark added",
-  "mark.error": "Mark action failed",
-  "mark.shortcut": "M to mark, \u2318Z to undo a delete",
-  "detail.start": "Start capture",
-  "detail.stop": "Stop",
-  "detail.cancelQueue": "Cancel queue",
-  "detail.retry": "Retry",
-  "detail.retranscribe": "Restart transcription",
-  "detail.fillMissing": "Fill missing",
-  "detail.fillMissingMenu": "Fill missing ({count} chunks)",
-  "detail.fillMissingHint": "Only {count} unfinished chunks; completed text is kept",
-  "detail.fillMissingTitle": "Fill unfinished chunks",
-  "detail.fillMissingBody": "Only {count} unfinished chunks (about {time}) will be transcribed; the {done} finished chunks are kept. Continue?",
-  "detail.fillMissingBodyAll": "{count} unfinished chunks (about {time}) will be transcribed; existing content is kept. Continue?",
-  "detail.fillMissingStart": "Start catching up",
-  "detail.fillMissingStarted": "Catching up on unfinished chunks",
-  "detail.partialTitle": "{count} chunks are not transcribed",
-  "detail.partialBody": "About {time} \xB7 {done} chunks done. {reason}; only the missing parts will be transcribed.",
-  "detail.partialReason429": "Cloud ASR was rate-limited",
-  "detail.partialReasonNetwork": "The network dropped",
-  "detail.partialReasonGeneric": "The last run was interrupted",
-  "detail.gapsShow": "Show {count} gaps",
-  "detail.gapsHide": "Hide gaps",
-  "detail.gapJump": "Jump to {start}\u2013{end}",
-  "detail.restart": "Restart transcription",
-  "detail.restartBody": "All {time} of audio will be transcribed again and replace the current transcript. This costs more than filling gaps. Continue?",
-  "detail.restartStarted": "Restarting transcription",
-  "detail.missingChunks": "Unfinished chunks",
-  "detail.missingValue": "{count} \xB7 about {time}",
-  "detail.resumeHint": "Fill missing only processes gaps; restart redoes the whole recording.",
-  "detail.fullRestartHint": "Re-runs the whole recording with the current transcription options.",
-  "detail.startTranscribe": "Start transcription",
-  "detail.startTranscribeTitle": "Start transcribing this record",
-  "detail.startTranscribeBody": "All {time} of audio will be transcribed. You can keep reading existing content while it runs. Continue?",
-  "detail.startTranscribeStarted": "Transcription started",
-  "detail.transcribeOptions": "Transcription options",
-  "detail.noTranscriptText": "This record has not been transcribed yet.",
-  "detail.markAt": "Mark at {time}",
-  "detail.live": "Live",
-  "detail.actions": "Actions",
-  "detail.stopConfirm": "Stop this capture and keep what has been saved?",
-  "detail.cancelConfirm": "Cancel this queued task?",
-  "engine.notReady": "Runtime not installed",
-  "engine.install": "Install runtime"
-};
-function localeId(locale) {
-  try {
-    const snapshot = locale?.getLocale?.() || locale?.getSnapshot?.();
-    const id = snapshot?.id || snapshot?.locale || "";
-    if (id) return String(id);
-  } catch {
-  }
-  try {
-    return String(navigator?.language || "zh-CN");
-  } catch {
-    return "zh-CN";
-  }
-}
-function isChinese(locale) {
-  return /^zh/i.test(localeId(locale));
-}
-function languagePreference() {
-  try {
-    const value = localStorage.getItem("meetclip.locale");
-    if (value === "zh" || value === "en" || value === "auto") return value;
-  } catch {
-  }
-  return "zh";
-}
-function documentIsChinese() {
-  try {
-    const lang = document?.documentElement?.lang || "";
-    return /^zh/i.test(lang);
-  } catch {
-    return false;
-  }
-}
-function translator(locale) {
-  const preference = languagePreference();
-  const chinese = preference === "zh" || preference === "auto" && (isChinese(locale) || documentIsChinese());
-  const dictionary = chinese ? zh : en;
-  return (key) => {
-    const local = dictionary[key];
-    if (typeof local === "string" && local.length > 0) return local;
-    try {
-      const bound = locale?.bind?.("meetclip");
-      const value = typeof bound === "function" ? bound(key) : void 0;
-      if (typeof value === "string" && value.length > 0 && value !== key) return value;
-    } catch {
-    }
-    return zh[key] ?? key;
-  };
-}
-
-// client-src/lib/cards.js
-var ROOT_TTL_MS = 15e3;
-var rootCache = { at: 0, value: { root: "", libraries: [] } };
-async function meetclipContext() {
-  const now2 = Date.now();
-  if (now2 - rootCache.at < ROOT_TTL_MS) return rootCache.value;
-  try {
-    const [result, libraries] = await Promise.all([
-      status2(),
-      listLibraries().catch(() => null)
-    ]);
-    const value = {
-      root: result?.locations?.dataDirCanonical || result?.locations?.dataDir || "",
-      libraries: libraries?.libraries || []
-    };
-    rootCache = { at: now2, value };
-    return value;
-  } catch {
-    rootCache = { at: now2, value: { root: "", libraries: [] } };
-    return rootCache.value;
-  }
-}
-function cardMention(path) {
-  const value = String(path || "");
-  if (!value || /[\u0000-\u001f\u007f-\u009f"]/u.test(value)) return null;
-  return /\s/u.test(value) ? `@"${value}"` : `@${value}`;
-}
-function cardCandidate(card, t, locale) {
-  if (!card || !card.id || !card.title || !card.path) return null;
-  const kind = ["meeting", "link_video", "live", "doc"].includes(card.kind) ? card.kind : "live";
-  const active2 = ["pending", "queued", "recording", "processing"].includes(card.status);
-  const bits = [];
-  if (active2) bits.push(t("list.active"));
-  bits.push(t(`kind.${kind}`));
-  if (kind === "doc" && card.has_content === false) bits.push(t("cards.linkOnly"));
-  const stamp = card.updated_at || card.started_at || card.created_at;
-  if (stamp) bits.push(dateTime(stamp, localeId(locale)));
-  if (Number(card.duration) > 0) bits.push(clock(card.duration));
-  return {
-    name: String(card.title).replace(/\s+/g, " ").trim(),
-    description: bits.filter(Boolean).join(" \xB7 "),
-    icon: "file",
-    section: t("cards.section"),
-    value: JSON.stringify({ id: card.id, title: card.title, path: card.path, kind, url: card.url || "" })
-  };
-}
-function registerCardReferenceSource(ctx, locale) {
-  const triggers = ctx?.get?.("inputTriggers");
-  const sessions = ctx?.get?.("sessions");
-  if (!triggers || typeof triggers.registerSource !== "function") return () => {
-  };
-  if (!sessions?.list?.getSnapshot) return () => {
-  };
-  const t = () => translator(locale);
-  const insertSource = () => {
-    const sources = triggers.live?.sources;
-    return Array.isArray(sources) && sources.some((item) => item.trigger === "@" && item.name === "reference") ? "reference" : "meetclip-cards";
-  };
-  const source = {
-    trigger: "@",
-    name: "meetclip-cards",
-    order: -10,
-    showGroupTitle: false,
-    async candidates(session, { query, signal } = {}) {
-      try {
-        const { root, libraries } = await meetclipContext();
-        if (!root) return [];
-        const cwd = sessions.list.getSnapshot()?.byId?.[session?.sessionId]?.cwd;
-        if (!sameDirectory(cwd, root)) {
-          const foreign = matchLibraryByDir(libraries, cwd);
-          publishLibraryHint(foreign ? { id: foreign.id, name: foreign.name, dataDir: foreign.dataDir } : null);
-          return [];
-        }
-        publishLibraryHint(null);
-        const result = await listCards(query || "", { signal });
-        if (signal?.aborted) return [];
-        return (result?.cards || []).map((card) => cardCandidate(card, t(), locale)).filter(Boolean);
-      } catch {
-        return [];
-      }
-    },
-    onPick({ candidate } = {}) {
-      let card;
-      try {
-        card = JSON.parse(candidate?.value || "{}");
-      } catch {
-        return void 0;
-      }
-      const mention = cardMention(card?.path);
-      if (!mention) return void 0;
-      return {
-        insert: {
-          source: insertSource(),
-          ref: mention,
-          label: card.title || card.id || mention,
-          appearance: "file",
-          clipboardText: mention
-        }
-      };
-    },
-    codec: {
-      clipboardText: (ref) => ref,
-      serialize: (ref) => Promise.resolve(ref)
-    }
-  };
-  try {
-    return triggers.registerSource(source);
-  } catch {
-    return () => {
-    };
-  }
-}
-
 // client-src/lib/styles.js
 init_react_shim();
 function installStyles(css, doc = globalThis.document) {
@@ -51316,7 +53939,14 @@ function apply(ctx) {
         pending = ctx.inject(["sessions", "uiWorkspace"], (scope) => {
           const dispose = installAgentBridge(createAgentBridge({
             sessions: scope.get("sessions"),
-            uiWorkspace: scope.get("uiWorkspace")
+            uiWorkspace: scope.get("uiWorkspace"),
+            conversation: (() => {
+              try {
+                return scope.get("conversation");
+              } catch {
+                return null;
+              }
+            })()
           }));
           scope.effect(() => dispose, "meetclip: agent bridge");
         });
@@ -51333,6 +53963,30 @@ function apply(ctx) {
         }
       };
     }, "meetclip: agent bridge");
+    ctx.effect(() => {
+      let pending;
+      try {
+        pending = ctx.inject(["sessions", "uiWorkspace", "conversation"], (scope) => {
+          const dispose = installAgentBridge(createAgentBridge({
+            sessions: scope.get("sessions"),
+            uiWorkspace: scope.get("uiWorkspace"),
+            conversation: scope.get("conversation")
+          }));
+          scope.effect(() => dispose, "meetclip: agent draft bridge");
+        });
+      } catch {
+        return () => {
+        };
+      }
+      if (pending && typeof pending.catch === "function") pending.catch(() => {
+      });
+      return () => {
+        try {
+          pending?.dispose?.();
+        } catch {
+        }
+      };
+    }, "meetclip: agent draft bridge");
   }
 }
 

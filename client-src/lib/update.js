@@ -1,4 +1,4 @@
-import { openExternal, updateCancel, updateCheck, updateInstall, updateStatus } from './api.js'
+import { openExternal, updateCancel, updateCheck, updateInstall, updateRollback, updateStatus } from './api.js'
 
 const RUNNING_STATES = new Set(['checking', 'downloading', 'verifying', 'installing'])
 const RUNNING_POLL_MS = 1200
@@ -67,16 +67,20 @@ export function updateSummary(status) {
     return { tone: 'pending', text: `${job.phase || '更新中'}${suffix}`, detail: '' }
   }
   if (job?.state === 'error') {
-    return { tone: 'error', text: '更新失败', detail: job.error || job.message || '请重试' }
+    const label = job.kind === 'rollback' ? '回退失败' : '更新失败'
+    return { tone: 'error', text: label, detail: job.error || job.message || '请重试' }
   }
   if (job?.state === 'cancelled') {
     return { tone: 'warn', text: '更新已取消', detail: '已下载的临时文件已清理' }
+  }
+  if (job?.state === 'done' && job.kind === 'rollback' && job.version) {
+    return { tone: 'warn', text: `已回退到 v${job.version}`, detail: '重启 DeepSeek Harness 后生效' }
   }
   if (status.restartRequired) {
     return {
       tone: 'warn',
       text: `已安装 v${status.installedVersion || '?'}`,
-      detail: ''
+      detail: status.restartDirection === 'rollback' ? '重启后回到这个版本' : ''
     }
   }
   if (status.updateAvailable && status.latest) {
@@ -90,6 +94,30 @@ export function updateSummary(status) {
 
 export function isUpdateRunning(status) {
   return Boolean(status?.job && RUNNING_STATES.has(status.job.state))
+}
+
+/**
+ * 可回退的版本（旧备份），最新备份在前。Host 已经按备份时间排好序，这里再按
+ * 版本去重，避免同一版本更新两次时出现两个看不出区别的选项；磁盘上已经是的
+ * 版本也不重复列出。
+ */
+export function rollbackCandidates(status) {
+  const rows = Array.isArray(status?.rollback?.available) ? status.rollback.available : []
+  const installed = typeof status?.installedVersion === 'string' ? status.installedVersion : ''
+  const seen = new Set()
+  const out = []
+  for (const row of rows) {
+    const version = typeof row?.version === 'string' ? row.version.trim() : ''
+    if (!version || version === installed || seen.has(version)) continue
+    seen.add(version)
+    const at = Number(row.at)
+    out.push({
+      version,
+      at: Number.isFinite(at) && at > 0 ? at : 0,
+      direction: row.direction === 'newer' ? 'newer' : row.direction === 'older' ? 'older' : ''
+    })
+  }
+  return out
 }
 
 function describeFailure(failure) {
@@ -180,6 +208,7 @@ export function useUpdate({ enabled = true } = {}) {
     // A source checkout must not be overwritten; it still gets the check result.
     check: () => start('check', () => updateCheck({ autoInstall: status?.target?.kind !== 'source' })),
     install: () => start('install', updateInstall),
+    rollback: (version) => start('rollback', () => updateRollback(version)),
     cancel: () => run('cancel', async () => {
       const result = await updateCancel()
       if (result?.status === 'too-late') {

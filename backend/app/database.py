@@ -163,6 +163,23 @@ CREATE TABLE IF NOT EXISTS doc_cards (
     created_at REAL NOT NULL,
     updated_at REAL NOT NULL
 );
+CREATE TABLE IF NOT EXISTS card_packs (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    created_at REAL NOT NULL,
+    updated_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS card_pack_members (
+    pack_id TEXT NOT NULL,
+    member_type TEXT NOT NULL,         -- session / batch / highlight / note / image / doc
+    member_id TEXT NOT NULL,
+    joined_at REAL NOT NULL,
+    PRIMARY KEY (pack_id, member_type, member_id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pack_member_unique
+    ON card_pack_members(member_type, member_id);
+CREATE INDEX IF NOT EXISTS idx_pack_member_pack
+    ON card_pack_members(pack_id, joined_at);
 """
 
 
@@ -640,6 +657,109 @@ class DB:
 
     def delete_doc_card(self, key):
         self.execute("DELETE FROM doc_cards WHERE key=?", (key,))
+
+    # ---- 首页卡包 ----
+    def list_card_packs(self):
+        return self.query("SELECT * FROM card_packs ORDER BY created_at ASC, id ASC")
+
+    def get_card_pack(self, pack_id):
+        return self.one("SELECT * FROM card_packs WHERE id=?", (pack_id,))
+
+    def list_card_pack_members(self, pack_id=None):
+        if pack_id is None:
+            return self.query("SELECT * FROM card_pack_members ORDER BY joined_at ASC, member_type ASC, member_id ASC")
+        return self.query(
+            "SELECT * FROM card_pack_members WHERE pack_id=? ORDER BY joined_at ASC, member_type ASC, member_id ASC",
+            (pack_id,),
+        )
+
+    def card_pack_for_member(self, member_type, member_id):
+        return self.one(
+            "SELECT * FROM card_pack_members WHERE member_type=? AND member_id=?",
+            (member_type, member_id),
+        )
+
+    def create_card_pack(self, pack_id, title, members):
+        """创建卡包与成员；members 是 [(type,id), ...]，顺序会保留。"""
+        now = time.time()
+        with self.transaction():
+            self._conn.execute(
+                "INSERT INTO card_packs(id,title,created_at,updated_at) VALUES(?,?,?,?)",
+                (pack_id, title, now, now),
+            )
+            for index, (member_type, member_id) in enumerate(members):
+                self._conn.execute(
+                    "INSERT INTO card_pack_members(pack_id,member_type,member_id,joined_at) VALUES(?,?,?,?)",
+                    (pack_id, member_type, member_id, now + index * 0.000001),
+                )
+        return self.get_card_pack(pack_id)
+
+    def update_card_pack(self, pack_id, fields):
+        allowed = {"title", "updated_at"}
+        pairs = []
+        params = []
+        for key, value in fields.items():
+            if key not in allowed:
+                continue
+            pairs.append(f"{key}=?")
+            params.append(value)
+        if not pairs:
+            return self.get_card_pack(pack_id)
+        params.append(pack_id)
+        self.execute(f"UPDATE card_packs SET {', '.join(pairs)} WHERE id=?", tuple(params))
+        return self.get_card_pack(pack_id)
+
+    def add_card_pack_members(self, pack_id, members):
+        now = time.time()
+        with self.transaction():
+            for index, (member_type, member_id) in enumerate(members):
+                self._conn.execute(
+                    "INSERT INTO card_pack_members(pack_id,member_type,member_id,joined_at) VALUES(?,?,?,?)",
+                    (pack_id, member_type, member_id, now + index * 0.000001),
+                )
+            self._conn.execute("UPDATE card_packs SET updated_at=? WHERE id=?", (now, pack_id))
+        return self.get_card_pack(pack_id)
+
+    def remove_card_pack_members(self, pack_id, members):
+        now = time.time()
+        with self.transaction():
+            for member_type, member_id in members:
+                self._conn.execute(
+                    "DELETE FROM card_pack_members WHERE pack_id=? AND member_type=? AND member_id=?",
+                    (pack_id, member_type, member_id),
+                )
+            self._conn.execute("UPDATE card_packs SET updated_at=? WHERE id=?", (now, pack_id))
+        return self.get_card_pack(pack_id)
+    def reorder_card_pack_members(self, pack_id, members):
+        """按给定顺序重写 joined_at；未传的旧成员按原顺序排在最后。"""
+        now = time.time()
+        current = self.list_card_pack_members(pack_id)
+        current_keys = [(str(row.get("member_type") or ""), str(row.get("member_id") or "")) for row in current]
+        wanted = []
+        seen = set()
+        for member_type, member_id in members:
+            key = (str(member_type), str(member_id))
+            if key in seen:
+                continue
+            seen.add(key)
+            wanted.append(key)
+        ordered = wanted + [key for key in current_keys if key not in seen]
+        with self.transaction():
+            for index, (member_type, member_id) in enumerate(ordered):
+                self._conn.execute(
+                    "UPDATE card_pack_members SET joined_at=? WHERE pack_id=? AND member_type=? AND member_id=?",
+                    (now + index * 0.000001, pack_id, member_type, member_id),
+                )
+            self._conn.execute("UPDATE card_packs SET updated_at=? WHERE id=?", (now, pack_id))
+        return self.get_card_pack(pack_id)
+
+
+    def delete_card_pack(self, pack_id):
+        with self.transaction():
+            members = self.list_card_pack_members(pack_id)
+            self._conn.execute("DELETE FROM card_pack_members WHERE pack_id=?", (pack_id,))
+            self._conn.execute("DELETE FROM card_packs WHERE id=?", (pack_id,))
+        return members
 
     # ---- link video queue ----
     def create_link_job(self, sid, queue_order, state="queued", phase="queued"):

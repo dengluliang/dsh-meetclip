@@ -4,6 +4,7 @@ import {
   agentBridgeAvailable,
   createAgentBridge,
   installAgentBridge,
+  openCardAgentDraft,
   sendPromptToAgent
 } from '../client-src/lib/agent.js'
 
@@ -152,6 +153,65 @@ test('老版本没有 sessions.using 时用 retain/release 兜底', async () => 
   assert.deepEqual(prompted, [[[{ type: 'text', text: '兜底' }], 'queue']])
 })
 
+test('openDraft：新建会话并只把结构化 @ 引用放进输入框，不发送', async () => {
+  const { calls, sessions, uiWorkspace, api } = harness()
+  const drafts = []
+  const conversation = {
+    input: {
+      shell(sessionId) {
+        calls.push(['shell', sessionId])
+        return {
+          setDraft(draft) { drafts.push(draft) },
+          focus() { calls.push(['focus', sessionId]) }
+        }
+      }
+    }
+  }
+  const bridge = createAgentBridge({ sessions, uiWorkspace, conversation, api })
+  const result = await bridge.openDraft({
+    path: '会摘卡片/卡包/pack-abc.md',
+    title: '发布会复盘'
+  }, { path: PATH })
+  assert.deepEqual(result, { sessionId: 'session-1' })
+  assert.deepEqual(calls.slice(0, 3), [
+    ['workspaceStatus', PATH],
+    ['create', { workspaceId: 'ws-1' }],
+    ['using', 'session-1', { source: 'meetclip' }]
+  ])
+  assert.equal(calls.some(([kind]) => kind === 'prompt'), false, '不应自动发送')
+  assert.equal(drafts.length, 1)
+  const draft = drafts[0]
+  assert.equal(draft.text, '@会摘卡片/卡包/pack-abc.md ')
+  assert.equal(draft.references.length, 1)
+  assert.deepEqual(draft.references[0], {
+    source: 'reference',
+    ref: '@会摘卡片/卡包/pack-abc.md',
+    offset: 0,
+    length: '@会摘卡片/卡包/pack-abc.md'.length,
+    label: '发布会复盘',
+    clipboardText: '@会摘卡片/卡包/pack-abc.md',
+    appearance: 'file'
+  })
+  assert.equal(calls.some(([kind]) => kind === 'open'), true)
+})
+
+test('openDraft：没有 conversation 服务时退回 startSession 纯文本草稿', async () => {
+  const calls = []
+  const bridge = createAgentBridge({
+    sessions: { async create() { return 'unused' } },
+    uiWorkspace: {
+      async startSession(workspaceId, options) { calls.push([workspaceId, options]) },
+      openSession() {}
+    },
+    api: {
+      async workspaceStatus() { return { available: true, workspace: { id: 'ws-1' } } },
+      async ensureWorkspace() { throw new Error('should not ensure') }
+    }
+  })
+  await bridge.openDraft({ path: '会摘卡片/标题.md', title: '标题' }, { path: PATH })
+  assert.deepEqual(calls, [[undefined, { prompt: '@会摘卡片/标题.md', whenDraftExists: 'replace' }]])
+})
+
 test('installAgentBridge 安装/清理与 trim', async () => {
   const seen = []
   const dispose = installAgentBridge({
@@ -168,4 +228,23 @@ test('installAgentBridge 安装/清理与 trim', async () => {
   assert.equal(agentBridgeAvailable(), false)
   await assert.rejects(() => sendPromptToAgent('你好'), /不支持/)
   await assert.rejects(() => sendPromptToAgent('   '), /还没有输入/)
+})
+
+test('openCardAgentDraft 通过已安装桥打开草稿', async () => {
+  const seen = []
+  const dispose = installAgentBridge({
+    async send() { return {} },
+    async openDraft(card, options) {
+      seen.push([card, options])
+      return { sessionId: 's-draft' }
+    }
+  })
+  try {
+    const result = await openCardAgentDraft({ path: '会摘卡片/卡包/p.md', title: '包' }, { path: PATH })
+    assert.deepEqual(result, { sessionId: 's-draft' })
+    assert.equal(seen.length, 1)
+  } finally {
+    dispose()
+  }
+  await assert.rejects(() => openCardAgentDraft({ path: '' }, { path: PATH }), /可 @/)
 })

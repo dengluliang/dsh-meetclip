@@ -128,7 +128,7 @@ prefs.json（<stateDir>，0o600）
 
 - **配置位置**：`$DSH_HOME/cordis.patch.yml`（user patch，优先级高于 profile patch，且由 HMR 监听）。Host 只往里追加一段带标记注释的 `insert`：`@deepseek-ai/dsh-mcp-client` + `transport: stdio` + 绝对 `npx` 路径 + `PATH`/`npm_config_cache`。写入前备份，重复写入幂等，移除只删这一段；文件不像 YAML 序列或已有别的 `serverName: feishu` 时拒绝写入。
 - **为什么用绝对 npx + 自带 npm 缓存**：DSH 从 Finder 启动时 PATH 往往比登录 shell 短；`dsh-mcp-client` 又会清洗 `DSH_*` 与 `*KEY/PASSWORD/SECRET/TOKEN*` 环境变量。显式 `env` 保证 `npx → node` 能解析，专用缓存避免用户 `~/.npm` 被 sudo 装过导致 EPERM。
-- **版本**：安装时解析一次并固定（`@mi/feishu-mcp-pro@x.y.z`），启动不做网络解析；「检查更新」重新解析并改写同一段。
+- **版本**：安装时解析一次并固定（`<飞书 MCP 包名>@x.y.z`），启动不做网络解析；「检查更新」重新解析并改写同一段。
 - **验证**：安装的最后一步用 MCP `initialize` + `tools/list` 真连一次，报告工具数量；失败不会回滚已写入的配置，只标记「连接待确认」。
 - **登录**：调用包的 `login`（macOS 默认浏览器授权码流，可切 `--device`），Host 只解析 stderr 里的授权链接；令牌由 CLI 自己写 `~/.feishu-mcp-pro/auth.json`，Host 仅读 `open_id`/`expires_at`/`refresh_expires_at`，API 与界面都不返回令牌。
 - **状态判定**：`entryPresent` 读 patch 文本，`entryLive` 读 `ctx.get('loader').entries()`（拿不到时为 `null`，界面显示「重启后生效」）。

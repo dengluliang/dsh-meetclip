@@ -17,7 +17,12 @@ class TaskQueueTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.data = tempfile.TemporaryDirectory(prefix="meetclip-queue-tests-")
-        cls.env = patch.dict(os.environ, {"ZHIBO_DATA_DIR": cls.data.name})
+        # 云端识别需要一份显式配置（插件不再内置网关地址），测试里指到本地示例地址。
+        cls.env = patch.dict(os.environ, {
+            "ZHIBO_DATA_DIR": cls.data.name,
+            "MEETCLIP_ASR_BASE_URL": "https://gateway.example.test/v1",
+            "MEETCLIP_ASR_MODEL": "demo-asr",
+        })
         cls.env.start()
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
         cls.database = importlib.import_module("database")

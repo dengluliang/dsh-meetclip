@@ -23,6 +23,8 @@ class AILayerTests(unittest.TestCase):
         cls.environment = patch.dict(os.environ, {
             "ZHIBO_DATA_DIR": cls.data.name,
             "MEETCLIP_AI_KEY": "test-key",
+            "MEETCLIP_AI_BASE_URL": "https://gateway.example.test/v1",
+            "MEETCLIP_AI_MODEL": "demo-text",
             "MEETCLIP_AI_SPACING": "0",
         })
         cls.environment.start()
@@ -91,13 +93,17 @@ class AILayerTests(unittest.TestCase):
         self.assertEqual(body["max_completion_tokens"], 100)
         self.assertNotIn("max_tokens", body)
 
-    def test_mify_wire_model_adds_provider_prefix(self):
-        cfg = self.providers.Config(provider="mimo", base="https://api.llm.mioffice.cn/v1",
-                                    model="mimo-v2.6-flash", spacing=0.0, json_mode=True,
+    def test_wire_model_prefix_comes_from_env(self):
+        # 供应商前缀不再写死在源码里：需要时由 MEETCLIP_AI_MODEL_PREFIX 指定。
+        cfg = self.providers.Config(provider="mimo", base="https://gateway.example.test/v1",
+                                    model="demo-flash", spacing=0.0, json_mode=True,
                                     thinking="reasoning")
-        self.assertEqual(self.providers.wire_model(cfg), "xiaomi/mimo-v2.6-flash")
-        self.assertEqual(self.providers.wire_model(cfg, "deepseek-v3.1"), "xiaomi/deepseek-v3.1")
-        self.assertEqual(self.providers.wire_model(cfg, "xiaomi/mimo-v2.5"), "xiaomi/mimo-v2.5")
+        self.assertEqual(self.providers.wire_model(cfg), "demo-flash")
+        self.assertEqual(self.providers.wire_model(cfg, "demo-lite"), "demo-lite")
+        with patch.dict(os.environ, {"MEETCLIP_AI_MODEL_PREFIX": "vendor"}):
+            self.assertEqual(self.providers.wire_model(cfg), "vendor/demo-flash")
+            self.assertEqual(self.providers.wire_model(cfg, "demo-lite"), "vendor/demo-lite")
+            self.assertEqual(self.providers.wire_model(cfg, "vendor/demo-pro"), "vendor/demo-pro")
         custom = self.providers.Config(provider="custom", base="https://example.com/v1",
                                        model="gpt-4o", spacing=0.0, json_mode=False, thinking="none")
         self.assertEqual(self.providers.wire_model(custom), "gpt-4o")
@@ -136,7 +142,7 @@ class AILayerTests(unittest.TestCase):
 
     def test_check_key_uses_wire_model(self):
         previous = self.settings.get("ai_text_model")
-        self.settings.update(ai_provider="mimo", ai_base_url="", ai_text_model="mimo-v2.6-flash")
+        self.settings.update(ai_provider="mimo", ai_base_url="", ai_text_model="demo-flash")
         captured = {}
 
         def fake_post(url, key, body, timeout):
@@ -147,7 +153,7 @@ class AILayerTests(unittest.TestCase):
             with patch.object(self.client_mod, "_post_json", side_effect=fake_post):
                 result = self.client_mod.check_key()
             self.assertTrue(result["ok"])
-            self.assertEqual(captured["body"]["model"], "xiaomi/mimo-v2.6-flash")
+            self.assertEqual(captured["body"]["model"], "demo-flash")
         finally:
             self.settings.update(ai_text_model=previous or "")
 

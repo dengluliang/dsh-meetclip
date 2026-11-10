@@ -21,8 +21,9 @@ import minutes_notes
 import minutes_scenarios
 from ai import client as ai_client, keys, metrics
 from database import db
-from minutes_prompt import (FINAL_WINDOW, LIVE_MAX_LINES, MIN_LINES, build, carry_times, context_tail,
-                            merge_window, parse, plan_final, sanitize_topics, strip_point_ids, written_in)
+from minutes_prompt import (FINAL_WINDOW, LIVE_MAX_LINES, MIN_LINES, backfill_point_times, build,
+                            carry_times, context_tail, merge_window, parse, plan_final, sanitize_topics,
+                            strip_point_ids, written_in)
 from ai import providers
 
 STATE_TEXT = {
@@ -342,6 +343,8 @@ class MinutesEngine:
                         return
                     continue
                 merged = merge_window(base, reply) if windowed_final else carry_times(base, reply)
+                # 模型偶尔把 evidence 只写在主题上：按本窗转写给缺锚点的要点补一个时间。
+                backfill_point_times(merged, window)
                 merged["title"] = merged.get("title") or base.get("title") or ""
                 merged["scenario"] = scenario
                 merged["updated_at"] = _now()

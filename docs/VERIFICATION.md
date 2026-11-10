@@ -1,6 +1,92 @@
 # 验证记录
 
-## 0.8.12：纪要时间轴按转写锚定（2026-11-10）
+## 0.9.2 开源去敏（2026-11-10）
+
+### 改动
+
+- 后端：`asr_engines.DEFAULT_URL/DEFAULT_MODEL`、`settings.DEFAULTS["mimo_base_url"/"mimo_model"]`、`ai/providers.DEFAULT_BASE/DEFAULT_MODEL` 全部置空；`validate_config` 对空地址抛「请先填写服务地址（Base URL）」；`default_config` 在未配置时返回空配置而不是抛错，`CloudASRProvider.is_ready()` 同时要求地址与模型，`require_ready` 按缺什么给什么提示。
+- 后端：`ai/client._guard()` 在发请求前拦「没填地址/模型」，`chat()` 先判 Key 再判配置（缺 Key 仍报 `no_key`）；`status()` 新增 `configured` 与 `model_prefix`；`wire_model` 的供应商前缀改为 `MEETCLIP_AI_MODEL_PREFIX`（默认不补）。
+- 后端：新增 `MEETCLIP_AI_BASE_URL` / `MEETCLIP_AI_MODEL` / `MEETCLIP_ASR_BASE_URL` / `MEETCLIP_ASR_MODEL` 环境变量回落，便于 CI 与无界面部署。
+- Host：`asr-probe` / `models-probe` 去掉内置地址与模型，空地址直接报「请先填写服务地址（Base URL）」；`feishu.js` 的包名与 npm 源改为 `settings.feishuPackage` / `settings.feishuRegistry` → 环境变量 → 空，`packageTarget()` 在未配置时给出可照做的中文提示；`status().package` 新增 `configured`。
+- 客户端：`SetupWizard` 首步新增「服务地址」输入（未填地址不拉模型、按钮置灰）；`SettingsModels` 的语音/文字两张卡各新增「服务地址 + 保存地址」，`modelOptions` 排序改为按当前配置的族名；`SetupProgressCards` 的配置表单补地址与模型；`feishuSummary` 优先提示「未配置 MCP 源」并置灰安装按钮。
+- 文档与测试：README / INSTALL / CHANGELOG / ARCHITECTURE / 调研文档里的内网地址、内网 npm 源、私有包名与厂商模型名全部替换为通用描述；前端与后端测试夹具改用 `https://gateway.example.test/v1` + `demo-*` 模型名。
+
+### 自动化验证
+
+- 前端 `node --test tests/*.test.mjs` **242/242** 通过（含 `tests/feishu.test.mjs` 改为显式注入测试包名与源、`tests/host.test.mjs` 的 ASR 探针与模型清单用例改为传 `base_url`、新增「没填地址不发请求」断言）。
+- 后端 `MEETCLIP_TEST_PYTHON=…/python3.12 bash backend/tests/run-all.sh` **29 个测试文件全部 PASS**；重点：`test_cloud_asr` 补「不填 Base URL 返回 400 + 提示」、`test_task_queue` 与 `test_minutes*` 通过环境变量注入示例网关、`test_ai_layer` 的 `wire_model` 用例改为按 `MEETCLIP_AI_MODEL_PREFIX` 断言。
+- 基线对照：同样的后端用例在 git HEAD（0.9.1）上全部 PASS，说明本轮改动没有掩盖既有失败。
+- `node build/build-client.mjs` + `node --check client.js` 通过；重新构建的 `client.js` 里内网域名、内网源、私有包名与厂商前缀 0 命中。
+- 全仓库扫描（源码 / 文档 / 测试 / 构建产物）上述四类标识 0 命中；`backend/data/` 属本地运行数据，已在 `.gitignore` 中排除。
+
+### 手工核对
+
+- 未配置网关时：新建记录、导入会议、写笔记均正常；语音/纪要显示「未配置」并按设置页提示补齐地址，不再出现 URL 解析错误。
+- 设置 → 飞书：未配置 `feishuPackage`/`feishuRegistry` 时显示「未配置 MCP 源」的说明卡，安装按钮置灰；配置后恢复原有安装/登录流程。
+
+## 未发布：会议音视频批量导入自动成包（2026-11-10）
+
+### 改动
+
+- Host 原生选择器去掉 `of type {"public.movie","public.audio"}` 过滤并开启多选；媒体脚本用 `character id 31` 分隔返回路径，空格、中文、逗号不拆坏。目录选择保持原脚本。
+- `MeetingForm` 改为文件列表：多选/多拖拽、逐行上传进度、失败原因、移除；单次最多 20 个；不支持扩展名与重复文件跳过并提示。单文件仍调 `/api/meetings/import`，2 个及以上调新增的 `/api/meetings/import-batch`。
+- 批量接口逐条容错导入，成功 2 条及以上自动创建卡包，默认名 `会议录音 · MM-DD HH:MM`；`packs.create_pack` 新增内部参数 `allow_active_sessions`，只给批量导入使用，手工 `/api/packs` 继续拒绝进行中的记录。
+- `Panel` 处理批量响应并在首页自动打开新卡包（`HomePage` 新增 `packFocus`）；单文件仍打开记录详情。
+- 失败策略：单条路径/扩展名/入队失败不阻塞其他文件；整批总大小校验磁盘剩余空间 −512MB；卡包创建失败返回 `pack_error`，已入队记录不丢。
+
+### 自动化验证
+
+- 前端：`node --test tests/*.test.mjs` **237/237** 通过。新增 `tests/meeting-files.test.mjs` 9 项（视频/音频扩展名、标题与默认卡包名、路径条目、去重、20 上限、批量/单文件载荷）与 `tests/host-picker.test.mjs` 5 项（单选无 UTI 过滤、多选脚本、目录脚本、路径解析）。
+- 后端：`MEETCLIP_TEST_PYTHON=… bash backend/tests/run-all.sh` 29 个测试文件全部 PASS；新增 `test_meeting_import.py` 9 项：单文件兼容且不成包、2 个视频（含 `.mkv`）自动成包且成员为 queued、默认卡包名、部分失败不成包、全部失败 400 + 逐条 results、重复路径只导入一次、单条入队失败不丢另一条、超过 20 条拒绝、手工 `/api/packs` 仍拒绝 active。
+- `build/interaction-smoke.mjs` 通过：会议入口的 pick-file mock 返回两条路径，断言文件列表出现两个 `mc-file-item`、默认卡包名与提交按钮；点击提交后断言 `POST /api/meetings/import-batch` 收到 2 个文件、标题取文件名、`pack_title` 留空，并由 Panel 显示「已导入 2 个文件」toast。
+- `build/render-smoke.mjs`、`node build/build-client.mjs`、`node --check client.js` 通过。
+
+### 视觉
+
+- `node build/build-meeting-preview.mjs && node build/meeting-preview-shot.mjs` 生成 `build/meeting-preview.png`（2 个文件批量态，深色）；`--light` 生成 `build/meeting-preview-light.png`，`--empty` 生成 `build/meeting-preview-empty.png`。两者核对文件行、视频/音频标签、卡包名称输入与按钮状态正常。
+
+### 安装副本与运行态
+
+- 同步前备份整包：`~/.dsh/meetclip/backups/dsh-meetclip-pre-meeting-batch-20261110-150030.tgz`。
+- 已同步 `client.js`、`src/host/files.js`、`src/host/routes.js`、`backend/app/packs.py`、`backend/app/routes/meetings.py`、`backend/app/routes/sessions.py` 到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；工作区/安装副本 `client.js` SHA-256 一致（`0f792fb1…`）。
+- 重启本地引擎（旧 pid 47237 → 65451）；`/api/health` 正常，`/openapi.json` 已包含 `POST /api/meetings/import-batch`。
+- 对运行中的真实后端做只读/无效路径探测：`POST /api/meetings/import-batch` 使用不存在的文件返回 400、`results` 逐条给出「文件不存在或无法访问」；随后 `/api/home` 仍为 13 条记录、1 个既有卡包、`active=0`，没有写入测试记录。
+- **Host 选择器改动需重启 DSH 才能生效**（`src/host/*` 在 DSH 进程内加载）；本地后端已重启，刷新 DSH 页面即可加载新 `client.js`。重启 DSH 后请人工点一次「＋ → 会议录音」，确认可多选且 `.mkv/.flv` 不再置灰。
+- 多文件拖拽上传不依赖 Host 选择器，刷新页面即可使用；批量导入接口已在线。
+
+### 限制
+
+- 系统文件对话框无法用无头浏览器自动点击；多选与 `.mkv/.flv` 不再置灰需要重启 DSH 后人工点一次确认。
+- 批量列表每条记录标题默认文件名，暂不支持逐条编辑；标题可在导入后改名。
+- 卡包默认名按服务端本地时间生成；不做同名校验。
+
+## 未发布：设置 → 关于回退到升级前的本地版本（2026-11-10）
+
+### 自动化
+
+- `node --test tests/*.test.mjs` **223/223** 通过。新增：
+  - `update-host.test.mjs` 6 项：回退把本地 `.update-bak-0.9.0-…` 换回安装目录且当前版本另存为备份、回退后能指定 `0.9.1` 再切回（`restartDirection: rollback`）、两份备份中指定更旧的 `0.8.11`、残缺备份不列入且 `performRollback` 直接调用也先拒绝、交换后校验失败时把原版本和备份都还原、未知版本报可回退列表、源码目录拒绝回退。
+  - `update-routes.test.mjs` 2 项：`POST { action: "rollback", version }` 透传版本并返回 `kind: rollback` 的任务；无备份时 409 `no-rollback`；未知 action 的 400 文案包含 `rollback`。
+  - `update-client.test.mjs` 2 项：`rollbackCandidates` 去重/排除磁盘版本/丢弃非法行；`updateSummary` 渲染「回退失败」「已回退到 vX」「重启后回到这个版本」；构建产物包含回退控件与文案。
+- 回退测试全部在临时目录里跑真实目录交换，没有访问网络；断言回退后 `package.json` 与 `src/host/routes.js` 来自旧备份，且被换下来的版本成为新的 `.update-bak-*`。
+
+### 真实 profile 只读核对
+
+- 用新的 `UpdateManager` 对 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`（0.9.1）只读调用 `status()`：`rollback.canRollback = true`，`available` 为 `0.9.0`（`2026-11-10 13:54:08`）与 `0.8.11`（`2026-11-10 12:26:13`），`direction` 都是 `older`，与 `ls -d …update-bak-*` 的两个目录一致。
+- 没有对真实安装执行回退（会替换正在运行的插件且需要重启 DSH）；交换逻辑由临时目录测试与预览截图覆盖。
+
+### 界面
+
+- `node build/build-about-preview.mjs` 后截图核对浅色与深色：
+  - `build/about-preview-rollback-confirm.png`：「可回退版本」下拉显示 `v0.9.0 · 2026/11/9 14:46:56`，按钮「回退到 v0.9.0」，确认块写明「换回升级前保存在本地的 v0.9.0；当前版本也会另存为本地备份…不联网、不从 GitHub 下载」。
+  - `build/about-preview-rollback-done.png`：摘要「已回退到 v0.9.0 · 重启 DeepSeek Harness 后生效」，进度卡「回退完成 100.0%」，按钮变成「切换回 v0.9.1」，并有「回退后的文件已就位」提示。
+  - `build/about-preview-rollback-none.png`：没有备份时按钮置灰为「回退到升级前版本」，行内说明「只有应用内升级会自动保留升级前的版本」。
+
+### 未执行
+
+- 在真实 DSH 页面点一次回退并重启验证「重启后运行版本变成旧版本」；需要重启当前 DSH 会话，交由用户在安装副本同步后操作。
+
+## 0.8.12 / 0.9.2：纪要时间轴按转写锚定（2026-11-10）
 
 ### 现象
 
@@ -11,31 +97,84 @@
 
 - **模型算的秒数被直接采信**：提示词把转写行渲染成 `[L601 01:09:47 发言人] …`，模型要先把钟点换算成秒填进 `topics[].start`。这次它把 `1:09:47` 算成了 `6587`（1:49:47），`minutes_prompt.parse` 原样存库，时间轴、笔记、导出、卡片和 `meetclip_minutes` 全部照这个数渲染。
 - **长记录终稿分窗只看最后一窗**：678 行按 `FINAL_WINDOW=300` 切成 3 窗，但只有第一窗的提示词带「当前纪要」，且最后一窗的回复会直接替换 `base`，前两窗的章节被丢掉——所以 79 分钟的视频只剩最后 9 分钟。
+- **修好分窗后又暴露第三个问题**：模型会借「整份发回」把前几窗的主题重写一遍，重写后的要点没有证据行号，时间锚点整片丢失（82 条要点只剩 18 条能跳）；偶尔还会把 evidence 只写在主题上、要点里不写（只剩 40 条能跳）。
 
 ### 修复
 
 - `minutes_prompt.topic_start`：主题起点必须落在媒体长度内，且不能晚于自己的第一条证据（容差 5 秒）；比第一条证据早 3 分钟以上也按证据重算。`parse` 与读兜底共用这一条规则。
-- `minutes_prompt.sanitize_topics`：`engine.get()` 读出旧纪要时按证据重算起点（页面、笔记、导出、卡片、Agent 工具共用），`_run` 在直播增量落库前也会先修上一版。
-- `minutes_prompt.merge_window` + `build(carry=True)`：终稿分窗改成每窗带着上一窗的纪要接着整理；模型漏掉的旧主题按起点补回。分窗中任一窗没返回就不落残缺终稿，保留上一版。
-- `carry_times`：同名主题的起点只前移不后移。
+- `minutes_prompt.sanitize_topics`：`engine.get()` 读出旧纪要时按证据重算起点（页面、笔记、导出、卡片、Agent 工具共用），`_run` 在直播增量落库前也会先修上一版；修出来的起点保持单调。
+- 终稿分窗：`build(carry=True)` 把当前纪要发回模型，`merge_window` 以旧主题为准（保留上一窗带证据的版本，只追加本窗新主题）；分窗中任一窗没返回就不落残缺终稿，保留上一版。
+- 跨窗接时间：要点带 6 位短 id（文本 sha1），改写后带回 id、文本相似度或主题起点对得上都能把 `t` / `support` 接回去；输出被 `max_tokens` 截断时预算 4096 → 8192 重试。
+- 兜底回填 `backfill_point_times`：模型只把 evidence 写在主题上时，按文字相似度（≥0.3，限主题自己的时间范围）在本窗转写里补一个锚点。
 - 提示词补一条：`start` 用转写时间换算、必须落在媒体长度内，拿不准就留空。
 
 ### 自动化验证
 
-- `backend/tests/test_minutes.py`：27/27 通过（新增 11 项：起点越界/晚于证据/略早于证据/无证据回落、`sanitize_topics` 幂等与单调、孤证不硬拽、同名主题起点前移、`merge_window` 补回漏掉的旧主题与改标题不重复、分窗终稿保留前窗、`get()` 修旧数据）。
+- `backend/tests/test_minutes.py`：34/34 通过（新增 18 项：起点越界/晚于证据/略早于证据/无证据回落、`sanitize_topics` 幂等与单调、孤证不硬拽、同名主题起点前移、要点改写/带 id 接回时间与依据数、`merge_window` 保留带锚点的旧主题与全局段落、分窗终稿保留前窗、`backfill_point_times`、截断重试、`get()` 修旧数据）。
 - 后端全量：`tests/run-all.sh` 27 个测试文件全部 PASS。
-- 前端：`node --test tests/*.test.mjs` 171/171 通过（本次未改客户端）。
+- 前端：`node --test tests/*.test.mjs` 199/199 通过（本次未改客户端）。
 
 ### 真机验证（运行中的插件后端）
 
-- 修复文件已同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip/backend/app/`（`minutes.py`、`minutes_prompt.py`），后端于 11:55:58 重启加载新代码（pid 72075，端口 8321）。
-- `GET /api/sessions/70fd40a9ce77/minutes`：6 个章节起点由 `6587 / 6727 / 6787 / 6856 / 6946 / 7079` 修正为 `4187 / 4327.9 / 4389.3 / 4491.9 / 4572.4 / 4683.2`，全部在 `covered=4760.5` 之内。
-- `POST /api/sessions/70fd40a9ce77/minutes/notes`：笔记版本 7 → 8，托管纪要段落的锚点同步改为 `1:09:47–1:18:03`。
-- `POST /api/cards/sync`：该记录卡片重建（updated=1，skipped=13），卡片里的时间轴同步修正。
+- 修复文件同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip/backend/app/`（`minutes.py`、`minutes_prompt.py`）并重启后端加载新代码（端口 8321）。
+- 旧数据读兜底：`GET /api/sessions/70fd40a9ce77/minutes` 的 6 个章节起点由 `6587 / 6727 / 6787 / 6856 / 6946 / 7079` 修正为 `4187 / 4327.9 / 4389.3 / 4491.9 / 4572.4 / 4683.2`，全部落在 `covered=4760.5` 之内；笔记与之同步（版本 7 → 8），卡片随 `POST /api/cards/sync` 重建。
+- 重新整理（真实 AI，3 窗）：内容覆盖整条视频，但锚点被模型重写掉，据此补了 `merge_window` 与 id 接时间；再整理一次后是 22 个章节、覆盖 `1:40–1:18:03`。
+- 要点锚点回填（无 AI）：对最终一版跑 `backfill_point_times`，82 条要点中 77 条拿到时间（回填 37 条），笔记（版本 12）与卡片同步刷新；`cover` 与章节起点都保持不变。
 
 ### 限制
 
-- 旧纪要只修时间、不补内容：被丢掉的章节要重新整理一次才会回来（会消耗一次 AI 配额）。
+- 旧纪要只修时间、不补内容：被丢掉的章节要重新整理一次才会回来（消耗一次 AI 配额）。
+- 回填按文字相似度工作，改写幅度特别大的要点仍可能没有锚点（本次 82 条中 5 条）。
+
+## 未发布：首页卡包（2026-11-10）
+
+### 改动
+
+- 散落画布空白右键新增「新建卡包」；拖一张卡到另一张卡中央，160ms 上膛后松手叠成新卡包，默认名 `卡包 N`。上膛前松手仍是普通重排，Esc/pointercancel 取消。
+- 卡包是画布上的一张顶层卡（272×208），成员从墙面收起，卡包继续参与现有 `buildLayout` 避让；外壳叠放真实成员卡。热区只保留无边框的灰色呼吸光晕 + “停一下/松手”胶囊提示，不随画布缩放；黑色虚线/实线已删除。
+- 卡包浮层用墙面原卡片按信息流三列平铺，按住任意卡片即可整卡拖动排序，目标卡中央显示「插入到这里」后按槽位回写 `PATCH /api/packs/{id}/members`；支持打开成员、移出、改名、解散；合并/加入/新建后 5 秒撤销。图钉卡和进行中的记录不能收纳；一张卡只属于一个卡包，最多 60 张。
+- 新增 `card_packs` / `card_pack_members` 表、`backend/app/packs.py`、`routes/packs.py` 与 `/api/packs`；`/api/home` 增加 hydrate 后的 `packs`。成员删除后读取自动跳过；位置仍用本机 `meetclip.scatter.layout.v2`。
+- 散落与信息流都折叠卡包；筛选下任一成员匹配就显示整包，空卡包始终可见。
+
+### 卡片 @ 与右键提问（2026-11-10 二轮）
+
+- **所有首页卡片物化成 @ 卡片**：卡包在 `会摘卡片/卡包/<标题>.md`，便利签/标记/图片/批次分别在 `便利签/`、`标记/`、`图片/`、`批次/`；卡包卡片包含标题、成员类型、成员标题、`session_id` / 文档链接 / 时间点，并提示 Agent 继续用 `meetclip_*` 读取成员详情。`GET /api/cards` 统一返回记录、文档、卡包和这些辅助卡片。
+- **右键提问**：记录、卡包、批次、便利签、标记、图片、飞书文档的右键菜单都加了「基于此卡片/卡包提问」。动作先 `POST /api/cards/sync` 落盘，再按精确 id 调 `GET /api/cards?id=...`，随后 `openCardAgentDraft` 新建 Agent 会话；用 `conversation.input.shell(id).setDraft({text,references})` 放入**结构化 @ 引用**，不自动发送。缺少 `conversation` 输入模型时退回工作区 `startSession` 的纯文本 @ 草稿。
+- 卡片文件按标题命名（同名追加 ` (2)` 等序号），发送后消息里的文件引用也会显示可读标题，不再显示哈希 id；卡包改名后文件名随标题变化，旧标题文件由同步清理。辅助卡片目录只清理带「本文件由会摘自动生成」标记的旧文件，不碰用户手工放进去的文件。
+
+### 自动化验证
+
+- 前端：`node --test tests/*.test.mjs` 242/242 通过（新增卡包候选、Agent structured draft、OpenDraft、卡包排序纯函数、卡包布局/样式断言）。
+- 整卡拖动：`build/scatter-preview` 内注入 pointerdown/pointermove/pointerup，验证按住卡片本体即可拖起、目标卡中央出现「插入到这里」、浮层与落点跟随、松手后行序交换并发出 `PATCH /api/packs/{pack}/members`；截图 `build/pack-reorder-preview.png`。
+- `build/build-client.mjs`、`node --check client.js`、`build/render-smoke.mjs` 通过；`build/interaction-smoke.mjs` 通过，覆盖空白右键建包、160ms 上膛（未满 160ms 仍重排）、拖卡入包、拖卡叠包、全卡片浮层与整卡拖动、右键「基于此卡片/卡包提问」、结构化 @ 草稿、筛选、浮层改名、撤销、解散。
+- 后端：`backend/tests/run-all.sh` 29 个测试文件全部 PASS；`test_packs.py` 7 项，`test_cards.py` 8 项（新增卡包/便利签/标记/图片/批次文件生成、`id` 精确取卡）。`test_home.py` 仍通过。
+- 视觉：`node build/build-scatter-preview.mjs` + 无头 Chrome 生成 `build/pack-preview.png`、`build/pack-hotzone-preview.png`、`build/pack-overlay-preview.png`，核对真实卡叠层、灰色光晕/提示与全卡片信息流；浅色/深色均检查。
+
+### 安装副本与运行态
+
+- 改动前整包备份：`~/.dsh/meetclip/backups/dsh-meetclip-pre-pack-20261110-134604.tgz`。
+- 同步文件：`client.js`、`backend/app/database.py`、`main.py`、`packs.py`、`routes/packs.py`、`routes/sessions.py` 到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；`client.js` SHA-256 工作区/安装副本一致（`9436710d…`）。
+- 安装副本先用临时数据目录在 8399 端口独立启动：`/api/health` 200、`/api/home` 的 `packs` 初始为 `[]`、`POST /api/packs` 创建空包后再取 home 能看到 1 个卡包。
+- 随后重启真实引擎（旧 pid 15849 → 新 pid 27500），`/api/home` 已返回 `packs: []`，真实资料库 `zhibo.db` 已创建 `card_packs` / `card_pack_members` 两张空表，`stats.active=0`。客户端刷新 DSH 页面后加载新 `client.js`。
+- **2026-11-10 13:54 应用内更新把安装副本替换成 0.9.1，卡包代码被覆盖**。核对发现 0.9.1 的 `client.js` / `database.py` / `main.py` / `routes/sessions.py` 与更新前 0.9.0 基线逐字节一致（只差 package/发布元数据），且更新器保留了 `dsh-meetclip.update-bak-0.9.0-20261110-135408-48172`。因此只从该备份恢复 `client.js`、`packs.py`、`database.py`、`main.py`、`routes/packs.py`、`routes/sessions.py`，保留 0.9.1 的发布元数据与许可文件；恢复前当前 0.9.1 快照在 `~/.dsh/meetclip/backups/dsh-meetclip-pre-restore-20261110-135658.tgz`。
+- 恢复后重启真实引擎（pid 27500 → 32818），`/api/home` 立即返回用户更新前创建的卡包 `pack-mwa9vmrl-ab3gz6`（`卡包 1`，3 名成员：两条记录 + 一篇飞书文档），`/api/packs/{id}` 可读；说明卡包数据一直在 SQLite 里，回退的只是应用代码。安装副本 `client.js` 与工作区再次一致（`9436710d…`），版本号仍为 0.9.1。
+- **二轮 UI/性能同步**：2026-11-10 14:27 将新 `client.js`（SHA-256 `964bdb82…`）、`backend/app/database.py`、`packs.py`、`routes/packs.py`、`main.py`、`routes/sessions.py` 同步到安装副本，保留 0.9.1 的 `package.json` 与许可文件；同步前整包快照 `~/.dsh/meetclip/backups/dsh-meetclip-pre-pack-ui2-20261110-142705.tgz`。
+- 重启真实引擎（pid 32818 → 47237），`/openapi.json` 已包含 `PATCH /api/packs/{pack_id}/members`；对不存在卡包调用返回 404（而不是 405），确认排序路由已加载。`/api/home`、`/api/health` 正常。
+- 15:15 用户在当前资料库新建 `miloco 3.0相关讨论`（4 张：`miloco 3.0第一次沟通`、飞书 wiki `Miloco A2 3D空间地图`、`IMG_1302`、`IMG_1301`）；同步后生成 `会摘卡片/卡包/miloco 3.0相关讨论.md`（约 4 个成员、`MEMBER_TYPE_LABELS` 显示为「卡包」）。`GET /api/cards?q=miloco` 返回该卡包、文档和记录三条，`GET /api/cards?id=pack%3A81a26c275e57` 精确命中。此前 `pack-mwa9vmrl-ab3gz6` 的删除属于 13:57 的历史操作，不影响这次新包。
+
+### 卡片 @ 与提问同步
+
+- 同步文件：`client.js`（SHA-256 `b15d271a…`）、`index.js`（`397130c2…`，系统提示补充卡包/辅助卡片说明）、`backend/app/cards.py`（`c8291617…`，标题命名）、`backend/app/routes/cards.py`（`e474f372…`）；同步前整包快照 `~/.dsh/meetclip/backups/dsh-meetclip-pre-card-ask-20261110-154001.tgz`。
+- 后端正 pid `91219`（本次只改前端，未重启）；`POST /api/cards/sync` 返回 `aux.ok=true`，真实库把卡包卡片改为 `会摘卡片/卡包/miloco 3.0相关讨论.md`，旧哈希文件被清理；`/api/cards?id=pack%3A81a26c275e57` 返回新路径。`/api/health` 正常。
+
+### 限制
+
+- 卡包位置只在本机浏览器保存，不跨设备同步（内容随资料库持久化）。
+- v1 不支持包中包、多选批量入包、从浮层直接拖出；移出用浮层按钮。排序通过浮层按住任意卡片拖动，墙面卡包本身不直接拖成员。
+- 触屏/键盘目前没有“新建卡包”的等价入口；桌面右键与拖拽是主路径。
+- 图片卡只生成含路径/尺寸的 Markdown，不附图片字节；需要视觉分析时请把图片作为附件发送。
+- 右键提问会新开一个 Agent 会话（不并入当前会话），并在输入框预置引用；不会自动发送。
+- 超出首页 60 条、文档 12 条等窗口的成员移出后遵循首页现有窗口，不会强行塞回墙面。
 
 ## 0.8.9：首页「＋」三入口菜单 + Agent 对话框（2026-11-09）
 
@@ -254,27 +393,27 @@
 - 原因：`invalid_key`（Key 被网关拒绝/无模型权限）和 `no_key`（没有 Key）在旧状态胶囊里用了同一句文案。
 - 修复：
   - `invalid_key` 显示「AI Key 无效」，`no_key` 才显示「未配置文字模型」；两者分别有独立提示。
-  - 失败时读取 `/api/ai/status`，提示里带上当前模型：「AI Key 已配置（mimo-v2.6-flash），但上次调用被拒绝：AI Key 无效或无模型权限」，并提供「检查模型」按钮直接调 `/api/ai/check`。
+  - 失败时读取 `/api/ai/status`，提示里带上当前模型：「AI Key 已配置（demo-flash），但上次调用被拒绝：AI Key 无效或无模型权限」，并提供「检查模型」按钮直接调 `/api/ai/check`。
   - `own_key=false`（文字总结沿用 Mify/ASR 那把 Key）时额外提示：如该 Key 没有文本模型权限，请在「文字总结 → 自定义 API」单独填 Key。
   - 无 AI 内容时按钮文案改为「生成纪要」，有 AI 段落时才是「重新生成」。
   - 新增深色预览 `build/notes-preview-invalid.png` 复现该状态。
-- 本机实测（2026-11-06）：`/api/ai/status` 返回 `has_key=true`、`own_key=false`、`model=mimo-v2.6-flash`；`/api/ai/check` 当时返回 `invalid_key`。后续定位到这不是 Key 权限，而是模型名少了 Mify 网关要求的 `xiaomi/` 前缀（见下一条）。
+- 本机实测（2026-11-06）：`/api/ai/status` 返回 `has_key=true`、`own_key=false`、`model=demo-flash`；`/api/ai/check` 当时返回 `invalid_key`。后续定位到这不是 Key 权限，而是模型名少了 Mify 网关要求的 `xiaomi/` 前缀（见下一条）。
 - 前端重新构建、`node --check`、render/interaction smoke 均通过；`client.js` 重新同步到安装副本。
 
 
 ### 2026-11-06 根因修复：Mify 网关的模型必须带供应商前缀
 
 - 现象：设置里显示 Key 与模型都已配置，`/api/ai/check` 仍返回 `invalid_key`；网关原始响应是 `{"error":{"message":"该模型未指定供应商","code":"401"}}`。
-- 根因：`/v1/models` 返回的模型 id 不带供应商前缀（如 `mimo-v2.6-flash`），但 `/v1/chat/completions` 需要 `xiaomi/mimo-v2.6-flash`。同一把 Key：
-  - `POST /v1/chat/completions` with `mimo-v2.6-flash` → **401 该模型未指定供应商**；
-  - with `xiaomi/mimo-v2.6-flash` → **200**（`mimo-v2.6-pro`、`xiaomi/deepseek-v3.1` 同样可用）；
-  - `xiaomi/mimo-v2.5-asr` 做文本请求返回 400（它是 ASR 模型，符合预期）。
+- 根因：`/v1/models` 返回的模型 id 不带供应商前缀（如 `demo-flash`），但 `/v1/chat/completions` 需要 `demo-flash`。同一把 Key：
+  - `POST /v1/chat/completions` with `demo-flash` → **401 该模型未指定供应商**；
+  - with `demo-flash` → **200**（`mimo-v2.6-pro`、`xiaomi/deepseek-v3.1` 同样可用）；
+  - `demo-asr` 做文本请求返回 400（它是 ASR 模型，符合预期）。
 - 修复：
   - `backend/app/ai/providers.py` 新增 `wire_model()`：Mify 提供商下，模型 id 没有 `/` 时补 `xiaomi/`；OpenAI/自定义服务保持原样。
   - `ai/client.py` 的 `chat()` 与 `check_key()` 都走 `wire_model()`；设置里仍保存模型清单返回的无前缀 id，设置页下拉不受影响。
   - 401/403 现在把网关原始原因带进错误信息，后续可直接看到「该模型未指定供应商」而不是笼统的 Key 无效。
 - 复验：
-  - `POST /api/ai/check` 返回 `{"ok":true,"seconds":0.42,"provider":"mimo","model":"mimo-v2.6-flash"}`。
+  - `POST /api/ai/check` 返回 `{"ok":true,"seconds":0.42,"provider":"mimo","model":"demo-flash"}`。
   - 临时数据目录 + 真实 Key/模型跑完整 `minutes.engine._run(final=True)`：纪要行 `state=idle`、`version=2`，说明模型输出已解析并落库（未在真实资料库上消耗生成）。
   - 后端重启后 `/api/health` 200（pid 91265）。
   - `tests/test_ai_layer.py` 新增 `wire_model` 与前缀请求体测试，12/12；后端全量 **23/23 文件通过**。
@@ -301,8 +440,8 @@
   - `POST /api/ai/test` 接受 `{provider, base_url, model, api_key?}`，走 `wire_model()` 与 15 秒超时，不写设置。
   - `POST /api/asr/engines/test` 接受 `{base_url, model, api_key?}`，仍用 1 秒合成静音，不上传真实录音；`MiMoProvider` 支持探针直接带一把未保存的 Key。
 - 实测：
-  - `POST /api/ai/test {"provider":"mimo","model":"mimo-v2.6-flash"}` → `ok=true, seconds=0.6, wire_model=xiaomi/mimo-v2.6-flash`。
-  - `POST /api/asr/engines/test {}` → `ok=true, model=xiaomi/mimo-v2.5-asr`，首字 0.17s。
+  - `POST /api/ai/test {"provider":"mimo","model":"demo-flash"}` → `ok=true, seconds=0.6, wire_model=demo-flash`。
+  - `POST /api/asr/engines/test {}` → `ok=true, model=demo-asr`，首字 0.17s。
 - 预览：`build/settings-preview.png`（深色）、`build/settings-preview-light.png`（浅色），两个按钮与结果行均已截图确认。
 
 - 测试：`test_ai_layer` 14/14（新增 wire_model、显式 config/key、截断重试）、`test_asr_custom` 9/9（新增探针带未保存模型/Key、无 Key 拒绝）；后端全量 **23/23 文件通过**；`node --check`、render/interaction/setup smoke、host 14/14 通过。

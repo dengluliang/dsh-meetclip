@@ -1,15 +1,19 @@
-import { boardImageUrl, boardImages, createStickyNote, deleteBoardImage, deleteStickyNote, fileUrl, homeFeed, openExternal, pickFile, stickyNotes, updateStickyNote, uploadBoardImage } from '../../lib/api.js'
+import { addPackMembers, boardImageUrl, boardImages, createPack, createStickyNote, deleteBoardImage, deletePack, deleteStickyNote, fileUrl, homeFeed, listCards, openExternal, pickFile, removePackMembers, renamePack, reorderPackMembers, stickyNotes, syncCards, updateStickyNote, uploadBoardImage } from '../../lib/api.js'
 import { clock, dateTime, kindInfo, statusText } from '../../lib/format.js'
 import { NoteEditor } from './NoteEditor.jsx'
 import { PinMark, ScatterCanvas } from './ScatterCanvas.jsx'
 import { BatchCard } from './BatchCard.jsx'
 import { BatchOverlay } from './BatchOverlay.jsx'
+import { PackCard } from './PackCard.jsx'
+import { PackOverlay } from './PackOverlay.jsx'
 import { entryKey } from './scatter-layout.js'
+import { applyPacks, entryMember, fanPositions, nextPackTitle, packById, packKey, packMatchesFilter, packMemberKey, PACK_TYPE } from './pack-model.js'
 import { CaptureInline } from '../capture/CaptureInline.jsx'
 import { SetupProgressCards } from './SetupProgressCards.jsx'
+import { MAX_MEETING_FILES, filesFromPaths, mergeMeetingFiles } from '../../lib/meetingFiles.js'
 import { ContextMenu, useContextMenu } from '../ContextMenu.jsx'
 import { cancelLink, deleteSession, deleteSessions, revealRecord } from '../../lib/api.js'
-import { sendPromptToAgent } from '../../lib/agent.js'
+import { openCardAgentDraft, sendPromptToAgent } from '../../lib/agent.js'
 import { imageFilesFromClipboard, isBoardImage, looksLikeImageFile, stickyFromClipboard } from '../../lib/paste.js'
 
 const FILTERS = [
@@ -163,7 +167,7 @@ function SessionCard({ item, t, onOpen, onCopyLink, onDelete, onMenu }) {
           <button type="button" data-action="delete" title="删除记录"
             onClick={(event) => { event.stopPropagation(); onDelete(item) }}>删除</button>
         ) : null}
-        {item.source_url ? (
+        {onCopyLink && item.source_url ? (
           <button type="button" onClick={(event) => { event.stopPropagation(); onCopyLink(item.source_url) }}>复制链接</button>
         ) : null}
       </div>
@@ -179,11 +183,19 @@ const DOC_TYPE_LABELS = {
   docs: '飞书文档'
 }
 
-function DocWallCard({ doc, onOpen, t }) {
+function DocWallCard({ doc, onOpen, onMenu, t }) {
   const label = DOC_TYPE_LABELS[doc.doc_type] || t('home.docs.title')
   return (
-    <button type="button" className="mc-doc-wall-card" onClick={() => onOpen(doc)}
-      aria-label={`${label}：${doc.title}`}>
+    <article className="mc-doc-wall-card" role="button" tabIndex={0}
+      aria-label={`${label}：${doc.title}`}
+      onClick={() => onOpen(doc)}
+      onContextMenu={(event) => onMenu?.(doc, event)}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(doc)
+        }
+      }}>
       <span className="mc-doc-wall-top">
         <span>{label}</span>
         <span>{dateTime(doc.updated_at)}</span>
@@ -193,7 +205,7 @@ function DocWallCard({ doc, onOpen, t }) {
         <span>{doc.has_content ? t('home.docs.hasContent') : t('home.docs.linkOnly')}</span>
         <span>{t('home.docs.open')} ↗</span>
       </span>
-    </button>
+    </article>
   )
 }
 
@@ -270,10 +282,20 @@ function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, 
     setPickingFile(true)
     setHint('')
     try {
-      const result = await pickFile('media')
-      if (result?.ok && result.path) {
-        const name = String(result.path).split('/').pop()
-        setCapture({ type: 'meeting', file: { path: result.path, name, bytes: result.bytes || 0 } })
+      const result = await pickFile('media', { multiple: true })
+      const paths = Array.isArray(result?.paths) && result.paths.length
+        ? result.paths
+        : (result?.path ? [result.path] : [])
+      if (paths.length) {
+        const merged = mergeMeetingFiles([], filesFromPaths(paths))
+        if (!merged.files.length) {
+          setHint('只支持音频或视频文件（mp4/mov/mkv/flv/webm/m4v/ts 与常见音频格式）')
+          return
+        }
+        const ignored = merged.rejected.length + merged.duplicates
+        if (merged.overflow) setHint(`单次最多 ${MAX_MEETING_FILES} 个文件，已忽略 ${merged.overflow} 个`)
+        else if (ignored) setHint(`已忽略 ${ignored} 个不支持的文件`)
+        setCapture({ type: 'meeting', files: merged.files })
       } else if (result && !result.cancelled) {
         setHint(result.error || '无法打开文件选择器')
       }
@@ -362,11 +384,12 @@ function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, 
           aria-label={t('home.agent.aria')} aria-busy={sending ? 'true' : 'false'} spellCheck={false} />
         {capture ? (
           <CaptureInline
-            key={`${capture.type}-${capture.url || capture.file?.path || ''}`}
+            key={`${capture.type}-${capture.url || (capture.files || []).map((file) => file.path).join('|') || capture.file?.path || ''}`}
             t={t}
             type={capture.type}
             url={capture.url || ''}
             file={capture.file || null}
+            files={capture.files || null}
             onClose={closeCapture}
             onCreated={created}
             onSubmitted={onCaptureSubmitted}
@@ -412,7 +435,7 @@ function ImageCard({ image, onDelete, onMenu }) {
   return (
     <article className="mc-image-card" onContextMenu={(event) => onMenu?.(event)}>
       <img src={boardImageUrl(image.id)} alt="画板图片" draggable={false} loading="lazy" style={{ aspectRatio: ratio }} />
-      <CardActions label="删除图片卡" onDelete={() => onDelete(image)} />
+      {onDelete ? <CardActions label="删除图片卡" onDelete={() => onDelete(image)} /> : null}
     </article>
   )
 }
@@ -445,7 +468,7 @@ function StickyCard({ note, onToggle, onDelete, onMenu, onEdit }) {
         </div>
       ) : null}
       {!body && note.kind !== 'todo' ? <p className="mc-sticky-text">{note.text}</p> : null}
-      <CardActions label={note.kind === 'todo' ? '删除待办清单' : '删除便利签'} onDelete={() => onDelete(note)} />
+      {onDelete ? <CardActions label={note.kind === 'todo' ? '删除待办清单' : '删除便利签'} onDelete={() => onDelete(note)} /> : null}
     </article>
   )
 }
@@ -474,7 +497,8 @@ function Empty({ t, onNewCapture }) {
 }
 
 export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast, onCaptureCreated,
-  batchFocus = null, onBatchFocusHandled, library = null, dataDir = '' }) {
+  batchFocus = null, onBatchFocusHandled, packFocus = null, onPackFocusHandled,
+  library = null, dataDir = '' }) {
   const [data, setData] = React.useState(null)
   const [items, setItems] = React.useState([])
   const [highlights, setHighlights] = React.useState([])
@@ -482,6 +506,18 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const [openBatchId, setOpenBatchId] = React.useState('')
   const [batchAppend, setBatchAppend] = React.useState(false)
   const [focusedBatchId, setFocusedBatchId] = React.useState('')
+  const [packs, setPacks] = React.useState([])
+  const packsRef = React.useRef(packs)
+  packsRef.current = packs
+  const [openPackId, setOpenPackId] = React.useState('')
+  const [packRenameFocus, setPackRenameFocus] = React.useState(false)
+  const [packBusy, setPackBusy] = React.useState(false)
+  const [packUndo, setPackUndo] = React.useState(null)
+  const packBusyRef = React.useRef(false)
+  const askingCardRef = React.useRef(false)
+  const packUndoTimer = React.useRef(null)
+  const undoBusyRef = React.useRef(false)
+  const layoutApiRef = React.useRef(null)
   const [notes, setNotes] = React.useState([])
   const [images, setImages] = React.useState([])
   const [pins, setPins] = React.useState(readPins)
@@ -502,6 +538,7 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const [confirm, setConfirm] = React.useState(null)
   const [noteEditor, setNoteEditor] = React.useState(null)
   const focusHandledRef = React.useRef(0)
+  const packFocusHandledRef = React.useRef(0)
   const focusClearRef = React.useRef(null)
   const { menu, open: openMenu, close: closeMenu } = useContextMenu()
 
@@ -517,6 +554,7 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
       })
       setHighlights(next.highlights || [])
       setBatches(Array.isArray(next.batches) ? next.batches : [])
+      setPacks(Array.isArray(next.packs) ? next.packs : [])
       setError('')
     } catch (failure) {
       setError(failure?.message || String(failure))
@@ -620,7 +658,9 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     [batches]
   )
   // 布局始终基于全部卡片：筛选只决定显示，不会让整面墙重新洗牌。
-  const allEntries = [
+  // 卡包成员先收起，再由卡包作为一张顶层卡参与避让。
+  // rawEntries 同时给卡包浮层复用：展开后直接用同一套卡片组件，不另做摘要样式。
+  const rawEntries = React.useMemo(() => [
     ...items.filter((item) => !batchMemberIds.has(item.id))
       .map((item) => ({ type: 'session', at: item.started_at || item.created_at || 0, item })),
     ...batchEntries,
@@ -628,19 +668,26 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     ...notes.map((item) => ({ type: 'note', at: item.created_at || 0, item })),
     ...images.map((item) => ({ type: 'image', at: item.created_at || 0, item })),
     ...(data?.documents || []).map((item) => ({ type: 'doc', at: item.updated_at || 0, item }))
-  ].sort((a, b) => {
+  ], [items, batchMemberIds, batchEntries, highlights, notes, images, data])
+  const rawEntryByKey = React.useMemo(
+    () => new Map(rawEntries.map((entry) => [entryKey(entry), entry])),
+    [rawEntries]
+  )
+  const allEntries = React.useMemo(() => applyPacks(rawEntries, packs).sort((a, b) => {
     const pinnedA = pins[`${a.type}-${a.item.id}`] ? 1 : 0
     const pinnedB = pins[`${b.type}-${b.item.id}`] ? 1 : 0
     const activeOf = (entry) => {
       if (entry.type === 'session') return ['recording', 'processing', 'queued'].includes(entry.item.status) ? 1 : 0
       if (entry.type === 'batch') return Number(entry.item.active) > 0 ? 1 : 0
+      if (entry.type === PACK_TYPE) return Number(entry.item.active_count) > 0 ? 1 : 0
       return 0
     }
     return pinnedB - pinnedA || activeOf(b) - activeOf(a) || b.at - a.at
-  })
+  }), [rawEntries, packs, pins])
   const showHighlights = kind === 'all' || kind === 'mark'
   const showNotes = kind === 'all' || kind === 'mark'
-  const entries = allEntries.filter((entry) => {
+  const entries = React.useMemo(() => allEntries.filter((entry) => {
+    if (entry.type === PACK_TYPE) return packMatchesFilter(entry.item, kind)
     if (entry.type === 'batch') {
       if (kind === 'mark' || kind === 'live' || kind === 'meeting') return false
       if (kind === 'active') return Number(entry.item.active) > 0
@@ -655,7 +702,26 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     if (entry.type === 'doc') return kind === 'all' || kind === 'doc'
     if (entry.type === 'highlight') return showHighlights
     return showNotes
-  })
+  }), [allEntries, kind, showHighlights, showNotes])
+  const openPack = React.useMemo(() => packById(packs, openPackId), [packs, openPackId])
+
+  React.useEffect(() => {
+    if (!openPackId) return
+    if (packById(packs, openPackId)) return
+    setOpenPackId('')
+    setPackRenameFocus(false)
+  }, [packs, openPackId])
+
+  React.useEffect(() => () => {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current)
+  }, [])
+
+  // 选中「重命名」时打开浮层并聚焦标题；普通打开不抢焦点。
+  function openPackOverlay(pack, rename = false) {
+    if (!pack?.id) return
+    setOpenPackId(pack.id)
+    setPackRenameFocus(Boolean(rename))
+  }
   const visibleKeys = new Set(entries.map(entryKey))
 
   React.useEffect(() => () => {
@@ -686,6 +752,19 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     return undefined
   }, [batchFocus?.nonce, batchFocus?.id, batches, mode, onBatchFocusHandled])
 
+  React.useEffect(() => {
+    if (!packFocus?.id) return undefined
+    if (packFocusHandledRef.current === packFocus.nonce) return undefined
+    const found = packs.find((pack) => String(pack.id) === String(packFocus.id))
+    if (!found) return undefined
+    packFocusHandledRef.current = packFocus.nonce
+    setKind('all')
+    setOpenPackId(found.id)
+    setPackRenameFocus(false)
+    onPackFocusHandled?.()
+    return undefined
+  }, [packFocus?.nonce, packFocus?.id, packs, onPackFocusHandled])
+
   function togglePin(key) {
     const pinning = !pins[key]
     setPins((current) => {
@@ -713,10 +792,326 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     return { id: 'pin', label: pins[key] ? '取消图钉' : '图钉固定', onSelect: () => togglePin(key) }
   }
 
+  function clearPackUndo() {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current)
+    packUndoTimer.current = null
+    setPackUndo(null)
+  }
+
+  function forgetPin(key) {
+    setPins((current) => {
+      if (!current[key]) return current
+      const next = { ...current }
+      delete next[key]
+      try { localStorage.setItem(PINS_KEY, JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
+
+  function beginPackBusy() {
+    if (packBusyRef.current) return false
+    clearPackUndo()
+    packBusyRef.current = true
+    setPackBusy(true)
+    return true
+  }
+
+  function endPackBusy() {
+    packBusyRef.current = false
+    setPackBusy(false)
+  }
+
+  function replacePack(updated) {
+    if (!updated?.id) return
+    setPacks((current) => {
+      const found = current.some((pack) => String(pack.id) === String(updated.id))
+      if (!found) return [...current, updated]
+      return current.map((pack) => (String(pack.id) === String(updated.id) ? updated : pack))
+    })
+  }
+
+  function schedulePackUndo(label, run) {
+    if (packUndoTimer.current) clearTimeout(packUndoTimer.current)
+    setPackUndo({ label, run })
+    packUndoTimer.current = setTimeout(() => {
+      packUndoTimer.current = null
+      setPackUndo(null)
+    }, 5200)
+  }
+
+  async function runPackUndo() {
+    if (undoBusyRef.current || !packUndo) return
+    const action = packUndo
+    undoBusyRef.current = true
+    packBusyRef.current = true
+    setPackBusy(true)
+    clearPackUndo()
+    try {
+      await action.run()
+    } catch (failure) {
+      onToast?.(failure?.message || '撤销失败，请重试')
+    } finally {
+      undoBusyRef.current = false
+      packBusyRef.current = false
+      setPackBusy(false)
+    }
+  }
+
+  function newPackId() {
+    return `pack-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+  }
+
+  async function createEmptyPack(point) {
+    if (!beginPackBusy()) return
+    try {
+      const result = await createPack({
+        id: newPackId(),
+        title: nextPackTitle(packsRef.current),
+        members: []
+      })
+      const pack = result?.pack
+      if (!pack?.id) throw new Error('卡包创建失败')
+      layoutApiRef.current?.place(packKey(pack.id), point)
+      setPacks((current) => [...current, pack])
+      schedulePackUndo(`已新建「${pack.title}」`, async () => {
+        await deletePack(pack.id)
+        layoutApiRef.current?.remove(packKey(pack.id))
+        forgetPin(packKey(pack.id))
+        setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)))
+        onToast?.('已撤销新建卡包')
+      })
+    } catch (failure) {
+      onToast?.(failure?.message || '新建卡包失败')
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  async function mergeCards({ sourceKey, targetEntry, sourceEntry, targetPosition, sourceOrigin }) {
+    if (!sourceEntry || !targetEntry) return false
+    if (!beginPackBusy()) return false
+    try {
+      if (targetEntry.type === PACK_TYPE) {
+        const pack = packById(packsRef.current, targetEntry.item.id) || targetEntry.item
+        const result = await addPackMembers(pack.id, [entryMember(sourceEntry)])
+        const updated = result?.pack
+        if (!updated?.id) throw new Error('放进卡包失败')
+        replacePack(updated)
+        schedulePackUndo(`已放进「${updated.title}」`, async () => {
+          const undone = await removePackMembers(updated.id, [entryMember(sourceEntry)])
+          if (undone?.pack) replacePack(undone.pack)
+          if (sourceKey && sourceOrigin) layoutApiRef.current?.place(sourceKey, sourceOrigin)
+          onToast?.('已撤销放入卡包')
+        })
+        return true
+      }
+
+      const result = await createPack({
+        id: newPackId(),
+        title: nextPackTitle(packsRef.current),
+        members: [entryMember(targetEntry), entryMember(sourceEntry)]
+      })
+      const pack = result?.pack
+      if (!pack?.id) throw new Error('合成卡包失败')
+      if (targetPosition) layoutApiRef.current?.place(packKey(pack.id), targetPosition)
+      setPacks((current) => [...current, pack])
+      schedulePackUndo(`已合成「${pack.title}」`, async () => {
+        await deletePack(pack.id)
+        layoutApiRef.current?.remove(packKey(pack.id))
+        forgetPin(packKey(pack.id))
+        if (sourceKey && sourceOrigin) layoutApiRef.current?.place(sourceKey, sourceOrigin)
+        if (targetPosition) layoutApiRef.current?.place(entryKey(targetEntry), targetPosition)
+        setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)))
+        onToast?.('已撤销合成，两张卡片已回到原处')
+      })
+      return true
+    } catch (failure) {
+      onToast?.(failure?.message || '合成卡包失败')
+      return false
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  async function renamePackById(pack, title) {
+    if (!pack?.id) return false
+    if (!beginPackBusy()) return false
+    try {
+      const result = await renamePack(pack.id, title)
+      const updated = result?.pack
+      if (!updated?.id) throw new Error('改名失败')
+      replacePack(updated)
+      onToast?.(`已改名为「${updated.title}」`)
+      return true
+    } catch (failure) {
+      onToast?.(failure?.message || '卡包改名失败')
+      return false
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  async function reorderPackRows(pack, members) {
+    if (!pack?.id || !Array.isArray(members)) return false
+    if (!beginPackBusy()) return false
+    try {
+      const result = await reorderPackMembers(pack.id, members.map((member) => ({
+        type: member.type,
+        id: member.id
+      })))
+      const updated = result?.pack
+      if (!updated?.id) throw new Error('保存卡包顺序失败')
+      replacePack(updated)
+      return true
+    } catch (failure) {
+      onToast?.(failure?.message || '保存卡包顺序失败')
+      return false
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  function openPackMember(pack, member) {
+    if (!member) return
+    setOpenPackId('')
+    setPackRenameFocus(false)
+    if (member.type === 'session') {
+      onOpenRecord?.({ id: member.id, title: member.title, kind: member.kind })
+      return
+    }
+    if (member.type === 'batch') {
+      setBatchAppend(false)
+      setOpenBatchId(member.id)
+      return
+    }
+    if (member.type === 'highlight') {
+      onOpenRecord?.({ id: member.session_id, title: member.session_title || member.subtitle, kind: member.kind }, member.ts)
+      return
+    }
+    if (member.type === 'doc') {
+      openDoc({ url: member.url })
+    }
+  }
+
+  async function removePackMember(pack, member) {
+    if (!pack?.id || !member) return
+    if (!beginPackBusy()) return
+    try {
+      const packPosition = layoutApiRef.current?.getPosition(packKey(pack.id))
+      const result = await removePackMembers(pack.id, [{ type: member.type, id: member.id }])
+      const updated = result?.pack
+      if (!updated?.id) throw new Error('移出卡包失败')
+      replacePack(updated)
+      if (packPosition) {
+        layoutApiRef.current?.place(packMemberKey(member), {
+          x: packPosition.x + 96,
+          y: packPosition.y + 60
+        })
+      }
+      onToast?.(`已从「${updated.title}」移出 1 张卡片`)
+    } catch (failure) {
+      onToast?.(failure?.message || '移出卡包失败')
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  async function dissolvePack(pack) {
+    if (!pack?.id) return
+    if (!beginPackBusy()) return
+    try {
+      const packPosition = layoutApiRef.current?.getPosition(packKey(pack.id))
+      const members = Array.isArray(pack.members) ? pack.members : []
+      const spots = fanPositions(packPosition || { x: 0, y: 0 }, members.length)
+      const placements = {}
+      if (packPosition) {
+        members.forEach((member, index) => {
+          if (spots[index]) placements[packMemberKey(member)] = spots[index]
+        })
+      }
+      await deletePack(pack.id)
+      if (Object.keys(placements).length) layoutApiRef.current?.placeMany(placements)
+      layoutApiRef.current?.remove(packKey(pack.id))
+      forgetPin(packKey(pack.id))
+      setPacks((current) => current.filter((row) => String(row.id) !== String(pack.id)))
+      setOpenPackId('')
+      setPackRenameFocus(false)
+      onToast?.(members.length
+        ? `已解散「${pack.title}」，${members.length} 张卡片移出卡包`
+        : `已删除「${pack.title}」`)
+    } catch (failure) {
+      onToast?.(failure?.message || '解散卡包失败')
+    } finally {
+      endPackBusy()
+    }
+  }
+
+  function askCardId(type, item) {
+    if (!item?.id) return ''
+    if (type === 'session' || type === 'doc') return String(item.id)
+    if (type === 'pack') return `pack:${item.id}`
+    return `${type}:${item.id}`
+  }
+
+  async function askAgentAboutCard(type, item) {
+    if (askingCardRef.current) return
+    const cardId = askCardId(type, item)
+    if (!cardId) {
+      onToast?.('这张卡片还没有可用的标识')
+      return
+    }
+    askingCardRef.current = true
+    try {
+      const synced = await syncCards()
+      if (synced && synced.ok === false) {
+        throw new Error(synced.errors?.[0]?.message || '卡片文件同步失败')
+      }
+      const result = await listCards('', { id: cardId, limit: 1 })
+      const card = result?.cards?.[0]
+      if (!card?.path) throw new Error('这张卡片还没有生成可 @ 的文件，请稍后再试')
+      await openCardAgentDraft(card, { path: dataDir })
+    } catch (failure) {
+      onToast?.(failure?.message || '无法在 Agent 中 @ 这张卡片')
+    } finally {
+      askingCardRef.current = false
+    }
+  }
+
+  function packMenu(pack, event) {
+    const key = packKey(pack.id)
+    openMenu(event, [
+      { id: 'ask-pack', label: '基于此卡包提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard('pack', pack) },
+      { separator: true },
+      { id: 'open-pack', label: '打开卡包', onSelect: () => openPackOverlay(pack) },
+      { id: 'rename-pack', label: '重命名', onSelect: () => openPackOverlay(pack, true) },
+      pinAction(key),
+      { separator: true },
+      {
+        id: 'dissolve-pack',
+        label: Number(pack.count) > 0 ? '解散卡包' : '删除卡包',
+        hint: Number(pack.count) > 0 ? '卡片不删除' : '',
+        danger: true,
+        onSelect: () => dissolvePack(pack)
+      }
+    ])
+  }
+
+  function blankPackMenu(event, point) {
+    openMenu(event, [{
+      id: 'new-pack',
+      label: '新建卡包',
+      hint: '把卡片拖进来',
+      onSelect: () => createEmptyPack(point)
+    }])
+  }
+
   function boardEntryMenu(entry, event) {
     const key = `${entry.type}-${entry.item.id}`
-    const actions = []
-    actions.push(pinAction(key), { separator: true })
+    const actions = [
+      { id: 'ask-card', label: '基于此卡片提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard(entry.type, entry.item) },
+      { separator: true },
+      pinAction(key)
+    ]
     if (entry.type === 'highlight') {
       actions.push({ id: 'open', label: '打开记录', onSelect: () => onOpenRecord({ id: entry.item.session_id, title: entry.item.session_title, kind: entry.item.kind }, entry.item.ts) })
     }
@@ -726,12 +1121,14 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     if (entry.type === 'image') {
       actions.push({ id: 'delete', label: '删除图片卡', onSelect: () => removeImage(entry.item) })
     }
-    if (actions.length) openMenu(event, actions)
+    openMenu(event, actions)
   }
 
   function batchMenu(entry, event) {
     const key = `batch-${entry.item.id}`
     openMenu(event, [
+      { id: 'ask-batch', label: '基于此卡片提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard('batch', entry.item) },
+      { separator: true },
       pinAction(key), { separator: true },
       { id: 'open', label: '打开批次', onSelect: () => { setBatchAppend(false); setOpenBatchId(entry.item.id) } },
       { id: 'append-batch', label: '加入新链接', onSelect: () => { setBatchAppend(true); setOpenBatchId(entry.item.id) } },
@@ -986,6 +1383,8 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   function cardMenu(item, event) {
     const pinKey = `session-${item.id}`
     openMenu(event, [
+      { id: 'ask-card', label: '基于此卡片提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard('session', item) },
+      { separator: true },
       pinAction(pinKey), { separator: true },
       { id: 'open', label: '打开记录', onSelect: () => onOpenRecord(item) },
       ...(item.source_url ? [{ id: 'copy', label: '复制链接', onSelect: () => copyLink(item.source_url) }] : []),
@@ -1001,21 +1400,54 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const hero = <Hero stats={data?.stats} items={items} t={t} onFilter={setKind} onOpenRecord={onOpenRecord}
     onCaptureCreated={onCaptureCreated}
     onCaptureSubmitted={() => load(false)} library={library} dataDir={dataDir} />
-  const renderEntry = (entry) => entry.type === 'batch'
-    ? <BatchCard item={entry.item} focused={focusedBatchId === entry.item.id}
-        onOpen={(batch) => { setBatchAppend(false); setOpenBatchId(batch.id) }}
-        onMenu={(event) => batchMenu(entry, event)}
-        onDelete={askDeleteBatch} />
-    : entry.type === 'note'
-      ? <StickyCard note={entry.item} onToggle={toggleNote} onDelete={removeNote}
-          onEdit={openNoteEditor} onMenu={(event) => boardEntryMenu(entry, event)} />
-      : entry.type === 'image'
-        ? <ImageCard image={entry.item} onDelete={removeImage} onMenu={(event) => boardEntryMenu(entry, event)} />
-        : entry.type === 'highlight'
-          ? <HighlightCard item={entry.item} onOpen={onOpenRecord} onMenu={(event) => boardEntryMenu(entry, event)} />
-          : entry.type === 'doc'
-            ? <DocWallCard doc={entry.item} onOpen={openDoc} t={t} />
-            : <SessionCard item={entry.item} t={t} onOpen={onOpenRecord} onCopyLink={copyLink} onDelete={askDelete} onMenu={cardMenu} />
+  function docMenu(doc, event) {
+    openMenu(event, [
+      { id: 'ask-doc', label: '基于此卡片提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard('doc', doc) },
+      { separator: true },
+      { id: 'open-doc', label: '打开文档', onSelect: () => openDoc(doc) }
+    ])
+  }
+
+  // options.packMode：卡包浮层里复用同一张卡，但去掉删除/复制/右键等墙面动作。
+  const renderEntry = (entry, options = {}) => {
+    const packMode = Boolean(options.packMode)
+    const openMember = options.onOpenMember
+    if (entry.type === PACK_TYPE) {
+      return <PackCard item={entry.item} memberEntries={rawEntryByKey} t={t}
+        onOpen={(pack) => openPackOverlay(pack)}
+        onMenu={(event) => packMenu(entry.item, event)} />
+    }
+    if (entry.type === 'batch') {
+      return <BatchCard item={entry.item} focused={!packMode && focusedBatchId === entry.item.id}
+        onOpen={packMode ? () => openMember?.(entry) : (batch) => { setBatchAppend(false); setOpenBatchId(batch.id) }}
+        onMenu={packMode ? undefined : (event) => batchMenu(entry, event)}
+        onDelete={packMode ? undefined : askDeleteBatch} />
+    }
+    if (entry.type === 'note') {
+      return <StickyCard note={entry.item} onToggle={toggleNote}
+        onDelete={packMode ? undefined : removeNote}
+        onEdit={packMode ? undefined : openNoteEditor}
+        onMenu={packMode ? undefined : (event) => boardEntryMenu(entry, event)} />
+    }
+    if (entry.type === 'image') {
+      return <ImageCard image={entry.item}
+        onDelete={packMode ? undefined : removeImage}
+        onMenu={packMode ? undefined : (event) => boardEntryMenu(entry, event)} />
+    }
+    if (entry.type === 'highlight') {
+      return <HighlightCard item={entry.item}
+        onOpen={packMode ? () => openMember?.(entry) : onOpenRecord}
+        onMenu={packMode ? undefined : (event) => boardEntryMenu(entry, event)} />
+    }
+    if (entry.type === 'doc') {
+      return <DocWallCard doc={entry.item} onOpen={packMode ? () => openMember?.(entry) : openDoc} onMenu={packMode ? undefined : docMenu} t={t} />
+    }
+    return <SessionCard item={entry.item} t={t}
+      onOpen={packMode ? () => openMember?.(entry) : onOpenRecord}
+      onCopyLink={packMode ? undefined : copyLink}
+      onDelete={packMode ? undefined : askDelete}
+      onMenu={packMode ? undefined : cardMenu} />
+  }
 
   return (
     <div className={`mc-home ${mode === 'scatter' ? 'is-scatter' : 'is-feed'}`} ref={homeRef}>
@@ -1035,6 +1467,9 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
             focusKey={focusedBatchId ? `batch-${focusedBatchId}` : ''}
             onShowAll={() => setKind('all')}
             onToast={onToast}
+            onMergeCards={mergeCards}
+            onBlankContextMenu={blankPackMenu}
+            layoutApiRef={layoutApiRef}
           />
         </>
       ) : (
@@ -1058,10 +1493,14 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
             <div className="mc-home-wall">
               {entries.map((entry) => {
                 const pinned = Boolean(pins[`${entry.type}-${entry.item.id}`])
+                const active = (entry.type === 'session' && isActiveTask(entry.item))
+                  || (entry.type === 'batch' && Number(entry.item.active) > 0)
+                  || (entry.type === PACK_TYPE && Number(entry.item.active_count) > 0)
                 return (
-                  <div className={`mc-home-cell${pinned ? ' is-pinned' : ''}${pinned && pinFlash === `${entry.type}-${entry.item.id}` ? ' is-pinning' : ''}${(entry.type === 'session' && isActiveTask(entry.item)) || (entry.type === 'batch' && Number(entry.item.active) > 0) ? ' is-active' : ''}`}
-                    data-active={(entry.type === 'session' && isActiveTask(entry.item)) || (entry.type === 'batch' && Number(entry.item.active) > 0) ? 'true' : undefined}
+                  <div className={`mc-home-cell${pinned ? ' is-pinned' : ''}${pinned && pinFlash === `${entry.type}-${entry.item.id}` ? ' is-pinning' : ''}${active ? ' is-active' : ''}`}
+                    data-active={active ? 'true' : undefined}
                     data-batch-id={entry.type === 'batch' ? entry.item.id : undefined}
+                    data-pack-id={entry.type === PACK_TYPE ? entry.item.id : undefined}
                     key={`${entry.type}-${entry.item.id}`}>
                     {pinned ? <PinMark /> : null}
                     {renderEntry(entry)}
@@ -1095,6 +1534,12 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
         <span className="mc-home-dock-count">{count} 条</span>
         <button type="button" className="mc-home-add" aria-label="新建采集" title="新建采集" onClick={() => onNewCapture({})}>＋</button>
       </div>
+      {packUndo ? (
+        <div className="mc-pack-undo" role="status">
+          <span>{packUndo.label}</span>
+          <button type="button" onClick={runPackUndo}>撤销</button>
+        </div>
+      ) : null}
       {noteEditor ? (
         <NoteEditor
           key={noteEditor.note?.id || 'note'}
@@ -1109,6 +1554,20 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
         />
       ) : null}
       <ContextMenu menu={menu} onClose={closeMenu} />
+
+      {openPack ? (
+        <PackOverlay pack={openPack} t={t}
+          busy={packBusy}
+          renameFocus={packRenameFocus}
+          memberEntries={rawEntryByKey}
+          renderEntry={renderEntry}
+          onClose={() => { setOpenPackId(''); setPackRenameFocus(false) }}
+          onOpenMember={openPackMember}
+          onRemoveMember={removePackMember}
+          onDissolve={dissolvePack}
+          onRename={(title) => renamePackById(openPack, title)}
+          onReorder={(members) => reorderPackRows(openPack, members)} />
+      ) : null}
 
       {openBatch ? (
         <BatchOverlay batch={openBatch} t={t}

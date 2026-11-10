@@ -14,6 +14,34 @@
 
 如果插件从源码目录运行（`packageRoot` 不在 `node_modules/@meetclip/dsh-meetclip` 下），自动安装会被拒绝，只提示 `git pull`，避免覆盖源码。
 
+## 版本回退（升级前的本地副本）
+
+升级后如果新版本有问题，**设置 → 关于** 提供「回退到 vX」：它把安装目录换回**本机升级前自动保留的那份副本**，不联网、不从 GitHub 下载旧版本，也不动资料库、笔记和转写。
+
+「关于」页新增：
+
+- 「可回退版本」一行：列出本机升级备份（版本 + 备份时间），多于一个时用下拉选择；只列完整备份，当前磁盘版本不会重复出现。
+- 「回退到 vX」按钮：先弹一行确认（会说明当前版本也会另存为备份），确认后在后台交换目录；进度卡显示「回退中 / 回退完成」。
+- 回退完成后提示重启 DeepSeek Harness；重建 DSH 不会自动重启，所以界面先显示「已安装 vX · 重启后生效」和「回退后的文件已就位」。
+
+回退的语义与边界：
+
+- 备份来自更新器替换前把旧目录改名成的 `dsh-meetclip.update-bak-<旧版本>-<时间戳>-<序号>`；只有用过应用内更新才会产生。
+- 手工装 tgz、从源码目录运行、或手工删掉了 `.update-bak-*` 目录时没有可回退版本，按钮置灰并说明原因。
+- 交换前先校验备份包名和必需文件；校验或交换失败会立即把原目录改回去，安装副本保持可用。
+- 交换时当前磁盘版本也会另存为新的 `.update-bak-<当前版本>-…`，所以回退之后再点一次就能切回来（按钮文案会变成「切换回 vX」）。
+- 只替换插件代码目录；资料库、`~/.dsh/meetclip/` 运行时状态、Python 环境和 profile 依赖清单都不变。
+
+如果新版本连界面都打不开、点不到按钮，可以在终端手工做同样的事（换完重启 DSH）：
+
+```sh
+cd ~/.dsh/profiles/desktop/node_modules/@meetclip
+mv dsh-meetclip "dsh-meetclip.broken-$(date +%Y%m%d-%H%M%S)"
+mv dsh-meetclip.update-bak-0.9.0-20261110-135408-48172 dsh-meetclip
+```
+
+备份目录名以 `ls -d dsh-meetclip.update-bak-*` 的实际输出为准；`.broken-*` 目录不需要时可以手工删掉。
+
 ## Host API
 
 ### `GET /meetclip/app/update`
@@ -45,12 +73,19 @@
   },
   "updateAvailable": false,
   "lastCheckAt": 1794283744905,
+  "restartDirection": "",
   "recovery": null,
+  "rollback": {
+    "available": [
+      { "id": "dsh-meetclip.update-bak-0.9.0-20261110-135408-48172", "version": "0.9.0", "at": 1794290048000, "direction": "older" }
+    ],
+    "canRollback": true
+  },
   "job": null
 }
 ```
 
-`updateAvailable` 比较的是「最新版本」和 `max(currentVersion, installedVersion)`，因此更新已下载但还没重启时不会再次提示或重复下载。
+`updateAvailable` 比较的是「最新版本」和 `max(currentVersion, installedVersion)`，因此更新已下载但还没重启时不会再次提示或重复下载。`restartRequired` 表示磁盘版本与运行版本不同；`restartDirection` 为 `update` 或 `rollback`，用来区分重启后是升级还是回退。`rollback.available` 是本机升级备份（已过完整性检查、已排除磁盘上的当前版本），`direction` 表示该备份比磁盘版本旧（`older`）还是新（`newer`）。
 
 ### `POST /meetclip/app/update`
 
@@ -60,6 +95,7 @@
 
 - `check`：检查并（默认）自动安装。返回 `{ ok: true, job }` 后任务在后台跑，客户端轮询 GET。
 - `install`：安装已经检查到的最新版本；没有可安装版本返回 409。
+- `rollback`：用本机升级备份回退；`version` 可选，缺省用最近一份备份。没有可用备份返回 409 `no-rollback`，源码方式运行返回 409 `target-source`，任务进行中返回 409 `update-busy`。
 - `cancel`：取消检查/下载。返回 `{ ok: true, status: "cancelled" | "too-late" | "not-running" }`。
 
 ### job 状态
@@ -68,6 +104,7 @@
 {
   "state": "downloading",
   "phase": "下载中",
+  "kind": "update",
   "percent": 42.3,
   "received": 297795,
   "total": 704007,
@@ -81,7 +118,7 @@
 }
 ```
 
-`state`：`checking` → `downloading` → `verifying` → `installing` → `done`，异常为 `error` 或 `cancelled`。`percent` 在下载阶段是数字，在校验/安装阶段是 `null`（界面显示不确定态）。
+`state`：`checking` → `downloading` → `verifying` → `installing` → `done`，异常为 `error` 或 `cancelled`。`percent` 在下载阶段是数字，在校验/安装阶段是 `null`（界面显示不确定态）。`kind` 为 `update` 或 `rollback`；回退不下载，直接从 `installing` 开始并沿用同一组状态（`phase` 显示「回退中 / 回退完成」，失败时显示「回退失败」）。
 
 ## 更新源
 
@@ -142,6 +179,9 @@ API 回退会取 `.tgz` 资产的 `digest`；没有 digest 时读取同 Release 
 | 路径穿越 / 符号链接 | 拒绝整包，不写目标目录 |
 | 目标不可写 / 磁盘满 | 明确错误；不动现有版本 |
 | 替换中途失败 | 从备份还原；下次启动再兜底恢复 |
+| 没有升级备份 | 回退按钮置灰，说明只有应用内升级会保留升级前版本 |
+| 备份不完整 | 不列入可回退版本；直接调用也会先拒绝，不动安装目录 |
+| 回退交换失败 | 把原目录改回去，运行版本不受影响 |
 | 并发点击 | 409「已有更新任务」 |
 | 源码目录运行 | 不覆盖，提示 `git pull` |
 
@@ -159,5 +199,6 @@ API 回退会取 `.tgz` 资产的 `digest`；没有 digest 时读取同 Release 
 
 - 不自动重装 Python 依赖；改了 `backend/requirements.txt` 需要在设置里重装运行环境。
 - 不自动重启 DSH，也不修改 profile 的依赖清单；手动重装插件可能回到安装时的旧 tgz。
+- 回退只在本地交换目录：不检查 GitHub 上有没有更旧/更新的发布，也不会删除用户手工建的 `.bak-*`。保留最近 2 份更新备份（含回退时另存的那份），更早的会被清理。
 - 不自动读取 `HTTPS_PROXY`；网络受限环境需要系统级代理。
 - 主要验证平台是 macOS；Windows 的 rename 失败会退化为复制，但未实测。

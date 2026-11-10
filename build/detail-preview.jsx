@@ -101,9 +101,9 @@ const detail = {
   asr_status: 'partial',
   asr_failures: failures,
   error: `有 ${failures.length} 个音频片段未完成转录，可补转录`,
-  asr_engine: { provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr' },
+  asr_engine: { provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr' },
   meta: {
-    asr_engine: { provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr' },
+    asr_engine: { provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr' },
     diarize: true,
     hotwords: '',
     language_hint: '',

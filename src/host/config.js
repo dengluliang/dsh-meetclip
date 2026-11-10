@@ -46,6 +46,10 @@ export function normalizeConfig(raw) {
     // shorter PATH than the login shell, so both binaries can be pinned explicitly.
     feishuNode: typeof config.feishuNode === 'string' && config.feishuNode.trim() ? path.resolve(config.feishuNode.trim()) : null,
     feishuNpx: typeof config.feishuNpx === 'string' && config.feishuNpx.trim() ? path.resolve(config.feishuNpx.trim()) : null,
+    // The Feishu MCP server lives on a private registry, so the package name and
+    // the registry URL are configuration, not constants. Empty = not configured.
+    feishuPackage: typeof config.feishuPackage === 'string' ? config.feishuPackage.trim() : '',
+    feishuRegistry: typeof config.feishuRegistry === 'string' ? config.feishuRegistry.trim() : '',
     // Update feed is intentionally opt-in: the public default points at the
     // upstream GitHub Releases, and forks can override it without editing code.
     updateRepo: typeof config.updateRepo === 'string' && config.updateRepo.trim() ? config.updateRepo.trim() : '',

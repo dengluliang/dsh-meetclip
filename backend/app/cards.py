@@ -22,11 +22,34 @@ from urllib.parse import urlparse
 
 import minutes
 import minutes_notes
+import packs
 from database import DATA_DIR, db
 
 CARD_DIR_NAME = "会摘卡片"
 GENERATOR = "cards-v1"
 DOC_GENERATOR = "doc-cards-v1"
+PACK_GENERATOR = "pack-cards-v1"
+PACK_DIR_NAME = "卡包"
+NOTE_DIR_NAME = "便利签"
+MARK_DIR_NAME = "标记"
+IMAGE_DIR_NAME = "图片"
+BATCH_DIR_NAME = "批次"
+AUX_DIRS = {
+    "note": NOTE_DIR_NAME,
+    "highlight": MARK_DIR_NAME,
+    "image": IMAGE_DIR_NAME,
+    "batch": BATCH_DIR_NAME,
+    "pack": PACK_DIR_NAME,
+}
+MEMBER_TYPE_LABELS = {
+    "session": "记录",
+    "batch": "批次",
+    "highlight": "标记",
+    "note": "便利签",
+    "image": "图片",
+    "doc": "文档",
+    "pack": "卡包",
+}
 
 MAX_MINUTES_CHARS = 12_000
 MAX_NOTES_CHARS = 6_000
@@ -480,6 +503,236 @@ def build_doc_card(row: dict) -> tuple[str, str]:
     return "\n".join(lines).strip() + "\n", search
 
 
+
+def _stamp_text(value) -> str:
+    try:
+        return time.strftime("%Y-%m-%d %H:%M", time.localtime(float(value)))
+    except Exception:
+        return ""
+
+
+def _note_title(row) -> str:
+    text = str(row.get("text") or "").strip()
+    for line in text.splitlines():
+        line = re.sub(r"^\s*-\s+(?:\[[ xX]\]\s*)?", "", line).strip()
+        if line:
+            return _clean(line)[:80]
+    return "便利签"
+
+
+def _mark_title(row) -> str:
+    return _clean(row.get("note"))[:80] or "标记"
+
+
+def _image_title(row) -> str:
+    stamp = _stamp_text(row.get("created_at"))
+    return f"图片卡{f' · {stamp}' if stamp else ''}"
+
+
+def _aux_title(kind: str, row: dict) -> str:
+    if kind == "note":
+        return _note_title(row)
+    if kind == "highlight":
+        return _mark_title(row)
+    if kind == "image":
+        return _image_title(row)
+    if kind == "batch":
+        return _clean(row.get("title"))[:160] or "批量视频"
+    return _clean(row.get("title"))[:160] or "卡包"
+
+
+def _aux_file_names(kind: str, rows: list[dict]) -> dict[str, str]:
+    """按标题分配文件名；同名追加序号，排序按创建时间固定，避免每轮抖动。"""
+    ordered = sorted(rows, key=lambda row: (
+        float(row.get("created_at") or row.get("started_at") or 0),
+        str(row.get("id") or ""),
+    ))
+    used: set[str] = set()
+    names: dict[str, str] = {}
+    for row in ordered:
+        identifier = str(row.get("id") or "").strip()
+        if not identifier:
+            continue
+        title = _aux_title(kind, row)
+        base = safe_filename(title, f"{kind}-{identifier}")
+        name = _unique_file(base, used)
+        used.add(name.casefold())
+        names[identifier] = name
+    return names
+
+
+def _aux_common_head(title: str, kind: str, identifier: str, stamp: str, extra: str = "") -> list[str]:
+    lines = [f"# {title}", ""]
+    bits = [f"{MEMBER_TYPE_LABELS.get(kind, '卡片')}"]
+    if stamp:
+        bits.append(stamp)
+    lines.append("> 会摘卡片 · " + " · ".join(bits))
+    lines.append(f"> 卡片 ID：`{kind}:{identifier}`")
+    if extra:
+        lines.append(extra)
+    lines += [
+        "",
+        "## 怎么用",
+        "这是用户在会摘首页 @ 选中的卡片。回答前先读本文件；"
+        "如果这是便利签、标记、图片或批次，本文件就是它的上下文。",
+        "",
+    ]
+    return lines
+
+
+def build_note_card(row: dict) -> tuple[str, str]:
+    identifier = str(row.get("id") or "")
+    title = _note_title(row)
+    text = str(row.get("text") or "").strip()
+    kind = str(row.get("kind") or "note")
+    stamp = _stamp_text(row.get("created_at"))
+    lines = _aux_common_head(title, "note", identifier, stamp)
+    lines.append(f"> 类型：`{kind}`")
+    lines += ["## 内容", "", text or "（空白便利签）", ""]
+    if kind == "todo":
+        checked = row.get("checked") if isinstance(row.get("checked"), list) else []
+        todos = [re.sub(r"^\s*-\s+(?:\[[ xX]\]\s*)?", "", line).strip()
+                 for line in text.splitlines() if re.match(r"^\s*-\s+", line)]
+        if todos:
+            lines += ["## 待办状态", ""]
+            for index, item in enumerate(todos):
+                lines.append(f"- [{'x' if index < len(checked) and checked[index] else ' '}] {item}")
+            lines.append("")
+    lines += ["---", "", "> 本文件由会摘自动生成；请勿手工编辑。"]
+    search = _clean(" ".join([title, text, kind]))[:MAX_SEARCH_CHARS]
+    return "\n".join(lines).strip() + "\n", search
+
+
+def build_highlight_card(row: dict) -> tuple[str, str]:
+    identifier = str(row.get("id") or "")
+    title = _mark_title(row)
+    session_title = _clean(row.get("session_title"))[:160] or "未命名记录"
+    stamp = _stamp_text(row.get("created_at"))
+    lines = _aux_common_head(title, "highlight", identifier, stamp)
+    lines += [
+        f"> 来源记录：{session_title}",
+        f"> session_id：`{row.get('session_id')}` · 时间点：`{clock(row.get('ts'))}`",
+        "",
+        "## 标记原文",
+        "",
+        f"> {_clean(row.get('note'))}",
+        "",
+        "需要完整上下文时，用 `meetclip_records` 读取来源记录，或按时间点打开记录。",
+        "",
+        "---",
+        "",
+        "> 本文件由会摘自动生成；请勿手工编辑。",
+    ]
+    search = _clean(" ".join([title, session_title, str(row.get("note") or "")]))[:MAX_SEARCH_CHARS]
+    return "\n".join(lines).strip() + "\n", search
+
+
+def build_image_card(row: dict) -> tuple[str, str]:
+    identifier = str(row.get("id") or "")
+    title = _image_title(row)
+    width = int(row.get("width") or 0)
+    height = int(row.get("height") or 0)
+    file = _clean(row.get("path"))[:500]
+    stamp = _stamp_text(row.get("created_at"))
+    lines = _aux_common_head(title, "image", identifier, stamp)
+    if width and height:
+        lines.append(f"> 尺寸：{width}×{height}")
+    if file:
+        lines.append(f"> 图片文件：`{file}`")
+    lines += [
+        "",
+        "## 图片",
+        "",
+        f"这张图片卡对应会摘画板里的 `{file or identifier}`。"
+        "如果需要分析画面内容，请让用户把图片作为附件发送，或在会摘画板中打开原图。",
+        "",
+        "---",
+        "",
+        "> 本文件由会摘自动生成；请勿手工编辑。",
+    ]
+    search = _clean(" ".join([title, file, f"{width}x{height}"]))[:MAX_SEARCH_CHARS]
+    return "\n".join(lines).strip() + "\n", search
+
+
+def build_batch_card(row: dict) -> tuple[str, str]:
+    identifier = str(row.get("id") or "")
+    title = _clean(row.get("title"))[:160] or "批量视频"
+    stamp = _stamp_text(row.get("updated_at") or row.get("created_at"))
+    members = row.get("members") if isinstance(row.get("members"), list) else []
+    counts = row.get("counts") if isinstance(row.get("counts"), dict) else {}
+    lines = _aux_common_head(title, "batch", identifier, stamp)
+    lines.append(f"> 共 {len(members)} 条 · 进行中 {int(row.get('active') or 0)} 条")
+    lines += ["", "## 批次成员", ""]
+    for member in members:
+        status = STATUS_LABELS.get(str(member.get("status") or ""), str(member.get("status") or ""))
+        lines.append(f"- {_clean(member.get('title'))[:120] or '未命名'} · `{member.get('id')}` · {status}")
+    if not members:
+        lines.append("（批次暂时没有成员）")
+    lines += [
+        "",
+        "需要单条记录详情时，用 `meetclip_records` 按上面的 session_id 读取。",
+        "",
+        "---",
+        "",
+        "> 本文件由会摘自动生成；请勿手工编辑。",
+    ]
+    search = _clean(" ".join([title, *[str(item.get("title") or "") for item in members]]))[:MAX_SEARCH_CHARS]
+    return "\n".join(lines).strip() + "\n", search
+
+
+def build_pack_card(pack: dict) -> tuple[str, str]:
+    identifier = str(pack.get("id") or "")
+    title = _clean(pack.get("title"))[:160] or "卡包"
+    members = pack.get("members") if isinstance(pack.get("members"), list) else []
+    stamp = _stamp_text(pack.get("updated_at") or pack.get("created_at"))
+    lines = _aux_common_head(title, "pack", identifier, stamp)
+    lines.append(f"> 卡包 · {len(members)} 张卡片 · 进行中 {int(pack.get('active_count') or 0)} 张")
+    lines += [
+        "",
+        "## 这个卡包里有什么",
+        "",
+        "这是一个卡包，不是单条记录。下面是用户收进来的卡片，按首页展开顺序排列。",
+        "",
+    ]
+    for index, member in enumerate(members, start=1):
+        member_type = str(member.get("type") or "")
+        label = MEMBER_TYPE_LABELS.get(member_type, "卡片")
+        member_id = str(member.get("id") or "")
+        member_title = _clean(member.get("title"))[:160] or "未命名"
+        if member_type == "session":
+            detail = f"session_id=`{member_id}` · {member.get('kind') or ''} · {STATUS_LABELS.get(str(member.get('status') or ''), str(member.get('status') or ''))}"
+            if member.get("duration"):
+                detail += f" · {clock(member.get('duration'))}"
+        elif member_type == "doc":
+            detail = f"`{member_id}`"
+            if member.get("url"):
+                detail += f" · {member.get('url')}"
+        elif member_type == "highlight":
+            detail = f"`{member_id}` · 来源 `{member.get('session_id') or ''}` · {clock(member.get('ts'))}"
+        elif member_type == "note":
+            detail = f"`{member_id}` · {member.get('kind') or 'note'}"
+        elif member_type == "image":
+            detail = f"`{member_id}`"
+        elif member_type == "batch":
+            detail = f"`{member_id}` · {member.get('count') or 0} 条"
+        else:
+            detail = f"`{member_id}`"
+        lines.append(f"{index}. **{member_title}** · {label} · {detail}")
+    if not members:
+        lines.append("（空卡包）")
+    lines += [
+        "",
+        "需要某张记录的完整内容时，用 `meetclip_records` / `meetclip_minutes` / `meetclip_notes` 按上面的 id 读取；"
+        "也可以让用户单独 @ 那张卡片。",
+        "",
+        "---",
+        "",
+        "> 本文件由会摘自动生成；卡包内容变化后会刷新，请勿手工编辑。",
+    ]
+    search = _clean(" ".join([title, *[str(item.get("title") or "") for item in members]]))[:MAX_SEARCH_CHARS]
+    return "\n".join(lines).strip() + "\n", search
+
+
 def _existing_doc_files(exclude_key: str = "") -> set[str]:
     """现存文档卡片文件名（casefold）；文件被手工删掉的不占位。"""
     files: set[str] = set()
@@ -612,6 +865,98 @@ def _write_card(path: Path, markdown: str) -> None:
             pass
 
 
+
+def _aux_rows() -> list[tuple[str, str, list[dict], callable]]:
+    """非记录卡片的数据源；每类一张 Markdown，放在各自的子目录里避免与记录卡重名。"""
+    rows: list[tuple[str, str, list[dict], callable]] = []
+    try:
+        rows.append(("note", "便利签", db.list_sticky_notes(), build_note_card))
+    except Exception:
+        pass
+    try:
+        marks = db.query(
+            "SELECT m.id,m.session_id,m.ts,m.note,m.created_at,s.title AS session_title,s.kind "
+            "FROM marks m JOIN sessions s ON s.id=m.session_id ORDER BY m.created_at ASC"
+        )
+        rows.append(("highlight", "标记", marks, build_highlight_card))
+    except Exception:
+        pass
+    try:
+        rows.append(("image", "图片", db.list_board_images(), build_image_card))
+    except Exception:
+        pass
+    try:
+        rows.append(("batch", "批次", db.list_link_batches(1000), build_batch_card))
+    except Exception:
+        pass
+    try:
+        rows.append(("pack", "卡包", packs.list_packs(), build_pack_card))
+    except Exception:
+        pass
+    return rows
+
+
+def _is_generated_aux_file(path: Path) -> bool:
+    try:
+        return "本文件由会摘自动生成" in path.read_text(encoding="utf-8")[:1000]
+    except Exception:
+        return False
+
+
+def _sync_aux_cards(force: bool = False) -> dict:
+    """把便利签/标记/图片/批次/卡包同步成 @ 卡片；内容不变不重写。"""
+    card_dir = DATA_DIR / CARD_DIR_NAME
+    result = {"ok": True, "total": 0, "created": 0, "updated": 0, "skipped": 0, "removed": 0, "errors": []}
+    for kind, directory, rows, builder in _aux_rows():
+        folder = card_dir / directory
+        expected: set[str] = set()
+        names = _aux_file_names(kind, rows)
+        for row in rows:
+            identifier = str(row.get("id") or "").strip()
+            if not identifier:
+                continue
+            result["total"] += 1
+            file = names.get(identifier)
+            if not file:
+                continue
+            expected.add(file.casefold())
+            path = folder / file
+            try:
+                markdown, _search = builder(row)
+                changed = not path.is_file()
+                if path.is_file() and path.read_text(encoding="utf-8") != markdown:
+                    changed = True
+                if force or changed:
+                    existed = path.is_file()
+                    _write_card(path, markdown)
+                    if existed:
+                        result["updated"] += 1
+                    else:
+                        result["created"] += 1
+                else:
+                    result["skipped"] += 1
+            except Exception as exc:
+                result["ok"] = False
+                result["errors"].append({"kind": kind, "id": identifier, "message": str(exc)[:300]})
+        if folder.is_dir():
+            for stale in folder.glob("*.md"):
+                if stale.name.casefold() in expected:
+                    continue
+                try:
+                    if _is_generated_aux_file(stale):
+                        stale.unlink()
+                        result["removed"] += 1
+                except Exception as exc:
+                    result["ok"] = False
+                    result["errors"].append({"kind": kind, "file": stale.name, "message": str(exc)[:300]})
+            try:
+                if not any(folder.iterdir()):
+                    folder.rmdir()
+            except OSError:
+                pass
+    return result
+
+
 def sync_cards(force: bool = False) -> dict:
     """把记录同步成卡片文件；只重建内容或文件名变化的卡片。"""
     with _LOCK:
@@ -669,6 +1014,11 @@ def sync_cards(force: bool = False) -> dict:
             except Exception as exc:
                 errors.append({"session_id": sid, "message": str(exc)[:300]})
 
+        aux = _sync_aux_cards(force=force)
+        if aux.get("errors"):
+            errors.extend({"session_id": f"aux:{item.get('kind') or 'card'}", "message": item.get("message") or ""}
+                          for item in aux["errors"])
+
         # 没有卡片时不留空目录；用户自己放进去的文件不碰。
         try:
             if card_dir.is_dir() and not any(card_dir.iterdir()):
@@ -677,7 +1027,7 @@ def sync_cards(force: bool = False) -> dict:
             pass
 
         result = {
-            "ok": not errors,
+            "ok": not errors and bool(aux.get("ok", True)),
             "dir": CARD_DIR_NAME,
             "total": len(rows),
             "created": created,
@@ -685,6 +1035,7 @@ def sync_cards(force: bool = False) -> dict:
             "removed": removed,
             "skipped": skipped,
             "errors": errors,
+            "aux": aux,
             "updated_at": started,
         }
         _LAST["at"] = time.monotonic()
@@ -729,7 +1080,68 @@ def home_documents(limit: int = 12) -> list[dict]:
     return out
 
 
-def list_cards(query: str = "", limit: int = 20) -> dict:
+
+def _aux_list_cards() -> list[dict]:
+    """读出已生成的便利签/标记/图片/批次/卡包卡片，供 @ 菜单和精确取卡使用。"""
+    out: list[dict] = []
+    for kind, directory, rows, builder in _aux_rows():
+        names = _aux_file_names(kind, rows)
+        for row in rows:
+            identifier = str(row.get("id") or "").strip()
+            if not identifier:
+                continue
+            file = names.get(identifier)
+            if not file:
+                continue
+            path = DATA_DIR / CARD_DIR_NAME / directory / file
+            if not path.is_file():
+                continue
+            try:
+                _markdown, search = builder(row)
+            except Exception:
+                search = ""
+            if kind == "note":
+                title = _note_title(row)
+                stamp = row.get("created_at")
+                item = {"source": "note", "kind": "note", "title": title,
+                        "status": "done", "created_at": stamp, "updated_at": row.get("updated_at") or stamp,
+                        "text": str(row.get("text") or "")[:400]}
+            elif kind == "highlight":
+                title = _mark_title(row)
+                item = {"source": "mark", "kind": "highlight", "title": title,
+                        "status": "done", "created_at": row.get("created_at"),
+                        "session_title": _clean(row.get("session_title"))[:160],
+                        "session_id": row.get("session_id"), "ts": row.get("ts")}
+                stamp = row.get("created_at")
+            elif kind == "image":
+                title = _image_title(row)
+                stamp = row.get("created_at")
+                item = {"source": "image", "kind": "image", "title": title,
+                        "status": "done", "created_at": stamp, "width": row.get("width"), "height": row.get("height")}
+            elif kind == "batch":
+                title = _clean(row.get("title"))[:160] or "批量视频"
+                stamp = row.get("updated_at") or row.get("created_at")
+                item = {"source": "batch", "kind": "batch", "title": title,
+                        "status": "done", "created_at": row.get("created_at"), "updated_at": stamp,
+                        "count": row.get("total"), "active": row.get("active")}
+            else:
+                title = _clean(row.get("title"))[:160] or "卡包"
+                stamp = row.get("updated_at") or row.get("created_at")
+                item = {"source": "pack", "kind": "pack", "title": title,
+                        "status": "done", "created_at": row.get("created_at"), "updated_at": stamp,
+                        "count": len(row.get("members") or []), "active_count": row.get("active_count") or 0}
+            item.update({
+                "id": f"{kind}:{identifier}",
+                "path": f"{CARD_DIR_NAME}/{directory}/{file}",
+                "_search": search,
+                "_stamp": float(stamp or 0),
+                "_active": False,
+            })
+            out.append(item)
+    return out
+
+
+def list_cards(query: str = "", limit: int = 20, card_id: str = "") -> dict:
     """列出当前可 @ 的卡片；查询同时匹配标题和卡片摘要关键词。"""
     limit = max(1, min(int(limit or 20), 50))
     sync_error = ""
@@ -794,6 +1206,11 @@ def list_cards(query: str = "", limit: int = 20) -> dict:
             "_active": False,
             "_stamp": stamp,
         })
+
+    cards.extend(_aux_list_cards())
+    wanted_id = str(card_id or '').strip()
+    if wanted_id:
+        cards = [card for card in cards if str(card.get('id') or '') == wanted_id]
 
     needle = _clean(query).casefold()
     if needle:

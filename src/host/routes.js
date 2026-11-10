@@ -110,12 +110,17 @@ export function registerAppRoutes(ctx, runtime) {
       jsonResponse(res, 200, { ok: true, job })
       return
     }
+    if (action === 'rollback') {
+      const job = runtime.update.startRollback(String(body.version || ''))
+      jsonResponse(res, 200, { ok: true, job })
+      return
+    }
     if (action === 'cancel') {
       const result = runtime.update.cancel()
       jsonResponse(res, 200, { ok: true, ...result, job: runtime.update.jobSnapshot() })
       return
     }
-    jsonResponse(res, 400, { detail: 'action 必须是 check / install / cancel' })
+    jsonResponse(res, 400, { detail: 'action 必须是 check / install / rollback / cancel' })
   }
 
   async function handleBackend(req, res) {
@@ -291,7 +296,7 @@ export function registerAppRoutes(ctx, runtime) {
   async function handlePickFile(req, res) {
     const body = await readJsonBody(req)
     const kind = body.kind === 'directory' ? 'directory' : 'media'
-    const result = await pickFile(kind)
+    const result = await pickFile(kind, { multiple: kind === 'media' && body.multiple === true })
     jsonResponse(res, 200, result)
   }
 

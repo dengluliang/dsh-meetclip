@@ -93,3 +93,26 @@ test('pin animation is scoped to the card that was just pinned', async () => {
   assert.match(css, /\.mc-scatter-card\.is-pinning \.mc-scatter-pin,/)
   assert.match(css, /\.mc-home-cell\.is-pinning \.mc-scatter-pin \{ animation: mc-pin-set/)
 })
+
+// 卡包：真实成员卡叠放、无边框灰色呼吸热区、全卡片浮层和排序把手；
+// 动效必须在 reduced-motion 下关闭，深色主题不能只剩浅色纸边。
+test('pack card, glow and full-card overlay styles are present', async () => {
+  const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
+  assert.match(css, /\.mc-pack-card \{[^}]*position: relative/)
+  assert.match(css, /\.mc-pack-back,\n\.mc-pack-front \{/)
+  assert.match(css, /\.mc-pack-back\[data-slot='2'\] \{ transform: translate/)
+  assert.match(css, /\.mc-pack-front \.mc-home-card \{/)
+  assert.match(css, /\.mc-pack-glow \{[^}]*box-shadow:/)
+  assert.doesNotMatch(css, /\.mc-pack-outline/)
+  assert.doesNotMatch(css, /\.mc-pack-hotzone/)
+  assert.match(css, /\.mc-pack-hint\.is-ready/)
+  assert.match(css, /\.mc-pack-modal \{ width: min\(980px/)
+  assert.match(css, /\.mc-pack-card-grid \{[^}]*columns: 3/)
+  assert.match(css, /\.mc-pack-drag-ghost \{/)
+  assert.match(css, /\.mc-pack-drop-marker \{/)
+  assert.doesNotMatch(css, /\.mc-pack-sort-handle/)
+  assert.match(css, /\.mc-pack-undo \{/)
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.mc-pack-glow/)
+  assert.match(css, /\[data-theme='dark'\] \.mc-pack-tab/)
+  assert.match(css, /\[data-theme='dark'\] \.mc-pack-back/)
+})

@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import shutil
 import time
 import unittest
+import importlib
 import uuid
 from unittest.mock import patch
 
@@ -22,6 +24,7 @@ class CardExportTests(unittest.TestCase):
             raise unittest.SkipTest("请单独运行本测试文件（数据库模块已被其他测试以不同目录加载）")
         cls.db = cls.database.db
         cls.cards = importlib.import_module("cards")
+        cls.packs = importlib.import_module("packs")
         cls.main = importlib.import_module("main")
         cls.auth = importlib.import_module("auth")
         from fastapi.testclient import TestClient
@@ -36,13 +39,11 @@ class CardExportTests(unittest.TestCase):
         cls.data.cleanup()
 
     def setUp(self):
-        for table in ("doc_cards", "card_exports", "session_minutes", "transcripts", "marks", "screenshots", "sessions"):
+        for table in ("doc_cards", "card_exports", "session_minutes", "transcripts", "marks", "screenshots", "sessions", "sticky_notes", "board_images", "card_pack_members", "card_packs"):
             self.db.execute(f"DELETE FROM {table}")
         card_dir = Path(self.data.name) / self.cards.CARD_DIR_NAME
         if card_dir.exists():
-            for item in card_dir.iterdir():
-                item.unlink()
-            card_dir.rmdir()
+            shutil.rmtree(card_dir, ignore_errors=True)
         self.cards._LAST.update({"at": 0.0, "result": None})
 
     def session(self, title="预算评审", kind="meeting", status="done", duration=300.0,
@@ -183,6 +184,48 @@ class CardExportTests(unittest.TestCase):
         self.assertEqual(limited["returned"], 1)
         self.assertEqual(limited["total"], 2)
         self.assertEqual(limited["cards"][0]["title"], "产品发布")
+
+    def test_aux_and_pack_cards_are_generated_and_resolvable(self):
+        sid = self.session(title="卡包成员记录")
+        mark = self.db.add_mark(sid, 12.0, "这是一条标记")
+        note = self.note("便利签内容\n- [ ] 待办一") if hasattr(self, "note") else None
+        note_id = (note or {}).get("id") if note else None
+        if not note_id:
+            note_id = self.db.create_sticky_note("便利签内容\n- [ ] 待办一", "todo", [False], 0, 0)["id"]
+        image_id = uuid.uuid4().hex[:12]
+        self.db.create_board_image(image_id, f"board-images/{image_id}.png", 640, 420, 0, 0)
+        pack = self.packs.create_pack("pack-cardtest01", "测试卡包", [
+            {"type": "session", "id": sid},
+            {"type": "note", "id": note_id},
+        ])
+        self.assertEqual(pack["count"], 2)
+        result = self.sync()
+        self.assertTrue(result["ok"], result)
+        aux = result["aux"]
+        self.assertEqual(aux["total"], 4)  # mark + note + image + pack
+        base = Path(self.data.name) / self.cards.CARD_DIR_NAME
+        self.assertTrue((base / "便利签" / "便利签内容.md").is_file())
+        self.assertTrue((base / "标记" / "这是一条标记.md").is_file())
+        self.assertEqual(len(list((base / "图片").glob("*.md"))), 1)
+        self.assertTrue((base / "卡包" / "测试卡包.md").is_file())
+        pack_text = (base / "卡包" / "测试卡包.md").read_text(encoding="utf-8")
+        self.assertIn("# 测试卡包", pack_text)
+        self.assertIn(sid, pack_text)
+        self.assertIn(note_id, pack_text)
+        for card_id in (f"note:{note_id}", f"highlight:{mark}", f"image:{image_id}", "pack:pack-cardtest01"):
+            resolved = self.cards.list_cards(card_id=card_id)
+            self.assertEqual(resolved["returned"], 1, (card_id, resolved))
+            self.assertTrue(resolved["cards"][0]["path"].startswith(f"{self.cards.CARD_DIR_NAME}/"))
+        self.assertEqual(self.cards.list_cards(card_id="pack:nope")["returned"], 0)
+
+        # 卡包改名后文件名跟随新标题，旧标题文件被清理；精确 id 仍取到新路径。
+        self.packs.rename_pack("pack-cardtest01", "改名卡包")
+        renamed = self.sync()
+        self.assertTrue(renamed["ok"], renamed)
+        self.assertFalse((base / "卡包" / "测试卡包.md").exists())
+        self.assertTrue((base / "卡包" / "改名卡包.md").is_file())
+        resolved = self.cards.list_cards(card_id="pack:pack-cardtest01")["cards"][0]
+        self.assertTrue(resolved["path"].endswith("卡包/改名卡包.md"))
 
     def test_api_lists_and_syncs(self):
         sid = self.session()

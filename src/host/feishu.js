@@ -15,11 +15,13 @@ import { execFile, spawn } from 'node:child_process'
  * metadata only and the status payload never contains access/refresh tokens.
  */
 
-// The default MCP entry points at the author's internal npm mirror because that
-// is where @mi/feishu-mcp-pro is published. Forks and other organizations can
-// point these at their own package and registry without patching the source.
-export const FEISHU_PACKAGE = process.env.MEETCLIP_FEISHU_PACKAGE || '@mi/feishu-mcp-pro'
-export const FEISHU_REGISTRY = process.env.MEETCLIP_FEISHU_REGISTRY || 'https://pkgs.d.xiaomi.net/artifactory/api/npm/mi-npm/'
+// The Feishu MCP server is published privately inside each organization, so the
+// package name and npm registry are NOT baked in. Fill `feishuPackage` /
+// `feishuRegistry` in the meetclip config (cordis.patch.yml) — or the matching
+// environment variables — and the whole onboarding flow works against your own
+// mirror. Empty means "not configured yet" and every action explains that.
+export const FEISHU_PACKAGE = process.env.MEETCLIP_FEISHU_PACKAGE || ''
+export const FEISHU_REGISTRY = process.env.MEETCLIP_FEISHU_REGISTRY || ''
 export const FEISHU_DOC_URL = 'https://open.feishu.cn/document/home/index'
 export const FEISHU_SERVER_NAME = 'feishu'
 export const FEISHU_ENTRY_ID = 'mcp-feishu-pro'
@@ -503,6 +505,27 @@ export class FeishuManager {
     this.nodeCache = { at: 0, value: '' }
   }
 
+  // Package name / npm registry come from the plugin config first, then the env
+  // vars, and never from a value baked into the published source.
+  packageName() {
+    const value = this.settings && this.settings.feishuPackage
+    return String(value || FEISHU_PACKAGE || '').trim()
+  }
+
+  registryUrl() {
+    const value = this.settings && this.settings.feishuRegistry
+    return String(value || FEISHU_REGISTRY || '').trim()
+  }
+
+  packageTarget() {
+    const name = this.packageName()
+    const registry = this.registryUrl()
+    if (!name) {
+      throw new Error('尚未配置飞书 MCP 包：请在 cordis.patch.yml 的 meetclip config 里填写 feishuPackage（例如你组织镜像上的 feishu-mcp 包名）')
+    }
+    return { name, registry }
+  }
+
   attach(ctx) {
     this.ctx = ctx
   }
@@ -612,8 +635,9 @@ export class FeishuManager {
     return {
       ok: true,
       package: {
-        name: FEISHU_PACKAGE,
-        registry: FEISHU_REGISTRY,
+        name: this.packageName(),
+        registry: this.registryUrl(),
+        configured: Boolean(this.packageName() && this.registryUrl()),
         docUrl: FEISHU_DOC_URL,
         serverName: FEISHU_SERVER_NAME,
         entryId: FEISHU_ENTRY_ID,
@@ -760,11 +784,12 @@ export class FeishuManager {
       throw error
     }
     this.step('解析飞书 MCP 最新版本')
+    const { name, registry } = this.packageTarget()
     let result
     try {
       result = await runCommand(
         bins.npx,
-        ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@latest`, '--version'],
+        ['-y', `--registry=${registry}`, `${name}@latest`, '--version'],
         { timeoutMs: 180_000, env: this.spawnEnv(bins) }
       )
     } catch (failure) {
@@ -772,9 +797,9 @@ export class FeishuManager {
       const hint = /EPERM|EACCES/i.test(detail)
         ? 'npm 缓存目录没有写权限（通常是以前用 sudo 装过包），可执行 npm cache clean --force，或换一个可写的 npm 缓存'
         : /EAI_AGAIN|ETIMEDOUT|ECONNREFUSED|ENOTFOUND|network|registry/i.test(detail)
-          ? '需要连接作者环境的内网 npm 源（见 README）才能安装'
+          ? '需要能访问 feishuRegistry 指定的 npm 源才能安装（见 INSTALL.md）'
           : '可能是 Node/npx 环境不完整'
-      const error = new Error(`无法从配置的内网 npm 源解析 ${FEISHU_PACKAGE}：${hint}。原始信息：${detail}`)
+      const error = new Error(`无法从配置的 npm 源解析 ${name}：${hint}。原始信息：${detail}`)
       error.code = 'resolve_failed'
       throw error
     }
@@ -806,9 +831,10 @@ export class FeishuManager {
       error.code = 'patch_unreadable'
       throw error
     }
+    const { name, registry } = this.packageTarget()
     const block = renderEntryBlock({
       command: bins.npx,
-      args: ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`],
+      args: ['-y', `--registry=${registry}`, `${name}@${version}`],
       envPath: bins.envPath,
       npmCache: this.npmCacheDir(),
       version
@@ -835,9 +861,10 @@ export class FeishuManager {
       error.code = 'server_conflict'
       throw error
     }
+    const { name, registry } = this.packageTarget()
     const block = renderEntryBlock({
       command: bins.npx,
-      args: ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`],
+      args: ['-y', `--registry=${registry}`, `${name}@${version}`],
       envPath: bins.envPath,
       npmCache: this.npmCacheDir(),
       version
@@ -877,9 +904,10 @@ export class FeishuManager {
 
   async probeVersion(version) {
     const bins = this.binaries()
+    const { name, registry } = this.packageTarget()
     const result = await probeMcpServer({
       command: bins.npx,
-      args: ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`],
+      args: ['-y', `--registry=${registry}`, `${name}@${version}`],
       env: this.spawnEnv(bins)
     })
     return result
@@ -949,7 +977,8 @@ export class FeishuManager {
     const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     const mode = this.job.mode === 'device' ? 'device' : 'auto'
-    const args = ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`, 'login']
+    const { name, registry } = this.packageTarget()
+    const args = ['-y', `--registry=${registry}`, `${name}@${version}`, 'login']
     if (mode === 'device') args.push('--device')
     this.step(mode === 'device' ? '等待设备码授权' : '等待浏览器授权')
     this.appendLog(`$ npx ${args.join(' ')}`)
@@ -969,9 +998,10 @@ export class FeishuManager {
     const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     this.step('退出登录')
-    this.appendLog(`$ npx ${FEISHU_PACKAGE}@${version} logout`)
+    const { name, registry } = this.packageTarget()
+    this.appendLog(`$ npx ${name}@${version} logout`)
     try {
-      await this.execStream(bins, ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`, 'logout'], { timeoutMs: 120_000 })
+      await this.execStream(bins, ['-y', `--registry=${registry}`, `${name}@${version}`, 'logout'], { timeoutMs: 120_000 })
     } catch (failure) {
       if (failure?.code === 'cancelled') throw failure
       // The token file is the source of truth; a missing token makes the CLI exit non-zero.
@@ -986,10 +1016,11 @@ export class FeishuManager {
     const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     this.step('运行官方 setup')
-    this.appendLog('说明：会写入 ~/.npmrc 的 @mi:registry，并改写本机其他编辑器的 MCP 配置。')
+    this.appendLog('说明：会写入 ~/.npmrc 的包 scope registry，并改写本机其他编辑器的 MCP 配置。')
+    const { name, registry } = this.packageTarget()
     await this.execStream(
       bins,
-      ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@${version}`, 'setup'],
+      ['-y', `--registry=${registry}`, `${name}@${version}`, 'setup'],
       { timeoutMs: DEFAULT_TIMEOUT_MS }
     )
     this.appendLog('✔ 官方 setup 已结束（DSH 部分不需要它，重复运行不会重复写入同一份配置）')

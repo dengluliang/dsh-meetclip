@@ -45,6 +45,14 @@ class Failure(Exception):
         return self.kind in ("rate_limited", "timeout", "network", "hijacked")
 
 
+def _guard(config) -> None:
+    """地址与模型都由用户填写：缺项时给一句能照做的话，而不是抛 URL 解析错误。"""
+    if not config.base:
+        raise Failure("config", "请先在 设置 → 模型 填写服务地址（Base URL）")
+    if not config.model:
+        raise Failure("config", "请先在 设置 → 模型 选择或填写模型 ID")
+
+
 def has_key(provider: str | None = None) -> bool:
     config = providers.resolve()
     return bool(keys.get(provider or config.provider))
@@ -135,6 +143,7 @@ def chat(content: str, instruction: str, *, priority: int | str = "notes", json_
     key = keys.get(config.provider)
     if not key:
         raise Failure("no_key")
+    _guard(config)
     body = providers.shape(config, {
         "model": providers.wire_model(config, model),
         # 内容进 system、指令进 user：防网关把内容当问题去做检索。
@@ -194,6 +203,10 @@ def check_key(timeout: float = 20.0, *, config=None, key: str | None = None) -> 
     key = key if key is not None else keys.get(config.provider)
     if not key:
         return {"ok": False, "kind": "no_key", "message": ERRORS["no_key"]}
+    try:
+        _guard(config)
+    except Failure as exc:
+        return {"ok": False, "kind": exc.kind, "message": str(exc), "provider": config.provider}
     started = time.monotonic()
     try:
         gate_mod.shared(config.spacing).acquire(0, config.spacing)
@@ -211,7 +224,7 @@ def probe_models(timeout: float = 20.0) -> list[str]:
     """列出网关支持的模型（不支持 /models 的网关返回空表，不报错）。"""
     config = providers.resolve()
     key = keys.get(config.provider)
-    if not key:
+    if not key or not config.base:
         return []
     headers = {"Authorization": "Bearer " + key}
     try:
@@ -242,6 +255,7 @@ def status() -> dict:
     key = keys.get(config.provider)
     return {"provider": config.provider, "provider_name": providers.PROVIDERS[config.provider]["name"],
             "base_url": config.base, "model": config.model, "has_key": bool(key),
+            "configured": bool(config.base and config.model), "model_prefix": config.model_prefix,
             "key_masked": keys.masked(key), "own_key": bool(keys.own()), "credential_error": keys.credential_error(),
             "spacing": config.spacing, "json_mode": config.json_mode,
             "providers": [{"id": pid, "name": meta["name"], "models": list(meta["models"]),

@@ -32,10 +32,16 @@ window.fetch = async (url) => {
 }
 
 const t = translator('zh-CN')
-const filled = new URLSearchParams(location.search).get('empty') !== '1'
-const file = filled
-  ? { path: '/Users/me/Movies/与软件部沟通后续如何协作.m4a', name: '与软件部沟通后续如何协作.m4a', bytes: 12.4 * 1024 * 1024 }
-  : null
+const query = new URLSearchParams(location.search)
+const filled = query.get('empty') !== '1'
+// 默认展示多选批量态：一条视频 + 一条音频，导入后自动收进一个卡包。
+const single = query.get('single') === '1'
+const files = filled ? (single ? [
+  { path: '/Users/me/Movies/与软件部沟通后续如何协作.m4a', name: '与软件部沟通后续如何协作.m4a', bytes: 12.4 * 1024 * 1024 }
+] : [
+  { path: '/Users/me/Movies/产品评审 第 1 场.mp4', name: '产品评审 第 1 场.mp4', bytes: 486.2 * 1024 * 1024 },
+  { path: '/Users/me/Movies/产品评审 第 2 场.m4a', name: '产品评审 第 2 场.m4a', bytes: 42.6 * 1024 * 1024 }
+]) : null
 
 createRoot(document.getElementById('root')).render(
   <div className="mc-root" style={{ height: 'auto', padding: '44px 56px 320px' }}>
@@ -47,7 +53,7 @@ createRoot(document.getElementById('root')).render(
     <form className="mc-home-capture" data-capture="true" style={{ position: 'relative', maxWidth: 520, marginLeft: 0 }}>
       <button type="button" className="mc-home-plus" aria-label="新建采集" title="新建采集">＋</button>
       <input readOnly placeholder="已选择会议文件，在下方确认后导入" />
-      <CaptureInline t={t} type="meeting" file={file} onClose={() => {}} onCreated={() => {}} />
+      <CaptureInline t={t} type="meeting" files={files} onClose={() => {}} onCreated={() => {}} />
     </form>
   </div>
 )

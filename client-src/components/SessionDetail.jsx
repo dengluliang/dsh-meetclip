@@ -1554,7 +1554,7 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
                 <InfoRow label={t('detail.source')} value={view.source_url || '-'} mono />
                 {detail?.stream_quality ? <InfoRow label="画质" value={detail.stream_quality} /> : null}
                 {detail?.language ? <InfoRow label="语种" value={detail.language} /> : null}
-                {detail?.transcription_source ? <InfoRow label="转写来源" value={detail.transcription_source === 'subtitle' ? '平台字幕' : detail.asr_engine?.provider === 'mimo' ? 'MiMo 云端' : '本地 ASR'} /> : null}
+                {detail?.transcription_source ? <InfoRow label="转写来源" value={detail.transcription_source === 'subtitle' ? '平台字幕' : detail.asr_engine?.provider === 'mimo' ? '云端 ASR' : '本地 ASR'} /> : null}
                 <InfoRow label="时间戳" value={detail?.aligned ? '精确到词' : detail?.timing_precision === 'chunk' ? '片段级' : '按句'} />
                 {detail?.hotwords ? <InfoRow label="热词" value={detail.hotwords} /> : null}
                 <InfoRow label="创建" value={dateTime(view.created_at)} />

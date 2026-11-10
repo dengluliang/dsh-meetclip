@@ -11,7 +11,7 @@
 - **DeepSeek Harness** 0.2.x（桌面版或网页版）
 - **macOS**（当前主要在 macOS 上验证；Windows/Linux 的理论路径已处理，但未实测）
 - 首次安装运行环境需要网络
-- 一把 **Mify / MiMo API Key**（云识别与 AI 纪要默认沿用同一把 key；也可以在设置 → 模型中换成任意 OpenAI 兼容服务）
+- 一个 **OpenAI 兼容的模型服务**：Base URL、模型 ID 与 API Key（云识别与 AI 纪要默认沿用同一把 key，也可以各自指向不同服务）
 
 ## 二、安装
 
@@ -51,6 +51,7 @@ dsh plugin --profile web add "file:$PWD/dsh-meetclip-0.9.1.tgz"
 
 - 顶部显示当前运行版本、磁盘已安装版本和最新版本。
 - 点「检查更新」会访问 GitHub Releases；发现新版本时自动下载、校验 SHA-256、解包并替换 DSH profile 里已安装的插件副本，下载过程有百分比进度条。
+- 升级后如果新版本有问题，点「回退到 vX」把安装目录换回升级前自动保存在本地的副本（不联网、不从 GitHub 下载，资料库和笔记不受影响），重启 DSH 后生效；换下来的新版本也会留成备份，可以再切回来。
 - 替换完成后需要**重启 DeepSeek Harness**，新的 Host/Client 代码才会生效；重启前页面会同时显示「当前运行版本」和「已安装版本」。
 - 如果插件是用源码目录（link / 开发目录）方式运行的，自动更新会停用并提示用 `git pull`，避免覆盖源码。
 - 自动更新不会改 profile 的 `package.json`/`pnpm-lock.yaml`；之后如果手动重装插件，可能回到安装时用的旧 tgz。下载过的新包留在 `~/.dsh/meetclip/updates/<版本>/`，需要时可重新指向它。
@@ -68,7 +69,7 @@ shasum -a 256 -c SHA256SUMS.txt
 
 打开「会摘」面板，会看到三步引导：
 
-1. **粘贴 Mify API Key** → 拉取模型清单，分别选择「语音转文字」与「文字总结」的模型。
+1. **填服务地址（Base URL）与 API Key** → 拉取模型清单，分别选择「语音转文字」与「文字总结」的模型。地址不预置，填你自己能访问的 OpenAI 兼容网关即可。
 2. **选存储位置 + 一键安装并配置** → 先在「存储位置」确认资料保存的文件夹（默认建议 `~/Documents/会摘资料`，可点「选择…」换任意可写目录），再自动安装 Python 环境、启动本地引擎、装 `yt-dlp` / `ffmpeg`。
    不想等安装完成可以点「后台完成」，先进入主界面，剩余安装在后台继续。
    同一屏下方的 **「飞书 MCP（可选）」** 可以顺手点「安装飞书 MCP」→「登录飞书」接入飞书（说明见下一节）；不装直接继续即可。
@@ -83,7 +84,7 @@ shasum -a 256 -c SHA256SUMS.txt
 **想再开一份资料库（工作 / 生活分开）**：首页顶部右侧的胶囊（`● 工作 ⌄`）→「＋ 新建资料空间…」，或在 设置 → 会摘 → **资料空间**。每份空间是独立目录（自己的数据库、记录、会摘卡片与日历链接），一次只用一份；
 切换前若还有采集/转写在跑会先问你，确认后让采集自己收尾再切。B 站/抖音登录态与语音、画质设置全库共用一份（复制到 `~/.dsh/meetclip/shared`，只复制不删除），切空间不用重新登录。
 
-语音识别用 MiMo 云端，不需要下载本地 ASR 大模型。
+语音识别走你配置的云端服务，不需要下载本地 ASR 大模型。
 
 > 首次引导没出现？在插件管理里禁用再启用一次「会摘」，或重启 DeepSeek Harness。
 
@@ -92,15 +93,15 @@ shasum -a 256 -c SHA256SUMS.txt
 装好后，DSH 对话里的 Agent 能直接读写飞书文档、多维表格、云盘与 Wiki，并按关键词搜文档；工具名以 `mcp__feishu__` 开头。
 
 - **入口**：首次引导第 2 步下方的「飞书 MCP（可选）」，或随时在 **设置 → 会摘 → 飞书**。
-- **一键安装并配置**做三件事：解析 `@mi/feishu-mcp-pro` 的版本 → 往 `~/.dsh/cordis.patch.yml`（`$DSH_HOME/cordis.patch.yml`）追加一段带注释的 `insert` → 用 MCP 协议真连一次，确认能列出工具（约 50 个）。配置由 DSH 热重载生效，写完 2–10 秒即可用，不用重启。
+- **一键安装并配置**做三件事：解析你配置的飞书 MCP 包版本 → 往 `~/.dsh/cordis.patch.yml`（`$DSH_HOME/cordis.patch.yml`）追加一段带注释的 `insert` → 用 MCP 协议真连一次，确认能列出工具（约 50 个）。配置由 DSH 热重载生效，写完 2–10 秒即可用，不用重启。
 - **只加一段，不动别的**：写入前会备份原文件（`cordis.patch.yml.meetclip-bak-<时间戳>`），重复点不会产生第二段；本来就有的 `serverName: feishu` 会被认成冲突并提示，不会覆盖。
 - **登录**：点「登录飞书」走飞书官方浏览器授权；浏览器不在本机时点「用设备码登录」，把界面给出的链接在任意设备打开即可。令牌只存在 `~/.feishu-mcp-pro/auth.json`，会摘界面只显示 open_id 与到期时间，不会把令牌读进对话。
 - **更新**：设置里的「检查更新」会重新解析最新版本并改写同一段配置；入口默认固定到安装时解析到的版本，启动更快、断网也能连。
 - **界面**：设置 → 飞书 默认只有一行——状态（可以使用 / 未登录 / 未安装 / 需要 Node.js 20+）、账号与到期日、以及「重新登录」「更多」。检查更新、检测连接、重新安装、用设备码登录、退出登录、官方文档、移除 DSH 配置都收在「更多」里；运行条件、补丁路径、版本号不再展示，只在出问题时给一句原因（缺 Node、配置冲突、等待载入）。
 - **移除**：设置 → 飞书 → 更多 →「移除 DSH 配置」，只删这一段，不动登录状态。
 - **跳过**：不装不影响采集、转写、AI 纪要；以后随时可以补。
-- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问作者环境的 npm 源 `https://pkgs.d.xiaomi.net/...`（在家请连 VPN；其他团队可用 `MEETCLIP_FEISHU_REGISTRY` / `MEETCLIP_FEISHU_PACKAGE` 指向自己的飞书 MCP 包）。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在 `cordis.patch.yml` 的 meetclip config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
-- **其他编辑器**：官方 `setup`（会写 `~/.npmrc` 并把 Cursor / VS Code / Claude Code 等编辑器的 MCP 配置也改成 feishu-mcp-pro）DSH 用不到，设置里不再提供；要给其他编辑器配，按官方文档在终端跑 `npx -y --registry=https://pkgs.d.xiaomi.net/artifactory/api/npm/mi-npm/ @mi/feishu-mcp-pro@latest setup`。
+- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问你自己的 npm 源，并且已经知道飞书 MCP 的包名。插件不内置包名与源，先在 `cordis.patch.yml` 的 meetclip config 里填好 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`），否则设置页会提示「未配置 MCP 源」。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
+- **其他编辑器**：官方 `setup`（会写 `~/.npmrc` 并把 Cursor / VS Code / Claude Code 等编辑器的 MCP 配置也改成飞书 MCP）DSH 用不到，设置里不再提供；要给其他编辑器配，按官方文档在终端跑 `npx -y --registry=<你的 npm 源> <你的飞书 MCP 包名>@latest setup`。
 - 官方文档：<https://open.feishu.cn/document/home/index>
 
 ## 五、0.7.0 新增：存储位置、批量链接与抖音登录
@@ -116,11 +117,11 @@ shasum -a 256 -c SHA256SUMS.txt
 ## 六、0.6.x / 0.5.x 变更：只走云端
 
 - 0.6.2 起设置只剩「模型」「采集」两页；界面语言与重启入口移除，需要重启时在插件管理里禁用/启用「会摘」。
-- 0.6.1 起模型页只在顶部保留 Mify API Key 与「拉取模型清单」；语音转文字、文字总结各自选择模型，并可配置自定义 API（Base URL / 模型 ID / API Key / 测试连接）。
+- 0.6.1 起模型页只在顶部保留 API Key 与「拉取模型清单」；语音转文字、文字总结各自选择模型，并可配置自定义 API（Base URL / 模型 ID / API Key / 测试连接）。
 - 0.6.0 起设置重组为 通用 / 模型 / 采集，只保留用户会改的项；首次引导会自动获取模型列表。
-- 0.5.1 起设置里不再有「语音识别 Qwen3-ASR」下载卡与「旧模型清理」卡；语音页只保留 MiMo 云端的网关、模型与 API Key。
+- 0.5.1 起设置里不再有「语音识别 Qwen3-ASR」下载卡与「旧模型清理」卡；语音页只保留云端网关、模型与 API Key。
 - 概览改为页头下方的本地引擎状态条：正常时一行，环境未就绪、引擎停止或安装中才展开；界面语言移到设置页头，端口/PID/Python 路径移入「高级设置 → 运行信息」。
-- 转写时间戳来自 MiMo 云端按停顿切分的片段（约 4–15 秒），不再生成词级时间戳。
+- 转写时间戳来自云端按停顿切分的片段（约 4–15 秒），不再生成词级时间戳。
 - 说话人分离下线；旧记录已有的发言人标签保留，可改名/合并/导出，但重新转写会清除。
 - 新装环境只装 Python 依赖与 yt-dlp/ffmpeg，不再安装 MLX/本地 ASR 依赖。旧版本遗留的模型文件不会再被读取，可直接在数据目录 `models/` 下删除。
 
@@ -130,7 +131,7 @@ shasum -a 256 -c SHA256SUMS.txt
 
 | 项 | 说明 |
 |---|---|
-| 服务 / 地址 / 模型 | 默认沿用作者环境的 Mify 网关（`https://api.llm.mioffice.cn/v1`，模型 `xiaomi/mimo-v2.5`）。也可换成 OpenAI 或任意 OpenAI 兼容服务，点「拉取模型列表」挑模型。 |
+| 服务 / 地址 / 模型 | 没有任何默认值：填你的 OpenAI 兼容网关 Base URL 与模型 ID，点「拉取模型列表」挑模型。OpenAI 官方、自建代理或公司网关都可以。 |
 | API Key | 不填也能用：默认沿用云识别那把 key。想单独计费或换服务时再填，**只存在系统钥匙串**。 |
 | 什么时候生成 | `不自动` / `结束时生成一次`（默认） / `边录边更新`（更贵，按间隔节流）。 |
 | 纪要语言 | 简体中文 / 繁體中文 / English / 日本語 / 한국어 —— 与转写语言无关，会说英文也照样中文纪要。 |
@@ -164,16 +165,17 @@ dsh plugin --profile desktop remove @meetclip/dsh-meetclip
 | `command not found: dsh` | 桌面版菜单 →「管理 dsh 命令」，或改用插件管理器安装 tgz |
 | 首次引导第二步提示「存储位置不可写 / 完全磁盘访问权限」 | 0.8.4 起检查的是你选择的目录。若确实被 macOS 拦住：到 系统设置 → 隐私与安全性 → 完全磁盘访问权限 勾选 DeepSeek Harness，**完全退出（⌘Q）并重新打开**后再试；也可以点「选择…」换到「文稿」以外的目录（例如 `~/会摘资料`） |
 | 面板显示「本地引擎」未连接 | 在插件管理里禁用再启用「会摘」，或重启 DeepSeek Harness；首次装环境要等安装完成 |
-| 转写报「请先配置 Mify API Key」 | 首次引导第一步没完成，或 key 无效；到 设置 → 会摘 → 模型 重填并测试 |
+| 转写报「请先配置云端语音 API Key」 | 首次引导第一步没完成，或 key 无效；到 设置 → 会摘 → 模型 重填并测试 |
 | 纪要页签提示「尚未配置 AI Key」 | 填了云识别 key 一般就够；若换了独立服务，到 设置 → 模型 → 文字总结 填自定义 API |
 | 纪要提示「Key 无效或无模型权限」/「模型名不对」 | 点「拉取模型清单」重新选模型；自定义服务要支持 `response_format: json_object`，不支持时会自动回退纯 JSON 提示词 |
+| 升级后界面或功能异常 | 设置 → 会摘 → 关于 →「回退到 vX」，把安装目录换回升级前保存在本地的副本，按提示重启 DSH；换下来的版本会留成备份，可以再切回来。没有升级备份（手工装包/源码运行）或按钮置灰时，见 [docs/UPDATE.md](docs/UPDATE.md) 里的手工命令 |
 | 长时间「正在整理纪要…」 | 长会议终稿会分窗整理，几分钟属正常；仍不动可在插件管理里禁用/启用「会摘」 |
 | 直播结束得比预期早 | 「自动结束时」设成了「直接结束」，改成「先问一句」即可，到点会先弹提示，可点「继续记录」 |
 | 换机器后插件不见了 | 把 tgz 一起带过去，在新机器上重新执行安装命令 |
 | 读取 Cookie 报 could not find chrome cookies database | macOS 没有给 DeepSeek Harness 完全磁盘访问权限。到 系统设置 → 隐私与安全性 → 完全磁盘访问权限 勾选 DeepSeek Harness，重启本地引擎/应用后再读取 |
 | 抖音链接报 Cookie / Fresh cookies | 设置 → 采集 → 视频 →「扫码登录」，在浏览器里用抖音 App 扫码登录后点「读取 Cookie」；抖音有风控，「测试连接」失败时以平台限制为准 |
 | 飞书 MCP 提示找不到 npx | DSH 从 Finder 启动时 PATH 比终端短。在 `~/.dsh/cordis.patch.yml` 里给 meetclip 加上 `feishuNpx: /opt/homebrew/bin/npx`（以及 `feishuNode`），或从终端启动 DSH 后重试 |
-| 飞书 MCP 解析版本失败（EAI_AGAIN / ETIMEDOUT） | 作者环境的 npm 源 `pkgs.d.xiaomi.net` 需要公司网络或 VPN；连上后点「检查更新」重试 |
+| 飞书 MCP 解析版本失败（EAI_AGAIN / ETIMEDOUT） | `feishuRegistry` 指定的 npm 源连不上；确认网络 / 代理可达后点「检查更新」重试 |
 | 飞书登录完了但工具没出现 | 确认 `~/.dsh/cordis.patch.yml` 里有 `mcp-feishu-pro` 那段；工具列表在会话开始时加载，新开一个会话即可。仍不行点设置里的「检测连接」看具体错误 |
 | 提示 serverName「feishu」被占用 | 已有另一条 MCP 配置用了 `serverName: feishu`，先改名或删掉那一条，再点「重新安装并检测」 |
 | 飞书授权页打不开或超时 | 改用「用设备码登录」，链接 10 分钟内有效；也可以在任意设备打开该链接完成授权 |

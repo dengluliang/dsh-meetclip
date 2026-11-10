@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import shutil
 import unittest
 import uuid
 from unittest.mock import patch
@@ -47,9 +48,7 @@ class DocCardTests(unittest.TestCase):
             self.db.execute(f"DELETE FROM {table}")
         card_dir = Path(self.data.name) / self.cards.CARD_DIR_NAME
         if card_dir.exists():
-            for item in card_dir.iterdir():
-                item.unlink()
-            card_dir.rmdir()
+            shutil.rmtree(card_dir, ignore_errors=True)
         self.cards._LAST.update({"at": 0.0, "result": None})
 
     def card_files(self):

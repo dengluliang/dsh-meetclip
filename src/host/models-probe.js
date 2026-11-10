@@ -1,10 +1,13 @@
-const DEFAULT_BASE_URL = 'https://api.llm.mioffice.cn/v1'
+// 不预置网关地址：模型清单必须由用户填写服务地址后自行获取。
+const DEFAULT_BASE_URL = ''
 const MAX_KEY = 4096
 const TIMEOUT_MS = 20_000
 
 function normalizeBase(value) {
+  const base = String(value || DEFAULT_BASE_URL).trim()
+  if (!base) throw new Error('请先填写服务地址（Base URL）')
   let url
-  try { url = new URL(String(value || DEFAULT_BASE_URL)) } catch { throw new Error('网关地址无效') }
+  try { url = new URL(base) } catch { throw new Error('网关地址无效') }
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
     throw new Error('网关地址必须是 HTTPS，且不能包含凭证、查询参数或片段')
   }

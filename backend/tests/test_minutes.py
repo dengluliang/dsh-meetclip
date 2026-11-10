@@ -51,6 +51,8 @@ class MinutesTests(unittest.TestCase):
         cls.environment = patch.dict(os.environ, {
             "ZHIBO_DATA_DIR": cls.data.name,
             "MEETCLIP_AI_KEY": "test-key",
+            "MEETCLIP_AI_BASE_URL": "https://gateway.example.test/v1",
+            "MEETCLIP_AI_MODEL": "demo-text",
             "MEETCLIP_AI_SPACING": "0",
         })
         cls.environment.start()
@@ -242,6 +244,20 @@ class MinutesTests(unittest.TestCase):
             {"text": "要点一", "t": 5.0, "support": 1, "id": "abc123"}]}]}
         strip(kept)
         self.assertNotIn("id", kept["topics"][0]["points"][0])
+
+    def test_backfill_point_times_uses_the_closest_transcript_line(self):
+        notes = {"topics": [{"start": 100.0, "title": "A", "support": 0, "points": [
+            {"text": "ColorOS 全球活跃用户突破 7.7 亿", "t": None, "support": 0},
+            {"text": "完全无关的一句话", "t": None, "support": 0}]}]}
+        lines = [{"start": 148.0, "text": "七点七亿 ColorOS 全球的用户活跃量已经正式突破了七点七亿"},
+                 {"start": 300.0, "text": "其他内容"}]
+        hits = self.prompt.backfill_point_times(notes, lines)
+        points = notes["topics"][0]["points"]
+        self.assertGreaterEqual(hits, 1)
+        self.assertEqual(points[0]["t"], 148.0)
+        self.assertEqual(points[0]["support"], 1)
+        self.assertIsNone(points[1]["t"])
+        self.assertEqual(notes["topics"][0]["support"], 1)
 
     def test_merge_window_keeps_the_anchored_old_topic(self):
         # 模型在最后一窗把老主题重写了一遍（没有证据）：保留上一窗那份带时间的版本。

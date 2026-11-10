@@ -37,6 +37,7 @@ export function entryKey(entry) {
 
 function widthOf(entry) {
   const hash = textHash(entry?.item?.id)
+  if (entry?.type === 'pack') return 272
   if (entry?.type === 'batch') return 268
   if (entry?.type === 'note') return 246
   if (entry?.type === 'image') return 232 + (hash % 3) * 18
@@ -46,6 +47,7 @@ function widthOf(entry) {
 }
 
 function heightOf(entry, width = widthOf(entry)) {
+  if (entry?.type === 'pack') return 208
   if (entry?.type === 'batch') return 196
   if (entry?.type === 'note') return entry?.item?.kind === 'todo' ? 224 : 190
   if (entry?.type === 'image') {

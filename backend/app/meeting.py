@@ -271,7 +271,7 @@ class MeetingTask(CaptureTask):
             if self.engine_config["provider"] != "local":
                 self._set_phase("transcribe", "正在云端转录…", 0.0)
                 if p.get("hotwords"):
-                    self.warn_once("cloud-hotwords", "MiMo 当前暂无已确认的热词接口；热词保留供其他引擎使用")
+                    self.warn_once("cloud-hotwords", "云端识别当前暂无已确认的热词接口；热词保留供其他引擎使用")
                 cloud_transcription.transcribe_file(self, wav, self.engine_config)
                 self._meta(transcription_source="asr", subtitle_language=None, subtitle_kind=None)
                 db.update_session(sid, status="done", ended_at=time.time(), error=None)

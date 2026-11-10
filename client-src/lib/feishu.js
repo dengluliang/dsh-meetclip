@@ -130,6 +130,15 @@ export function feishuSummary(status) {
   const auth = status.auth || {}
   const dsh = status.dsh || {}
   const runtime = status.runtime || {}
+  const pkg = status.package || {}
+  // 包名与 npm 源不随插件发布：没配就直说要配在哪，而不是报「未安装」。
+  if (!pkg.configured && !dsh.entryPresent) {
+    return {
+      tone: 'pending',
+      text: '未配置 MCP 源',
+      detail: '在 cordis.patch.yml 的 meetclip config 里填 feishuPackage 与 feishuRegistry（你组织的飞书 MCP 包名与 npm 源），再回来安装。'
+    }
+  }
   if (dsh.conflict) {
     return { tone: 'error', text: '配置冲突', detail: `serverName「${dsh.serverName}」已有其他条目在用` }
   }

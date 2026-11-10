@@ -290,12 +290,21 @@ test('cloud ASR key test route validates key without backend', async () => {
   try {
     const ok = response()
     await routes.get('/meetclip/app/asr/test').handler(request({
-      method: 'POST', url: '/meetclip/app/asr/test', body: { api_key: 'sk-test-key' }
+      method: 'POST', url: '/meetclip/app/asr/test',
+      body: { api_key: 'sk-test-key', base_url: 'https://gateway.example.test/v1', model: 'demo-asr' }
     }), ok)
     assert.equal(ok.status, 200, ok.body)
     assert.equal(JSON.parse(ok.body).ok, true)
     assert.equal(calls.length, 1)
     assert.equal(calls[0].options.headers.authorization, 'Bearer sk-test-key')
+    assert.equal(calls[0].url, 'https://gateway.example.test/v1/chat/completions')
+    // 没有服务地址就不该发请求，而是提示先填写。
+    const noBase = response()
+    await routes.get('/meetclip/app/asr/test').handler(request({
+      method: 'POST', url: '/meetclip/app/asr/test', body: { api_key: 'sk-test-key' }
+    }), noBase)
+    assert.equal(noBase.status, 502)
+    assert.match(JSON.parse(noBase.body).detail, /Base URL/)
     const denied = response()
     await routes.get('/meetclip/app/asr/test').handler(request({
       method: 'POST', url: '/meetclip/app/asr/test', body: { api_key: '' }
@@ -323,7 +332,8 @@ test('model catalog route lists gateway models without backend', async () => {
   try {
     const ok = response()
     await routes.get('/meetclip/app/models').handler(request({
-      method: 'POST', url: '/meetclip/app/models', body: { api_key: 'sk-test-key' }
+      method: 'POST', url: '/meetclip/app/models',
+      body: { api_key: 'sk-test-key', base_url: 'https://gateway.example.test/v1' }
     }), ok)
     assert.equal(ok.status, 200, ok.body)
     assert.deepEqual(JSON.parse(ok.body).models, ['mimo-v2.5-asr', 'gpt-4o'])
@@ -331,14 +341,16 @@ test('model catalog route lists gateway models without backend', async () => {
     globalThis.fetch = async () => ({ ok: false, status: 401, text: async () => '{}' })
     const denied = response()
     await routes.get('/meetclip/app/models').handler(request({
-      method: 'POST', url: '/meetclip/app/models', body: { api_key: 'bad' }
+      method: 'POST', url: '/meetclip/app/models',
+      body: { api_key: 'bad', base_url: 'https://gateway.example.test/v1' }
     }), denied)
     assert.equal(denied.status, 502)
     assert.match(JSON.parse(denied.body).detail, /无效/)
 
     const empty = response()
     await routes.get('/meetclip/app/models').handler(request({
-      method: 'POST', url: '/meetclip/app/models', body: { api_key: '' }
+      method: 'POST', url: '/meetclip/app/models',
+      body: { api_key: '', base_url: 'https://gateway.example.test/v1' }
     }), empty)
     assert.equal(empty.status, 502)
   } finally {

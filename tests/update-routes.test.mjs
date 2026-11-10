@@ -83,6 +83,10 @@ function stubUpdater(overrides = {}) {
       calls.push(['install'])
       return { state: 'downloading', phase: '下载中' }
     },
+    startRollback(version) {
+      calls.push(['rollback', version])
+      return { state: 'installing', phase: '回退中', kind: 'rollback' }
+    },
     cancel() {
       calls.push(['cancel'])
       return { status: 'cancelled' }
@@ -147,6 +151,39 @@ test('POST install and cancel map to the manager actions', async () => {
   await runtime.dispose()
 })
 
+test('POST rollback forwards the requested version and returns the job', async () => {
+  const { runtime, routes, calls } = await setup()
+  const withVersion = response()
+  await routes.get('/meetclip/app/update').handler(
+    request({ method: 'POST', body: { action: 'rollback', version: '0.9.0' } }), withVersion
+  )
+  assert.equal(withVersion.status, 200)
+  assert.equal(JSON.parse(withVersion.body).job.kind, 'rollback')
+
+  const latest = response()
+  await routes.get('/meetclip/app/update').handler(
+    request({ method: 'POST', body: { action: 'rollback' } }), latest
+  )
+  assert.equal(latest.status, 200)
+  assert.deepEqual(calls, [['rollback', '0.9.0'], ['rollback', '']])
+  await runtime.dispose()
+})
+
+test('a rollback without a backup surfaces its 409', async () => {
+  const { runtime, routes } = await setup({
+    startRollback() {
+      throw new UpdateError('没有可回退的备份', 'no-rollback', 409)
+    }
+  })
+  const res = response()
+  await routes.get('/meetclip/app/update').handler(
+    request({ method: 'POST', body: { action: 'rollback' } }), res
+  )
+  assert.equal(res.status, 409)
+  assert.equal(JSON.parse(res.body).code, 'no-rollback')
+  await runtime.dispose()
+})
+
 test('an unknown action is rejected with 400', async () => {
   const { runtime, routes } = await setup()
   const res = response()
@@ -154,7 +191,7 @@ test('an unknown action is rejected with 400', async () => {
     request({ method: 'POST', body: { action: 'destroy' } }), res
   )
   assert.equal(res.status, 400)
-  assert.match(JSON.parse(res.body).detail, /check \/ install \/ cancel/)
+  assert.match(JSON.parse(res.body).detail, /check \/ install \/ rollback \/ cancel/)
   await runtime.dispose()
 })
 

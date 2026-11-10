@@ -517,6 +517,48 @@ def merge_window(old: dict, new: dict) -> dict:
     return merged
 
 
+def _plain(text) -> str:
+    """比对用的正文：去掉空白与标点，保留字和数字。"""
+    return re.sub(r"[\s，。、；：:,.!?！？（）()“”\"'‘’·—\-_/]+", "", str(text or ""))
+
+
+def backfill_point_times(notes: dict, lines: list[dict], threshold: float = 0.3) -> int:
+    """要点没带 evidence 时，用转写里最像的一句补时间锚点（只在主题自己的范围内找）。
+
+    模型在分窗整理时偶尔把 evidence 写到主题上、要点里不写；没有时间锚点的要点在界面上
+    点不动、还会被标成"依据较少"。这里按文字相似度回填，宁可留空也不跨章乱挂。
+    """
+    rows = [(float(line.get("start") or 0), _plain(line.get("text"))) for line in lines or []
+            if line.get("text")]
+    if not rows:
+        return 0
+    topics = [topic for topic in notes.get("topics") or [] if isinstance(topic, dict)]
+    fallback = max(start for start, _ in rows)
+    hits = 0
+    for index, topic in enumerate(topics):
+        start = _num(topic.get("start")) or 0.0
+        end = _num(topics[index + 1].get("start")) if index + 1 < len(topics) else None
+        end = end if end is not None and end > start else fallback
+        candidates = [(time, text) for time, text in rows if start - 120 <= time <= end + 90]
+        if not candidates:
+            continue
+        for point in topic.get("points") or []:
+            if point.get("t") is not None:
+                continue
+            body = _plain(point.get("text"))
+            if not body:
+                continue
+            time, text = max(candidates, key=lambda row: SequenceMatcher(None, body, row[1]).ratio())
+            if SequenceMatcher(None, body, text).ratio() < threshold:
+                continue
+            point["t"] = time
+            point["support"] = max(int(point.get("support") or 0), 1)
+            hits += 1
+        topic["support"] = max(int(topic.get("support") or 0),
+                               sum(1 for point in topic.get("points") or [] if point.get("support")))
+    return hits
+
+
 def written_in(notes: dict, language: str) -> bool:
     """纪要自己的话（摘要、主题标题）是否真的用目标语言写的——中文/日文/韩文需要相当比例的 CJK。"""
     text = (notes.get("summary") or "") + "".join(t.get("title", "") for t in notes.get("topics") or [])

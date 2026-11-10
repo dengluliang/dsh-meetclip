@@ -10,10 +10,47 @@ const MEDIA_EXTENSIONS = new Set([
 ])
 const MAX_UPLOAD = 8 * 1024 * 1024 * 1024
 
-export function pickFile(kind, timeoutMs = 300_000) {
-  const script = kind === 'directory'
-    ? 'POSIX path of (choose folder with prompt "选择会摘存储位置")'
-    : 'POSIX path of (choose file with prompt "选择音视频文件" of type {"public.movie", "public.audio"})'
+// 多选结果用 ASCII 单元分隔符拼接，文件名里的空格、逗号、中文和换行都不会拆错。
+const PICKER_SEPARATOR = '\u001f'
+
+/**
+ * 只选择路径，不执行；便于单测多选脚本。
+ * 媒体选择器故意不写 `of type {"public.movie","public.audio"}`：
+ * mkv/flv/ts 等容器在 macOS 上不一定归入这两个 UTI，会被系统置灰。
+ * 扩展名由 Host 上传与后端 IMPORT_RE 再校验。
+ */
+export function pickerScript(kind, multiple = false) {
+  if (kind === 'directory') return 'POSIX path of (choose folder with prompt "选择会摘存储位置")'
+  if (!multiple) return 'POSIX path of (choose file with prompt "选择音视频文件")'
+  return [
+    'set picked to choose file with prompt "选择音视频文件（可多选）" with multiple selections allowed',
+    'if class of picked is not list then set picked to {picked}',
+    'set sep to character id 31',
+    'set out to ""',
+    'repeat with i from 1 to count of picked',
+    '  set p to item i of picked',
+    '  if i is 1 then',
+    '    set out to POSIX path of p',
+    '  else',
+    '    set out to out & sep & (POSIX path of p)',
+    '  end if',
+    'end repeat',
+    'return out'
+  ].join('\n')
+}
+
+export function parsePickedPaths(stdout) {
+  return String(stdout || '')
+    .split(PICKER_SEPARATOR)
+    .map((value) => value.replace(/^[\r\n]+|[\r\n]+$/g, ''))
+    .filter((value) => value.trim().length > 0)
+}
+
+export function pickFile(kind, options = {}) {
+  if (typeof options === 'number') options = { timeoutMs: options }
+  const multiple = kind !== 'directory' && options.multiple === true
+  const timeoutMs = Number(options.timeoutMs) || 300_000
+  const script = pickerScript(kind, multiple)
   return new Promise((resolve) => {
     execFile('/usr/bin/osascript', ['-e', script], { timeout: timeoutMs }, (error, stdout, stderr) => {
       if (error) {
@@ -25,12 +62,12 @@ export function pickFile(kind, timeoutMs = 300_000) {
         resolve({ ok: false, cancelled: false, error: text.trim().slice(0, 500) })
         return
       }
-      const value = String(stdout || '').trim()
-      if (!value) {
+      const paths = parsePickedPaths(stdout)
+      if (!paths.length) {
         resolve({ ok: false, cancelled: true })
         return
       }
-      resolve({ ok: true, path: value })
+      resolve({ ok: true, path: paths[0], paths })
     })
   })
 }

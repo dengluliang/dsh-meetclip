@@ -22,6 +22,7 @@ import cards
 import link_video
 import media_cover
 import meeting
+import packs
 import scheduler
 from database import DATA_DIR, db, session_dir
 from export_md import export_markdown
@@ -46,6 +47,23 @@ def check_import_size(path: Path):
         raise HTTPException(413, "单个导入文件不能超过 8 GB")
     if free < size + RESERVE_BYTES:
         raise HTTPException(507, "磁盘空间不足，请至少预留 512 MB 可用空间")
+
+
+def check_import_batch_space(paths):
+    """批量导入按总和校验磁盘空间：单个文件都装得下，不代表一批都装得下。"""
+    total = 0
+    for path in paths:
+        try:
+            total += path.stat().st_size
+        except OSError as exc:
+            raise HTTPException(400, f"无法读取文件或磁盘空间：{exc}")
+    try:
+        free = shutil.disk_usage(DATA_DIR).free
+    except OSError as exc:
+        raise HTTPException(400, f"无法读取文件或磁盘空间：{exc}")
+    if free < total + RESERVE_BYTES:
+        need = max(0.0, (total + RESERVE_BYTES - free) / 1024 / 1024 / 1024)
+        raise HTTPException(507, f"磁盘空间不足：本批文件还需要约 {need:.1f} GB，请清理后重试")
 
 
 def is_running(sid: str) -> bool:
@@ -425,7 +443,8 @@ def home_feed(limit: int = 60, offset: int = 0):
             "created_at": mark.get("created_at"),
         })
     return {"stats": db.home_stats(), "items": items, "highlights": highlights,
-            "batches": db.list_link_batches(50), "documents": cards.home_documents(12)}
+            "batches": db.list_link_batches(50), "documents": cards.home_documents(12),
+            "packs": packs.list_packs()}
 
 
 @router.post("/api/sessions")

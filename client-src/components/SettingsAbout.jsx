@@ -2,6 +2,7 @@ import {
   formatDate,
   progressDetail,
   progressPercent,
+  rollbackCandidates,
   updateSummary,
   useUpdate
 } from '../lib/update.js'
@@ -39,6 +40,32 @@ export function SettingsAbout({ t }) {
   const showProgress = Boolean(job && (running || job.state === 'error' || job.state === 'cancelled' || job.percent === 100))
   const repo = status?.repo || 'dengluliang/dsh-meetclip'
 
+  const backups = rollbackCandidates(status)
+  const [rollbackChoice, setRollbackChoice] = React.useState('')
+  const [pendingRollback, setPendingRollback] = React.useState('')
+  const selectedBackup = backups.find((row) => row.version === rollbackChoice) || backups[0] || null
+  // 备份可能在别处被清理或已被换掉；这时确认条自动收起，避免对着过期版本操作。
+  const pendingBackup = backups.find((row) => row.version === pendingRollback) || null
+  const rollbackVerb = selectedBackup?.direction === 'newer'
+    ? tr('about.rollbackRestoreTo', '切换回')
+    : tr('about.rollbackTo', '回退到')
+  const rollbackLabel = selectedBackup
+    ? `${rollbackVerb} ${versionText(selectedBackup.version)}`
+    : tr('about.rollbackDisabled', '回退到升级前版本')
+  const rollbackDisabled = !status || !selectedBackup || running || Boolean(busy)
+    || isSource || status?.target?.writable === false || Boolean(pendingRollback)
+
+  function chooseRollback(version) {
+    setPendingRollback('')
+    setRollbackChoice(version)
+  }
+
+  async function confirmRollback() {
+    const version = pendingRollback
+    setPendingRollback('')
+    await actions.rollback(version)
+  }
+
   return (
     <div className="mc-settings-panel">
       <div className="mc-card mc-about-card">
@@ -71,6 +98,32 @@ export function SettingsAbout({ t }) {
             <span className="mc-row-value mc-mono" data-tone={updateAvailable ? 'warn' : undefined}>
               {latest ? versionText(latest.version) : tr('about.notChecked', '未检查')}
               {latest?.publishedAt ? <em className="mc-about-meta">{formatDate(Date.parse(latest.publishedAt))}</em> : null}
+            </span>
+          </div>
+          <div className="mc-row">
+            <span className="mc-row-key">{tr('about.rollbackRow', '可回退版本')}</span>
+            <span className="mc-row-value">
+              {backups.length ? (
+                <select
+                  className="mc-input mc-select mc-about-rollback-select"
+                  value={selectedBackup.version}
+                  disabled={running || Boolean(busy)}
+                  aria-label={tr('about.rollbackRow', '可回退版本')}
+                  onChange={(event) => chooseRollback(event.target.value)}
+                >
+                  {backups.map((row) => (
+                    <option key={row.version} value={row.version}>
+                      {`${versionText(row.version)}${row.at ? ` · ${formatDate(row.at)}` : ''}`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="mc-foot-meta">
+                  {isSource
+                    ? tr('about.rollbackSource', '源码运行时没有升级备份，请用 git 切换版本')
+                    : tr('about.rollbackNone', '没有升级前的本地备份；只有应用内升级会自动保留升级前的版本')}
+                </span>
+              )}
             </span>
           </div>
           <div className="mc-row">
@@ -115,6 +168,16 @@ export function SettingsAbout({ t }) {
               {tr('about.cancel', '取消')}
             </button>
           ) : null}
+          <button
+            type="button"
+            className="mc-button"
+            data-action="rollback"
+            disabled={rollbackDisabled}
+            title={selectedBackup?.at ? formatDate(selectedBackup.at) : undefined}
+            onClick={() => setPendingRollback(selectedBackup.version)}
+          >
+            {rollbackLabel}
+          </button>
           <button type="button" className="mc-button" disabled={Boolean(busy) || running}
             onClick={actions.refresh}>
             {tr('about.refresh', '刷新状态')}
@@ -126,6 +189,32 @@ export function SettingsAbout({ t }) {
           ) : null}
         </div>
 
+        {pendingBackup ? (
+          <div className="mc-rollback-confirm">
+            <p className="mc-about-warning" data-tone="warn">
+              {tr('about.rollbackConfirm', '将把安装目录换回升级前保存在本地的')}{' '}
+              <strong className="mc-mono">{versionText(pendingBackup.version)}</strong>
+              {tr('about.rollbackConfirmDetail', '；当前版本也会另存为本地备份，重启 DeepSeek Harness 后生效。资料库、笔记和转写不受影响。')}
+            </p>
+            <div className="mc-actions">
+              <button type="button" className="mc-button" data-variant="danger"
+                disabled={Boolean(busy) || running} onClick={confirmRollback}>
+                {tr('about.rollbackConfirmAction', '确认回退')}
+              </button>
+              <button type="button" className="mc-button" disabled={Boolean(busy) || running}
+                onClick={() => setPendingRollback('')}>
+                {tr('about.cancel', '取消')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {backups.length ? (
+          <p className="mc-foot-meta">
+            {tr('about.rollbackHint', '回退只在本地把安装目录换回升级前保存的副本，不联网、不从 GitHub 下载；资料库、笔记和转写都不动。')}
+          </p>
+        ) : null}
+
         {isSource ? (
           <p className="mc-about-warning" data-tone="warn">
             {tr('about.sourceHint', '当前从源码目录运行，自动更新已停用；请用 git pull 更新后重启。')}
@@ -133,7 +222,9 @@ export function SettingsAbout({ t }) {
         ) : null}
         {restartRequired ? (
           <p className="mc-about-warning" data-tone="warn">
-            {tr('about.restart', '新版本文件已就位，重启 DeepSeek Harness 后生效。')}
+            {status?.restartDirection === 'rollback'
+              ? tr('about.restartAfterRollback', '回退后的文件已就位，重启 DeepSeek Harness 后生效。')
+              : tr('about.restart', '新版本文件已就位，重启 DeepSeek Harness 后生效。')}
           </p>
         ) : null}
         {notice ? <p className="mc-foot-meta" role="status">{notice}</p> : null}

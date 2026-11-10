@@ -7,9 +7,8 @@ import { useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
 import { modelOptions, splitModels } from '../lib/models.js'
 
-const MIMO_BASE = 'https://api.llm.mioffice.cn/v1'
-const DEFAULT_ASR = 'xiaomi/mimo-v2.5-asr'
-const DEFAULT_TEXT = 'xiaomi/mimo-v2.5'
+// 不预置网关地址与模型：首次配置时由用户填写自己的 OpenAI 兼容服务。
+const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -17,13 +16,14 @@ function sleep(ms) {
 
 export function SetupWizard({ status, onComplete }) {
   const [step, setStep] = React.useState(1)
+  const [baseUrl, setBaseUrl] = React.useState('')
   const [apiKey, setApiKey] = React.useState('')
   const [showKey, setShowKey] = React.useState(false)
   const [probing, setProbing] = React.useState(false)
   const [catalog, setCatalog] = React.useState(null)
   const [catalogError, setCatalogError] = React.useState('')
-  const [asrModel, setAsrModel] = React.useState(DEFAULT_ASR)
-  const [textModel, setTextModel] = React.useState(DEFAULT_TEXT)
+  const [asrModel, setAsrModel] = React.useState('')
+  const [textModel, setTextModel] = React.useState('')
   const [running, setRunning] = React.useState(false)
   const [detail, setDetail] = React.useState('')
   const [log, setLog] = React.useState('')
@@ -50,7 +50,7 @@ export function SetupWizard({ status, onComplete }) {
   React.useEffect(() => {
     const key = apiKey.trim()
     probeSeq.current += 1
-    if (key.length < 16) {
+    if (key.length < 16 || !baseUrl.trim()) {
       probedKey.current = ''
       setCatalog(null)
       setCatalogError('')
@@ -66,6 +66,7 @@ export function SetupWizard({ status, onComplete }) {
   async function discover({ force = false } = {}) {
     const key = apiKey.trim()
     if (key.length < 16) return
+    if (!baseUrl.trim()) { setCatalogError('请先填写服务地址（Base URL）'); return }
     if (!force && key === probedKey.current) return
     if (inflight.current.has(key)) return
     inflight.current.add(key)
@@ -76,7 +77,7 @@ export function SetupWizard({ status, onComplete }) {
       let ids = null
       let count = 0
       try {
-        const result = await probeModels({ apiKey: key, baseUrl: MIMO_BASE })
+        const result = await probeModels({ apiKey: key, baseUrl: baseUrl.trim() })
         ids = Array.isArray(result?.models) ? result.models : []
         count = Number(result?.count) || ids.length
       } catch (failure) {
@@ -191,11 +192,11 @@ export function SetupWizard({ status, onComplete }) {
         setDetail('保存模型配置')
         await saveAsrEngine({
           provider: 'mimo',
-          base_url: MIMO_BASE,
-          model: asrModel || DEFAULT_ASR,
+          base_url: baseUrl.trim(),
+          model: asrModel,
           api_key: apiKey.trim()
         })
-        await saveAIConfig({ provider: 'mimo', base_url: MIMO_BASE, model: textModel || DEFAULT_TEXT })
+        await saveAIConfig({ provider: 'mimo', base_url: baseUrl.trim(), model: textModel })
         setDetail('验证云端语音')
         try { await testAsrEngine() } catch (failure) {
           foundIssues.push({ id: 'asr-test', title: '云端语音测试未通过', detail: failure?.message || String(failure) })
@@ -290,8 +291,8 @@ export function SetupWizard({ status, onComplete }) {
           <span className="mc-setup-mark">会摘</span>
           <div>
             <p className="mc-setup-eyebrow">首次使用 · {step} / 3</p>
-            <h2>{step === 1 ? '连接 Mify' : step === 2 ? '安装环境' : '准备进入会摘'}</h2>
-            <p>{step === 1 ? '粘贴 API Key，自动获取可用模型。' : step === 2 ? '安装 Python 环境与采集组件，可选接入飞书 MCP。' : '未完成项会在首页提示。'}</p>
+            <h2>{step === 1 ? '连接模型服务' : step === 2 ? '安装环境' : '准备进入会摘'}</h2>
+            <p>{step === 1 ? '填写 OpenAI 兼容服务地址与 API Key，自动获取可用模型。' : step === 2 ? '安装 Python 环境与采集组件，可选接入飞书 MCP。' : '未完成项会在首页提示。'}</p>
           </div>
         </div>
 
@@ -307,7 +308,15 @@ export function SetupWizard({ status, onComplete }) {
         {step === 1 ? (
           <div className="mc-setup-form">
             <label className="mc-form-row">
-              <span>Mify API Key</span>
+              <span>服务地址</span>
+              <input className="mc-input" value={baseUrl} spellCheck={false}
+                onChange={(event) => setBaseUrl(event.target.value)}
+                onBlur={() => { discover() }}
+                placeholder={BASE_PLACEHOLDER} />
+            </label>
+            <p className="mc-setup-fine">任意 OpenAI 兼容网关：例如你自己的代理、公司网关或 OpenAI 官方地址。</p>
+            <label className="mc-form-row">
+              <span>API Key</span>
               <div className="mc-setup-key">
                 <input className="mc-input" type={showKey ? 'text' : 'password'} value={apiKey}
                   onChange={(event) => setApiKey(event.target.value)} autoComplete="off" spellCheck={false}
@@ -341,7 +350,7 @@ export function SetupWizard({ status, onComplete }) {
             ) : null}
 
             <div className="mc-actions">
-              <button type="button" className="mc-button" disabled={probing || !apiKey.trim()} onClick={() => discover({ force: true })}>
+              <button type="button" className="mc-button" disabled={probing || !apiKey.trim() || !baseUrl.trim()} onClick={() => discover({ force: true })}>
                 {probing ? '获取中…' : catalog ? '重新获取' : '获取模型'}
               </button>
               {catalog ? (

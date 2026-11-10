@@ -4,11 +4,15 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import {
-  FEISHU_ENTRY_ID, FEISHU_MARKER, FEISHU_PACKAGE, FEISHU_REGISTRY, FEISHU_SERVER_NAME,
+  FEISHU_ENTRY_ID, FEISHU_MARKER, FEISHU_SERVER_NAME,
   FeishuManager, authPathFor, compareVersions, entryPresent, extractAuthUrl, foreignFeishuEntry,
   insertEntry, maskOpenId, parseVersion, patchAppendable, patchPathFor, probeMcpServer, readAuthState,
   removeEntry, renderEntryBlock, resolveBinaries, validOpenUrl, versionMajor, writePatchText, readPatchText
 } from '../src/host/feishu.js'
+
+// 包名与 npm 源不再内置于源码（开源版不指向任何组织内部镜像），测试里显式给一份。
+const TEST_PACKAGE = 'feishu-mcp-pro'
+const TEST_REGISTRY = 'https://npm.example.test/'
 
 function tempDir(prefix = 'meetclip-feishu-test-') {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix))
@@ -27,7 +31,7 @@ function withEnv(name, value) {
 function entryBlock(overrides = {}) {
   return renderEntryBlock({
     command: "/opt/homebrew/bin/npx",
-    args: ['-y', `--registry=${FEISHU_REGISTRY}`, `${FEISHU_PACKAGE}@0.27.4`],
+    args: ['-y', `--registry=${TEST_REGISTRY}`, `${TEST_PACKAGE}@0.27.4`],
     envPath: '/opt/homebrew/bin:/usr/bin:/bin',
     version: '0.27.4',
     ...overrides
@@ -52,7 +56,7 @@ test('entry block is valid YAML-ish and pins the version', () => {
   assert.match(block, new RegExp(`serverName: ${FEISHU_SERVER_NAME}`))
   assert.match(block, /transport: stdio/)
   assert.match(block, /command: '\/opt\/homebrew\/bin\/npx'/)
-  assert.match(block, /- '@mi\/feishu-mcp-pro@0\.27\.4'/)
+  assert.match(block, /- 'feishu-mcp-pro@0\.27\.4'/)
   assert.match(block, /PATH: '\/opt\/homebrew\/bin:\/usr\/bin:\/bin'/)
   assert.match(block, /failOnStartupError: false/)
   // `- insert:` stays at column 0; everything under it is indented so the list never ends early.
@@ -291,6 +295,8 @@ test('manager status reflects patch, auth and binaries', async () => {
   process.env.PATH = `${bin.dir}:/usr/bin:/bin`
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log'),
@@ -341,6 +347,8 @@ test('manager refuses a foreign feishu server name', async () => {
   const restoreDsh = withEnv('DSH_HOME', dsh)
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log'),
@@ -373,6 +381,8 @@ test('manager reports a readable error when npx is missing', async () => {
   process.env.PATH = '/definitely/missing'
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log')
@@ -400,6 +410,8 @@ test('manager rejects a second job while one is running', async () => {
   const restoreDsh = withEnv('DSH_HOME', dsh)
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log')
@@ -439,6 +451,8 @@ test('a row living in the profile patch counts as present and is not duplicated'
   const restoreProfile = withEnv('DSH_PROFILE_DIR', profileDir)
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log'),
@@ -485,6 +499,8 @@ test('a foreign feishu server in the profile patch is reported as a conflict', a
   const restoreProfile = withEnv('DSH_PROFILE_DIR', profileDir)
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log'),
@@ -518,6 +534,8 @@ test('rewriteEntry replaces the pinned version without duplicating the block', a
   const restoreDsh = withEnv('DSH_HOME', dsh)
   try {
     const manager = new FeishuManager({
+      feishuPackage: TEST_PACKAGE,
+      feishuRegistry: TEST_REGISTRY,
       stateDir,
       feishuStatePath: path.join(stateDir, 'feishu.json'),
       feishuLogPath: path.join(stateDir, 'feishu.log'),
@@ -529,7 +547,7 @@ test('rewriteEntry replaces the pinned version without duplicating the block', a
     assert.equal(rewritten.changed, true)
     const text = fs.readFileSync(path.join(dsh, 'cordis.patch.yml'), 'utf8')
     assert.equal(text.split(FEISHU_ENTRY_ID).length - 1, 1)
-    assert.match(text, /@mi\/feishu-mcp-pro@0\.28\.0/)
+    assert.match(text, /feishu-mcp-pro@0\.28\.0/)
     assert.ok(!text.includes('0.27.4'))
     assert.ok(rewritten.backup && fs.existsSync(rewritten.backup))
   } finally {

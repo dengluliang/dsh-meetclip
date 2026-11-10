@@ -1,6 +1,6 @@
 """Optional cloud speaker labelling seam.
 
-The MiMo ASR endpoint returns plain text only: it has no speaker or timestamp
+This ASR endpoint returns plain text only: it has no speaker or timestamp
 fields and rejects text prompts, so no provider ships today. A future cloud
 diarization service can register a callable here without touching the
 transcription pipeline. Until then every helper is a no-op.

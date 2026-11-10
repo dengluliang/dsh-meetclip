@@ -62,7 +62,7 @@ window.fetch = async (input) => {
   if (target.includes('/api/board/images')) return json([])
   if (target.includes('/api/deps/install/status')) return json({ running: false, done: true, log: '', step: '完成', error: '' })
   if (target.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, asr: true, asr_runtime: true, ready: true })
-  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr', has_api_key: true, ready: true })
+  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr', has_api_key: true, ready: true })
   if (target.includes('/api/meeting/options')) return json({ languages: [{ id: '', name: '自动' }], aligner_ready: true, asr_ready: true, asr_provider: 'mimo', diarize: { available: true, package: true, model_ready: true, model_state: 'ready' } })
   if (target.includes('/api/asr/status') || target.includes('/api/aligner/status') || target.includes('/api/diarize/status')) {
     return json({ state: 'ready', ready: true, downloaded: 100, total: 100, runtime: true, bundled: false })

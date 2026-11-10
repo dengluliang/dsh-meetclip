@@ -12,11 +12,11 @@ import asr_engines
 from routes import asr_engines as routes
 
 
-BASE = "https://api.llm.mioffice.cn/v1"
+BASE = "https://gateway.example.test/v1"
 
 
 def data(**extra):
-    value = {"asr_provider": "mimo", "mimo_base_url": BASE, "mimo_model": "xiaomi/mimo-v2.5-asr",
+    value = {"asr_provider": "mimo", "mimo_base_url": BASE, "mimo_model": "demo-asr",
              "asr_custom_base": "", "asr_custom_model": ""}
     value.update(extra)
     return value
@@ -38,7 +38,7 @@ class CustomConfigTests(unittest.TestCase):
         self.assertNotIn("key_account", config)
 
     def test_provider_uses_custom_account(self):
-        provider = asr_engines.MiMoProvider({
+        provider = asr_engines.CloudASRProvider({
             "provider": "mimo", "base_url": "https://custom.example/v1", "model": "asr-x",
             "key_account": asr_engines.ASR_CUSTOM_ACCOUNT
         })
@@ -69,13 +69,13 @@ class RouteModeTests(unittest.TestCase):
         update.assert_not_called()
 
     def test_mify_mode_clears_custom(self):
-        req = routes.EngineSettings(mode="mify", base_url=BASE, model="xiaomi/mimo-v2.5-asr")
+        req = routes.EngineSettings(mode="default", base_url=BASE, model="demo-asr")
         with patch.object(routes.engines, "credential"), \
                 patch.object(routes.settings, "update") as update, \
                 patch.object(routes.engines, "status", return_value={"ok": True}):
             routes.engine_settings(req)
         update.assert_called_once_with(asr_provider="mimo", mimo_base_url=BASE,
-                                       mimo_model="xiaomi/mimo-v2.5-asr",
+                                       mimo_model="demo-asr",
                                        asr_custom_base="", asr_custom_model="")
 
     def test_probe_uses_unsaved_model_and_key(self):
@@ -91,7 +91,7 @@ class RouteModeTests(unittest.TestCase):
                 return type("R", (), {"metrics": {"requests": 1}})()
 
         with patch.object(routes.engines, "default_config",
-                          return_value={"provider": "mimo", "base_url": BASE, "model": "xiaomi/mimo-v2.5-asr"}), \
+                          return_value={"provider": "mimo", "base_url": BASE, "model": "demo-asr"}), \
                 patch.dict(routes.engines.PROVIDERS, {"mimo": FakeProvider}):
             result = routes.engine_test(req)
         self.assertTrue(result["ok"])
@@ -102,7 +102,7 @@ class RouteModeTests(unittest.TestCase):
     def test_probe_without_key_is_rejected(self):
         req = routes.EngineProbe(base_url=BASE, model="mimo-v2.6-flash")
         with patch.object(routes.engines, "default_config",
-                          return_value={"provider": "mimo", "base_url": BASE, "model": "xiaomi/mimo-v2.5-asr"}), \
+                          return_value={"provider": "mimo", "base_url": BASE, "model": "demo-asr"}), \
                 patch.object(routes.engines, "credential", return_value=None):
             with self.assertRaises(Exception):
                 routes.engine_test(req)

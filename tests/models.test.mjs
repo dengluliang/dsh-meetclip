@@ -28,15 +28,19 @@ test('dedupes, trims and drops batch aliases', () => {
 })
 
 test('current model stays first even when absent from the catalog', () => {
-  const options = modelOptions(['mimo-v2.6-flash', 'gpt-4o'], 'xiaomi/mimo-v2.5')
-  assert.equal(options[0].value, 'xiaomi/mimo-v2.5')
+  const options = modelOptions(['demo-asr', 'gpt-4o'], 'vendor/demo-text')
+  assert.equal(options[0].value, 'vendor/demo-text')
   assert.match(options[0].label, /当前/)
-  assert.deepEqual(options.slice(1).map((item) => item.value), ['mimo-v2.6-flash', 'gpt-4o'])
+  assert.deepEqual(options.slice(1).map((item) => item.value), ['demo-asr', 'gpt-4o'])
 })
 
-test('sorts mimo family ahead of others', () => {
-  assert.deepEqual(sortModels(['gpt-4o', 'deepseek-v4-flash', 'mimo-v2.6-flash']), [
-    'mimo-v2.6-flash', 'deepseek-v4-flash', 'gpt-4o'
+test('sorts the configured provider family ahead of others', () => {
+  // 族名来自当前配置，而不是源码里写死的厂商前缀。
+  assert.deepEqual(sortModels(['gpt-4o', 'deepseek-v4-flash', 'demo-1.2-flash'], 'demo-2.0'), [
+    'demo-1.2-flash', 'deepseek-v4-flash', 'gpt-4o'
+  ])
+  assert.deepEqual(sortModels(['gpt-4o', 'demo-1.2-flash'], 'vendor/demo-text'), [
+    'demo-1.2-flash', 'gpt-4o'
   ])
   const options = modelOptions(['gpt-4o', 'mimo-v2.6-flash'], 'gpt-4o')
   assert.deepEqual(options.map((item) => item.value), ['gpt-4o', 'mimo-v2.6-flash'])

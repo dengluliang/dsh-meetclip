@@ -37,7 +37,7 @@ globalThis.fetch = async (url) => {
   if (path.includes('/app/feishu/status')) {
     return json({
       ok: true,
-      package: { name: '@mi/feishu-mcp-pro', serverName: 'feishu', entryId: 'mcp-feishu-pro', minNodeMajor: 20 },
+      package: { name: 'feishu-mcp-pro', registry: 'https://npm.example.test/', configured: true, serverName: 'feishu', entryId: 'mcp-feishu-pro', minNodeMajor: 20 },
       runtime: { node: '/opt/homebrew/bin/node', nodeVersion: '24.19.0', nodeMajor: 24, nodeOk: true, npx: '/opt/homebrew/bin/npx', npxOk: true },
       dsh: {
         patchPath: '/tmp/dsh/cordis.patch.yml', patchScope: 'home', entryId: 'mcp-feishu-pro', serverName: 'feishu',

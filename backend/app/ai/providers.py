@@ -3,15 +3,16 @@
 同一份提示词在不同网关上有各自的怪癖：思考开关字段不同、有的网关会把"像问题"的用户消息当成
 搜索请求、有的不支持 response_format。把这些差异集中在这里，调用方只关心优先级与提示词。
 
-默认跟随现有的 Mify/MiMo 网关（本产品的云识别也走它），也可以换成任意 OpenAI 兼容服务。
+``mimo`` 这一档不预置地址与模型：地址与模型由用户在设置 →模型里填写自己的 OpenAI 兼容服务，
+开源版本因此不带任何组织内部网关信息。
 """
 from dataclasses import dataclass
 import os
 
 import settings
 
-DEFAULT_BASE = "https://api.llm.mioffice.cn/v1"
-DEFAULT_MODEL = "xiaomi/mimo-v2.5"
+DEFAULT_BASE = ""
+DEFAULT_MODEL = ""
 
 # 设置里的语言名 → 提示词里的英文名。纪要必须用同一套写法，否则语言校验会误判。
 LANGUAGE_NAMES = {
@@ -46,9 +47,14 @@ class Config:
     def models_url(self) -> str:
         return self.base.rstrip("/") + "/models"
 
+    @property
+    def model_prefix(self) -> str:
+        """网关照例要求「供应商/模型名」时才需要的补全前缀；开源版默认不补。"""
+        return os.environ.get("MEETCLIP_AI_MODEL_PREFIX", "").strip().strip("/")
+
 
 PROVIDERS = {
-    "mimo": dict(name="Mify（MiMo）", base=DEFAULT_BASE, models=(DEFAULT_MODEL,), spacing=0.6,
+    "mimo": dict(name="默认网关（OpenAI 兼容）", base=DEFAULT_BASE, models=(), spacing=0.6,
                  json_mode=True, thinking="reasoning"),
     "openai": dict(name="OpenAI", base="https://api.openai.com/v1",
                    models=("gpt-4o-mini", "gpt-4.1-mini"), spacing=0.1, json_mode=True, thinking="effort"),
@@ -71,14 +77,19 @@ def _clean_base(value: str) -> str:
 
 
 def resolve(data: dict | None = None) -> Config:
-    """从设置里解析出本次调用该用哪个服务；缺项回落到 Mify 网关。"""
+    """从设置里解析出本次调用该用哪个服务；缺项留给调用方提示用户填写。"""
     data = dict(data if data is not None else settings.get_all())
     provider = (data.get("ai_provider") or "mimo").strip()
     if provider not in PROVIDERS:
         provider = "mimo"
     meta = PROVIDERS[provider]
-    base = _clean_base(data.get("ai_base_url") or meta["base"] or data.get("mimo_base_url") or DEFAULT_BASE)
-    model = (data.get("ai_text_model") or "").strip() or (meta["models"][0] if meta["models"] else DEFAULT_MODEL)
+    # 设置页优先；其次环境变量（便于 CI / 无界面部署），最后才用元数据里的默认值。
+    base = _clean_base(data.get("ai_base_url") or meta["base"] or data.get("mimo_base_url")
+                       or os.environ.get("MEETCLIP_AI_BASE_URL", "") or DEFAULT_BASE)
+    # 没填就留空，由调用方给出「请先填写服务地址 / 模型」的提示，而不是偷用内置地址。
+    model = ((data.get("ai_text_model") or "").strip()
+             or (os.environ.get("MEETCLIP_AI_MODEL", "") or "").strip()
+             or (meta["models"][0] if meta["models"] else DEFAULT_MODEL))
     # 测试可以调小限速间隔（默认按账号配额）。
     spacing = float(os.environ.get("MEETCLIP_AI_SPACING") or meta["spacing"])
     return Config(provider=provider, base=base, model=model, spacing=spacing,
@@ -86,14 +97,15 @@ def resolve(data: dict | None = None) -> Config:
 
 
 def wire_model(config: Config, model: str | None = None) -> str:
-    """Mify 网关要求带供应商前缀的模型名：`mimo-v2.6-flash` → `xiaomi/mimo-v2.6-flash`。
+    """按环境变量补全模型名的供应商前缀（`mimo-v2.6-flash` → `<前缀>/mimo-v2.6-flash`）。
 
-    模型清单返回的是不带前缀的 id；直接拿它调 chat 会被网关拒绝（“该模型未指定供应商”）。
-    只对 Mify 网关做这个补全；OpenAI/自定义服务保持原样。
+    只有网关要求带前缀时才需要：模型清单返回的是不带前缀的 id，直接调用会被拒。
+    前缀由 `MEETCLIP_AI_MODEL_PREFIX` 指定，开源版默认不补，OpenAI/自定义服务保持原样。
     """
     value = (model or config.model or "").strip()
-    if config.provider == "mimo" and value and "/" not in value:
-        return "xiaomi/" + value
+    prefix = config.model_prefix
+    if prefix and value and "/" not in value:
+        return prefix + "/" + value
     return value
 
 
@@ -106,7 +118,7 @@ def shape(config: Config, body: dict, max_tokens: int) -> dict:
         body["max_tokens"] = max_tokens
         body["temperature"] = 0.2
         if config.thinking == "reasoning":
-            # Mify 网关只认 reasoning_effort=none 才真的关思考；只发 reasoning.enabled=false
+            # 部分网关只认 reasoning_effort=none 才真的关思考；只发 reasoning.enabled=false
             # 时思考仍会跑满 max_tokens，正文被挤成空字符串（实测 3000 token 全被思考吃掉）。
             body["reasoning"] = {"enabled": False}
             body["reasoning_effort"] = "none"

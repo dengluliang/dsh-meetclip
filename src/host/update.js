@@ -347,23 +347,88 @@ export class UpdateManager {
     }
   }
 
+  /**
+   * 更新器替换安装副本前会把旧目录改名成 `<包名>.update-bak-<版本>-<时间戳>-<序号>`
+   * 放在旁边；这些目录就是可回退的版本。只认包名正确、必需文件齐全的完整备份，
+   * 避免把一个残缺目录摆到界面上让人点。
+   */
+  listBackups() {
+    const parent = path.dirname(this.targetDir)
+    const base = path.basename(this.targetDir)
+    const prefix = `${base}${BACKUP_PREFIX}`
+    let names = []
+    try {
+      names = fs.readdirSync(parent)
+    } catch {
+      return []
+    }
+    const rows = []
+    for (const name of names) {
+      if (!name.startsWith(prefix)) continue
+      const match = /^(.+)-(\d{8}-\d{6})-(\d+)$/.exec(name.slice(prefix.length))
+      if (!match) continue
+      const dir = path.join(parent, name)
+      try {
+        if (!fs.statSync(dir).isDirectory()) continue
+      } catch {
+        continue
+      }
+      const manifest = readJsonSync(path.join(dir, 'package.json'))
+      if (!manifest || manifest.name !== UPDATE_PACKAGE_NAME) continue
+      const parsed = parseVersion(manifest.version)
+      if (!parsed) continue
+      if (!REQUIRED_FILES.every((relative) => exists(path.join(dir, ...relative.split('/'))))) continue
+      rows.push({
+        id: name,
+        version: parsed.version,
+        path: dir,
+        at: backupStampEpoch(match[2]),
+        seq: Number(match[3]) || 0
+      })
+    }
+    // 备份名里的时间戳是本地时间、按秒排序即可；同一秒内用序号兜底。
+    rows.sort((left, right) => (right.at - left.at) || (right.seq - left.seq))
+    return rows
+  }
+
+  /** 给「关于」页用的可回退版本；磁盘上已经是的版本不再重复列出。 */
+  rollbackInfo(target = this.targetInfo(), installedVersion = this.readInstalledVersion()) {
+    const available = this.listBackups()
+      .filter((row) => row.version !== installedVersion)
+      .map((row) => ({
+        id: row.id,
+        version: row.version,
+        at: row.at,
+        // 回退过之后，备份里也可能有比当前磁盘版本新的版本，按钮会改叫「切换回」。
+        direction: versionDirection(installedVersion, row.version)
+      }))
+    return {
+      available,
+      canRollback: available.length > 0 && (target.kind === 'installed' || this.allowSourceTarget)
+    }
+  }
+
   status() {
     const installedVersion = this.readInstalledVersion()
     let updateAvailable = false
     if (this.latest) {
       try { updateAvailable = compareVersions(this.latest.version, this.referenceVersion()) > 0 } catch {}
     }
+    const target = this.targetInfo()
     return {
       ok: true,
       currentVersion: this.currentVersion,
       installedVersion,
       restartRequired: Boolean(installedVersion && installedVersion !== this.currentVersion),
+      // 磁盘上的版本比正在运行的旧，说明重启后是「回退」，界面换一句提示。
+      restartDirection: restartDirection(installedVersion, this.currentVersion),
       repo: this.repo,
-      target: this.targetInfo(),
+      target,
       latest: this.latest,
       updateAvailable,
       lastCheckAt: this.lastCheckAt,
       recovery: this.recovery,
+      rollback: this.rollbackInfo(target, installedVersion),
       job: this.jobSnapshot()
     }
   }
@@ -373,6 +438,7 @@ export class UpdateManager {
     return {
       state: this.job.state,
       phase: this.job.phase,
+      kind: this.job.kind || 'update',
       message: this.job.message,
       percent: this.job.percent,
       received: this.job.received,
@@ -390,10 +456,11 @@ export class UpdateManager {
     return Boolean(this.job && RUNNING.has(this.job.state))
   }
 
-  resetJob(state, phase) {
+  resetJob(state, phase, kind = 'update') {
     this.job = {
       state,
       phase,
+      kind,
       message: '',
       percent: null,
       received: 0,
@@ -436,6 +503,44 @@ export class UpdateManager {
     this.resetJob('downloading', '准备下载')
     this.abort = new AbortController()
     this.promise = this.performInstall(this.latest)
+      .catch((error) => this.fail(error))
+      .finally(() => { this.abort = null })
+    return this.jobSnapshot()
+  }
+
+  /**
+   * 把更新器留下的某个旧版本备份换回安装目录。回退前先把当前磁盘版本另存为
+   * 一份新备份，所以回退本身也能再切回来，且整个过程不需要联网。
+   * 不传版本时取最近的一份备份。
+   */
+  startRollback(requestedVersion = '') {
+    if (this.running()) throw new UpdateError('已有更新任务在进行中', 'update-busy', 409)
+    const installed = this.readInstalledVersion()
+    // 磁盘上已经是的版本没有回退意义，直接从候选里去掉。
+    const backups = this.listBackups().filter((row) => row.version !== installed)
+    if (!backups.length) {
+      throw new UpdateError('没有可回退的备份：应用内更新会保留上一版本，手工安装的副本没有备份', 'no-rollback', 409)
+    }
+    const wanted = String(requestedVersion || '').trim().replace(/^v/i, '')
+    const backup = wanted ? backups.find((row) => row.version === wanted) : backups[0]
+    if (!backup) {
+      const listed = backups.map((row) => `v${row.version}`).join('、')
+      throw new UpdateError(`没有 v${wanted} 的备份，可回退：${listed}`, 'no-rollback', 409)
+    }
+    const target = this.targetInfo()
+    if (target.kind !== 'installed' && !this.allowSourceTarget) {
+      throw new UpdateError('当前以源码方式运行，不能覆盖安装副本；请用 git checkout 切换版本', 'target-source', 409)
+    }
+    if (!target.writable) {
+      throw new UpdateError(`没有权限写入插件目录：${target.path}`, 'target-unwritable', 403)
+    }
+    this.resetJob('installing', '回退中', 'rollback')
+    this.setJob({
+      version: backup.version,
+      percent: null,
+      message: `准备回退到 v${backup.version}…`
+    })
+    this.promise = this.performRollback(backup, installed)
       .catch((error) => this.fail(error))
       .finally(() => { this.abort = null })
     return this.jobSnapshot()
@@ -734,6 +839,89 @@ export class UpdateManager {
     return { ok: true, version, backup: applied.backup, target: applied.target }
   }
 
+  /**
+   * 备份目录和安装目录是同一层的两个目录，交换一次即可：当前版本先改名成备份，
+   * 再把旧备份改回安装目录。任何一步失败都把原名改回去，不动资料与数据。
+   */
+  async performRollback(backup, installedVersion) {
+    const version = backup.version
+    // 先确认备份本身完整，免得把能用的版本换成一个残缺目录。
+    try {
+      await this.validatePackage(backup.path, version)
+    } catch (error) {
+      throw new UpdateError(`备份 v${version} 不完整：${error?.message || error}`, 'rollback-invalid', 500)
+    }
+    const target = this.targetDir
+    const parent = path.dirname(target)
+    const base = path.basename(target)
+    const keepVersion = this.readInstalledVersion() || installedVersion || 'unknown'
+    let sequence = this.now() % 100000
+    let keep = path.join(parent, `${base}${BACKUP_PREFIX}${safeVersion(keepVersion)}-${timestamp()}-${sequence}`)
+    while (exists(keep)) {
+      sequence = (sequence + 1) % 1000000
+      keep = path.join(parent, `${base}${BACKUP_PREFIX}${safeVersion(keepVersion)}-${timestamp()}-${sequence}`)
+    }
+    this.setJob({
+      state: 'installing',
+      phase: '回退中',
+      message: `把 v${version} 的备份换回插件目录…`,
+      percent: null
+    })
+    const hadTarget = exists(target)
+    let moved = false
+    let copied = false
+    try {
+      if (hadTarget) {
+        await fsp.rename(target, keep)
+        moved = true
+      }
+      if (moved) {
+        try {
+          await fsp.rename(backup.path, target)
+        } catch (error) {
+          if (error?.code !== 'EXDEV') throw error
+          await copyTree(backup.path, target)
+          copied = true
+        }
+      } else {
+        await copyTree(backup.path, target)
+        copied = true
+      }
+      await this.validatePackage(target, version)
+      if (copied) await fsp.rm(backup.path, { recursive: true, force: true }).catch(() => {})
+    } catch (error) {
+      // 只有确实动过目录才清理并还原；改名本身失败时安装目录还是原样。
+      if (moved) {
+        // 备份是被改名（不是复制）过来的话，先把它改回备份名，别弄丢可回退的版本。
+        if (!copied && !exists(backup.path) && exists(target)) {
+          try {
+            await fsp.rename(target, backup.path)
+          } catch {
+            await fsp.rm(target, { recursive: true, force: true }).catch(() => {})
+          }
+        } else {
+          await fsp.rm(target, { recursive: true, force: true }).catch(() => {})
+        }
+        try { await fsp.rename(keep, target) } catch {}
+      } else if (!hadTarget) {
+        await fsp.rm(target, { recursive: true, force: true }).catch(() => {})
+      }
+      throw new UpdateError(`回退失败：${error?.message || error}`, 'rollback-failed', 500)
+    }
+    await this.pruneBackups(parent)
+    this.previousVersion = version
+    this.persistState()
+    this.setJob({
+      state: 'done',
+      phase: '回退完成',
+      message: `已回退到 v${version}，重启 DeepSeek Harness 后生效`,
+      percent: 100,
+      speed: 0,
+      finishedAt: this.now()
+    })
+    return { ok: true, version, backup: keep, target }
+  }
+
   async downloadAsset(asset, destination) {
     if (!allowedUpdateUrl(asset.url, { allowLocal: Boolean(this.feedUrl) && isLoopbackUrl(this.feedUrl) })) {
       throw new UpdateError('安装包地址不被允许', 'download-url', 403)
@@ -899,11 +1087,12 @@ export class UpdateManager {
   fail(error) {
     const cancelled = error?.name === 'UpdateCancelled' || error?.name === 'UpdateDisposed'
       || error?.code === 'cancelled' || error?.code === 'download-aborted'
-    const message = cancelled ? '更新已取消' : this.describeFailure(error)
+    const label = this.job?.kind === 'rollback' ? '回退' : '更新'
+    const message = cancelled ? `${label}已取消` : this.describeFailure(error)
     this.cleanupJobFiles()
     this.setJob({
       state: cancelled ? 'cancelled' : 'error',
-      phase: cancelled ? '已取消' : '更新失败',
+      phase: cancelled ? '已取消' : `${label}失败`,
       message,
       error: cancelled ? '' : message,
       finishedAt: this.now()
@@ -946,6 +1135,38 @@ function isLoopbackUrl(value) {
   } catch {
     return false
   }
+}
+
+/** 重启后是升级还是回退：磁盘版本比运行版本旧就是回退。 */
+function restartDirection(installed, current) {
+  if (!installed || !current || installed === current) return ''
+  try {
+    const order = compareVersions(installed, current)
+    return order < 0 ? 'rollback' : order > 0 ? 'update' : ''
+  } catch {
+    return ''
+  }
+}
+
+/** 某个备份相对磁盘上已安装版本是更旧还是更新。 */
+function versionDirection(installed, candidate) {
+  if (!installed || !candidate || installed === candidate) return ''
+  try {
+    return compareVersions(candidate, installed) < 0 ? 'older' : 'newer'
+  } catch {
+    return ''
+  }
+}
+
+/** `YYYYMMDD-HHMMSS` 是更新器写备份名时的本地时间，换回毫秒用于排序和展示。 */
+function backupStampEpoch(value) {
+  const match = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/.exec(String(value || ''))
+  if (!match) return 0
+  const time = new Date(
+    Number(match[1]), Number(match[2]) - 1, Number(match[3]),
+    Number(match[4]), Number(match[5]), Number(match[6])
+  ).getTime()
+  return Number.isFinite(time) ? time : 0
 }
 
 function appendCacheBust(value) {

@@ -22,13 +22,24 @@ export function splitModels(ids = []) {
   return { asr, text }
 }
 
+// 同一个网关里的模型通常是「同族 + 变体」（`vendor/xxx`、`xxx-flash`、`xxx-pro`）。
+// 按当前配置的族名排前面，其余按字母序，避免把某一家的模型名写死在源码里。
+function familyOf(id) {
+  const value = String(id || '').trim()
+  if (!value) return ''
+  const slash = value.indexOf('/')
+  if (slash > 0) return value.slice(0, slash).toLowerCase()
+  return value.split(/[-_.]/)[0].toLowerCase()
+}
+
 export function sortModels(list = [], current = '') {
   const cur = String(current || '').trim()
+  const family = familyOf(cur)
   return list.slice().sort((a, b) => {
     if (a === cur) return -1
     if (b === cur) return 1
-    const am = /^mimo/i.test(a) ? 0 : 1
-    const bm = /^mimo/i.test(b) ? 0 : 1
+    const am = family && familyOf(a) === family ? 0 : 1
+    const bm = family && familyOf(b) === family ? 0 : 1
     return am - bm || String(a).localeCompare(String(b))
   })
 }

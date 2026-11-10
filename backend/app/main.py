@@ -18,7 +18,8 @@ import settings
 from database import DATA_DIR
 from export_md import export_markdown  # noqa: F401  测试与脚本沿用 main.export_markdown
 from routes import (asr_engines, calendar, cards as card_routes, link_videos, meetings,
-                    minutes as minutes_routes, models, search, sessions, speakers, system)
+                    minutes as minutes_routes, models, packs as pack_routes, search, sessions,
+                    speakers, system)
 
 PORT = int(os.environ.get("MEETCLIP_PORT") or 8321)
 ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
@@ -71,7 +72,7 @@ def health():
 
 
 for module in (system, models, sessions, meetings, link_videos, asr_engines, calendar, search,
-               minutes_routes, speakers, card_routes):
+               minutes_routes, speakers, card_routes, pack_routes):
     app.include_router(module.router)
 
 

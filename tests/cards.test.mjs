@@ -14,6 +14,13 @@ const t = (key) => ({
   'kind.link_video': '视频',
   'kind.live': '直播',
   'kind.doc': '飞书文档',
+  'kind.pack': '卡包',
+  'kind.note': '便利签',
+  'kind.highlight': '标记',
+  'kind.image': '图片',
+  'kind.batch': '批次',
+  'cards.cardsUnit': '张',
+  'cards.itemsUnit': '条',
   'cards.linkOnly': '仅链接'
 }[key] || key)
 
@@ -82,6 +89,24 @@ test('飞书文档卡候选使用 updated_at 并标注仅链接', () => {
   const value = JSON.parse(doc.value)
   assert.equal(value.kind, 'doc')
   assert.equal(value.url, 'https://example.feishu.cn/docx/ExampleDocToken1')
+})
+
+test('卡包候选带成员数，并能解析为 pack 卡片', () => {
+  const pack = cardCandidate({
+    id: 'pack:pack-abc',
+    title: '发布会复盘',
+    kind: 'pack',
+    status: 'done',
+    count: 4,
+    created_at: 1793161835,
+    updated_at: 1793661835,
+    path: '会摘卡片/卡包/pack-abc.md'
+  }, t, undefined)
+  assert.ok(pack)
+  assert.match(pack.description, /卡包/)
+  assert.match(pack.description, /4 张/)
+  assert.equal(JSON.parse(pack.value).kind, 'pack')
+  assert.equal(JSON.parse(pack.value).path, '会摘卡片/卡包/pack-abc.md')
 })
 
 test('@ 卡片 source 只在会摘工作区返回候选，支持多条选择', async () => {

@@ -43,10 +43,28 @@ const images = showBoardImage
   ? [{ id: 'i1', path: 'board-images/i1.png', width: 840, height: 620, x: showcase ? 400 : -380, y: 300, created_at: now - 1800 }]
   : []
 
+const previewPacks = new URLSearchParams(window.location.search).get('packs') === '1'
+  ? [{
+    id: 'pack-preview-1',
+    title: '发布会复盘',
+    created_at: now - day * 0.5,
+    updated_at: now - day * 0.2,
+    count: 4,
+    active_count: 0,
+    members: [
+      { type: 'session', id: 's1', title: sessions[0].title, kind: 'live', status: 'done', created_at: sessions[0].started_at, duration: sessions[0].duration, active: false },
+      { type: 'session', id: 's2', title: sessions[1].title, kind: 'meeting', status: 'done', created_at: sessions[1].started_at, duration: sessions[1].duration, active: false },
+      { type: 'highlight', id: '1', title: highlights[0].note, subtitle: highlights[0].session_title, kind: 'link_video', status: 'done', session_id: highlights[0].session_id, session_title: highlights[0].session_title, ts: highlights[0].ts, created_at: highlights[0].created_at },
+      { type: 'note', id: 'n1', title: '周末把散落画布的拖拽手感再调一遍', subtitle: '待办清单', kind: 'todo', status: 'done', created_at: notes[0].created_at }
+    ]
+  }]
+  : []
+
 const homePayload = {
   stats: { total: 42, week: 3, duration: 66600, recording: 0, unreviewed: 5, marks: 37, live: 18, link_video: 12, meeting: 12 },
   items: sessions,
   highlights,
+  packs: previewPacks,
   has_more: false
 }
 
@@ -123,9 +141,24 @@ window.fetch = async (input, init = {}) => {
     }
     return json(images)
   }
+  if (target.includes('/api/packs/')) {
+    const pack = previewPacks[0]
+    if (!pack) return json({ ok: false, detail: '卡包不存在' }, false, 404)
+    if (method === 'PATCH' && target.split('/api/packs/')[1]?.includes('/members')) {
+      const body = JSON.parse(init.body || '{}')
+      const order = Array.isArray(body.members) ? body.members : []
+      const byKey = new Map(pack.members.map((member) => [`${member.type}-${member.id}`, member]))
+      const next = order.map((member) => byKey.get(`${member.type}-${member.id}`)).filter(Boolean)
+      for (const member of pack.members) if (!next.includes(member)) next.push(member)
+      pack.members = next
+      pack.updated_at = Math.floor(Date.now() / 1000)
+      return json({ ok: true, pack })
+    }
+    return json({ ok: true, pack })
+  }
   if (target.includes('/api/deps/install/status')) return json({ running: false, done: true, log: '', step: '完成', error: '' })
   if (target.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, asr: true, asr_runtime: true, ready: true })
-  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr', has_api_key: true, ready: true })
+  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr', has_api_key: true, ready: true })
   if (target.includes('/api/meeting/options')) return json({ languages: [{ id: '', name: '自动' }], aligner_ready: true, asr_ready: true, asr_provider: 'mimo', diarize: { available: true, package: true, model_ready: true, model_state: 'ready' } })
   if (target.includes('/api/asr/status') || target.includes('/api/aligner/status') || target.includes('/api/diarize/status')) {
     return json({ state: 'ready', ready: true, downloaded: 100, total: 100, runtime: true, bundled: false })
@@ -179,6 +212,42 @@ plugin.apply({
     }
   }
 })
+
+if (window.location.search.includes('demo=pack-hotzone')) {
+  // 截图用：把一张卡拖到另一张卡中央并停留，展示上膛后的热区与提示。
+  setTimeout(() => {
+    const cards = [...document.querySelectorAll('.mc-scatter-card')]
+    const inView = cards.filter((node) => {
+      const box = node.getBoundingClientRect()
+      const cx = box.left + box.width / 2
+      const cy = box.top + box.height / 2
+      return box.width > 80 && cx > 130 && cx < window.innerWidth - 130 && cy > 120 && cy < window.innerHeight - 120
+    })
+    const from = inView.find((node) => node.dataset.type === 'session')
+    const to = inView.find((node) => node !== from && ['note', 'session', 'highlight'].includes(node.dataset.type)) || inView.find((node) => node !== from)
+    if (!from || !to) return
+    const a = from.getBoundingClientRect()
+    const b = to.getBoundingClientRect()
+    const start = { x: a.left + a.width / 2, y: a.top + a.height / 2 }
+    const end = { x: b.left + b.width / 2, y: b.top + b.height / 2 }
+    const fire = (type, x, y) => from.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, cancelable: true, button: 0, buttons: 1, pointerId: 1, pointerType: 'mouse', clientX: x, clientY: y
+    }))
+    fire('pointerdown', start.x, start.y)
+    for (let index = 1; index <= 8; index += 1) {
+      fire('pointermove', start.x + (end.x - start.x) * index / 8, start.y + (end.y - start.y) * index / 8)
+    }
+    // 不松手：让 160ms 上膛动画和提示停在截图里。
+  }, 1500)
+}
+
+if (window.location.search.includes('demo=pack-overlay')) {
+  setTimeout(() => {
+    const pack = document.querySelector('.mc-pack-card')
+    if (!pack) return
+    pack.click()
+  }, 1500)
+}
 
 if (window.location.search.includes('demo=drag-hold')) {
   // 截图用：真的按住一张便利签拖动一半，保持拖动态，检查卡片四角的接缝。

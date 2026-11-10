@@ -59,7 +59,7 @@ export function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
           <span>引擎</span>
           <select className="mc-input mc-select" value={provider} onChange={(event) => setProvider(event.target.value)}>
             <option value="default">跟随默认设置</option>
-            <option value="mimo">MiMo 云端</option>
+            <option value="mimo">云端识别</option>
           </select>
         </label>
         <label className="mc-form-row">

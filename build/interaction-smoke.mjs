@@ -72,7 +72,55 @@ const homePayload = {
     url: 'https://example.feishu.cn/docx/ExampleDocToken1',
     doc_type: 'docx', has_content: true, updated_at: 1793000500,
     path: '会摘卡片/会议纪要：物模型白皮书.md'
-  }]
+  }],
+  packs: []
+}
+const packState = homePayload.packs
+let packCounter = 0
+
+function packMemberSnapshot(type, id) {
+  if (type === 'session') {
+    const item = homePayload.items.find((row) => row.id === id)
+    return item ? {
+      type, id, title: item.title, kind: item.kind, status: item.status,
+      duration: item.duration, created_at: item.created_at, active: false
+    } : null
+  }
+  if (type === 'highlight') {
+    const item = homePayload.highlights.find((row) => String(row.id) === String(id))
+    return item ? {
+      type, id: String(id), title: item.note, subtitle: item.session_title, kind: item.kind,
+      status: 'done', session_id: item.session_id, session_title: item.session_title,
+      ts: item.ts, created_at: item.created_at
+    } : null
+  }
+  if (type === 'note') return { type, id, title: '临时便利签', subtitle: '便利签', kind: 'note', status: 'done', created_at: 1793000100 }
+  if (type === 'image') return { type, id, title: '图片卡', kind: 'image', status: 'done', width: 600, height: 400, created_at: 1793000200 }
+  if (type === 'batch') {
+    const item = homePayload.batches.find((row) => row.id === id)
+    return item ? { type, id, title: item.title, kind: 'link_video', status: 'done', count: item.total, active: item.active, created_at: item.created_at } : null
+  }
+  if (type === 'doc') {
+    const item = homePayload.documents.find((row) => row.id === id)
+    return item ? {
+      type, id, title: item.title, subtitle: item.doc_type, kind: 'doc', status: 'done',
+      url: item.url, doc_type: item.doc_type, has_content: item.has_content, created_at: item.updated_at
+    } : null
+  }
+  return null
+}
+
+function packFromMembers(pack, members) {
+  const rows = (members || []).map((member) => packMemberSnapshot(member.type, member.id)).filter(Boolean)
+  pack.members = rows
+  pack.count = rows.length
+  pack.active_count = rows.filter((row) => row.active).length
+  pack.updated_at = Date.now() / 1000
+  return pack
+}
+
+function packFor(id) {
+  return packState.find((row) => String(row.id) === String(id)) || null
 }
 
 const nowSeconds = Math.floor(Date.now() / 1000)
@@ -151,8 +199,36 @@ globalThis.EventSource = class {
 const deleteCalls = []
 const interactionCalls = []
 const linkBatchBodies = []
+const meetingImportBodies = []
 globalThis.fetch = async (url, options = {}) => {
   const target = String(url)
+  if (target.includes('/api/meetings/import-batch')) {
+    const body = JSON.parse(String(options.body || '{}'))
+    meetingImportBodies.push(body)
+    const results = (body.items || []).map((item, index) => ({
+      ok: true,
+      id: `import-${meetingImportBodies.length}-${index}`,
+      name: String(item.path || '').split('/').pop(),
+      title: item.title,
+      queue_position: index + 1
+    }))
+    return json({
+      ok: true,
+      results,
+      ids: results.map((row) => row.id),
+      pack: {
+        id: 'pack-batch-import',
+        title: body.pack_title || '会议录音 · 测试',
+        count: results.length,
+        active_count: results.length,
+        created_at: 1793000600,
+        members: results.map((row) => ({
+          type: 'session', id: row.id, title: row.title, kind: 'meeting', status: 'queued', active: true
+        }))
+      },
+      pack_error: ''
+    })
+  }
   if (target.includes('/api/link-videos/preview')) {
     return json({ ok: true, platform: 'bilibili', title: '预览视频', subtitle_status: 'none' })
   }
@@ -204,6 +280,63 @@ globalThis.fetch = async (url, options = {}) => {
     }
     if (method === 'DELETE') return json({ ok: true, interactions: { todos: {}, highlights: [] } })
     return json({ ok: true, interactions: minutesPayload.interactions })
+  }
+  if (target.includes('/api/packs')) {
+    const method = String(options.method || 'GET').toUpperCase()
+    let body = {}
+    try { body = options.body ? JSON.parse(String(options.body)) : {} } catch {}
+    const memberMatch = target.match(/\/api\/packs\/([^/]+)\/members/)
+    if (memberMatch) {
+      const pack = packFor(decodeURIComponent(memberMatch[1]))
+      if (!pack) return json({ detail: '卡包不存在' }, false, 404)
+      if (method === 'POST') {
+        const wanted = body.members || []
+        for (const member of wanted) {
+          if (!pack.members.some((row) => row.type === member.type && String(row.id) === String(member.id))) {
+            const snap = packMemberSnapshot(member.type, member.id)
+            if (snap) pack.members.push(snap)
+          }
+        }
+        packFromMembers(pack, pack.members.map((row) => ({ type: row.type, id: row.id })))
+        return json({ ok: true, pack })
+      }
+      if (method === 'DELETE') {
+        const wanted = body.members || []
+        pack.members = pack.members.filter((row) => !wanted.some((member) => member.type === row.type && String(member.id) === String(row.id)))
+        packFromMembers(pack, pack.members.map((row) => ({ type: row.type, id: row.id })))
+        return json({ ok: true, pack })
+      }
+      return json({ detail: 'not mocked' }, false, 404)
+    }
+    const idMatch = target.match(/\/api\/packs\/([^/]+)/)
+    if (method === 'POST' && !idMatch) {
+      const id = body.id || `pack-${++packCounter}`
+      let pack = packFor(id)
+      if (!pack) {
+        pack = { id, title: body.title || `卡包 ${packState.length + 1}`, created_at: Date.now() / 1000, updated_at: Date.now() / 1000 }
+        packFromMembers(pack, body.members || [])
+        packState.push(pack)
+      }
+      homePayload.packs = packState
+      return json({ ok: true, pack })
+    }
+    if (idMatch) {
+      const pack = packFor(decodeURIComponent(idMatch[1]))
+      if (!pack) return json({ detail: '卡包不存在' }, false, 404)
+      if (method === 'GET') return json({ ok: true, pack })
+      if (method === 'PATCH') {
+        if (body.title) pack.title = String(body.title)
+        pack.updated_at = Date.now() / 1000
+        return json({ ok: true, pack })
+      }
+      if (method === 'DELETE') {
+        const index = packState.indexOf(pack)
+        if (index >= 0) packState.splice(index, 1)
+        homePayload.packs = packState
+        return json({ ok: true, id: pack.id, title: pack.title, members: pack.members.map((row) => ({ type: row.type, id: row.id })) })
+      }
+    }
+    return json({ detail: 'not mocked' }, false, 404)
   }
   if (String(options.method || 'GET').toUpperCase() === 'DELETE') {
     deleteCalls.push(target)
@@ -264,20 +397,41 @@ globalThis.fetch = async (url, options = {}) => {
   if (target.includes('/api/home')) return json(homePayload)
   if (target.includes('/minutes')) return json(minutesPayload)
   if (target.includes('/speakers/plan')) return json({ speakers: [], has_numbers: false, total: 0, can_undo: false })
-  if (target.includes('/api/models/catalog')) return json({ models: ['mimo-v2.5-asr', 'mimo-v2.6-flash', 'gpt-4o', 'text-embedding-3-small'], count: 4, has_key: true, error: '' })
-  if (target.includes('/api/ai/status')) return json({ provider: 'mimo', provider_name: 'Mify（MiMo）', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5', has_key: false, key_masked: '', credential_error: '', json_mode: true, providers: [], minutes_auto: 'final', minutes_interval: 120, notes_language: '简体中文', minutes_language: '简体中文', auto_end_silence: 'prompt', auto_end_after: 600, languages: ['简体中文'] })
+  if (target.includes('/api/models/catalog')) return json({ models: ['demo-asr', 'demo-flash', 'gpt-4o', 'text-embedding-3-small'], count: 4, has_key: true, error: '' })
+  if (target.includes('/api/ai/status')) return json({ provider: 'mimo', provider_name: '默认网关（OpenAI 兼容）', base_url: 'https://gateway.example.test/v1', model: 'demo-text', has_key: false, key_masked: '', credential_error: '', json_mode: true, providers: [], minutes_auto: 'final', minutes_interval: 120, notes_language: '简体中文', minutes_language: '简体中文', auto_end_silence: 'prompt', auto_end_after: 600, languages: ['简体中文'] })
   if (target.includes('/api/sessions/s1')) return json(detail)
   if (target.includes('/api/sessions/s2')) return json({ ...detail, id: 's2', title: '产品会议', kind: 'meeting', status: 'processing' })
   if (target.includes('/api/sessions')) return json(sessions)
-  if (target.includes('/app/pick-file')) return json({ ok: true, path: '/tmp/meeting.mp4', bytes: 1024 })
+  if (target.includes('/app/pick-file')) return json({
+    ok: true,
+    path: '/tmp/meeting.mp4',
+    paths: ['/tmp/meeting.mp4', '/tmp/meeting-2.m4a'],
+    bytes: 1024
+  })
   if (target.includes('/api/meeting/options')) return json({ languages: [{ id: '', name: '自动' }, { id: 'zh', name: '中文' }], aligner_ready: true, aligner_state: 'ready', asr_ready: true, asr_provider: 'mimo', hotwords_supported: false, diarize: { available: false, package: true, model_ready: false, model_state: 'ready', reason: '模型未下载' } })
   if (target.includes('/api/deps/install/status')) return json({ running: false, done: true, log: '', step: '完成', error: '' })
   if (target.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, asr: true, asr_runtime: true, ready: true })
-  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr', mify_model: 'xiaomi/mimo-v2.5-asr', mify_has_key: true, has_api_key: true, custom: { base_url: '', model: '', enabled: false, has_key: false }, credential_error: '', ready: true })
+  if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr', default_model: 'demo-asr', default_has_key: true, has_api_key: true, custom: { base_url: '', model: '', enabled: false, has_key: false }, credential_error: '', ready: true })
   if (target.includes('/api/douyin/status')) return json({ saved: true, count: 3, updated_at: 1793000300, browser: 'chrome', last_url: 'https://v.douyin.com/6DFF61GmvhI/' })
   if (target.includes('/api/settings')) return json({ shot_sensitivity: 0.5, shot_threshold: 3.9, link_browser_cookies: false, link_cookie_browser: 'chrome', link_max_height: 0 })
   if (target.includes('/api/bilibili/status')) return json({ logged_in: false, uname: '', error: '' })
   if (target.includes('/api/asr/status') || target.includes('/api/aligner/status') || target.includes('/api/diarize/status')) return json({ state: 'ready', downloaded: 100, total: 100, speed: 0, eta: 0, error: '', endpoint: '', current_file: '', model: 'm', repo: 'r', runtime: true, runtime_message: '', ready: true, bundled: false, size_on_disk: 100 })
+  if (target.includes('/api/cards/sync')) return json({ ok: true, total: 1, created: 0, updated: 1, removed: 0, skipped: 0 })
+  if (target.includes('/api/cards')) {
+    const parsed = new URL(target, 'http://127.0.0.1')
+    const id = parsed.searchParams.get('id') || 's1'
+    const isPack = id.startsWith('pack:')
+    return json({
+      ok: true, total: 1, returned: 1,
+      cards: [{
+        id,
+        title: isPack ? '测试卡包' : '发布会回放',
+        kind: isPack ? 'pack' : 'live',
+        status: 'done',
+        path: isPack ? `会摘卡片/卡包/${id.split(':')[1]}.md` : '会摘卡片/发布会回放.md'
+      }]
+    })
+  }
   if (target.includes('/api/search')) return json({ total: 0, counts: {}, results: [], has_more: false })
   if (target.includes('/api/calendar/range')) return json({ events: [calendarEvent], records: [] })
   if (target.includes('/api/calendar/configuration')) return json({ account: null, calendars: [], sync: { running: false, progress: 0, message: '', error: '' } })
@@ -293,7 +447,19 @@ const plugin = globalThis.__entry.factory((name) => {
 })
 const slots = {}
 const agentCalls = []
+const agentDrafts = []
 let agentPromptResult = { ok: true }
+const agentConversation = {
+  input: {
+    shell(sessionId) {
+      agentCalls.push(['shell', sessionId])
+      return {
+        setDraft(draft) { agentDrafts.push(draft) },
+        focus() { agentCalls.push(['focus', sessionId]) }
+      }
+    }
+  }
+}
 const agentSessions = {
   async create(options) {
     agentCalls.push(['create', options])
@@ -321,7 +487,7 @@ plugin.apply({
   effect: (callback) => callback(),
   inject: (names, callback) => {
     if (!names.includes('uiWorkspace')) return { dispose() {} }
-    const services = { sessions: agentSessions, uiWorkspace: agentWorkspace }
+    const services = { sessions: agentSessions, uiWorkspace: agentWorkspace, conversation: agentConversation }
     callback({
       ...services,
       get: (name) => services[name],
@@ -369,7 +535,7 @@ try {
   await act(async () => { closeSearch.props.onClick() })
   await flush(80)
 
-  // ＋ 只弹三入口菜单，不再直接选文件；选「会议录音」后才走文件选择流程。
+  // ＋ 只弹三入口菜单，不再直接选文件；选「会议录音」后才走文件选择流程（支持多选）。
   let plusButton = renderer.root.findAllByType('button').find((node) => node.props['data-testid'] === 'hero-new-capture')
   if (!plusButton) throw new Error('Home plus button missing')
   await act(async () => { plusButton.props.onClick() })
@@ -382,16 +548,35 @@ try {
   await act(async () => { meetingEntry.props.onClick() })
   await flush(150)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['会议录音', 'meeting.mp4', '提交']) {
+  for (const expected of ['会议录音', 'meeting.mp4', 'meeting-2.m4a', '会议录音 ·']) {
     if (!text.includes(expected)) throw new Error('Inline meeting panel missing ' + expected)
+  }
+  if (!renderer.root.findAllByType('button').some((node) => node.props['data-new-submit'] === 'true')) {
+    throw new Error('Meeting import submit button missing')
   }
   if (text.includes('new.hotwords')) throw new Error('Inline meeting panel still renders hotwords')
   if (!renderer.root.findAll((node) => node.props?.className === 'mc-file-field').length) throw new Error('Meeting file row missing')
   const fileRow = renderer.root.findAll((node) => node.props?.className === 'mc-file-row')[0]
   if (!fileRow) throw new Error('Meeting file row content missing')
+  if (renderer.root.findAll((node) => node.props?.className === 'mc-file-item').length !== 2) {
+    throw new Error('Meeting batch file list should render two selected files')
+  }
+  const meetingSubmit = renderer.root.findAllByType('button').find((node) => node.props['data-new-submit'] === 'true')
+  if (!meetingSubmit) throw new Error('Meeting batch submit button missing')
+  await act(async () => { meetingSubmit.props.onClick() })
+  await flush(250)
+  if (meetingImportBodies.length !== 1) throw new Error('Batch meeting import request missing')
+  const importBody = meetingImportBodies[0]
+  if (importBody.items.length !== 2) throw new Error('Batch meeting import should carry two files')
+  if (importBody.items[0].title !== 'meeting') throw new Error('Batch meeting title should default to the file stem')
+  if (importBody.pack_title !== '') throw new Error('Batch meeting pack title should be left to the server default')
+  text = JSON.stringify(renderer.toJSON())
+  if (!text.includes('已导入 2 个文件')) throw new Error('Batch meeting toast missing import count')
   let closeCapture = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭采集面板')
-  await act(async () => { closeCapture.props.onClick() })
-  await flush(50)
+  if (closeCapture) {
+    await act(async () => { closeCapture.props.onClick() })
+    await flush(50)
+  }
 
   // 第四个入口：飞书文档表单；只验证入口/表单渲染，提交由 Host 单测覆盖。
   plusButton = renderer.root.findAllByType('button').find((node) => node.props['data-testid'] === 'hero-new-capture')
@@ -706,6 +891,192 @@ try {
     throw new Error('Dragged card did not land near the drop point')
   }
 
+  // ---- 右键卡片：基于此卡片提问，创建会话并只预填 @ 引用 ----
+  const promptCountBeforeAsk = agentCalls.filter(([kind]) => kind === 'prompt').length
+  const askSessionCard = cardNodes().find((node) => keyOf(node) === 'session-s1')
+  if (!askSessionCard) throw new Error('Ask source card missing')
+  const askMenuTarget = askSessionCard.findAll((node) => typeof node.props?.onContextMenu === 'function')[0]
+  await act(async () => { askMenuTarget.props.onContextMenu(fakeEvent()) })
+  await flush(50)
+  const askCardButton = renderer.root.findAllByType('button')
+    .find((node) => textOf(node.props.children).startsWith('基于此卡片提问'))
+  if (!askCardButton) throw new Error('Ask card menu item missing')
+  await act(async () => { askCardButton.props.onClick() })
+  await flush(120)
+  if (!agentDrafts.length) throw new Error('Ask card did not prepare an Agent draft')
+  const askDraft = agentDrafts[agentDrafts.length - 1]
+  if (!askDraft.references?.[0]?.ref?.includes('发布会回放.md')) throw new Error('Ask card draft missing reference')
+  if (!agentCalls.some(([kind]) => kind === 'open')) throw new Error('Ask card did not open Agent session')
+  if (agentCalls.filter(([kind]) => kind === 'prompt').length !== promptCountBeforeAsk) throw new Error('Ask card should not auto-send')
+
+  // ---- 卡包：空白右键新建、拖卡入包、拖卡叠包、筛选、撤销、解散 ----
+  const stageNode = renderer.root.findAll((node) => node.props?.className === 'mc-scatter')[0]
+  if (!stageNode) throw new Error('Scatter stage missing for pack menu')
+  const blankEvent = {
+    ...fakeEvent(),
+    clientX: 760,
+    clientY: 500,
+    target: { closest: () => null },
+    currentTarget: {}
+  }
+  await act(async () => { stageNode.props.onContextMenu(blankEvent) })
+  await flush(60)
+  const newPackButton = renderer.root.findAllByType('button')
+    .find((node) => textOf(node.props.children).startsWith('新建卡包'))
+  if (!newPackButton) throw new Error('Blank context menu missing 新建卡包')
+  await act(async () => { newPackButton.props.onClick() })
+  await flush(140)
+  const packNodes = () => cardNodes().filter((node) => node.props['data-type'] === 'pack')
+  const packText = (node) => {
+    const article = node?.findAll((child) => typeof child.props?.className === 'string' && child.props.className.includes('mc-pack-card'))[0]
+    return article ? textOf(article.props.children) : ''
+  }
+  let currentPack = packNodes()[0]
+  if (!currentPack) throw new Error('New empty pack card missing')
+  const emptyPackKey = keyOf(currentPack)
+  if (!packText(currentPack).includes('把卡片拖到这里')) throw new Error('Empty pack copy missing')
+  if (packState.length !== 1) throw new Error('Pack was not created through API mock')
+  const packMenuTarget = currentPack.findAll((node) => typeof node.props?.onContextMenu === 'function')[0]
+  await act(async () => { packMenuTarget.props.onContextMenu(fakeEvent()) })
+  await flush(50)
+  const askPackButton = renderer.root.findAllByType('button')
+    .find((node) => textOf(node.props.children).startsWith('基于此卡包提问'))
+  if (!askPackButton) throw new Error('Ask pack menu item missing')
+  await act(async () => { askPackButton.props.onClick() })
+  await flush(120)
+  const packDraft = agentDrafts[agentDrafts.length - 1]
+  if (!packDraft?.references?.[0]?.ref?.includes('/卡包/')) throw new Error('Ask pack draft missing pack reference')
+
+  // 把便利签拖进空卡包：上膛后松手，便利签消失、卡包计数 1。
+  const noteSource = cardNodes().find((node) => keyOf(node) === 'note-n1')
+  if (!noteSource) throw new Error('Note source missing for pack add')
+  let packTarget = cardNodes().find((node) => keyOf(node) === emptyPackKey)
+  const notePoint = screenOf(rectOf(noteSource))
+  const packPoint = screenOf(rectOf(packTarget))
+  await act(async () => { noteSource.props.onPointerDown(pointer(notePoint.x, notePoint.y)) })
+  await act(async () => { noteSource.props.onPointerMove(pointer(packPoint.x, packPoint.y)) })
+  await flush(230)
+  packTarget = cardNodes().find((node) => keyOf(node) === emptyPackKey)
+  if (!packTarget.props.className.includes('is-pack-ready')) throw new Error('Pack add hot zone did not arm')
+  if (!JSON.stringify(renderer.toJSON()).includes('松手放进卡包')) throw new Error('Pack add hint missing')
+  await act(async () => { noteSource.props.onPointerUp(pointer(packPoint.x, packPoint.y)) })
+  await flush(140)
+  if (cardNodes().some((node) => keyOf(node) === 'note-n1')) throw new Error('Note was not folded into pack')
+  currentPack = cardNodes().find((node) => keyOf(node) === emptyPackKey)
+  if (!packText(currentPack).includes('1 张')) throw new Error('Pack count did not become 1')
+  if (packState[0].count !== 1) throw new Error('Pack add did not reach API mock')
+
+  // 打开卡包浮层，能看到成员；关闭。
+  let packArticle = currentPack.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-card'))[0]
+  await act(async () => { packArticle.props.onClick() })
+  await flush(80)
+  if (!renderer.root.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-modal')).length) {
+    throw new Error('Pack overlay did not open')
+  }
+  const firstPackModal = renderer.root.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-modal'))[0]
+  if (!firstPackModal) throw new Error('Pack modal root missing')
+  if (firstPackModal.findAll((node) => node.props?.className === 'mc-pack-row').length !== 1) {
+    throw new Error('Pack overlay should render one full-card row')
+  }
+  if (!firstPackModal.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-sticky-card')).length) {
+    throw new Error('Pack overlay did not reuse the sticky card component')
+  }
+  const packTitleInput = renderer.root.findAll((node) => node.props?.['aria-label'] === '卡包名称')[0]
+  if (!packTitleInput) throw new Error('Pack title input missing')
+  await act(async () => { packTitleInput.props.onChange({ target: { value: '本周复盘' } }) })
+  await act(async () => { packTitleInput.props.onBlur() })
+  await flush(120)
+  if (packState[0].title !== '本周复盘') throw new Error('Pack rename did not reach API mock')
+  if (!JSON.stringify(renderer.toJSON()).includes('本周复盘')) throw new Error('Pack rename did not update card/overlay')
+  const closePack = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭卡包')
+  if (!closePack) throw new Error('Pack overlay close button missing')
+  await act(async () => { closePack.props.onClick() })
+  await flush(60)
+
+  // 「标记」筛选下，包含便利签的卡包仍显示。
+  const chipRow = () => renderer.root.findAll((node) => node.props?.className === 'mc-home-chips')[0]
+  const markChip = chipRow().findAllByType('button').find((node) => textOf(node.props.children).startsWith('标记'))
+  await act(async () => { markChip.props.onClick() })
+  await flush(60)
+  if (!packNodes().length) throw new Error('Pack missing under mark filter')
+  const allChipAgain = chipRow().findAllByType('button').find((node) => textOf(node.props.children) === '全部')
+  await act(async () => { allChip.props.onClick() })
+  await flush(60)
+
+  // 图片卡拖到直播卡上：热区上膛后合成第二个卡包。
+  const imageSource = cardNodes().find((node) => keyOf(node) === 'image-img1')
+  const liveTarget = cardNodes().find((node) => keyOf(node) === 'session-s1')
+  if (!imageSource || !liveTarget) throw new Error('Pack merge source/target missing')
+  const imagePoint = screenOf(rectOf(imageSource))
+  const livePoint = screenOf(rectOf(liveTarget))
+  await act(async () => { imageSource.props.onPointerDown(pointer(imagePoint.x, imagePoint.y)) })
+  await act(async () => { imageSource.props.onPointerMove(pointer(livePoint.x, livePoint.y)) })
+  await flush(230)
+  const liveNode = cardNodes().find((node) => keyOf(node) === 'session-s1')
+  if (!liveNode.props.className.includes('is-pack-ready')) throw new Error('Merge hot zone did not arm')
+  if (!JSON.stringify(renderer.toJSON()).includes('松手叠成卡包')) throw new Error('Merge hint missing')
+  await act(async () => { imageSource.props.onPointerUp(pointer(livePoint.x, livePoint.y)) })
+  await flush(150)
+  if (cardNodes().some((node) => keyOf(node) === 'session-s1' || keyOf(node) === 'image-img1')) {
+    throw new Error('Merge did not fold source and target')
+  }
+  if (packState.length !== 2) throw new Error('Merge did not create a second pack')
+  if (packState[1].count !== 2) throw new Error('Merged pack member count wrong')
+  assertClear(cardNodes(), 'after pack merge')
+
+  // 展开合并包：两张成员卡用原卡片平铺，并各自带排序把手。
+  const mergedPackNode = packNodes().find((node) => packText(node).includes('2 张'))
+  if (!mergedPackNode) throw new Error('Merged pack card missing')
+  const mergedPackArticle = mergedPackNode.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-card'))[0]
+  await act(async () => { mergedPackArticle.props.onClick() })
+  await flush(80)
+  const mergedModal = renderer.root.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-modal'))[0]
+  if (!mergedModal) throw new Error('Merged pack modal missing')
+  if (mergedModal.findAll((node) => node.props?.className === 'mc-pack-row').length !== 2) {
+    throw new Error('Merged pack overlay should render two full-card rows')
+  }
+  if (!mergedModal.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-image-card')).length) {
+    throw new Error('Merged pack overlay missing image card')
+  }
+  if (mergedModal.findAll((node) => node.props?.['data-pack-member-key'] && typeof node.props?.onPointerDown === 'function').length !== 2) {
+    throw new Error('Merged pack overlay rows are not draggable')
+  }
+  await act(async () => { mergedModal.findAllByType('button').find((node) => node.props['aria-label'] === '关闭卡包').props.onClick() })
+  await flush(60)
+
+  // 「直播」筛选：含直播成员的卡包显示，只含便利签的卡包隐藏。
+  const liveChipPack = chipRow().findAllByType('button').find((node) => textOf(node.props.children).startsWith('直播'))
+  await act(async () => { liveChipPack.props.onClick() })
+  await flush(60)
+  const livePacks = packNodes()
+  if (livePacks.length !== 1) throw new Error('Pack filter did not show only live pack')
+  if (!packText(livePacks[0]).includes('2 张')) throw new Error('Filtered pack is wrong one')
+  await act(async () => { chipRow().findAllByType('button').find((node) => textOf(node.props.children) === '全部').props.onClick() })
+  await flush(60)
+
+  // 撤销合并：卡包消失，直播卡和图片卡回到墙面。
+  const undoButton = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '撤销')
+  if (!undoButton) throw new Error('Pack undo missing')
+  await act(async () => { undoButton.props.onClick() })
+  await flush(150)
+  if (packNodes().length !== 1) throw new Error('Undo did not remove merged pack')
+  if (!cardNodes().some((node) => keyOf(node) === 'session-s1')) throw new Error('Undo did not restore live card')
+  if (!cardNodes().some((node) => keyOf(node) === 'image-img1')) throw new Error('Undo did not restore image card')
+
+  // 解散空包（内含便利签）：卡片回到墙面，记录不被删除。
+  const dissolveTarget = packNodes()[0]
+  const dissolveMenu = dissolveTarget.findAll((node) => typeof node.props?.onContextMenu === 'function')[0]
+  await act(async () => { dissolveMenu.props.onContextMenu(fakeEvent()) })
+  await flush(60)
+  const dissolveButton = renderer.root.findAllByType('button')
+    .find((node) => textOf(node.props.children).startsWith('解散卡包'))
+  if (!dissolveButton) throw new Error('Pack dissolve action missing')
+  await act(async () => { dissolveButton.props.onClick() })
+  await flush(150)
+  if (packNodes().length) throw new Error('Dissolve did not remove pack')
+  if (!cardNodes().some((node) => keyOf(node) === 'note-n1')) throw new Error('Dissolve did not return note card')
+  if (packState.length !== 0) throw new Error('Dissolve did not delete via API mock')
+
   const feedTab = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '信息流')
   await act(async () => { feedTab.props.onClick() })
   await flush(80)
@@ -911,7 +1282,7 @@ try {
   await act(async () => { meetingAgain.props.onClick() })
   await flush(150)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['会议录音', 'meeting.mp4', '提交']) {
+  for (const expected of ['会议录音', 'meeting.mp4', 'meeting-2.m4a']) {
     if (!text.includes(expected)) throw new Error('Inline capture panel missing ' + expected)
   }
   const cancelDialog = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭采集面板')
@@ -1116,7 +1487,7 @@ try {
   })
   await flush(250)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['会摘设置', '模型', '采集', 'Mify API Key']) {
+  for (const expected of ['会摘设置', '模型', '采集', 'API Key']) {
     if (!text.includes(expected)) throw new Error('Settings missing ' + expected)
   }
   for (const forbidden of ['通用', '界面语言', '数据目录', '日志', '运行信息', 'PID', '端口', '数据与诊断']) {
@@ -1128,7 +1499,7 @@ try {
   await act(async () => { modelsTab.props.onClick() })
   await flush(300)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['Mify API Key', '拉取模型清单', '语音转文字', '文字总结', '自定义 API', 'Base URL', '模型 ID', 'mimo-v2.6-flash']) {
+  for (const expected of ['API Key', '拉取模型清单', '语音转文字', '文字总结', '自定义 API', 'Base URL', '模型 ID', 'demo-flash']) {
     if (!text.includes(expected)) throw new Error('Models tab missing ' + expected)
   }
 

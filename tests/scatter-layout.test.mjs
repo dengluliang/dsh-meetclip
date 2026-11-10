@@ -185,3 +185,36 @@ test('批次卡有固定尺寸并参与避让', () => {
   assert.equal(entrySize(batch('b1')).h, 196)
   assertClear(layout.positions)
 })
+
+function pack(id, extra = {}) {
+  return {
+    type: 'pack',
+    item: {
+      id, title: '卡包', created_at: 1, updated_at: 2, count: 2,
+      members: [
+        { type: 'session', id: 's1', kind: 'live' },
+        { type: 'note', id: 'n1', kind: 'note' }
+      ],
+      ...extra
+    }
+  }
+}
+
+test('卡包有固定尺寸并参与避让', () => {
+  const entries = [session('s1'), pack('p1'), note('n1'), image('i1')]
+  const layout = buildLayout(entries)
+  assert.equal(Object.keys(layout.positions).length, entries.length)
+  const position = layout.positions['pack-p1']
+  assert.equal(position.w, 272)
+  assert.equal(position.h, 208)
+  assertClear(layout.positions)
+})
+
+test('80 张卡里混入卡包仍收敛', () => {
+  const entries = Array.from({ length: 70 }, (_, index) => `s${index}`)
+    .map((id) => session(id))
+    .concat(Array.from({ length: 10 }, (_, index) => pack(`p${index}`)))
+  const layout = buildLayout(entries)
+  assert.equal(layout.converged, true)
+  assertClear(layout.positions)
+})

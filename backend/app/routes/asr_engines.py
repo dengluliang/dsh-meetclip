@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 class EngineSettings(BaseModel):
-    mode: str = "mify"  # mify（默认网关）| custom（自定义 API）| key（只保存 Key）
+    mode: str = "default"  # default（默认网关）| custom（自定义 API）| key（只保存 Key）
     provider: str = "mimo"
     base_url: str = engines.DEFAULT_URL
     model: str = engines.DEFAULT_MODEL
@@ -39,7 +39,9 @@ def engine_status():
 @router.post("/api/asr/engines")
 def engine_settings(req: EngineSettings):
     try:
-        mode = (req.mode or "mify").strip()
+        mode = (req.mode or "default").strip()
+        if mode == "mify":  # 旧客户端的写法，等价于 default
+            mode = "default"
         if mode == "key":
             _save_key(req)
             return engines.status()
@@ -49,8 +51,8 @@ def engine_settings(req: EngineSettings):
             settings.update(asr_custom_base=config["base_url"], asr_custom_model=config["model"],
                             asr_provider="mimo")
             return engines.status()
-        if mode != "mify":
-            raise ValueError("mode 只能是 mify、custom 或 key")
+        if mode != "default":
+            raise ValueError("mode 只能是 default、custom 或 key")
         config = engines.validate_config(req.provider, req.base_url, req.model)
         _save_key(req)
         settings.update(asr_provider=config["provider"], mimo_base_url=config["base_url"],

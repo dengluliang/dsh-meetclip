@@ -7,18 +7,21 @@
 
 ![会摘首页](docs/assets/home-wall-preview.png)
 
-> 个人开源项目，与 DeepSeek、小米或飞书没有隶属关系。插件默认的 MiMo 网关与飞书 MCP 包指向作者所在环境，其他团队可以在设置或环境变量里换成自己的服务。
+> 个人开源项目，与 DeepSeek、飞书没有隶属关系。插件不内置任何公司的网关地址、模型名或私有 npm 源：模型服务（Base URL / 模型 ID / API Key）与飞书 MCP 包名、npm 源都由你在设置或配置里填写。
 
 ## 功能
 
 - **三种采集**：B 站直播（边录边转写）、视频链接（B 站 / YouTube 等）、本地会议音视频。
+- **批量会议导入**：会议录音页可一次选择或拖入多段音频/视频（含 mkv/flv），逐条转写；2 个及以上自动收进一个卡包，单文件仍按单条记录导入。
 - **时间戳转写**：云端 ASR，转写行带时间码和发言人；鼠标点任意时间戳即可跳转播放。
 - **边看边记**：打点、截图、Markdown 笔记、待办；记录、笔记和截图都在本地资料库。
 - **AI 纪要**：自动生成摘要、分节时间轴、结论、待办与术语表；支持增量更新与用户勾选/高亮反馈。
+- **卡包**：批量会议导入会自动成包；在首页散落画布右键空白新建卡包，把一张卡拖到另一张卡上停留约 160ms 叠成卡包；外壳直接叠放真实成员卡，展开后还原原卡片信息流，按住任意卡片即可拖动排序，目标卡中央会显示插入位置；成员可打开、移出或解散，卡包作为一张卡参与避让。
+- **@ 卡片与基于卡片提问**：首页记录、卡包、便利签、标记、图片、批次和飞书文档都会生成 `会摘卡片/` 下的 Markdown，可在 Agent 的 @ 菜单直接选中；右键任意卡片/卡包选「基于此卡片/卡包提问」，会新开 Agent 会话并把结构化引用放进输入框，不自动发送。
 - **资料空间**：工作/生活多个资料库随时切换，账号与通用设置可共享。
 - **飞书文档卡片**：粘贴飞书文档链接，读成可在会话里 `@` 的卡片；可选登录飞书 MCP 读写文档、多维表格、云盘与 Wiki。
 - **Agent 工具**：`meetclip_search`、`meetclip_records`、`meetclip_minutes`、`meetclip_marks`、`meetclip_notes`、`meetclip_calendar` 等。
-- **应用内更新**：设置 → 关于 → 检查更新，自动下载 GitHub Release、校验 SHA-256、替换已安装副本，带进度条。
+- **应用内更新**：设置 → 关于 → 检查更新，自动下载 GitHub Release、校验 SHA-256、替换已安装副本，带进度条；升级后可一键回退到升级前的本地副本。
 
 ![会摘卡片墙](docs/assets/scatter-preview.png)
 
@@ -28,7 +31,7 @@
 - macOS（当前主要验证平台；Windows/Linux 的路径已处理但未实测）
 - Node.js 20+（仅开发/构建需要；运行时由 DSH 提供）
 - 首次使用会创建独立的 Python 运行环境，需要网络
-- 一把 Mify / MiMo API Key（云识别与 AI 纪要默认共用；也可换成任意 OpenAI 兼容服务）
+- 一个 OpenAI 兼容的模型服务：Base URL、模型 ID 和 API Key（云识别与 AI 纪要默认共用同一把 Key）
 
 ## 安装
 
@@ -57,6 +60,7 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.1.tgz"
 - 点「检查更新」：读取 Release 的 `latest.json`（失败时回退 GitHub API）→ 有更新就自动下载 → SHA-256 校验 → 安全解包 → 原子替换 DSH profile 里的插件副本。下载过程显示百分比、已下载字节和速度，可取消。
 - 完成后重启 DeepSeek Harness 生效；重启前会明确提示「已安装 vX，重启后生效」。
 - 替换前会保留 `dsh-meetclip.update-bak-<旧版本>-<时间戳>` 备份；失败自动还原，进程中断后下次启动自动恢复。
+- 升级后如果发现问题，同一个页面可以「回退到 vX」：把安装目录换回**升级前保存在本地的副本**（不联网、不从 GitHub 下载旧版本）。确认后提示重启；换下来的新版本也会另存为备份，还能再切回来。资料库、笔记和转写不受影响。没有升级备份（手工装包或源码运行）时按钮置灰并说明原因。
 - 源码方式运行（`link:` / 开发目录）不会自动覆盖，只提示 `git pull`。
 - 自动更新不改 profile 的 `package.json`/`pnpm-lock.yaml`；之后手动重装插件可能回到安装时的旧 tgz。新包留在 `~/.dsh/meetclip/updates/<版本>/`。
 
@@ -65,11 +69,11 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.1.tgz"
 ## 首次使用
 
 1. 打开侧栏「会摘」→ 按引导准备 Python 环境。
-2. **设置 → 会摘 → 模型**：填入 Mify / MiMo API Key，或配置 OpenAI 兼容服务。
-3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音，或直接粘贴链接让 Agent 处理。
+2. **设置 → 会摘 → 模型**：填入服务地址（Base URL）、模型 ID 与 API Key，点「拉取模型清单」挑模型。
+3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频），或直接粘贴链接让 Agent 处理。
 4. 采集完成后在记录页看转写、打点、写笔记、生成 AI 纪要。
 
-飞书是可选项：**设置 → 会摘 → 飞书** 安装并登录飞书 MCP 后，Agent 才能读写飞书文档、多维表格与 Wiki。默认包 `@mi/feishu-mcp-pro` 来自作者环境的 npm 源；其他团队可用环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY` 指向自己的 MCP 包。
+飞书是可选项：**设置 → 会摘 → 飞书** 安装并登录飞书 MCP 后，Agent 才能读写飞书文档、多维表格与 Wiki。飞书 MCP 包发布在各自组织的私有 npm 源上，插件不内置包名与源：在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）后再安装。
 
 ## 数据与隐私
 
@@ -123,7 +127,7 @@ docs/                 架构、验证、更新说明
 - 自动更新只替换已安装副本，不自动重装 Python 依赖；若新版本改了 `backend/requirements.txt`，需在设置里重装运行环境。
 - 更新后必须重启 DSH 才能加载新的 Host/Client 代码（DSH 没有插件自重启 API）。
 - 网络受限时更新器会给出「连不上 GitHub」提示；暂不自动读取 `HTTPS_PROXY`。
-- 飞书 MCP 与 MiMo 网关默认值面向作者环境，公开使用前请换成自己的服务。
+- 飞书 MCP 包名 / npm 源与模型服务地址都必须自己配置，插件不预置任何内部服务。
 - 主要验证平台是 macOS；Windows 的目录替换有回退逻辑但未实测。
 
 ## 许可证

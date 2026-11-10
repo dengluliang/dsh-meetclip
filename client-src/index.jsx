@@ -106,7 +106,8 @@ export function apply(ctx) {
         pending = ctx.inject(['sessions', 'uiWorkspace'], (scope) => {
           const dispose = installAgentBridge(createAgentBridge({
             sessions: scope.get('sessions'),
-            uiWorkspace: scope.get('uiWorkspace')
+            uiWorkspace: scope.get('uiWorkspace'),
+            conversation: (() => { try { return scope.get('conversation') } catch { return null } })()
           }))
           scope.effect(() => dispose, 'meetclip: agent bridge')
         })
@@ -118,5 +119,27 @@ export function apply(ctx) {
         try { pending?.dispose?.() } catch {}
       }
     }, 'meetclip: agent bridge')
+
+    // 增强桥：有 conversation 输入模型时，右键「提问」可以把结构化 @ 引用直接放进新会话草稿。
+    // 单独 inject，避免让不支持 conversation 的老壳连 Hero 发送也一起失去。
+    ctx.effect(() => {
+      let pending
+      try {
+        pending = ctx.inject(['sessions', 'uiWorkspace', 'conversation'], (scope) => {
+          const dispose = installAgentBridge(createAgentBridge({
+            sessions: scope.get('sessions'),
+            uiWorkspace: scope.get('uiWorkspace'),
+            conversation: scope.get('conversation')
+          }))
+          scope.effect(() => dispose, 'meetclip: agent draft bridge')
+        })
+      } catch {
+        return () => {}
+      }
+      if (pending && typeof pending.catch === 'function') pending.catch(() => {})
+      return () => {
+        try { pending?.dispose?.() } catch {}
+      }
+    }, 'meetclip: agent draft bridge')
   }
 }

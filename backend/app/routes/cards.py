@@ -16,9 +16,9 @@ class DocCardReq(BaseModel):
 
 
 @router.get("/api/cards")
-def list_cards(q: str = "", limit: int = 20):
+def list_cards(q: str = "", limit: int = 20, id: str = ""):
     """给 DSH 的 @ 菜单列卡片；q 同时匹配标题和摘要关键词。"""
-    return cards.list_cards(q[:200], max(1, min(int(limit or 20), 50)))
+    return cards.list_cards(q[:200], max(1, min(int(limit or 20), 50)), card_id=id[:120])
 
 
 @router.post("/api/cards/sync")

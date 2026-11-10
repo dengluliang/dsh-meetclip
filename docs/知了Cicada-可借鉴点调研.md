@@ -202,7 +202,7 @@ backend/app/ai/providers.py # ling/openrouter/zenmux/openai/custom 表 + 每家 
 backend/app/ai/keys.py      # 复用现有 Keychain（后端已用 cn.meetclip.asr），或 0600 文件
 ```
 
-注意：会摘现有的 Mify 只是**云 ASR**（`llm.mioffice.cn`），纪要需要**文本模型**。两条路：① 同一把 key 走 OpenAI 兼容 `/chat/completions`（先探测模型列表）；② 允许单独配"纪要模型"。建议做成统一的 `providers.py`，Mify 只是其中一行。
+注意：会摘现有的云端识别只是**云 ASR**，纪要需要**文本模型**。两条路：① 同一把 key 走 OpenAI 兼容 `/chat/completions`（先探测模型列表）；② 允许单独配"纪要模型"。建议做成统一的 `providers.py`，Mify 只是其中一行。
 
 ### 2.3 本地诊断指标
 

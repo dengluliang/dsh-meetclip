@@ -5,11 +5,11 @@ import { DocCardForm } from './DocCardForm.jsx'
 const TITLES = {
   launch: ['发布会直播', '粘贴直播间链接，预检通过后开始采集'],
   video: ['视频链接', 'B站、YouTube 等链接导入，或批量粘贴'],
-  meeting: ['会议录音', '选择本地音频或视频，确认标题与语种后开始转写'],
+  meeting: ['会议录音', '选择本地音频或视频，可多选；导入后自动收进卡包'],
   doc: ['飞书文档', '读取文档正文，生成可在会话里 @ 的会摘卡片']
 }
 
-export function CaptureInline({ t, type = 'launch', url = '', file = null, onClose, onCreated, onSubmitted }) {
+export function CaptureInline({ t, type = 'launch', url = '', file = null, files = null, onClose, onCreated, onSubmitted }) {
   const [options, setOptions] = React.useState(null)
   const [optionsError, setOptionsError] = React.useState('')
   const [health, setHealth] = React.useState({ depsReady: null, asrReady: null, active: 0 })
@@ -104,7 +104,8 @@ export function CaptureInline({ t, type = 'launch', url = '', file = null, onClo
             onCreated={onCreated} onSubmitted={onSubmitted} />
         ) : null}
         {type === 'meeting' ? (
-          <MeetingForm t={t} options={options} optionsError={optionsError} initialFile={file} onClose={onClose} onCreated={onCreated} />
+          <MeetingForm t={t} options={options} optionsError={optionsError} initialFile={file}
+            initialFiles={files} onClose={onClose} onCreated={onCreated} />
         ) : null}
         {type === 'doc' ? <DocCardForm t={t} onClose={onClose} onCreated={onCreated} /> : null}
       </div>

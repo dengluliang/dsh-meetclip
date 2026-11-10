@@ -27,7 +27,7 @@ function finishJob(delay = 40, patch = {}) {
 
 const feishuStatus = () => json({
   ok: true,
-  package: { name: '@mi/feishu-mcp-pro', serverName: 'feishu', entryId: 'mcp-feishu-pro', minNodeMajor: 20 },
+  package: { name: 'feishu-mcp-pro', registry: 'https://npm.example.test/', configured: true, serverName: 'feishu', entryId: 'mcp-feishu-pro', minNodeMajor: 20 },
   runtime: { node: '/opt/homebrew/bin/node', nodeVersion: '24.19.0', nodeMajor: 24, nodeOk: true, npx: '/opt/homebrew/bin/npx', npxOk: true },
   dsh: { patchPath: '/tmp/dsh/cordis.patch.yml', entryId: 'mcp-feishu-pro', serverName: 'feishu', entryPresent: feishu.installed, entryLive: feishu.installed ? true : null, conflict: null },
   auth: { loggedIn: feishu.loggedIn, openId: feishu.loggedIn ? 'ou_1****cdef' : '', refreshExpiresAt: feishu.loggedIn ? 1893456000 : null, expired: false, needsLogin: !feishu.loggedIn },
@@ -48,7 +48,7 @@ globalThis.fetch = async (url, options = {}) => {
   const path = String(url)
   calls.push(path)
   if (path.includes('/app/asr/test')) return json({ ok: true, message: 'API Key 验证通过' })
-  if (path.includes('/app/models')) return json({ ok: true, models: ['mimo-v2.5-asr', 'ASR_NonStreaming', 'gpt-4o', 'mimo-v2.6-flash'], count: 4 })
+  if (path.includes('/app/models')) return json({ ok: true, models: ['demo-asr', 'ASR_NonStreaming', 'gpt-4o', 'demo-flash'], count: 4 })
   if (path.includes('/app/status')) return json(baseStatus())
   if (path.includes('/app/setup/status')) {
     state.env = true
@@ -77,10 +77,10 @@ globalThis.fetch = async (url, options = {}) => {
   if (path.includes('/api/asr/engines') && String(options.method || '').toUpperCase() === 'POST') {
     saved.push(JSON.parse(options.body || '{}'))
     state.key = true
-    return json({ default_provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: JSON.parse(options.body || '{}').model, has_api_key: true, ready: true })
+    return json({ default_provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: JSON.parse(options.body || '{}').model, has_api_key: true, ready: true })
   }
-  if (path.includes('/api/asr/engines')) return json({ default_provider: state.key ? 'mimo' : 'local', base_url: 'https://api.llm.mioffice.cn/v1', model: 'xiaomi/mimo-v2.5-asr', has_api_key: state.key, ready: state.key })
-  if (path.includes('/api/ai/config')) { saved.push(JSON.parse(options.body || '{}')); return json({ provider: 'mimo', base_url: 'https://api.llm.mioffice.cn/v1', model: JSON.parse(options.body || '{}').model, has_key: true, minutes_auto: 'final', minutes_language: '简体中文', auto_end_silence: 'prompt', auto_end_after: 600, providers: [], languages: [] }) }
+  if (path.includes('/api/asr/engines')) return json({ default_provider: state.key ? 'mimo' : 'local', base_url: 'https://gateway.example.test/v1', model: 'demo-asr', has_api_key: state.key, ready: state.key })
+  if (path.includes('/api/ai/config')) { saved.push(JSON.parse(options.body || '{}')); return json({ provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: JSON.parse(options.body || '{}').model, has_key: true, minutes_auto: 'final', minutes_language: '简体中文', auto_end_silence: 'prompt', auto_end_after: 600, providers: [], languages: [] }) }
   if (path.includes('/api/deps/install/status')) return json({ running: false, done: true, log: '', step: '' })
   if (path.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, asr: true, ready: true })
   if (path.includes('/api/aligner/status')) return json({ state: 'ready', ready: true })
@@ -121,7 +121,7 @@ const modelSelects = renderer.root.findAllByType('select')
 if (modelSelects.length < 2) throw new Error('Both model lists must be selects: ' + text().slice(0, 500))
 const [asrSelect, textSelect] = modelSelects
 const textValues = textSelect.findAllByType('option').map((n) => n.props.value)
-if (!textValues.includes('gpt-4o') || !textValues.includes('mimo-v2.6-flash')) {
+if (!textValues.includes('gpt-4o') || !textValues.includes('demo-flash')) {
   throw new Error('Text model list did not include the whole catalog: ' + JSON.stringify(textValues))
 }
 await act(async () => { asrSelect.props.onChange({ target: { value: 'ASR_NonStreaming' } }) })

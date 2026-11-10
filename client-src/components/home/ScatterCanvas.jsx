@@ -5,7 +5,8 @@ import { PIN_IMAGE } from '../../lib/pin-image.js'
 import { looksLikeImageFile } from '../../lib/paste.js'
 import { NoteEditor } from './NoteEditor.jsx'
 import { buildLayout, entryKey, nudgeOutOf, SCATTER_GAP } from './scatter-layout.js'
-import { centerOn, frameHome, nudgeIntoView, screenToWorld } from './scatter-camera.js'
+import { hitTestPackTarget, PACK_ARM_DELAY_MS } from './pack-model.js'
+import { centerOn, frameHome, nudgeIntoView, screenRectOf, screenToWorld } from './scatter-camera.js'
 import { reducedMotion, stageSize, stageRect as readStageRect, useScatterCamera } from './useScatterCamera.js'
 
 const LAYOUT_KEY = 'meetclip.scatter.layout.v2'
@@ -60,18 +61,27 @@ export function ScatterCanvas({
   pinningKey = '',
   focusKey = '',
   onShowAll,
-  onToast
+  onToast,
+  onMergeCards,
+  onBlankContextMenu,
+  layoutApiRef = null
 }) {
   const stageRef = React.useRef(null)
   const worldRef = React.useRef(null)
-  const { cam, flyTo, halt, zoomAt, home, stageSize: getStageSize } = useScatterCamera({ stageRef, worldRef })
+  const gridRef = React.useRef(null)
+  const { cam, flyTo, halt, zoomAt, home, stageSize: getStageSize } = useScatterCamera({ stageRef, worldRef, gridRef })
 
   const [manual, setManual] = React.useState(readManual)
   const manualRef = React.useRef(manual)
   manualRef.current = manual
   const [drag, setDrag] = React.useState(null)
   const dragRef = React.useRef(null)
+  const armTimerRef = React.useRef(null)
+  const packBusyRef = React.useRef(false)
   const panRef = React.useRef(null)
+  // 指针/滚轮可能一帧来好几次（120Hz 触控板、惯性滚动）：只记最新目标，一帧写一次 DOM。
+  const camRafRef = React.useRef(0)
+  const camTargetRef = React.useRef(null)
   const suppressRef = React.useRef({})
   const enteredRef = React.useRef(new Set())
   const knownRef = React.useRef(null)
@@ -84,11 +94,48 @@ export function ScatterCanvas({
   const visible = visibleKeys instanceof Set ? visibleKeys : null
   const isVisible = React.useCallback((key) => !visible || visible.has(key), [visible])
 
+  // 每帧最多写一次相机：同一帧里的多个 pointermove / wheel 只保留最后一个目标。
+  const flyInstant = React.useCallback((target) => {
+    camTargetRef.current = target
+    if (camRafRef.current) return
+    const schedule = typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame
+      : (callback) => setTimeout(() => callback(Date.now()), 16)
+    camRafRef.current = schedule(() => {
+      camRafRef.current = 0
+      const next = camTargetRef.current
+      camTargetRef.current = null
+      if (next) flyTo(next, { instant: true })
+    })
+  }, [flyTo])
+
+  // 松手或开始拖卡片之前把挂起的相机目标落地，避免惯性被上一帧的旧目标盖掉。
+  const flushCam = React.useCallback(() => {
+    if (!camRafRef.current && !camTargetRef.current) return
+    if (camRafRef.current) {
+      if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(camRafRef.current)
+      else clearTimeout(camRafRef.current)
+      camRafRef.current = 0
+    }
+    const next = camTargetRef.current
+    camTargetRef.current = null
+    if (next) flyTo(next, { instant: true })
+  }, [flyTo])
+
+  React.useEffect(() => () => {
+    if (!camRafRef.current) return
+    if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(camRafRef.current)
+    else clearTimeout(camRafRef.current)
+    camRafRef.current = 0
+  }, [])
+
   const entriesSig = React.useMemo(() => entries.map((entry) => {
     const key = entryKey(entry)
     const item = entry?.item || {}
     const seed = entry?.type === 'note' || entry?.type === 'image' ? `${Number(item.x) || 0},${Number(item.y) || 0}` : ''
-    const size = entry?.type === 'batch'
+    const size = entry?.type === 'pack'
+      ? 'pack'
+      : entry?.type === 'batch'
       ? 'batch'
       : entry?.type === 'note'
         ? '246x' + (item.kind === 'todo' ? 224 : 190)
@@ -180,7 +227,9 @@ export function ScatterCanvas({
       if (event.ctrlKey || event.metaKey) {
         zoomAt(Math.exp(-event.deltaY * 0.01), event.clientX - rect.left, event.clientY - rect.top, true)
       } else {
-        flyTo({ x: cam.current.tx - event.deltaX, y: cam.current.ty - event.deltaY, s: cam.current.ts }, { instant: true })
+        // 同一帧里可能来好几个滚轮事件：在「还没落地的目标」上累加，别拿同一个旧 tx 互相覆盖。
+        const base = camTargetRef.current || { x: cam.current.tx, y: cam.current.ty, s: cam.current.ts }
+        flyInstant({ x: base.x - event.deltaX, y: base.y - event.deltaY, s: base.s })
       }
     }
     stage.addEventListener('wheel', onWheel, { passive: false })
@@ -243,7 +292,10 @@ export function ScatterCanvas({
   React.useEffect(() => {
     if (!drag) return undefined
     const onKey = (event) => {
-      if (event.key !== 'Escape') return
+      if (event.key !== 'Escape' || packBusyRef.current) return
+      if (armTimerRef.current) clearTimeout(armTimerRef.current)
+      armTimerRef.current = null
+      resetDragVisual(dragRef.current?.key)
       dragRef.current = null
       setDrag(null)
     }
@@ -254,10 +306,60 @@ export function ScatterCanvas({
     return undefined
   }, [drag])
 
+  React.useEffect(() => () => {
+    if (armTimerRef.current) clearTimeout(armTimerRef.current)
+    armTimerRef.current = null
+  }, [])
+
   function applyManual(next) {
     manualRef.current = next
     setManual(next)
     writeManual(next)
+  }
+
+  // 给 HomePage 一个「先把位置写进 manual，再让 entry 出现」的入口：
+  // 卡包/解散出来的卡片因此不会先闪到螺旋点再飞回目标位置。
+  React.useEffect(() => {
+    const ref = layoutApiRef
+    if (!ref || typeof ref !== 'object') return undefined
+    function place(key, point) {
+      if (!key || key === 'null' || !isFinitePoint(point)) return
+      applyManual({
+        ...manualRef.current,
+        [key]: { x: Math.round(Number(point.x)), y: Math.round(Number(point.y)) }
+      })
+    }
+    function placeMany(map) {
+      if (!map || typeof map !== 'object') return
+      const next = { ...manualRef.current }
+      let changed = false
+      for (const [key, point] of Object.entries(map)) {
+        if (!key || !isFinitePoint(point)) continue
+        next[key] = { x: Math.round(Number(point.x)), y: Math.round(Number(point.y)) }
+        changed = true
+      }
+      if (changed) applyManual(next)
+    }
+    function remove(key) {
+      if (!key || !(key in manualRef.current)) return
+      const next = { ...manualRef.current }
+      delete next[key]
+      applyManual(next)
+    }
+    function getPosition(key) {
+      const position = layoutRef.current?.positions?.[key]
+      return position ? { x: position.x, y: position.y, w: position.w, h: position.h } : null
+    }
+    const api = { place, placeMany, remove, getPosition }
+    ref.current = api
+    return () => {
+      if (ref.current === api) ref.current = null
+    }
+  }, [layoutApiRef])
+
+  function clearArmTimer() {
+    if (armTimerRef.current) clearTimeout(armTimerRef.current)
+    armTimerRef.current = null
   }
 
   function fixedObstacles(exceptKey) {
@@ -273,23 +375,32 @@ export function ScatterCanvas({
   }
 
   function beginCardDrag(event, key) {
-    if (event.button !== 0 || pins[key]) return
+    if (packBusyRef.current || event.button !== 0 || pins[key]) return
     if (event.target?.closest?.('button, a, input, textarea, label, select, [contenteditable="true"]')) return
     const position = layout.positions[key]
     if (!position) return
     event.stopPropagation?.()
+    flushCam()
     halt()
     // 不在这里抓指针：一旦 setPointerCapture，随后的 click 会被派发到这张卡的外壳上，
     // 卡内的「整卡点击打开」就收不到了（表现为点一下只抖不动）。等真的拖动超过阈值再抓。
+    const node = cardRefs.current.get(key)
+    if (node?.style) node.style.transform = ''
     dragRef.current = {
       key,
+      stageRect: readStageRect(stageRef.current),
       startX: event.clientX,
       startY: event.clientY,
       originX: position.x,
       originY: position.y,
+      tilt: position.tilt || 0,
       x: position.x,
       y: position.y,
-      moved: false
+      moved: false,
+      targetKey: '',
+      armed: false,
+      mode: '',
+      sealing: false
     }
   }
 
@@ -302,8 +413,10 @@ export function ScatterCanvas({
     current.x = current.originX + dx
     current.y = current.originY + dy
     if (!current.moved && Math.hypot(dx, dy) < 4) return
+    let stateChanged = false
     if (!current.moved) {
       current.moved = true
+      stateChanged = true
       try {
         event.currentTarget?.setPointerCapture?.(event.pointerId)
       } catch {
@@ -311,38 +424,153 @@ export function ScatterCanvas({
       }
     }
     event.stopPropagation?.()
-    setDrag({ key: current.key, x: current.x, y: current.y })
+    // 直接写 transform，避免每个 pointermove 都让整面墙重渲染。
+    const node = cardRefs.current.get(current.key)
+    if (node?.style) {
+      node.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${Number(current.tilt || 0) * 0.35}deg) scale(1.04)`
+    }
+    if (!packBusyRef.current) {
+      const point = screenToWorld(cam.current, current.stageRect, event.clientX, event.clientY)
+      const hit = hitTestPackTarget({
+        entries: visibleEntries,
+        positions: layout.positions,
+        point,
+        sourceKey: current.key,
+        pins
+      })
+      const targetKey = hit?.key || ''
+      if (targetKey !== current.targetKey) {
+        current.targetKey = targetKey
+        current.armed = false
+        current.mode = hit?.mode || ''
+        stateChanged = true
+        clearArmTimer()
+        if (targetKey) {
+          armTimerRef.current = setTimeout(() => {
+            const live = dragRef.current
+            if (!live || live.key !== current.key || live.targetKey !== targetKey) return
+            live.armed = true
+            setDrag({
+              key: live.key, targetKey: live.targetKey,
+              armed: true, mode: live.mode, sealing: false
+            })
+          }, PACK_ARM_DELAY_MS)
+        }
+      }
+    }
+    if (stateChanged) {
+      setDrag({
+        key: current.key, targetKey: current.targetKey,
+        armed: current.armed, mode: current.mode, sealing: false
+      })
+    }
   }
 
-  function finishCardDrag() {
+  function resetDragVisual(key) {
+    const node = key ? cardRefs.current.get(key) : null
+    if (node?.style) node.style.transform = ''
+  }
+
+  async function finishCardDrag(event) {
     const current = dragRef.current
     if (!current) return
+    clearArmTimer()
     dragRef.current = null
-    if (!current.moved) return
-    const position = layout.positions[current.key]
-    if (!position) {
+    if (!current.moved) {
+      resetDragVisual(current.key)
       setDrag(null)
       return
     }
+    const position = layout.positions[current.key]
+    if (!position) {
+      resetDragVisual(current.key)
+      setDrag(null)
+      return
+    }
+    suppressRef.current[current.key] = true
+    setTimeout(() => {
+      suppressRef.current[current.key] = false
+    }, 0)
+
+    let targetKey = current.targetKey || ''
+    let armed = Boolean(current.armed)
+    let mode = current.mode || ''
+    if (event && Number.isFinite(Number(event.clientX)) && Number.isFinite(Number(event.clientY))) {
+      const hit = packBusyRef.current ? null : hitTestPackTarget({
+        entries: visibleEntries,
+        positions: layout.positions,
+        point: screenToWorld(cam.current, current.stageRect, event.clientX, event.clientY),
+        sourceKey: current.key,
+        pins
+      })
+      if (!hit || hit.key !== targetKey) {
+        targetKey = hit?.key || ''
+        armed = false
+        mode = hit?.mode || ''
+      }
+    }
+
+    const targetEntry = targetKey
+      ? visibleEntries.find((entry) => entryKey(entry) === targetKey)
+      : null
+    const targetPosition = targetKey ? layout.positions[targetKey] : null
+    if (targetKey && armed && targetEntry && targetPosition && typeof onMergeCards === 'function') {
+      const sourceEntry = entries.find((entry) => entryKey(entry) === current.key) || null
+      packBusyRef.current = true
+      setDrag({ key: current.key, targetKey, armed: true, mode, sealing: true })
+      let merged = false
+      try {
+        merged = Boolean(await onMergeCards({
+          sourceKey: current.key,
+          targetKey,
+          sourceEntry,
+          targetEntry,
+          sourceOrigin: { x: current.originX, y: current.originY },
+          dropPoint: { x: current.x, y: current.y },
+          targetPosition: { x: targetPosition.x, y: targetPosition.y, w: targetPosition.w, h: targetPosition.h }
+        }))
+      } catch {
+        merged = false
+      } finally {
+        packBusyRef.current = false
+        resetDragVisual(current.key)
+        setDrag(null)
+      }
+      if (!merged) {
+        // 合成失败也至少让卡片留在松手的位置，不要突然弹回原处。
+        applyManual({
+          ...manualRef.current,
+          [current.key]: { x: Math.round(current.x), y: Math.round(current.y) }
+        })
+      }
+      return
+    }
+
+    resetDragVisual(current.key)
+    setDrag(null)
     const settled = nudgeOutOf(
       { x: current.x, y: current.y, w: position.w, h: position.h },
       fixedObstacles(current.key),
       SCATTER_GAP
     )
-    setDrag(null)
-    suppressRef.current[current.key] = true
-    setTimeout(() => {
-      suppressRef.current[current.key] = false
-    }, 0)
     applyManual({
       ...manualRef.current,
       [current.key]: { x: Math.round(settled.x), y: Math.round(settled.y) }
     })
   }
 
+  function cancelCardDrag() {
+    const current = dragRef.current
+    clearArmTimer()
+    dragRef.current = null
+    resetDragVisual(current?.key)
+    setDrag(null)
+  }
+
   function onStagePointerDown(event) {
     if (event.button !== 0) return
     if (event.target?.closest?.('.mc-scatter-card, .mc-scatter-hero, .mc-scatter-controls, .mc-note-editor, .mc-scatter-empty')) return
+    flushCam()
     halt()
     const stage = stageRef.current
     try {
@@ -379,10 +607,11 @@ export function ScatterCanvas({
     pan.lastX = event.clientX
     pan.lastY = event.clientY
     pan.lastT = now
-    flyTo({ x: pan.baseX + dx, y: pan.baseY + dy, s: cam.current.ts }, { instant: true })
+    flyInstant({ x: pan.baseX + dx, y: pan.baseY + dy, s: cam.current.ts })
   }
 
   function endPan() {
+    flushCam()
     const pan = panRef.current
     if (!pan) return
     panRef.current = null
@@ -421,6 +650,56 @@ export function ScatterCanvas({
 
   function worldPointOf(event) {
     return screenToWorld(cam.current, readStageRect(stageRef.current), event.clientX, event.clientY)
+  }
+
+  function onStageContextMenu(event) {
+    if (typeof onBlankContextMenu !== 'function') return
+    if (event.target?.closest?.('.mc-scatter-card, .mc-scatter-hero, .mc-scatter-controls, .mc-note-editor, .mc-scatter-empty, .mc-drop-zone, .mc-pack-hint, .mc-context')) return
+    event.preventDefault?.()
+    event.stopPropagation?.()
+    onBlankContextMenu(event, worldPointOf(event))
+  }
+
+  function packHintNode() {
+    if (!drag?.targetKey) return null
+    const position = layout.positions[drag.targetKey]
+    if (!position) return null
+    const entry = visibleEntries.find((row) => entryKey(row) === drag.targetKey)
+    if (!entry) return null
+    const rect = screenRectOf(cam.current, position)
+    const box = getStageSize()
+    const below = rect.top < 54
+    const left = Math.max(86, Math.min(Math.max(86, box.w - 86), rect.left + rect.width / 2))
+    const top = Math.max(8, Math.min(Math.max(8, box.h - 52), below ? rect.bottom + 12 : rect.top - 42))
+    const count = Number(entry.item?.count) || 0
+    const text = drag.sealing
+      ? '正在收进卡包…'
+      : drag.armed
+        ? (drag.mode === 'add' ? `松手放进卡包 · ${count} 张` : '松手叠成卡包')
+        : (drag.mode === 'add' ? '停一下，放进卡包' : '停一下，叠成卡包')
+    return (
+      <React.Fragment key="pack-hint">
+        <span
+          className="mc-pack-glow"
+          data-ready={drag.armed ? 'true' : 'false'}
+          style={{
+            left: rect.left - 6,
+            top: rect.top - 6,
+            width: rect.width + 12,
+            height: rect.height + 12
+          }}
+          aria-hidden="true"
+        />
+        <div
+          className={`mc-pack-hint${drag.armed ? ' is-ready' : ''}${drag.sealing ? ' is-busy' : ''}`}
+          style={{ left, top }}
+          role="status"
+          aria-live="polite">
+          <i aria-hidden="true" />
+          <span>{text}</span>
+        </div>
+      </React.Fragment>
+    )
   }
 
   function openEditor(event) {
@@ -501,12 +780,14 @@ export function ScatterCanvas({
       onPointerUp={endPan}
       onPointerCancel={endPan}
       onDoubleClick={openEditor}
+      onContextMenu={onStageContextMenu}
       onFocus={revealFocused}
       onDragOver={onDragOver}
       onDragEnter={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
+      <div className="mc-scatter-grid" ref={gridRef} aria-hidden="true" />
       <div className="mc-scatter-world" ref={worldRef}>
         <div
           className="mc-scatter-hero"
@@ -524,9 +805,10 @@ export function ScatterCanvas({
           const position = layout.positions[key]
           if (!position) return null
           const moved = drag?.key === key ? drag : null
-          const x = moved ? moved.x : position.x
-          const y = moved ? moved.y : position.y
+          const x = position.x
+          const y = position.y
           const pinned = Boolean(pins[key])
+          const isPackTarget = Boolean(drag?.targetKey) && drag.targetKey === key
           return (
             <div
               key={key}
@@ -534,25 +816,26 @@ export function ScatterCanvas({
                 if (node) cardRefs.current.set(key, node)
                 else cardRefs.current.delete(key)
               }}
-              className={`mc-scatter-card${pinned ? ' is-pinned' : ''}${pinned && pinningKey === key ? ' is-pinning' : ''}${moved ? ' is-dragging' : ''}`}
+              className={`mc-scatter-card${pinned ? ' is-pinned' : ''}${pinned && pinningKey === key ? ' is-pinning' : ''}${moved ? ' is-dragging' : ''}${isPackTarget ? (drag.armed ? ' is-pack-ready' : ' is-pack-hover') : ''}${isPackTarget && drag.sealing ? ' is-pack-sealing' : ''}`}
               data-node={key}
               data-type={entry.type}
               data-active={entry.type === 'session' && ['recording', 'processing', 'queued'].includes(entry.item?.status) ? 'true' : undefined}
               data-pinned={pinned ? 'true' : undefined}
+              data-pack-target={isPackTarget ? 'true' : undefined}
               style={{
                 left: x - position.w / 2,
                 top: y - position.h / 2,
                 width: position.w || CARD_W,
                 height: position.h,
                 '--tilt': `${position.tilt ?? 0}deg`,
-                zIndex: moved ? 20 : undefined
+                zIndex: moved ? 20 : isPackTarget ? 15 : undefined
               }}
               draggable={false}
               onDragStart={(event) => event.preventDefault()}
               onPointerDown={(event) => beginCardDrag(event, key)}
               onPointerMove={moveCardDrag}
               onPointerUp={finishCardDrag}
-              onPointerCancel={finishCardDrag}
+              onPointerCancel={cancelCardDrag}
               onClickCapture={(event) => {
                 if (suppressRef.current[key]) {
                   event.preventDefault()
@@ -566,6 +849,8 @@ export function ScatterCanvas({
           )
         })}
       </div>
+
+      {packHintNode()}
 
       {dropActive ? (
         <div className="mc-drop-zone">
@@ -601,7 +886,7 @@ export function ScatterCanvas({
         <button type="button" onClick={() => zoomAt(1.18, ...center(), false)} aria-label="放大" title="放大">＋</button>
         <button type="button" onClick={resetLayout} aria-label="重新散落" title="重新散落（清除手动位置）">↺</button>
       </div>
-      <div className="mc-scatter-hint">拖动卡片重排 · 双击空白写便利签 · 双击卡片编辑 · 拖入或 ⌘V 粘贴</div>
+      <div className="mc-scatter-hint">拖动重排 · 卡片相叠成卡包 · 双击空白写便利签 · ⌘V 粘贴</div>
     </div>
   )
 }

@@ -3,8 +3,10 @@ import {
 } from '../lib/api.js'
 import { modelOptions, splitModels } from '../lib/models.js'
 
-const MIMO_BASE = 'https://api.llm.mioffice.cn/v1'
-const DEFAULT_TEXT = 'xiaomi/mimo-v2.5'
+// 不预置任何网关地址与模型：用户填自己的 OpenAI 兼容服务，占位符只是格式示例。
+const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
+const MODEL_PLACEHOLDER = 'your-asr-model'
+const TEXT_MODEL_PLACEHOLDER = 'your-text-model'
 
 function mask(hasKey, placeholder) {
   return hasKey ? '已配置；留空则不修改' : placeholder
@@ -16,8 +18,10 @@ export function SettingsModels({ t }) {
   const [models, setModels] = React.useState([])
   const [catalogError, setCatalogError] = React.useState('')
   const [keyDraft, setKeyDraft] = React.useState('')
-  const [mifyAsr, setMifyAsr] = React.useState('')
-  const [mifyText, setMifyText] = React.useState(DEFAULT_TEXT)
+  const [defaultAsr, setDefaultAsr] = React.useState('')
+  const [defaultText, setDefaultText] = React.useState('')
+  const [asrBase, setAsrBase] = React.useState('')
+  const [aiBase, setAiBase] = React.useState('')
   const [asrCustom, setAsrCustom] = React.useState({ base_url: '', model: '', api_key: '' })
   const [aiCustom, setAiCustom] = React.useState({ base_url: '', model: '', api_key: '' })
   const [busy, setBusy] = React.useState('')
@@ -30,8 +34,10 @@ export function SettingsModels({ t }) {
     const [nextAsr, nextAi] = await Promise.all([asrEngines(), aiStatus()])
     setAsr(nextAsr)
     setAi(nextAi)
-    setMifyAsr(nextAsr?.custom?.enabled ? (nextAsr.mify_model || '') : (nextAsr?.model || ''))
-    setMifyText(nextAi?.provider === 'mimo' ? (nextAi?.model || DEFAULT_TEXT) : DEFAULT_TEXT)
+    setDefaultAsr(nextAsr?.custom?.enabled ? (nextAsr.default_model || '') : (nextAsr?.model || ''))
+    setAsrBase(nextAsr?.custom?.enabled ? '' : (nextAsr?.default_base_url || nextAsr?.base_url || ''))
+    setDefaultText(nextAi?.provider === 'mimo' ? (nextAi?.model || '') : '')
+    setAiBase(nextAi?.provider === 'mimo' ? (nextAi?.base_url || '') : '')
     setAsrCustom({
       base_url: nextAsr?.custom?.base_url || '',
       model: nextAsr?.custom?.model || '',
@@ -61,7 +67,7 @@ export function SettingsModels({ t }) {
   React.useEffect(() => {
     let cancelled = false
     load()
-      .then((nextAsr) => { if (!cancelled && (nextAsr?.mify_has_key ?? nextAsr?.has_api_key)) return pullCatalog() })
+      .then((nextAsr) => { if (!cancelled && (nextAsr?.default_has_key ?? nextAsr?.has_api_key)) return pullCatalog() })
       .catch((failure) => { if (!cancelled) setError(failure?.message || String(failure)) })
     return () => { cancelled = true }
   }, [load, pullCatalog])
@@ -113,33 +119,61 @@ export function SettingsModels({ t }) {
 
   async function chooseAsrModel(model) {
     if (!model) return
+    if (!asrBase.trim()) { setError('请先填写语音服务地址（Base URL）'); return }
     await run('asr-model', async () => {
-      await saveAsrEngine({ mode: 'mify', provider: 'mimo', base_url: MIMO_BASE, model })
-      setMifyAsr(model)
+      await saveAsrEngine({ mode: 'default', provider: 'mimo', base_url: asrBase.trim(), model })
+      setDefaultAsr(model)
       await load()
+      setNotice(`语音转文字已使用 ${model}`)
+    })
+  }
+
+  async function saveAsrBase() {
+    const base = asrBase.trim()
+    if (!base) { setError('请先填写语音服务地址（Base URL）'); return }
+    if (!defaultAsr) { setError('请先填写语音模型 ID'); return }
+    await run('asr-base', async () => {
+      await saveAsrEngine({ mode: 'default', provider: 'mimo', base_url: base, model: defaultAsr })
+      await pullCatalog()
+      await load()
+      setNotice('语音服务地址已保存')
+    })
+  }
+
+  async function saveAiBase() {
+    const base = aiBase.trim()
+    if (!base) { setError('请先填写文字服务地址（Base URL）'); return }
+    if (!defaultText) { setError('请先填写文字模型 ID'); return }
+    await run('ai-base', async () => {
+      await saveAIConfig({ provider: 'mimo', base_url: base, model: defaultText })
+      await load()
+      setNotice('文字服务地址已保存')
     })
   }
 
   async function chooseTextModel(model) {
     const value = String(model || '').trim()
     if (!value || (ai?.provider === 'mimo' && value === ai?.model && !ai?.own_key)) return
+    if (!aiBase.trim()) { setError('请先填写文字服务地址（Base URL）'); return }
     await run('text-model', async () => {
-      await saveAIConfig({ provider: 'mimo', base_url: '', model: value })
+      await saveAIConfig({ provider: 'mimo', base_url: aiBase.trim(), model: value })
       if (ai?.own_key) { try { await removeAIKey() } catch {} }
-      setMifyText(value)
+      setDefaultText(value)
       await load()
     })
   }
 
   // 「测试连接」：直接测下拉里当前选中的模型（含还没保存的选择），不写设置。
   async function probeAsrModel() {
-    const model = String(asrCustomOn ? asrCustom.model : mifyAsr || asr?.model || '').trim()
+    const model = String(asrCustomOn ? asrCustom.model : defaultAsr || asr?.model || '').trim()
+    const base = String(asrCustomOn ? asrCustom.base_url.trim() : asrBase.trim()).trim()
     if (!model) { setAsrProbe({ ok: false, text: '请先选择或填写模型' }); return }
+    if (!base) { setAsrProbe({ ok: false, text: '请先填写 Base URL' }); return }
     setAsrProbe({ state: 'busy', text: '正在用 1 秒静音测试…' })
     try {
       const result = await testAsrEngine({
         provider: 'mimo',
-        base_url: asrCustomOn ? asrCustom.base_url.trim() : MIMO_BASE,
+        base_url: base,
         model,
         api_key: asrCustomOn ? asrCustom.api_key.trim() : ''
       })
@@ -151,14 +185,15 @@ export function SettingsModels({ t }) {
 
   async function probeTextModel() {
     const custom = aiCustomOn
-    const model = String(custom ? aiCustom.model : mifyText || ai?.model || '').trim()
+    const model = String(custom ? aiCustom.model : defaultText || ai?.model || '').trim()
+    const base = String(custom ? aiCustom.base_url : aiBase).trim()
     if (!model) { setTextProbe({ ok: false, text: '请先选择或填写模型' }); return }
-    if (custom && !aiCustom.base_url.trim()) { setTextProbe({ ok: false, text: '请先填写 Base URL' }); return }
+    if (!base) { setTextProbe({ ok: false, text: '请先填写 Base URL' }); return }
     setTextProbe({ state: 'busy', text: '正在请求模型…' })
     try {
       const result = await testAIModel({
         provider: custom ? 'custom' : 'mimo',
-        base_url: custom ? aiCustom.base_url.trim() : '',
+        base_url: base,
         model,
         api_key: custom ? aiCustom.api_key.trim() : ''
       })
@@ -189,9 +224,10 @@ export function SettingsModels({ t }) {
 
   async function resetAsrCustom() {
     await run('asr-reset', async () => {
-      await saveAsrEngine({ mode: 'mify', provider: 'mimo', base_url: MIMO_BASE, model: mifyAsr || asr?.mify_model })
+      await saveAsrEngine({ mode: 'default', provider: 'mimo', base_url: asrBase.trim() || asr?.default_base_url || '',
+                            model: defaultAsr || asr?.default_model })
       setAsrCustom({ base_url: '', model: '', api_key: '' })
-      setNotice('已恢复 Mify')
+      setNotice('已恢复默认网关')
       await load()
     })
   }
@@ -214,10 +250,10 @@ export function SettingsModels({ t }) {
 
   async function resetAiCustom() {
     await run('ai-reset', async () => {
-      await saveAIConfig({ provider: 'mimo', base_url: '', model: mifyText || DEFAULT_TEXT })
+      await saveAIConfig({ provider: 'mimo', base_url: aiBase.trim(), model: defaultText || ai?.model || '' })
       if (ai?.own_key) { try { await removeAIKey() } catch {} }
       setAiCustom({ base_url: '', model: '', api_key: '' })
-      setNotice('已恢复 Mify')
+      setNotice('已恢复默认网关')
       await load()
     })
   }
@@ -225,18 +261,18 @@ export function SettingsModels({ t }) {
   const asrCustomOn = Boolean(asr?.custom?.enabled)
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== 'mimo')
   const { asr: asrModels, text: textModels } = splitModels(models)
-  const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.mify_model : mifyAsr)
-  const textOptions = modelOptions(textModels, aiCustomOn ? DEFAULT_TEXT : mifyText)
+  const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr)
+  const textOptions = modelOptions(textModels, aiCustomOn ? '' : defaultText)
 
   return (
     <div className="mc-settings-panel">
       <section className="mc-section">
-        <div className="mc-section-title">Mify API Key</div>
+        <div className="mc-section-title">API Key</div>
         <div className="mc-card">
           <label className="mc-form-row">
             <span>API Key</span>
             <input className="mc-input" type="password" value={keyDraft} autoComplete="off" spellCheck={false}
-              placeholder={/无效|401|403/.test(catalogError) ? 'Key 无效，请重新粘贴 Mify API Key' : mask(asr?.mify_has_key, '粘贴 Mify API Key')}
+              placeholder={/无效|401|403/.test(catalogError) ? 'Key 无效，请重新粘贴 API Key' : mask(asr?.default_has_key, '粘贴 API Key')}
               onChange={(event) => setKeyDraft(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter') saveKeyAndPull() }} />
           </label>
@@ -256,7 +292,7 @@ export function SettingsModels({ t }) {
           <div className="mc-form-row">
             <span>模型</span>
             <div className="mc-model-row">
-              <select className="mc-input mc-select" value={asrCustomOn ? '' : mifyAsr}
+              <select className="mc-input mc-select" value={asrCustomOn ? '' : defaultAsr}
                 disabled={Boolean(busy) || asrCustomOn}
                 onChange={(event) => { setAsrProbe(null); chooseAsrModel(event.target.value) }}>
                 {asrCustomOn ? <option value="">使用自定义 API：{asr?.model}</option> : null}
@@ -265,6 +301,18 @@ export function SettingsModels({ t }) {
               <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy)}
                 onClick={probeAsrModel}>
                 {asrProbe?.state === 'busy' ? '测试中…' : '测试连接'}
+              </button>
+            </div>
+          </div>
+          <div className="mc-form-row">
+            <span>服务地址</span>
+            <div className="mc-model-row">
+              <input className="mc-input" value={asrCustomOn ? asrCustom.base_url : asrBase} spellCheck={false}
+                disabled={Boolean(busy) || asrCustomOn} placeholder={BASE_PLACEHOLDER}
+                onChange={(event) => setAsrBase(event.target.value)} />
+              <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy) || asrCustomOn}
+                onClick={saveAsrBase}>
+                {busy === 'asr-base' ? '保存中…' : '保存地址'}
               </button>
             </div>
           </div>
@@ -278,13 +326,13 @@ export function SettingsModels({ t }) {
               <label className="mc-form-row">
                 <span>Base URL</span>
                 <input className="mc-input" value={asrCustom.base_url} spellCheck={false}
-                  placeholder={MIMO_BASE}
+                  placeholder={BASE_PLACEHOLDER}
                   onChange={(event) => setAsrCustom((value) => ({ ...value, base_url: event.target.value }))} />
               </label>
               <label className="mc-form-row">
                 <span>模型 ID</span>
                 <input className="mc-input" value={asrCustom.model} spellCheck={false}
-                  placeholder="mimo-v2.5-asr"
+                  placeholder={MODEL_PLACEHOLDER}
                   onChange={(event) => setAsrCustom((value) => ({ ...value, model: event.target.value }))} />
               </label>
               <label className="mc-form-row">
@@ -299,7 +347,7 @@ export function SettingsModels({ t }) {
                 </button>
                 {asrCustomOn ? (
                   <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy)} onClick={resetAsrCustom}>
-                    恢复 Mify
+                    恢复默认
                   </button>
                 ) : null}
               </div>
@@ -314,7 +362,7 @@ export function SettingsModels({ t }) {
           <div className="mc-form-row">
             <span>模型</span>
             <div className="mc-model-row">
-              <select className="mc-input mc-select" value={aiCustomOn ? '' : mifyText}
+              <select className="mc-input mc-select" value={aiCustomOn ? '' : defaultText}
                 disabled={Boolean(busy) || aiCustomOn}
                 onChange={(event) => { setTextProbe(null); chooseTextModel(event.target.value) }}>
                 {aiCustomOn ? <option value="">使用自定义 API：{ai?.model}</option> : null}
@@ -323,6 +371,18 @@ export function SettingsModels({ t }) {
               <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy)}
                 onClick={probeTextModel}>
                 {textProbe?.state === 'busy' ? '测试中…' : '测试连接'}
+              </button>
+            </div>
+          </div>
+          <div className="mc-form-row">
+            <span>服务地址</span>
+            <div className="mc-model-row">
+              <input className="mc-input" value={aiCustomOn ? aiCustom.base_url : aiBase} spellCheck={false}
+                disabled={Boolean(busy) || aiCustomOn} placeholder={BASE_PLACEHOLDER}
+                onChange={(event) => setAiBase(event.target.value)} />
+              <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy) || aiCustomOn}
+                onClick={saveAiBase}>
+                {busy === 'ai-base' ? '保存中…' : '保存地址'}
               </button>
             </div>
           </div>
@@ -336,13 +396,13 @@ export function SettingsModels({ t }) {
               <label className="mc-form-row">
                 <span>Base URL</span>
                 <input className="mc-input" value={aiCustom.base_url} spellCheck={false}
-                  placeholder={MIMO_BASE}
+                  placeholder={BASE_PLACEHOLDER}
                   onChange={(event) => setAiCustom((value) => ({ ...value, base_url: event.target.value }))} />
               </label>
               <label className="mc-form-row">
                 <span>模型 ID</span>
                 <input className="mc-input" value={aiCustom.model} spellCheck={false}
-                  placeholder="xiaomi/mimo-v2.5"
+                  placeholder={TEXT_MODEL_PLACEHOLDER}
                   onChange={(event) => setAiCustom((value) => ({ ...value, model: event.target.value }))} />
               </label>
               <label className="mc-form-row">
@@ -357,7 +417,7 @@ export function SettingsModels({ t }) {
                 </button>
                 {aiCustomOn ? (
                   <button type="button" className="mc-button mc-button-small" disabled={Boolean(busy)} onClick={resetAiCustom}>
-                    恢复 Mify
+                    恢复默认
                   </button>
                 ) : null}
               </div>
