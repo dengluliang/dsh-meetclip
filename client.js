@@ -5305,7 +5305,7 @@ var libraries_default = "/* \u8D44\u6599\u7A7A\u95F4\u5207\u6362\u5668\u4E0E\u76
 var settings_spacing_default = "/* \u8BBE\u7F6E\u9875\u7EDF\u4E00\u8282\u594F\u3002\n *\n * \u80CC\u666F\uFF1A\u5BBF\u4E3B\u6837\u5F0F\u91CC\u8FD9\u4E9B\u5757\u5404\u81EA\u5E26 margin\uFF08.mc-actions 10px\u3001.mc-foot-meta 0\u3001\n * .mc-card-hint 8px\u3001.mc-form-note 6px\u2026\uFF09\uFF0C\u53E0\u5728\u4E00\u8D77\u65F6\u300C\u6309\u94AE \u2192 \u8BF4\u660E\u6587\u5B57\u300D\u6709\u65F6 0px\u3001\n * \u6709\u65F6 14px\uFF0C\u770B\u8D77\u6765\u5FFD\u7D27\u5FFD\u677E\u3002\u8FD9\u91CC\u628A\u5361\u7247\u6539\u6210 flex \u5217 + \u7EDF\u4E00 gap\uFF0C\n * \u5E76\u628A\u5361\u7247\u5185\u5B50\u5757\u7684\u4E0A\u4E0B margin \u5F52\u96F6\uFF0C\u95F4\u8DDD\u53EA\u7531\u4E00\u5957\u6570\u503C\u51B3\u5B9A\uFF1A\n *\n *   \u5C0F\u8282\u4E4B\u95F4 22px \xB7 \u5C0F\u8282\u6807\u9898 \u2194 \u5361\u7247 10px \xB7 \u5361\u7247\u5185\u5757\u95F4\u9694 14px \xB7 \u6309\u94AE\u6A2A\u6392 8px\n *\n * \u53EA\u4F5C\u7528\u4E8E\u8BBE\u7F6E\u9875\u4E0E\u8BBE\u7F6E\u91CC\u7684\u5361\u7247\uFF08.mc-settings-shell / .mc-lib-card\uFF09\uFF0C\n * \u4E0D\u5F71\u54CD\u9996\u9875\u3001\u8D44\u6599\u5E93\u4E0E\u5F39\u7A97\u91CC\u540C\u540D\u7C7B\uFF08\u5B83\u4EEC\u7528 .mc-card-text \u7B49\u66F4\u7EC6\u7684\u5143\u7D20\uFF09\u3002\n */\n\n.mc-settings-shell { gap: 18px; }\n.mc-settings-panel { gap: 22px; }\n.mc-settings-panel .mc-section { gap: 10px; }\n\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card,\n.mc-lib-card {\n  display: flex;\n  flex-direction: column;\n  gap: 14px;\n}\n\n/* \u95F4\u8DDD\u7EDF\u4E00\u7531\u5361\u7247\u7684 gap \u8D1F\u8D23\uFF0C\u5B50\u5757\u81EA\u5DF1\u7684 margin \u5168\u90E8\u5F52\u96F6\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > *,\n.mc-lib-card > * {\n  margin-top: 0;\n  margin-bottom: 0;\n}\n\n/* \u4F8B\u5916\uFF1A\u6807\u9898\u548C\u300C\u884C\u4E0B\u9762\u7684\u8BF4\u660E\u300D\u4E0E\u4E3B\u4F53\u5C5E\u4E8E\u4E00\u7EC4\uFF0C\u6BD4\u5E38\u89C4\u5757\u95F4\u8DDD\u7565\u7D27\uFF0C\n   \u4F46\u4ECD\u7559\u51FA 10px\uFF0C\u4E0D\u4F1A\u8D34\u5728\u4E00\u8D77\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-title { margin-bottom: -4px; }\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note { margin-top: -4px; }\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-divider { margin: -2px 0; }\n\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,\n.mc-lib-card .mc-actions {\n  gap: 8px;\n  margin-top: 0;\n}\n\n/* \u8BF4\u660E\u6587\u5B57\uFF1A\u540C\u4E00\u9875\u91CC\u522B\u518D\u6DF7\u7528 10.5/11/11.5/12 \u56DB\u79CD\u5B57\u53F7\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-foot-meta,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-hint,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-text,\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note,\n.mc-lib-card > .mc-foot-meta,\n.mc-lib-card > .mc-lib-foot,\n.mc-lib-card > .mc-lib-empty-text {\n  font-size: 12px;\n  line-height: 1.65;\n  color: var(--dsw-alias-label-secondary);\n}\n\n/* \u8BBE\u7F6E \u2192 \u8D44\u6599\u7A7A\u95F4\uFF1A\u5F39\u5C42\u91CC\u7684\u5757\u95F4\u8DDD\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4 */\n.mc-lib-panel { gap: 12px; }\n.mc-lib-modal > .mc-lib-panel { padding: 14px 16px 16px; }\n\n/* \u884C\u5F0F\u4FE1\u606F\u540E\u9762\u63A5\u6309\u94AE\u65F6\uFF0C\u884C\u4E0E\u884C\u4E4B\u95F4\u7684\u5206\u9694\u7EBF\u5DF2\u7ECF\u63D0\u4F9B\u89C6\u89C9\u5206\u7EC4\uFF0C\n   \u8FD9\u91CC\u8BA9\u6700\u540E\u4E00\u884C\u4E0E\u6309\u94AE\u4E4B\u95F4\u4FDD\u6301 14px\uFF08\u7531\u5361\u7247 gap \u7ED9\uFF09\uFF0C\u4E0D\u518D\u989D\u5916\u52A0 margin\u3002 */\n:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-rows:last-child { margin-bottom: 0; }\n\n@media (max-width: 640px) {\n  .mc-settings-panel { gap: 18px; }\n  :is(.mc-settings-shell, .mc-settings-panel) .mc-card,\n  .mc-lib-card { gap: 12px; }\n  :is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,\n  .mc-lib-card .mc-actions { gap: 6px; }\n}\n";
 
 // client-src/update.css
-var update_default = "/* \u8BBE\u7F6E \u2192 \u5173\u4E8E\uFF1A\u7248\u672C\u4FE1\u606F\u3001\u66F4\u65B0\u8FDB\u5EA6\u548C\u53D1\u5E03\u8BF4\u660E\u3002\n   \u4F7F\u7528\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4\u7684\u5361\u7247\u8282\u594F\uFF1B\u8FDB\u5EA6\u6761\u590D\u7528 .mc-progress \u7684\u89C6\u89C9\u8BED\u8A00\u3002 */\n\n.mc-about-head {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.mc-about-head .mc-card-title { margin-bottom: 4px; }\n\n.mc-about-version {\n  flex: 0 0 auto;\n  padding: 5px 10px;\n  border: .5px solid var(--mc-line);\n  border-radius: 999px;\n  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  line-height: 1.2;\n}\n\n.mc-about-meta {\n  margin-left: 8px;\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  font-style: normal;\n}\n\n.mc-about-path {\n  display: inline-block;\n  max-width: min(420px, 100%);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: bottom;\n  white-space: nowrap;\n}\n\n.mc-about-rollback-select {\n  min-width: 0;\n  max-width: 100%;\n}\n\n.mc-rollback-confirm {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.mc-rollback-confirm .mc-actions { margin-top: 0; }\n\n.mc-rollback-confirm .mc-about-warning strong {\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-variant-numeric: tabular-nums;\n  font-weight: 550;\n}\n\n.mc-link-button {\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-brand-primary);\n  cursor: pointer;\n  font: inherit;\n  text-align: left;\n}\n\n.mc-link-button:hover { text-decoration: underline; }\n.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }\n\n.mc-update-summary {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n  padding: 10px 12px;\n  border: .5px solid var(--mc-line);\n  border-radius: 12px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);\n}\n\n.mc-update-summary strong { font-size: 13px; font-weight: 550; }\n.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }\n.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }\n.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }\n\n.mc-about-warning {\n  margin: 0;\n  padding: 9px 12px;\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n  line-height: 1.6;\n}\n\n.mc-update-card { gap: 10px; }\n\n.mc-update-head {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 13px;\n}\n\n.mc-update-head strong { font-weight: 550; }\n\n.mc-update-percent {\n  margin-left: auto;\n  color: var(--dsw-alias-label-secondary);\n  font-variant-numeric: tabular-nums;\n  font-size: 12px;\n}\n\n.mc-update-bar {\n  flex: 1 1 auto !important;\n  width: 100%;\n  height: 7px !important;\n}\n\n.mc-update-bar span {\n  transition: width .25s ease;\n}\n\n.mc-update-bar span.is-indeterminate {\n  width: 35%;\n  animation: mc-update-sweep 1.15s ease-in-out infinite;\n}\n\n@keyframes mc-update-sweep {\n  0% { transform: translateX(-110%); }\n  100% { transform: translateX(320%); }\n}\n\n.mc-update-notes-card .mc-update-notes {\n  max-height: 260px;\n  margin: 0;\n  padding: 10px 12px;\n  overflow: auto;\n  border: .5px solid var(--mc-line);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: inherit;\n  font-size: 12px;\n  line-height: 1.65;\n  white-space: pre-wrap;\n  word-break: break-word;\n}\n\n@media (max-width: 640px) {\n  .mc-about-head { gap: 10px; }\n  .mc-about-version { font-size: 11px; }\n  .mc-about-path { max-width: 100%; }\n}\n";
+var update_default = "/* \u8BBE\u7F6E \u2192 \u5173\u4E8E\uFF1A\u7248\u672C\u4FE1\u606F\u3001\u66F4\u65B0\u8FDB\u5EA6\u548C\u53D1\u5E03\u8BF4\u660E\u3002\n   \u4F7F\u7528\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4\u7684\u5361\u7247\u8282\u594F\uFF1B\u8FDB\u5EA6\u6761\u590D\u7528 .mc-progress \u7684\u89C6\u89C9\u8BED\u8A00\u3002 */\n\n.mc-about-head {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.mc-about-head .mc-card-title { margin-bottom: 4px; }\n\n.mc-about-version {\n  flex: 0 0 auto;\n  padding: 5px 10px;\n  border: .5px solid var(--mc-line);\n  border-radius: 999px;\n  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  line-height: 1.2;\n}\n\n.mc-about-meta {\n  margin-left: 8px;\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  font-style: normal;\n}\n\n.mc-about-path {\n  display: inline-block;\n  max-width: min(420px, 100%);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: bottom;\n  white-space: nowrap;\n}\n\n.mc-about-rollback-select {\n  min-width: 0;\n  max-width: 100%;\n}\n\n.mc-rollback-confirm {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.mc-rollback-confirm .mc-actions { margin-top: 0; }\n\n.mc-rollback-confirm .mc-about-warning strong {\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-variant-numeric: tabular-nums;\n  font-weight: 550;\n}\n\n.mc-link-button {\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-brand-primary);\n  cursor: pointer;\n  font: inherit;\n  text-align: left;\n}\n\n.mc-link-button:hover { text-decoration: underline; }\n.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }\n\n.mc-update-summary {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n  padding: 10px 12px;\n  border: .5px solid var(--mc-line);\n  border-radius: 12px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);\n}\n\n.mc-update-summary strong { font-size: 13px; font-weight: 550; }\n.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }\n.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }\n.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }\n\n.mc-about-warning {\n  margin: 0;\n  padding: 9px 12px;\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n  line-height: 1.6;\n}\n\n.mc-update-card { gap: 10px; }\n\n.mc-update-head {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 13px;\n}\n\n.mc-update-head strong { font-weight: 550; }\n\n.mc-update-percent {\n  margin-left: auto;\n  color: var(--dsw-alias-label-secondary);\n  font-variant-numeric: tabular-nums;\n  font-size: 12px;\n}\n\n.mc-update-bar {\n  flex: 1 1 auto !important;\n  width: 100%;\n  height: 7px !important;\n}\n\n.mc-update-bar span {\n  transition: width .25s ease;\n}\n\n.mc-update-bar span.is-indeterminate {\n  width: 35%;\n  animation: mc-update-sweep 1.15s ease-in-out infinite;\n}\n\n@keyframes mc-update-sweep {\n  0% { transform: translateX(-110%); }\n  100% { transform: translateX(320%); }\n}\n\n/* \u66F4\u65B0\u5185\u5BB9\u662F\u53EA\u8BFB\u7684 Markdown \u9884\u89C8\uFF1A\u4E0D\u53EF\u9009\u4E2D\u3001\u4E0D\u53EF\u590D\u5236/\u62D6\u52A8\u3002 */\n.mc-update-notes-card .mc-update-notes {\n  max-height: 260px;\n  margin: 0;\n  padding: 10px 12px;\n  overflow: auto;\n  border: .5px solid var(--mc-line);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: inherit;\n  font-size: 12px;\n  line-height: 1.65;\n  word-break: break-word;\n  cursor: default;\n  user-select: none;\n  -webkit-user-select: none;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md {\n  font-size: 12px;\n  line-height: 1.65;\n  color: var(--dsw-alias-label-secondary);\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-h1,\n.mc-update-notes-card .mc-update-notes .mc-md-h2,\n.mc-update-notes-card .mc-update-notes .mc-md-h3,\n.mc-update-notes-card .mc-update-notes .mc-md-h4,\n.mc-update-notes-card .mc-update-notes .mc-md-h5,\n.mc-update-notes-card .mc-update-notes .mc-md-h6 {\n  margin: 8px 0 4px;\n  font-size: 13px;\n  color: var(--dsw-alias-label-primary);\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-p,\n.mc-update-notes-card .mc-update-notes .mc-md-list,\n.mc-update-notes-card .mc-update-notes .mc-md-quote,\n.mc-update-notes-card .mc-update-notes .mc-md-code,\n.mc-update-notes-card .mc-update-notes .mc-md-table {\n  margin: 0 0 6px;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-list {\n  padding-left: 18px;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-inline-code {\n  font-size: 11px;\n}\n\n@media (max-width: 640px) {\n  .mc-about-head { gap: 10px; }\n  .mc-about-version { font-size: 11px; }\n  .mc-about-path { max-width: 100%; }\n}\n";
 
 // client-src/components/Icon.jsx
 init_react_shim();
@@ -48761,9 +48761,8 @@ var zh = {
   "about.notChecked": "\u672A\u68C0\u67E5",
   "about.never": "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7",
   "about.check": "\u68C0\u67E5\u66F4\u65B0",
-  "about.install": "\u7ACB\u5373\u66F4\u65B0",
+  "about.install": "\u70B9\u51FB\u5347\u7EA7",
   "about.cancel": "\u53D6\u6D88",
-  "about.refresh": "\u5237\u65B0\u72B6\u6001",
   "about.releaseNotes": "\u53D1\u5E03\u8BF4\u660E",
   "about.working": "\u66F4\u65B0\u4E2D\u2026",
   "about.restartHintShort": "\u91CD\u542F\u540E\u751F\u6548",
@@ -49217,9 +49216,8 @@ var en = {
   "about.notChecked": "Not checked",
   "about.never": "Never checked",
   "about.check": "Check for updates",
-  "about.install": "Update now",
+  "about.install": "Upgrade now",
   "about.cancel": "Cancel",
-  "about.refresh": "Refresh",
   "about.releaseNotes": "Release notes",
   "about.working": "Updating\u2026",
   "about.restartHintShort": "available after restart",
@@ -52395,12 +52393,20 @@ function updateSummary(status3) {
     };
   }
   if (status3.updateAvailable && status3.latest) {
-    return { tone: "warn", text: `\u53D1\u73B0\u65B0\u7248\u672C v${status3.latest.version}`, detail: "\u70B9\u51FB\u300C\u7ACB\u5373\u66F4\u65B0\u300D\u6216\u91CD\u65B0\u68C0\u67E5" };
+    return { tone: "warn", text: `\u53D1\u73B0\u65B0\u7248\u672C v${status3.latest.version}`, detail: "\u70B9\u300C\u70B9\u51FB\u5347\u7EA7\u300D\u4E0B\u8F7D\u5E76\u5B89\u88C5" };
   }
   if (status3.latest) {
     return { tone: "ok", text: `\u5DF2\u662F\u6700\u65B0\u7248\u672C v${status3.currentVersion}`, detail: "" };
   }
   return { tone: "pending", text: "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7\u66F4\u65B0", detail: "" };
+}
+function updatePrimary(status3) {
+  const job = status3?.job || null;
+  if (isUpdateRunning(status3)) return { action: "busy", label: job?.phase || "\u66F4\u65B0\u4E2D\u2026" };
+  const isSource = status3?.target?.kind === "source";
+  const available = Boolean(status3?.updateAvailable && status3?.latest);
+  if (available && !isSource) return { action: "install", label: "\u70B9\u51FB\u5347\u7EA7" };
+  return { action: "check", label: "\u68C0\u67E5\u66F4\u65B0" };
 }
 function isUpdateRunning(status3) {
   return Boolean(status3?.job && RUNNING_STATES.has(status3.job.state));
@@ -52500,9 +52506,12 @@ function useUpdate({ enabled = true } = {}) {
     return result;
   }
   const actions = {
-    refresh: () => run("status", () => load({ quiet: false })),
-    // A source checkout must not be overwritten; it still gets the check result.
-    check: () => start("check", () => updateCheck({ autoInstall: status3?.target?.kind !== "source" })),
+    // 检查更新顺带刷新状态：查到新版本只更新提示与主按钮，安装要用户再点一次。
+    // 源码运行时同样不会覆盖安装。
+    check: async () => {
+      await run("status", () => load({ quiet: false }));
+      return start("check", () => updateCheck({ autoInstall: false }));
+    },
     install: () => start("install", updateInstall),
     rollback: (version2) => start("rollback", () => updateRollback(version2)),
     cancel: () => run("cancel", async () => {
@@ -52544,7 +52553,9 @@ function SettingsAbout({ t }) {
   const canCancel = running && (job.state === "checking" || job.state === "downloading");
   const restartRequired = Boolean(status3?.restartRequired);
   const updateAvailable = Boolean(status3?.updateAvailable && latest);
-  const primaryLabel = running ? job.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026") : updateAvailable && !isSource ? tr("about.install", "\u7ACB\u5373\u66F4\u65B0") : tr("about.check", "\u68C0\u67E5\u66F4\u65B0");
+  const primary = updatePrimary(status3);
+  const primaryLabel = primary.action === "install" ? tr("about.install", "\u70B9\u51FB\u5347\u7EA7") : primary.action === "check" ? tr("about.check", "\u68C0\u67E5\u66F4\u65B0") : job?.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026");
+  const primaryOnClick = primary.action === "install" ? actions.install : primary.action === "check" ? actions.check : void 0;
   const primaryDisabled = !status3 || Boolean(busy) || running;
   const showProgress = Boolean(job && (running || job.state === "error" || job.state === "cancelled" || job.percent === 100));
   const repo = status3?.repo || "dengluliang/dsh-meetclip";
@@ -52592,7 +52603,7 @@ function SettingsAbout({ t }) {
       className: "mc-button",
       "data-variant": "primary",
       disabled: primaryDisabled,
-      onClick: updateAvailable && !isSource ? actions.install : actions.check
+      onClick: primaryOnClick
     },
     primaryLabel
   ), canCancel ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.cancel }, tr("about.cancel", "\u53D6\u6D88")) : null, /* @__PURE__ */ React.createElement(
@@ -52606,15 +52617,6 @@ function SettingsAbout({ t }) {
       onClick: () => setPendingRollback(selectedBackup.version)
     },
     rollbackLabel
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      disabled: Boolean(busy) || running,
-      onClick: actions.refresh
-    },
-    tr("about.refresh", "\u5237\u65B0\u72B6\u6001")
   ), latest?.url ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openRelease }, tr("about.releaseNotes", "\u53D1\u5E03\u8BF4\u660E")) : null), pendingBackup ? /* @__PURE__ */ React.createElement("div", { className: "mc-rollback-confirm" }, /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.rollbackConfirm", "\u5C06\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u5728\u672C\u5730\u7684"), " ", /* @__PURE__ */ React.createElement("strong", { className: "mc-mono" }, versionText(pendingBackup.version)), tr("about.rollbackConfirmDetail", "\uFF1B\u5F53\u524D\u7248\u672C\u4E5F\u4F1A\u53E6\u5B58\u4E3A\u672C\u5730\u5907\u4EFD\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u4E0D\u53D7\u5F71\u54CD\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
     "button",
     {
@@ -52653,7 +52655,16 @@ function SettingsAbout({ t }) {
   ), (() => {
     const detail = job.state === "done" && restartRequired ? "" : progressDetail(job);
     return detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, detail) : null;
-  })(), job.state === "error" ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, job.error) : null) : null, latest?.notes ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-notes-card" }, /* @__PURE__ */ React.createElement("h3", { className: "mc-card-title" }, tr("about.notesTitle", `v${latest.version} \u66F4\u65B0\u5185\u5BB9`)), /* @__PURE__ */ React.createElement("pre", { className: "mc-update-notes" }, latest.notes)) : null);
+  })(), job.state === "error" ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, job.error) : null) : null, latest?.notes ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-notes-card" }, /* @__PURE__ */ React.createElement("h3", { className: "mc-card-title" }, tr("about.notesTitle", `v${latest.version} \u66F4\u65B0\u5185\u5BB9`)), /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      className: "mc-update-notes",
+      onCopy: (event) => event.preventDefault(),
+      onCut: (event) => event.preventDefault(),
+      onDragStart: (event) => event.preventDefault()
+    },
+    /* @__PURE__ */ React.createElement(Markdown, { text: latest.notes })
+  )) : null);
 }
 
 // client-src/components/SettingsCapture.jsx

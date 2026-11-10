@@ -8,6 +8,7 @@ import {
   progressDetail,
   progressPercent,
   rollbackCandidates,
+  updatePrimary,
   updateSummary
 } from '../client-src/lib/update.js'
 
@@ -131,4 +132,63 @@ test('the built client exposes the local rollback controls', async () => {
   assert.match(client, /mc-about-rollback-select/)
   assert.match(client, /mc-rollback-confirm/)
   assert.match(client, /updateRollback/)
+})
+
+test('updatePrimary 在没有更新时是检查更新，查到更新后变成点击升级', () => {
+  const base = { currentVersion: '0.9.5', target: { kind: 'installed' } }
+  assert.deepEqual(updatePrimary(null), { action: 'check', label: '检查更新' })
+  assert.deepEqual(updatePrimary({ ...base, latest: null }), { action: 'check', label: '检查更新' })
+  assert.deepEqual(
+    updatePrimary({ ...base, latest: { version: '0.9.5' }, updateAvailable: false }),
+    { action: 'check', label: '检查更新' }
+  )
+  assert.deepEqual(
+    updatePrimary({ ...base, latest: { version: '0.9.6' }, updateAvailable: true }),
+    { action: 'install', label: '点击升级' }
+  )
+  // 源码运行不能覆盖安装，保持检查。
+  assert.deepEqual(
+    updatePrimary({ ...base, target: { kind: 'source' }, latest: { version: '0.9.6' }, updateAvailable: true }),
+    { action: 'check', label: '检查更新' }
+  )
+  // 任务在跑时主按钮只显示阶段文案。
+  assert.deepEqual(
+    updatePrimary({ ...base, job: { state: 'downloading', phase: '下载中', percent: 12 } }),
+    { action: 'busy', label: '下载中' }
+  )
+})
+
+test('发现新版本时提示改为等待点击升级', () => {
+  const summary = updateSummary({
+    currentVersion: '0.9.5',
+    latest: { version: '0.9.6' },
+    updateAvailable: true,
+    job: null
+  })
+  assert.equal(summary.tone, 'warn')
+  assert.match(summary.text, /发现新版本 v0\.9\.6/)
+  assert.match(summary.detail, /点击升级/)
+  assert.doesNotMatch(summary.detail, /立即更新/)
+})
+
+test('关于页：更新内容按 Markdown 预览，且没有独立的刷新状态按钮', async () => {
+  const about = await readFile(new URL('../client-src/components/SettingsAbout.jsx', import.meta.url), 'utf8')
+  assert.match(about, /<Markdown text=\{latest\.notes\}/)
+  assert.doesNotMatch(about, /<pre className="mc-update-notes"/)
+  assert.doesNotMatch(about, /actions\.refresh/)
+  // 主按钮改用 updatePrimary 决定「检查更新」还是「点击升级」。
+  assert.match(about, /updatePrimary\(status\)/)
+  assert.match(about, /primary\.action === 'install'/)
+})
+
+test('关于页：更新内容区域禁止选中与复制', async () => {
+  const [about, css] = await Promise.all([
+    readFile(new URL('../client-src/components/SettingsAbout.jsx', import.meta.url), 'utf8'),
+    readFile(new URL('../client-src/update.css', import.meta.url), 'utf8')
+  ])
+  assert.match(about, /onCopy=\{\(event\) => event\.preventDefault\(\)\}/)
+  assert.match(about, /onCut=\{\(event\) => event\.preventDefault\(\)\}/)
+  const block = css.slice(css.indexOf('.mc-update-notes-card .mc-update-notes {'))
+  assert.match(block.slice(0, 600), /user-select: none;/)
+  assert.match(block.slice(0, 600), /-webkit-user-select: none;/)
 })

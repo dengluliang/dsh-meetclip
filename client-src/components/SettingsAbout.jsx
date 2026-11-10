@@ -3,9 +3,11 @@ import {
   progressDetail,
   progressPercent,
   rollbackCandidates,
+  updatePrimary,
   updateSummary,
   useUpdate
 } from '../lib/update.js'
+import { Markdown } from '../lib/markdown.jsx'
 
 function versionText(value) {
   return value ? `v${String(value).replace(/^v/i, '')}` : '—'
@@ -31,11 +33,15 @@ export function SettingsAbout({ t }) {
   const canCancel = running && (job.state === 'checking' || job.state === 'downloading')
   const restartRequired = Boolean(status?.restartRequired)
   const updateAvailable = Boolean(status?.updateAvailable && latest)
-  const primaryLabel = running
-    ? (job.phase || tr('about.working', '更新中…'))
-    : updateAvailable && !isSource
-      ? tr('about.install', '立即更新')
-      : tr('about.check', '检查更新')
+  const primary = updatePrimary(status)
+  const primaryLabel = primary.action === 'install'
+    ? tr('about.install', '点击升级')
+    : primary.action === 'check'
+      ? tr('about.check', '检查更新')
+      : (job?.phase || tr('about.working', '更新中…'))
+  const primaryOnClick = primary.action === 'install'
+    ? actions.install
+    : primary.action === 'check' ? actions.check : undefined
   const primaryDisabled = !status || Boolean(busy) || running
   const showProgress = Boolean(job && (running || job.state === 'error' || job.state === 'cancelled' || job.percent === 100))
   const repo = status?.repo || 'dengluliang/dsh-meetclip'
@@ -159,7 +165,7 @@ export function SettingsAbout({ t }) {
             className="mc-button"
             data-variant="primary"
             disabled={primaryDisabled}
-            onClick={updateAvailable && !isSource ? actions.install : actions.check}
+            onClick={primaryOnClick}
           >
             {primaryLabel}
           </button>
@@ -177,10 +183,6 @@ export function SettingsAbout({ t }) {
             onClick={() => setPendingRollback(selectedBackup.version)}
           >
             {rollbackLabel}
-          </button>
-          <button type="button" className="mc-button" disabled={Boolean(busy) || running}
-            onClick={actions.refresh}>
-            {tr('about.refresh', '刷新状态')}
           </button>
           {latest?.url ? (
             <button type="button" className="mc-button" onClick={actions.openRelease}>
@@ -263,7 +265,15 @@ export function SettingsAbout({ t }) {
       {latest?.notes ? (
         <div className="mc-card mc-update-notes-card">
           <h3 className="mc-card-title">{tr('about.notesTitle', `v${latest.version} 更新内容`)}</h3>
-          <pre className="mc-update-notes">{latest.notes}</pre>
+          {/* 渲染成 Markdown 预览；这里只读，禁止选中、复制与剪切。 */}
+          <div
+            className="mc-update-notes"
+            onCopy={(event) => event.preventDefault()}
+            onCut={(event) => event.preventDefault()}
+            onDragStart={(event) => event.preventDefault()}
+          >
+            <Markdown text={latest.notes} />
+          </div>
         </div>
       ) : null}
     </div>

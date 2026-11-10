@@ -84,12 +84,25 @@ export function updateSummary(status) {
     }
   }
   if (status.updateAvailable && status.latest) {
-    return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '点击「立即更新」或重新检查' }
+    return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '点「点击升级」下载并安装' }
   }
   if (status.latest) {
     return { tone: 'ok', text: `已是最新版本 v${status.currentVersion}`, detail: '' }
   }
   return { tone: 'pending', text: '还没有检查过更新', detail: '' }
+}
+
+/**
+ * 主按钮的文案与动作：没查到更新时是「检查更新」，查到更新后同一位置变成「点击升级」。
+ * 源码运行时不能覆盖安装，只保留检查。
+ */
+export function updatePrimary(status) {
+  const job = status?.job || null
+  if (isUpdateRunning(status)) return { action: 'busy', label: job?.phase || '更新中…' }
+  const isSource = status?.target?.kind === 'source'
+  const available = Boolean(status?.updateAvailable && status?.latest)
+  if (available && !isSource) return { action: 'install', label: '点击升级' }
+  return { action: 'check', label: '检查更新' }
 }
 
 export function isUpdateRunning(status) {
@@ -204,9 +217,12 @@ export function useUpdate({ enabled = true } = {}) {
   }
 
   const actions = {
-    refresh: () => run('status', () => load({ quiet: false })),
-    // A source checkout must not be overwritten; it still gets the check result.
-    check: () => start('check', () => updateCheck({ autoInstall: status?.target?.kind !== 'source' })),
+    // 检查更新顺带刷新状态：查到新版本只更新提示与主按钮，安装要用户再点一次。
+    // 源码运行时同样不会覆盖安装。
+    check: async () => {
+      await run('status', () => load({ quiet: false }))
+      return start('check', () => updateCheck({ autoInstall: false }))
+    },
     install: () => start('install', updateInstall),
     rollback: (version) => start('rollback', () => updateRollback(version)),
     cancel: () => run('cancel', async () => {

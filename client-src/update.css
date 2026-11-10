@@ -135,6 +135,7 @@
   100% { transform: translateX(320%); }
 }
 
+/* 更新内容是只读的 Markdown 预览：不可选中、不可复制/拖动。 */
 .mc-update-notes-card .mc-update-notes {
   max-height: 260px;
   margin: 0;
@@ -147,8 +148,43 @@
   font-family: inherit;
   font-size: 12px;
   line-height: 1.65;
-  white-space: pre-wrap;
   word-break: break-word;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mc-update-notes-card .mc-update-notes .mc-md {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.mc-update-notes-card .mc-update-notes .mc-md-h1,
+.mc-update-notes-card .mc-update-notes .mc-md-h2,
+.mc-update-notes-card .mc-update-notes .mc-md-h3,
+.mc-update-notes-card .mc-update-notes .mc-md-h4,
+.mc-update-notes-card .mc-update-notes .mc-md-h5,
+.mc-update-notes-card .mc-update-notes .mc-md-h6 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.mc-update-notes-card .mc-update-notes .mc-md-p,
+.mc-update-notes-card .mc-update-notes .mc-md-list,
+.mc-update-notes-card .mc-update-notes .mc-md-quote,
+.mc-update-notes-card .mc-update-notes .mc-md-code,
+.mc-update-notes-card .mc-update-notes .mc-md-table {
+  margin: 0 0 6px;
+}
+
+.mc-update-notes-card .mc-update-notes .mc-md-list {
+  padding-left: 18px;
+}
+
+.mc-update-notes-card .mc-update-notes .mc-md-inline-code {
+  font-size: 11px;
 }
 
 @media (max-width: 640px) {

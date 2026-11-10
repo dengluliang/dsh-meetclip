@@ -47,11 +47,13 @@ if (theme) {
 const state = new URLSearchParams(location.search).get('state') || 'downloading'
 const now = Date.now()
 const notes = [
-  'v0.9.1',
+  '## 0.9.5 供应商前缀与引导验证',
   '',
-  '- 设置 → 关于 显示当前版本、已安装版本与最新版本。',
-  '- 「检查更新」自动下载并校验 SHA-256，进度条实时显示下载百分比。',
-  '- 下载完成后替换 DSH 里已安装的插件副本，重启 DeepSeek Harness 生效。',
+  '发布日期：2026-11-10。',
+  '',
+  '- **修复**：模型名按 `owned_by` 补全供应商前缀，语音与文字共用一套规则。',
+  '- **引导**：先验证再保存，选中第一个真正能调通的模型。',
+  '- **部署**：meetclip config 新增 `aiBaseUrl`，公共包默认仍为空。',
   '',
   'Release: https://github.com/dengluliang/dsh-meetclip/releases'
 ].join('\n')
@@ -125,6 +127,10 @@ function snapshot() {
         message: '当前 v0.9.0 已经是最新版本', startedAt: now, updatedAt: now, finishedAt: now
       }
     }
+  }
+  if (state === 'update-ready') {
+    // 查到新版本、还没点升级：主按钮应该是「点击升级」。
+    return { ...base, job: null }
   }
   if (state === 'rollback') {
     return {
