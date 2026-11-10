@@ -1,4 +1,4 @@
-# 会摘 MeetClip · 安装说明（0.9.0）
+# 会摘 MeetClip · 安装说明（0.9.1）
 
 会摘是一个 **DeepSeek Harness 插件**：在本机采集 B 站直播、导入视频与会议录音，做云端转写、边看边打点、写 Markdown 笔记，并用 `meetclip_*` 工具让 Agent 检索和整理你的资料库。0.4.0 起还能把转写整理成 **AI 纪要**，并导出 SRT / VTT / Word；0.5.0 起转写改为纯云端时间戳，脚本不再下载时间戳/说话人模型；0.9.0 起可以在「设置 → 关于」里检查并自动更新。
 
@@ -17,9 +17,9 @@
 
 ### 方式 A：GitHub Releases（推荐）
 
-1. 打开 <https://github.com/dengluliang/dsh-meetclip/releases/latest>，下载 `dsh-meetclip-0.9.0.tgz`，放到一个**不会被清理的固定目录**（例如 `~/Documents/MeetClip/`）。
+1. 打开 <https://github.com/dengluliang/dsh-meetclip/releases/latest>，下载 `dsh-meetclip-0.9.1.tgz`，放到一个**不会被清理的固定目录**（例如 `~/Documents/MeetClip/`）。
 2. 打开 DeepSeek Harness：**设置 → 插件 → 添加插件**。
-3. 填这个 tgz 的**绝对路径**，例如 `/Users/me/Documents/MeetClip/dsh-meetclip-0.9.0.tgz`。
+3. 填这个 tgz 的**绝对路径**，例如 `/Users/me/Documents/MeetClip/dsh-meetclip-0.9.1.tgz`。
 4. 安装完成后启用「会摘」；首次打开按引导准备 Python 运行环境。
 5. 如果提示 `already installed`，先在插件列表卸载旧「会摘」，再安装；资料库目录不会被删除。
 
@@ -27,18 +27,18 @@
 
 ### 方式 B：命令行
 
-1. 把 `dsh-meetclip-0.9.0.tgz` 放到固定目录。
+1. 把 `dsh-meetclip-0.9.1.tgz` 放到固定目录。
 2. 完全退出 DeepSeek Harness（桌面版按 ⌘Q）。
 3. 打开「终端」，进入 tgz 所在目录，执行：
 
 ```bash
-dsh plugin --profile desktop add "file:$PWD/dsh-meetclip-0.9.0.tgz"
+dsh plugin --profile desktop add "file:$PWD/dsh-meetclip-0.9.1.tgz"
 ```
 
 网页版把 `desktop` 换成 `web`：
 
 ```bash
-dsh plugin --profile web add "file:$PWD/dsh-meetclip-0.9.0.tgz"
+dsh plugin --profile web add "file:$PWD/dsh-meetclip-0.9.1.tgz"
 ```
 
 4. 重新启动 DeepSeek Harness，左侧插件栏出现「会摘」。

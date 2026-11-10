@@ -44,7 +44,7 @@
 ### 命令行
 
 ```bash
-dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.0.tgz"
+dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.1.tgz"
 ```
 
 网页版把 `desktop` 换成 `web`，然后重启 DSH。更细的步骤、飞书配置和常见问题见 [INSTALL.md](INSTALL.md)。
@@ -128,4 +128,4 @@ docs/                 架构、验证、更新说明
 
 ## 许可证
 
-[MIT](LICENSE)。详见 [CHANGELOG.md](CHANGELOG.md)、[INSTALL.md](INSTALL.md) 和 [docs/](docs/)。
+[MIT](LICENSE)。第三方署名见 [THIRD_PARTY.md](THIRD_PARTY.md)（Cicada，Apache-2.0）。详见 [CHANGELOG.md](CHANGELOG.md)、[INSTALL.md](INSTALL.md) 和 [docs/](docs/)。

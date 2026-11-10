@@ -7,6 +7,12 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.1 第三方许可与发布合规
+
+- 新增 [THIRD_PARTY.md](THIRD_PARTY.md) 和 [LICENSES/Apache-2.0.txt](LICENSES/Apache-2.0.txt)：明确 AI 纪要模板、文本清洗、会议结束信号等部分派生自知了 Cicada（Apache-2.0），保留原项目署名与许可证全文。
+- 插件包与 GitHub Release 一并携带 `THIRD_PARTY.md` 与 `LICENSES/`，满足 Apache-2.0 对分发副本的声明要求。
+- 无运行时行为变化；0.9.0 用户点「设置 → 会摘 → 关于 → 检查更新」即可升级到本版本。
+
 ## 0.9.0 开源首发 + 应用内自动更新
 
 - **以 MIT 协议开源** 到 <https://github.com/dengluliang/dsh-meetclip>，包含 Host、Client、FastAPI 后端、内置 skill、测试与构建脚本。

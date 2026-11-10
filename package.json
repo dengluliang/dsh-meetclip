@@ -1,6 +1,6 @@
 {
   "name": "@meetclip/dsh-meetclip",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "type": "module",
   "description": "MeetClip for DeepSeek Harness: capture live streams, videos and meetings, transcribe them, take timestamped notes and search the local library.",
   "license": "MIT",
@@ -42,7 +42,9 @@
     "backend/requirements.txt",
     "LICENSE",
     "README.md",
-    "INSTALL.md"
+    "INSTALL.md",
+    "LICENSES/**/*.txt",
+    "THIRD_PARTY.md"
   ],
   "scripts": {
     "build:client": "node build/build-client.mjs",
