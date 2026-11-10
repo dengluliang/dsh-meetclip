@@ -525,7 +525,10 @@ function FeishuSetupSection({ feishu }) {
   const installed = Boolean(status?.dsh?.entryPresent)
   const loggedIn = Boolean(status?.auth?.loggedIn)
   const busy = Boolean(feishu.busy) || running
-  const canInstall = Boolean(status) && Boolean(status.runtime?.npxOk) && !status.dsh?.conflict
+  // 与设置页保持同一套判断：源没配好时不要给出可点的安装按钮，
+  // 否则一点就抛「尚未配置飞书 MCP 包」这种看不懂的错误。
+  const canInstall = Boolean(status) && Boolean(status.runtime?.npxOk)
+    && !status.dsh?.conflict && Boolean(status.package?.configured)
   const stateText = !status ? '读取中…' : installed ? (loggedIn ? '已配置并登录' : '已配置，未登录') : '未配置'
 
   return (

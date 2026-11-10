@@ -15,13 +15,12 @@ import { execFile, spawn } from 'node:child_process'
  * metadata only and the status payload never contains access/refresh tokens.
  */
 
-// The Feishu MCP server is published privately inside each organization, so the
-// package name and npm registry are NOT baked in. Fill `feishuPackage` /
-// `feishuRegistry` in the meetclip config (cordis.patch.yml) — or the matching
-// environment variables — and the whole onboarding flow works against your own
-// mirror. Empty means "not configured yet" and every action explains that.
-export const FEISHU_PACKAGE = process.env.MEETCLIP_FEISHU_PACKAGE || ''
-export const FEISHU_REGISTRY = process.env.MEETCLIP_FEISHU_REGISTRY || ''
+// 飞书 MCP 的包名与 npm 源内置一份默认值，首次引导点一下就能装；部署方可
+// 用 meetclip config 的 `feishuPackage` / `feishuRegistry`（或同名环境变量）
+// 覆盖，指向自己的镜像。两者都显式清空时，界面会提示「未配置 MCP 源」。
+export const FEISHU_PACKAGE = process.env.MEETCLIP_FEISHU_PACKAGE || '@mi/feishu-mcp-pro'
+export const FEISHU_REGISTRY = process.env.MEETCLIP_FEISHU_REGISTRY
+  || 'https://pkgs.d.xiaomi.net/artifactory/api/npm/mi-npm/'
 export const FEISHU_DOC_URL = 'https://open.feishu.cn/document/home/index'
 export const FEISHU_SERVER_NAME = 'feishu'
 export const FEISHU_ENTRY_ID = 'mcp-feishu-pro'

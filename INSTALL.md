@@ -111,7 +111,7 @@ shasum -a 256 -c SHA256SUMS.txt
 - **界面**：设置 → 飞书 默认只有一行——状态（可以使用 / 未登录 / 未安装 / 需要 Node.js 20+）、账号与到期日、以及「重新登录」「更多」。检查更新、检测连接、重新安装、用设备码登录、退出登录、官方文档、移除 DSH 配置都收在「更多」里；运行条件、补丁路径、版本号不再展示，只在出问题时给一句原因（缺 Node、配置冲突、等待载入）。
 - **移除**：设置 → 飞书 → 更多 →「移除 DSH 配置」，只删这一段，不动登录状态。
 - **跳过**：不装不影响采集、转写、AI 纪要；以后随时可以补。
-- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问你自己的 npm 源，并且已经知道飞书 MCP 的包名。插件不内置包名与源，先在 `cordis.patch.yml` 的 meetclip config 里填好 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`），否则设置页会提示「未配置 MCP 源」。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
+- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问 npm 源。默认包名与源已内置（`@mi/feishu-mcp-pro` + 内网 npm 源），装好 Node 就能一键安装；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
 - **其他编辑器**：官方 `setup`（会写 `~/.npmrc` 并把 Cursor / VS Code / Claude Code 等编辑器的 MCP 配置也改成飞书 MCP）DSH 用不到，设置里不再提供；要给其他编辑器配，按官方文档在终端跑 `npx -y --registry=<你的 npm 源> <你的飞书 MCP 包名>@latest setup`。
 - 官方文档：<https://open.feishu.cn/document/home/index>
 

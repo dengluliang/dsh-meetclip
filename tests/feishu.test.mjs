@@ -10,7 +10,7 @@ import {
   removeEntry, renderEntryBlock, resolveBinaries, validOpenUrl, versionMajor, writePatchText, readPatchText
 } from '../src/host/feishu.js'
 
-// 包名与 npm 源不再内置于源码（开源版不指向任何组织内部镜像），测试里显式给一份。
+// 源码内置一份默认包名与源，测试用一个独立的示例值，避免依赖默认值。
 const TEST_PACKAGE = 'feishu-mcp-pro'
 const TEST_REGISTRY = 'https://npm.example.test/'
 
@@ -558,4 +558,31 @@ test('rewriteEntry replaces the pinned version without duplicating the block', a
     fs.rmSync(bin.dir, { recursive: true, force: true })
     fs.rmSync(stateDir, { recursive: true, force: true })
   }
+})
+
+test('飞书包名与源有内置默认值，config 与环境变量可覆盖', async () => {
+  const stateDir = tempDir('meetclip-feishu-defaults-')
+  const mk = (overrides = {}) => new FeishuManager({
+    stateDir,
+    feishuStatePath: path.join(stateDir, 'feishu.json'),
+    feishuLogPath: path.join(stateDir, 'feishu.log'),
+    ...overrides
+  })
+
+  // 不配置任何东西：默认值直接可用，首次引导点一下就能装。
+  const builtin = mk()
+  assert.match(builtin.packageName(), /^@mi\/feishu-mcp-pro$/)
+  assert.match(builtin.registryUrl(), /^https:\/\/pkgs\.d\.xiaomi\.net\//)
+
+  // meetclip config 优先。
+  const configured = mk({ feishuPackage: TEST_PACKAGE, feishuRegistry: TEST_REGISTRY })
+  assert.equal(configured.packageName(), TEST_PACKAGE)
+  assert.equal(configured.registryUrl(), TEST_REGISTRY)
+
+  // 显式清空 config 时仍然回到内置默认值，不会变成「未配置」。
+  const blank = mk({ feishuPackage: '', feishuRegistry: '' })
+  assert.match(blank.packageName(), /@mi\/feishu-mcp-pro/)
+  assert.match(blank.registryUrl(), /pkgs\.d\.xiaomi\.net/)
+
+  fs.rmSync(stateDir, { recursive: true, force: true })
 })

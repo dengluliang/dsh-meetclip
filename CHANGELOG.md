@@ -7,6 +7,16 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.7 飞书 MCP 恢复一键安装
+
+发布日期：2026-11-10。
+
+- **现象**：同事首次使用，在引导里点「安装飞书 MCP」直接报错，最后停在「未配置 MCP 源」。原因有两层：0.9.2 去敏后 `feishuPackage` / `feishuRegistry` 默认值为空；引导里的安装按钮又只判断了 npx 与配置冲突，没判断源是否配置（设置页判断了），于是按钮可点、一点就抛「尚未配置飞书 MCP 包…」。
+- **恢复内置默认值**：`@mi/feishu-mcp-pro` 与内网 npm 源重新作为默认值写回代码，装好 Node 后在引导或设置里点一次即可完成安装、写配置、登录与连通性检测。`feishuPackage` / `feishuRegistry`（meetclip config 或 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）仍然优先，便于换成自己的镜像。
+- **修掉按钮的判断遗漏**：引导里的安装按钮与设置页统一，源不可用时置灰而不是报后端错误。
+- **边界（请知悉）**：0.9.2 去敏删掉的两个值重新出现在源码与 release 里，公开仓库、release 包与 `latest.json` 中均可读到；如需彻底干净，改用环境变量或 config 指向自己的镜像，并另走私有分发渠道。
+- **验证**：npm 源匿名可解析（`npm view @mi/feishu-mcp-pro version` → 0.27.4，无 userconfig 也通）；新增「默认值 + config/环境变量覆盖」用例；前端 257/257、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
+
 ## 0.9.6 关于页：检查与升级分开，更新内容改成 Markdown 预览
 
 发布日期：2026-11-10。

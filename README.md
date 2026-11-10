@@ -7,7 +7,7 @@
 
 ![会摘首页](docs/assets/home-wall-preview.png)
 
-> 个人开源项目，与 DeepSeek、飞书没有隶属关系。插件不内置任何公司的网关地址、模型名或私有 npm 源：模型服务（Base URL / 模型 ID / API Key）与飞书 MCP 包名、npm 源都由你在设置或配置里填写。
+> 个人开源项目，与 DeepSeek、飞书没有隶属关系。插件不内置任何公司的模型网关：Base URL、模型 ID 与 API Key 由你填写；语音与纪要共用一把 Key。飞书 MCP 默认指向 `@mi/feishu-mcp-pro` 与它的内网 npm 源，可用 `feishuPackage` / `feishuRegistry` 覆盖成你自己的镜像。
 
 ## 功能
 
@@ -74,7 +74,7 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.5.tgz"
 3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频），或直接粘贴链接让 Agent 处理。
 4. 采集完成后在记录页看转写、打点、写笔记、生成 AI 纪要。
 
-飞书是可选项：**设置 → 会摘 → 飞书** 安装并登录飞书 MCP 后，Agent 才能读写飞书文档、多维表格与 Wiki。飞书 MCP 包发布在各自组织的私有 npm 源上，插件不内置包名与源：在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）后再安装。
+飞书是可选项：**设置 → 会摘 → 飞书**（或首次引导第 2 步）点「安装飞书 MCP」并登录后，Agent 才能读写飞书文档、多维表格与 Wiki。默认使用 `@mi/feishu-mcp-pro` 与内网 npm 源；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）。
 
 模型服务同理：插件不内置任何网关地址，但部署方可以在同一处 meetclip config 里写 `aiBaseUrl`，首次引导与设置页会直接带出该地址；没有配置时保持每次手填。
 
