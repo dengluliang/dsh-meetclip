@@ -5669,8 +5669,8 @@ function addPackMembers(id, members) {
   });
 }
 function removePackMembers(id, members) {
-  return api(`/packs/${encodeURIComponent(id)}/members`, {
-    method: "DELETE",
+  return api(`/packs/${encodeURIComponent(id)}/members/remove`, {
+    method: "POST",
     body: JSON.stringify({ members })
   });
 }

@@ -7,6 +7,12 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 未发布：卡包「移出」HTTP 400 修复
+
+- **现象**：卡包浮层点「移出」后提示 `HTTP 400`，后端日志里没有真正的 `DELETE /api/packs/{id}/members`，只有 Uvicorn 的 `Invalid HTTP request received`；带 body 的 DELETE 在进入 FastAPI 前就坏了。
+- **修复**：新增 `POST /api/packs/{id}/members/remove`，请求体和移出语义与原来的 DELETE 完全一致；前端 `removePackMembers` 改走这个 POST 路由，原来的 DELETE 路由保留给兼容调用。
+- **验证**：真实 Host 代理 + 浏览器 cookie 对临时卡包调用 POST 移除返回 200，成员数从 1 变 0；临时卡包随后删除。前端 `242/242`、后端 29 个测试文件全部 PASS。
+
 ## 0.9.3 卡包浮层拖动落点修正
 
 发布日期：2026-11-10。

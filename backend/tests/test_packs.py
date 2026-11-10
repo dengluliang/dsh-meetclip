@@ -168,8 +168,8 @@ class PackTests(unittest.TestCase):
         self.assertEqual(added.status_code, 200, added.text)
         self.assertEqual(added.json()["pack"]["count"], 3)
 
-        removed = self.client.request("DELETE", "/api/packs/packmutate01/members",
-                                      json={"members": [{"type": "note", "id": note["id"]}]})
+        removed = self.client.post("/api/packs/packmutate01/members/remove",
+                                   json={"members": [{"type": "note", "id": note["id"]}]})
         self.assertEqual(removed.status_code, 200, removed.text)
         self.assertEqual(removed.json()["pack"]["count"], 2)
 

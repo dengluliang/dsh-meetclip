@@ -413,8 +413,9 @@ export function addPackMembers(id, members) {
 }
 
 export function removePackMembers(id, members) {
-  return api(`/packs/${encodeURIComponent(id)}/members`, {
-    method: 'DELETE',
+  // 本地 Host 代理对带 body 的 DELETE 会发出非法请求，移除走 POST 兼容路由。
+  return api(`/packs/${encodeURIComponent(id)}/members/remove`, {
+    method: 'POST',
     body: JSON.stringify({ members })
   })
 }

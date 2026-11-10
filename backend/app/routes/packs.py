@@ -68,6 +68,12 @@ def remove_members(pack_id: str, req: PackMembersReq):
     return {"ok": True, "pack": _call(packs.remove_members, pack_id, _members(req.members))}
 
 
+@router.post("/api/packs/{pack_id}/members/remove")
+def remove_members_via_post(pack_id: str, req: PackMembersReq):
+    """兼容会丢弃 DELETE body 的本地代理：用 POST 执行同样的移除。"""
+    return {"ok": True, "pack": _call(packs.remove_members, pack_id, _members(req.members))}
+
+
 @router.delete("/api/packs/{pack_id}")
 def delete_pack(pack_id: str):
     return {"ok": True, **_call(packs.delete_pack, pack_id)}

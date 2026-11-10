@@ -285,10 +285,16 @@ globalThis.fetch = async (url, options = {}) => {
     const method = String(options.method || 'GET').toUpperCase()
     let body = {}
     try { body = options.body ? JSON.parse(String(options.body)) : {} } catch {}
-    const memberMatch = target.match(/\/api\/packs\/([^/]+)\/members/)
+    const memberMatch = target.match(/\/api\/packs\/([^/]+)\/members(\/remove)?$/)
     if (memberMatch) {
       const pack = packFor(decodeURIComponent(memberMatch[1]))
       if (!pack) return json({ detail: '卡包不存在' }, false, 404)
+      if (method === 'POST' && memberMatch[2]) {
+        const wanted = body.members || []
+        pack.members = pack.members.filter((row) => !wanted.some((member) => member.type === row.type && String(member.id) === String(row.id)))
+        packFromMembers(pack, pack.members.map((row) => ({ type: row.type, id: row.id })))
+        return json({ ok: true, pack })
+      }
       if (method === 'POST') {
         const wanted = body.members || []
         for (const member of wanted) {
