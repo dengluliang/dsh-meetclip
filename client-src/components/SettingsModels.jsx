@@ -1,7 +1,7 @@
 import {
-  asrEngines, aiStatus, checkAI, modelCatalog, removeAIKey, saveAIConfig, saveAIKey, saveAsrEngine, testAIModel, testAsrEngine
+  asrEngines, aiStatus, checkAI, modelCatalog, probeUsableCatalog, removeAIKey, saveAIConfig, saveAIKey, saveAsrEngine, testAIModel, testAsrEngine
 } from '../lib/api.js'
-import { modelOptions, splitModels } from '../lib/models.js'
+import { modelOptions, splitModels, withoutHidden } from '../lib/models.js'
 
 // 不预置任何网关地址与模型：用户填自己的 OpenAI 兼容服务，占位符只是格式示例。
 const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
@@ -16,6 +16,10 @@ export function SettingsModels({ t }) {
   const [asr, setAsr] = React.useState(null)
   const [ai, setAi] = React.useState(null)
   const [models, setModels] = React.useState([])
+  // 拉完清单后在后台探测：只隐藏网关明确调不通的模型。
+  const [hidden, setHidden] = React.useState([])
+  const [showHidden, setShowHidden] = React.useState(false)
+  const [filtering, setFiltering] = React.useState(false)
   const [catalogError, setCatalogError] = React.useState('')
   const [keyDraft, setKeyDraft] = React.useState('')
   const [defaultAsr, setDefaultAsr] = React.useState('')
@@ -107,6 +111,7 @@ export function SettingsModels({ t }) {
         setNotice('Key 已保存，正在拉取模型清单…')
       }
       const result = await pullCatalog()
+      if (result?.models?.length) filterUsable()
       if (result?.models?.length) {
         setKeyDraft('')
         setNotice(`已获取 ${result.models.length} 个模型`)
@@ -115,6 +120,19 @@ export function SettingsModels({ t }) {
       }
       await load()
     })
+  }
+
+  /** 后台跑一轮可用性探测；失败就保持完整列表。 */
+  async function filterUsable() {
+    setFiltering(true)
+    try {
+      const result = await probeUsableCatalog()
+      if (result?.ok) setHidden(Array.isArray(result.hidden) ? result.hidden : [])
+    } catch {
+      // 探测失败不影响选模型，列表保持原样。
+    } finally {
+      setFiltering(false)
+    }
   }
 
   async function chooseAsrModel(model) {
@@ -260,7 +278,8 @@ export function SettingsModels({ t }) {
 
   const asrCustomOn = Boolean(asr?.custom?.enabled)
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== 'mimo')
-  const { asr: asrModels, text: textModels } = splitModels(models)
+  const { asr: asrModels, text: allTextModels } = splitModels(models)
+  const textModels = showHidden ? allTextModels : withoutHidden(allTextModels, hidden)
   const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr)
   const textOptions = modelOptions(textModels, aiCustomOn ? '' : defaultText)
 

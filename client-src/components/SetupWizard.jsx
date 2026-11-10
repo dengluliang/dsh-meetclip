@@ -1,11 +1,11 @@
 import {
   backendAction, deps, depsInstallStatus, ensureWorkspace, homeFeed, inspectDataDir, installDeps,
-  meetingOptions, modelCatalog, pickFile, probeModels, saveAIConfig, saveAsrEngine, savePrefs,
+  meetingOptions, modelCatalog, pickFile, probeModels, probeUsableModels, saveAIConfig, saveAsrEngine, savePrefs,
   setupStatus, startSetup, status as hostStatus, testAIModel, testAsrEngine
 } from '../lib/api.js'
 import { useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
-import { candidateOrder, modelOptions, splitModels, vendorOf } from '../lib/models.js'
+import { candidateOrder, modelOptions, splitModels, vendorOf, withoutHidden } from '../lib/models.js'
 
 // 不预置网关地址与模型：首次配置时由用户填写自己的 OpenAI 兼容服务。
 const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
@@ -23,6 +23,10 @@ export function SetupWizard({ status, onComplete }) {
   const [showKey, setShowKey] = React.useState(false)
   const [probing, setProbing] = React.useState(false)
   const [catalog, setCatalog] = React.useState(null)
+  // 拉完清单后在后台逐个探测，把网关明确拒绝的模型从下拉里去掉。
+  const [hidden, setHidden] = React.useState([])
+  const [showHidden, setShowHidden] = React.useState(false)
+  const [probingUsable, setProbingUsable] = React.useState(false)
   const [catalogError, setCatalogError] = React.useState('')
   const [asrModel, setAsrModel] = React.useState('')
   const [textModel, setTextModel] = React.useState('')
@@ -64,6 +68,18 @@ export function SetupWizard({ status, onComplete }) {
     const timer = setTimeout(() => { discover() }, 700)
     return () => clearTimeout(timer)
   }, [apiKey])
+
+  // 目录到手后在后台跑一轮可用性探测：只隐藏网关明确拒绝的模型。
+  React.useEffect(() => {
+    if (!catalog || skippedKey || !apiKey.trim() || !baseUrl.trim()) return undefined
+    let cancelled = false
+    setProbingUsable(true)
+    probeUsableModels({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), models: catalog.text || [] })
+      .then((result) => { if (!cancelled && result?.ok) setHidden(result.hidden || []) })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setProbingUsable(false) })
+    return () => { cancelled = true }
+  }, [catalog])
 
   // 目录到手后把两个下拉落到具体模型：此前是「界面显示第一项、状态仍为空」，
   // 保存时写进一个空模型名，用户以为选过了，实际没选中。
@@ -344,8 +360,9 @@ export function SetupWizard({ status, onComplete }) {
     onComplete()
   }
 
+  const visibleText = showHidden ? (catalog?.text || []) : withoutHidden(catalog?.text || [], hidden)
   const asrOptions = modelOptions(catalog?.asr || [], asrModel)
-  const textOptions = modelOptions(catalog?.text || [], textModel)
+  const textOptions = modelOptions(visibleText, textModel)
 
   return (
     <div className="mc-setup">
@@ -410,6 +427,21 @@ export function SetupWizard({ status, onComplete }) {
                   </select>
                 </label>
               </>
+            ) : null}
+
+            {catalog ? (
+              <p className="mc-setup-fine" data-tone={hidden.length ? 'warn' : undefined}>
+                {probingUsable
+                  ? '正在逐个验证可用模型…（可以先用下面已经能用的）'
+                  : hidden.length
+                    ? `已隐藏 ${hidden.length} 个这个 Key 调不通的模型${showHidden ? '' : '，点「显示全部」可恢复'}`
+                    : '已确认可选模型都能用'}
+                {hidden.length ? (
+                  <button type="button" className="mc-link-button" onClick={() => setShowHidden((value) => !value)}>
+                    {showHidden ? '只看可用' : '显示全部'}
+                  </button>
+                ) : null}
+              </p>
             ) : null}
 
             <div className="mc-actions">

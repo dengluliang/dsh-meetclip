@@ -449,6 +449,24 @@ export function modelCatalog() {
   return api('/models/catalog')
 }
 
+/**
+ * 逐个探测候选模型，返回这个 Key 明确调不通的那些（可能为空）。
+ *
+ * 走 Host（`/app/models`）而不是后端：首次引导第 1 步后端还没启动，
+ * 但 Host 已经在了，探测要能在这一步跑起来。
+ */
+export function probeUsableModels({ apiKey, baseUrl, models = [] } = {}) {
+  return app('/models', {
+    method: 'POST',
+    body: JSON.stringify({ probe: true, api_key: apiKey, base_url: baseUrl, models })
+  })
+}
+
+/** 设置页里用已保存的 Key 跑同一轮探测（后端接口，从钥匙串取 Key）。 */
+export function probeUsableCatalog() {
+  return api('/models/usable', { method: 'POST', body: JSON.stringify({}) })
+}
+
 // ---------------- AI 纪要 ----------------
 export function getMinutes(id) {
   return api(`/sessions/${encodeURIComponent(id)}/minutes`)

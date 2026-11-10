@@ -3,9 +3,12 @@
 旧的时间戳对齐与说话人分离模型已下线，这里只保留一个清理入口，用于释放旧版本
 遗留的 1.2 GB 对齐模型和 31 MB pyannote 模型。
 """
+import hashlib
 import shutil
+import time
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, SecretStr
 
 import asr
 import asr_engines
@@ -91,6 +94,51 @@ def meeting_options(asr_provider: str | None = None):
         "asr_provider": config["provider"],
         "hotwords_supported": config["provider"] == "local",
     }
+
+
+_USABLE_CACHE: dict[str, tuple[float, dict]] = {}
+_USABLE_TTL = 600.0
+
+
+class UsableProbe(BaseModel):
+    """可选：用还没保存的地址 / Key 试跑一轮可用性探测。"""
+    base_url: str | None = None
+    api_key: SecretStr | None = None
+
+
+@router.post("/api/models/usable")
+def models_usable(req: UsableProbe | None = None):
+    """只留下这个 Key 真正能调通的模型。
+
+    网关的 /models 会列出全部模型，权限之外的模型要等调用时才 401；这里用极短的
+    探测请求逐个确认，结果按「地址 + Key + 模型清单」缓存 10 分钟。
+    """
+    try:
+        config = asr_engines.default_config("mimo")
+        base = (req.base_url if req and req.base_url else config["base_url"]).strip()
+        if not base:
+            return {"ok": False, "error": "请先填写服务地址（Base URL）", "usable": [], "text": [], "speech": []}
+        key = (req.api_key.get_secret_value().strip() if req and req.api_key
+               else (asr_engines.credential() or ""))
+    except (ValueError, asr_engines.ProviderError) as exc:
+        return {"ok": False, "error": str(exc), "usable": [], "text": [], "speech": []}
+    if not key:
+        return {"ok": False, "error": "尚未配置 API Key", "usable": [], "text": [], "speech": []}
+    try:
+        entries = model_catalog.fetch_entries(base, key)
+    except model_catalog.CatalogError as exc:
+        return {"ok": False, "error": str(exc), "usable": [], "text": [], "speech": []}
+
+    fingerprint = hashlib.sha256(
+        (base + "|" + key[-6:] + "|" + ",".join(entry["wire"] for entry in entries)).encode()
+    ).hexdigest()
+    cached = _USABLE_CACHE.get(fingerprint)
+    if cached and time.monotonic() - cached[0] < _USABLE_TTL:
+        return {**cached[1], "ok": True, "cached": True}
+
+    result = model_catalog.probe_usable(entries, base, key, concurrency=10)
+    _USABLE_CACHE[fingerprint] = (time.monotonic(), result)
+    return {**result, "ok": True, "cached": False}
 
 
 @router.get("/api/models/catalog")

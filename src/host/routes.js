@@ -6,7 +6,7 @@ import { receiveFallbackUpload } from './fallback.js'
 import { FEISHU_DOC_URL, validOpenUrl } from './feishu.js'
 import { createFeishuDocCard, previewFeishuDoc } from './doc-cards.js'
 import { probeMimo } from './asr-probe.js'
-import { probeModelCatalog } from './models-probe.js'
+import { probeModelCatalog, probeUsable } from './models-probe.js'
 import { inspectDir } from './storage.js'
 import { inspectLibraryDir } from './libraries.js'
 import { ensureWorkspace, workspaceStatus } from './workspace.js'
@@ -323,12 +323,19 @@ export function registerAppRoutes(ctx, runtime) {
   }
 
   async function handleModels(req, res) {
-    const body = await readJsonBody(req, 64 * 1024)
+    const body = await readJsonBody(req, 256 * 1024)
     try {
-      const result = await probeModelCatalog({
-        apiKey: body.api_key,
-        baseUrl: body.base_url
-      })
+      // probe=true：逐个验证候选模型是否真能用（首次引导在后端启动前就要跑）。
+      const result = body.probe
+        ? await probeUsable({
+            apiKey: body.api_key,
+            baseUrl: body.base_url,
+            models: body.models
+          })
+        : await probeModelCatalog({
+            apiKey: body.api_key,
+            baseUrl: body.base_url
+          })
       jsonResponse(res, 200, result)
     } catch (error) {
       jsonResponse(res, 502, { detail: error?.message || '获取模型列表失败' })

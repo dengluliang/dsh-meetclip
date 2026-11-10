@@ -5698,6 +5698,15 @@ function probeModels({ apiKey, baseUrl } = {}) {
 function modelCatalog() {
   return api("/models/catalog");
 }
+function probeUsableModels({ apiKey, baseUrl, models = [] } = {}) {
+  return app("/models", {
+    method: "POST",
+    body: JSON.stringify({ probe: true, api_key: apiKey, base_url: baseUrl, models })
+  });
+}
+function probeUsableCatalog() {
+  return api("/models/usable", { method: "POST", body: JSON.stringify({}) });
+}
 function getMinutes(id) {
   return api(`/sessions/${encodeURIComponent(id)}/minutes`);
 }
@@ -51586,6 +51595,15 @@ function vendorOf(model) {
   const value = String(model || "").trim();
   return value.includes("/") ? value.split("/")[0] : "";
 }
+function withoutHidden(list = [], hidden = []) {
+  const items = Array.isArray(list) ? list : [];
+  const blocked = new Set(
+    (Array.isArray(hidden) ? hidden : []).map((row) => typeof row === "string" ? row : row?.model).filter(Boolean)
+  );
+  if (!blocked.size) return items;
+  const kept = items.filter((id) => !blocked.has(id));
+  return kept.length ? kept : items;
+}
 
 // client-src/components/SetupWizard.jsx
 var BASE_PLACEHOLDER2 = "https://your-gateway.example/v1";
@@ -51600,6 +51618,9 @@ function SetupWizard({ status: status3, onComplete }) {
   const [showKey, setShowKey] = React.useState(false);
   const [probing, setProbing] = React.useState(false);
   const [catalog, setCatalog] = React.useState(null);
+  const [hidden, setHidden] = React.useState([]);
+  const [showHidden, setShowHidden] = React.useState(false);
+  const [probingUsable, setProbingUsable] = React.useState(false);
   const [catalogError, setCatalogError] = React.useState("");
   const [asrModel, setAsrModel] = React.useState("");
   const [textModel, setTextModel] = React.useState("");
@@ -51640,6 +51661,20 @@ function SetupWizard({ status: status3, onComplete }) {
     }, 700);
     return () => clearTimeout(timer);
   }, [apiKey]);
+  React.useEffect(() => {
+    if (!catalog || skippedKey || !apiKey.trim() || !baseUrl.trim()) return void 0;
+    let cancelled = false;
+    setProbingUsable(true);
+    probeUsableModels({ apiKey: apiKey.trim(), baseUrl: baseUrl.trim(), models: catalog.text || [] }).then((result) => {
+      if (!cancelled && result?.ok) setHidden(result.hidden || []);
+    }).catch(() => {
+    }).finally(() => {
+      if (!cancelled) setProbingUsable(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [catalog]);
   React.useEffect(() => {
     if (!catalog) return;
     const asrDefault = catalog.asr?.[0] || "";
@@ -51885,8 +51920,9 @@ function SetupWizard({ status: status3, onComplete }) {
     }
     onComplete();
   }
+  const visibleText = showHidden ? catalog?.text || [] : withoutHidden(catalog?.text || [], hidden);
   const asrOptions = modelOptions(catalog?.asr || [], asrModel);
-  const textOptions = modelOptions(catalog?.text || [], textModel);
+  const textOptions = modelOptions(visibleText, textModel);
   return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF0C\u53EF\u9009\u63A5\u5165\u98DE\u4E66 MCP\u3002" : "\u672A\u5B8C\u6210\u9879\u4F1A\u5728\u9996\u9875\u63D0\u793A\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
     "input",
     {
@@ -51916,7 +51952,7 @@ function SetupWizard({ status: status3, onComplete }) {
       },
       placeholder: "\u7C98\u8D34 API Key"
     }
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim() || !baseUrl.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine", "data-tone": hidden.length ? "warn" : void 0 }, probingUsable ? "\u6B63\u5728\u9010\u4E2A\u9A8C\u8BC1\u53EF\u7528\u6A21\u578B\u2026\uFF08\u53EF\u4EE5\u5148\u7528\u4E0B\u9762\u5DF2\u7ECF\u80FD\u7528\u7684\uFF09" : hidden.length ? `\u5DF2\u9690\u85CF ${hidden.length} \u4E2A\u8FD9\u4E2A Key \u8C03\u4E0D\u901A\u7684\u6A21\u578B${showHidden ? "" : "\uFF0C\u70B9\u300C\u663E\u793A\u5168\u90E8\u300D\u53EF\u6062\u590D"}` : "\u5DF2\u786E\u8BA4\u53EF\u9009\u6A21\u578B\u90FD\u80FD\u7528", hidden.length ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => setShowHidden((value) => !value) }, showHidden ? "\u53EA\u770B\u53EF\u7528" : "\u663E\u793A\u5168\u90E8") : null) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim() || !baseUrl.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setSkippedKey(true);
     setStep(2);
   } }, "\u8DF3\u8FC7"))) : null, step === 2 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
@@ -53207,6 +53243,9 @@ function SettingsModels({ t }) {
   const [asr, setAsr] = React.useState(null);
   const [ai, setAi] = React.useState(null);
   const [models, setModels] = React.useState([]);
+  const [hidden, setHidden] = React.useState([]);
+  const [showHidden, setShowHidden] = React.useState(false);
+  const [filtering, setFiltering] = React.useState(false);
   const [catalogError, setCatalogError] = React.useState("");
   const [keyDraft, setKeyDraft] = React.useState("");
   const [defaultAsr, setDefaultAsr] = React.useState("");
@@ -53297,6 +53336,7 @@ function SettingsModels({ t }) {
         setNotice("Key \u5DF2\u4FDD\u5B58\uFF0C\u6B63\u5728\u62C9\u53D6\u6A21\u578B\u6E05\u5355\u2026");
       }
       const result = await pullCatalog();
+      if (result?.models?.length) filterUsable();
       if (result?.models?.length) {
         setKeyDraft("");
         setNotice(`\u5DF2\u83B7\u53D6 ${result.models.length} \u4E2A\u6A21\u578B`);
@@ -53305,6 +53345,16 @@ function SettingsModels({ t }) {
       }
       await load();
     });
+  }
+  async function filterUsable() {
+    setFiltering(true);
+    try {
+      const result = await probeUsableCatalog();
+      if (result?.ok) setHidden(Array.isArray(result.hidden) ? result.hidden : []);
+    } catch {
+    } finally {
+      setFiltering(false);
+    }
   }
   async function chooseAsrModel(model) {
     if (!model) return;
@@ -53494,7 +53544,8 @@ function SettingsModels({ t }) {
   }
   const asrCustomOn = Boolean(asr?.custom?.enabled);
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== "mimo");
-  const { asr: asrModels, text: textModels } = splitModels(models);
+  const { asr: asrModels, text: allTextModels } = splitModels(models);
+  const textModels = showHidden ? allTextModels : withoutHidden(allTextModels, hidden);
   const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr);
   const textOptions = modelOptions(textModels, aiCustomOn ? "" : defaultText);
   return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(

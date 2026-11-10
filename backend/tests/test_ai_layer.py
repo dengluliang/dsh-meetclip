@@ -232,6 +232,65 @@ class AILayerTests(unittest.TestCase):
         self.assertEqual(text, "纪要正文")
         self.assertEqual(bodies, [True, False])
 
+    def test_temperature_rejection_retries_without_field(self):
+        """固定温度的模型（例如只允许 0.6）：去掉 temperature 重试，并记住不再发。"""
+        self.providers.reset_temperature_blocks()
+        seen = []
+
+        def post(url, key, body, timeout):
+            seen.append(body.get("temperature", "absent"))
+            if "temperature" in body:
+                raise self.Failure(
+                    "http",
+                    'AI 服务返回 HTTP 400：{"error":{"message":"invalid temperature: '
+                    'only 0.6 is allowed for this model"}}',
+                    status=400)
+            return OK
+
+        try:
+            with patch.object(self.client_mod, "_post_json", side_effect=post):
+                # role 不是 notes 时默认只试 1 次；这里必须靠温度自愈多补一次。
+                text = self.client_mod.chat("x", "y", role="single")
+                self.assertEqual(text, "纪要正文")
+            self.assertEqual(seen[0], 0.2)
+            self.assertEqual(seen[1], "absent")
+            config = self.providers.resolve()
+            self.assertTrue(self.providers.temperature_blocked(config, config.model))
+
+            # 记住之后，下一次请求根本不会带 temperature。
+            seen.clear()
+            with patch.object(self.client_mod, "_post_json", side_effect=post):
+                self.client_mod.chat("x", "y", role="single")
+            self.assertEqual(seen, ["absent"])
+        finally:
+            self.providers.reset_temperature_blocks()
+
+    def test_check_key_survives_fixed_temperature(self):
+        """设置页「测试连接」也要能自愈，否则模型填对了仍然报红。"""
+        self.providers.reset_temperature_blocks()
+        bodies = []
+
+        def post(url, key, body, timeout):
+            bodies.append("temperature" in body)
+            if "temperature" in body:
+                raise self.Failure(
+                    "http",
+                    'AI 服务返回 HTTP 400：{"error":{"message":"invalid temperature: '
+                    'only 0.6 is allowed for this model"}}',
+                    status=400)
+            return OK
+
+        cfg = self.providers.Config(provider="mimo", base="https://example.com/v1",
+                                    model="moonshot/kimi-k3.1-pro", spacing=0.0,
+                                    json_mode=True, thinking="reasoning")
+        try:
+            with patch.object(self.client_mod, "_post_json", side_effect=post):
+                result = self.client_mod.check_key(10.0, config=cfg, key="test-key")
+            self.assertTrue(result["ok"], result)
+            self.assertEqual(bodies, [True, False])
+        finally:
+            self.providers.reset_temperature_blocks()
+
     # ---------- 指标 ----------
     def test_metrics_are_numbers_only(self):
         with patch.object(self.client_mod, "_post_json", return_value=OK):

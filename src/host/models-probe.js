@@ -68,3 +68,77 @@ export function qualifyModel(id, vendor) {
     clearTimeout(timer)
   }
 }
+
+const CHAT_TIMEOUT_MS = 8_000
+const PROBE_CONCURRENCY = 8
+const DENIED_HINTS = ['不在 Key 的可用模型范围', '未指定供应商', 'invalid api key']
+
+/** 把一次探测失败分成 denied / broken / unknown 三类，只有前两类会从列表里去掉。 */
+export function verdictOf(status, detail) {
+  const text = String(detail || '')
+  if (status === 401 || status === 403 || DENIED_HINTS.some((hint) => text.includes(hint))) return 'denied'
+  if (status === 404 || status >= 500 || /<html|bad gateway/i.test(text)) return 'broken'
+  return 'unknown'
+}
+
+/**
+ * 逐个探测文本模型：网关明确拒绝（没权限 / 没部署）的收进 `hidden`。
+ *
+ * 与后端 `/api/models/usable` 同一套判断：探测不出结论的（例如 400 参数问题）
+ * 保持可见，避免把还能用的模型藏起来。
+ */
+export async function probeUsable({ apiKey, baseUrl, models, concurrency = PROBE_CONCURRENCY } = {}) {
+  const key = String(apiKey || '').trim()
+  if (!key || key.length > MAX_KEY || /\s/.test(key)) {
+    throw new Error('API Key 不能为空、不能包含空白字符，且最多 4096 字符')
+  }
+  const base = normalizeBase(baseUrl)
+  const list = (Array.isArray(models) ? models : []).map((item) => String(item || '').trim()).filter(Boolean)
+  const started = Date.now()
+  const hidden = []
+  let cursor = 0
+
+  async function probeOne(model) {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS)
+    let status = 0
+    let detail = ''
+    try {
+      const response = await fetch(base + '/chat/completions', {
+        method: 'POST',
+        headers: { authorization: `Bearer ${key}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: '好' }], max_tokens: 1, stream: false }),
+        redirect: 'manual',
+        signal: controller.signal
+      })
+      status = response.status
+      if (status !== 200) {
+        const raw = await response.text()
+        try {
+          const payload = JSON.parse(raw)
+          detail = String(payload?.error?.message || payload?.detail || '').trim()
+        } catch {
+          detail = raw.slice(0, 160)
+        }
+      }
+    } catch (error) {
+      return { model, kind: 'unknown', reason: error?.name === 'AbortError' ? '探测超时' : '连不上网关' }
+    } finally {
+      clearTimeout(timer)
+    }
+    if (status === 200) return { model, kind: 'usable', reason: '' }
+    return { model, kind: verdictOf(status, detail), reason: (detail || `HTTP ${status}`).slice(0, 160) }
+  }
+
+  async function worker() {
+    while (cursor < list.length) {
+      const model = list[cursor]
+      cursor += 1
+      const result = await probeOne(model)
+      if (result.kind === 'denied' || result.kind === 'broken') hidden.push(result)
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(concurrency, list.length || 1)) }, worker))
+  return { ok: true, hidden, checked: list.length, elapsed: (Date.now() - started) / 1000 }
+}

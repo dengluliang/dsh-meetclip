@@ -76,3 +76,21 @@ export function vendorOf(model) {
   const value = String(model || '').trim()
   return value.includes('/') ? value.split('/')[0] : ''
 }
+
+/**
+ * 去掉「明确不可用」的模型（网关说没权限、或 5xx/HTML 这类明显没部署好的）。
+ *
+ * 探测里没能下结论的（例如 400 参数类）保持可见：宁可让用户在测试连接里看到
+ * 真实原因，也不要把还能用的模型藏起来。过滤后为空时保留原列表，避免下拉变空。
+ */
+export function withoutHidden(list = [], hidden = []) {
+  const items = Array.isArray(list) ? list : []
+  const blocked = new Set(
+    (Array.isArray(hidden) ? hidden : [])
+      .map((row) => (typeof row === 'string' ? row : row?.model))
+      .filter(Boolean)
+  )
+  if (!blocked.size) return items
+  const kept = items.filter((id) => !blocked.has(id))
+  return kept.length ? kept : items
+}

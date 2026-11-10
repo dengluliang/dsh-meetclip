@@ -122,6 +122,29 @@ def wire_model(config: Config, model: str | None = None) -> str:
     return value
 
 
+# 有些网关对特定模型固定了 temperature（例如 moonshot/kimi-k3.1-pro 只允许 0.6），
+# 统一发 0.2 会被 400 拒绝。被拒绝过一次就记住这个「地址 + 模型」，之后不再发，
+# 让网关用它自己的默认值；换模型或换网关时按新的键重新判断。
+TEMPERATURE_BLOCKED: set[tuple[str, str]] = set()
+
+
+def _temperature_key(config: Config, model) -> tuple[str, str]:
+    return (str(config.base or "").rstrip("/"), str(model or "").strip())
+
+
+def temperature_blocked(config: Config, model) -> bool:
+    return _temperature_key(config, model) in TEMPERATURE_BLOCKED
+
+
+def block_temperature(config: Config, model) -> None:
+    TEMPERATURE_BLOCKED.add(_temperature_key(config, model))
+
+
+def reset_temperature_blocks() -> None:
+    """测试与切换配置时清空记忆。"""
+    TEMPERATURE_BLOCKED.clear()
+
+
 def shape(config: Config, body: dict, max_tokens: int) -> dict:
     """按供应商把请求体塑形：关掉思考，用各自接受的 token 字段。"""
     if config.thinking == "effort":
@@ -129,7 +152,8 @@ def shape(config: Config, body: dict, max_tokens: int) -> dict:
         body["reasoning_effort"] = "none"
     else:
         body["max_tokens"] = max_tokens
-        body["temperature"] = 0.2
+        if not temperature_blocked(config, body.get("model")):
+            body["temperature"] = 0.2
         if config.thinking == "reasoning":
             # 部分网关只认 reasoning_effort=none 才真的关思考；只发 reasoning.enabled=false
             # 时思考仍会跑满 max_tokens，正文被挤成空字符串（实测 3000 token 全被思考吃掉）。

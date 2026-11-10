@@ -1,7 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { qualifyModel } from '../src/host/models-probe.js'
-import { candidateOrder, modelOptions, sortModels, splitModels, vendorOf } from '../client-src/lib/models.js'
+import { candidateOrder, modelOptions, sortModels, splitModels, vendorOf, withoutHidden } from '../client-src/lib/models.js'
+import { probeUsable, verdictOf } from '../src/host/models-probe.js'
 
 test('splits gateway models into speech and text', () => {
   const { asr, text } = splitModels([
@@ -98,4 +99,55 @@ test('candidateOrder 没有当前选择时按供应商聚拢，不丢模型', ()
     ['c/three', 'a/one', 'b/two'])
   assert.deepEqual(candidateOrder([], {}), [])
   assert.deepEqual(candidateOrder(['m', 'm'], {}), ['m'])
+})
+
+test('verdictOf 只把「明确不可用」判成过滤', () => {
+  assert.equal(verdictOf(401, ''), 'denied')
+  assert.equal(verdictOf(403, '该模型不在 Key 的可用模型范围内'), 'denied')
+  assert.equal(verdictOf(400, '该模型未指定供应商'), 'denied')
+  assert.equal(verdictOf(502, '<html>502 Bad Gateway</html>'), 'broken')
+  assert.equal(verdictOf(404, ''), 'broken')
+  // 参数类 400 不下结论，保留可见。
+  assert.equal(verdictOf(400, 'Param Incorrect'), 'unknown')
+  assert.equal(verdictOf(0, '探测超时'), 'unknown')
+})
+
+test('withoutHidden 去掉明确不可用的模型，且不会把列表清空', () => {
+  const list = ['xiaomi/a', 'xiaomi/b', 'xiaomi/c']
+  assert.deepEqual(withoutHidden(list, [{ model: 'xiaomi/b', kind: 'denied' }]), ['xiaomi/a', 'xiaomi/c'])
+  assert.deepEqual(withoutHidden(list, ['xiaomi/b']), ['xiaomi/a', 'xiaomi/c'])
+  assert.deepEqual(withoutHidden(list, []), list)
+  // 全被隐藏时保留原列表，避免下拉变空。
+  assert.deepEqual(withoutHidden(list, list.map((model) => ({ model }))), list)
+})
+
+test('probeUsable 只隐藏拒绝与坏掉的模型，未知保持可见', async () => {
+  const calls = []
+  const replies = {
+    'xiaomi/ok': { status: 200, body: '' },
+    'xiaomi/denied': { status: 401, body: '{"error":{"message":"该模型不在 Key 的可用模型范围内"}}' },
+    'xiaomi/broken': { status: 502, body: '<html>502 Bad Gateway</html>' },
+    'xiaomi/weird': { status: 400, body: '{"error":{"message":"Param Incorrect"}}' }
+  }
+  const original = globalThis.fetch
+  globalThis.fetch = async (url, options) => {
+    const model = JSON.parse(options.body).model
+    calls.push(model)
+    const reply = replies[model]
+    return { status: reply.status, text: async () => reply.body }
+  }
+  try {
+    const result = await probeUsable({
+      apiKey: 'sk-test-0123456789', baseUrl: 'https://gateway.example.com/v1',
+      models: Object.keys(replies), concurrency: 4
+    })
+    assert.equal(result.ok, true)
+    assert.equal(result.checked, 4)
+    assert.deepEqual(result.hidden.map((row) => row.model).sort(), ['xiaomi/broken', 'xiaomi/denied'])
+    assert.deepEqual(result.hidden.find((row) => row.model === 'xiaomi/denied').kind, 'denied')
+    assert.deepEqual(result.hidden.find((row) => row.model === 'xiaomi/broken').kind, 'broken')
+    assert.deepEqual(calls.sort(), Object.keys(replies).sort())
+  } finally {
+    globalThis.fetch = original
+  }
 })
