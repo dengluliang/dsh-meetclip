@@ -87,18 +87,20 @@ def kind_of(entry: dict) -> str:
 
     优先用网关给的 `model_type`；没有时退回按名字猜，与界面里的分类保持一致。
     """
+    name = str(entry.get("id") or "")
+    # 先看名字：网关会把 `mimo-v2.5-asr`、`mimo-v2.5-tts` 这类也标成 llm，
+    # 只信 model_type 会把它们放进文字下拉，选中必然 400。
+    if SPEECH_DROP.search(name):
+        return "other"
+    if SPEECH.search(name):
+        return "speech"
+    lowered = name.lower()
+    if any(token in lowered for token in NON_TEXT):
+        return "other"
     kind = str(entry.get("kind") or "").lower()
     if kind == "speech2text":
         return "speech"
     if kind in ("text-embedding", "image_generation", "video_generation", "rerank", "tts"):
-        return "other"
-    if kind == "llm":
-        return "text"
-    name = str(entry.get("id") or "")
-    if SPEECH.search(name) and not SPEECH_DROP.search(name):
-        return "speech"
-    lowered = name.lower()
-    if any(token in lowered for token in NON_TEXT):
         return "other"
     return "text"
 
@@ -143,7 +145,11 @@ def _verdict(status: int, reason: str) -> str:
     if status in (401, 403) or any(token in text for token in
                                    ("不在 Key 的可用模型范围", "未指定供应商", "invalid api key")):
         return "denied"
-    if status == 404 or status >= 500 or "<html" in text.lower() or "bad gateway" in text.lower():
+    missing = ("not supported model", "model not found", "does not exist",
+               "invalid_model", "unsupported model", "不支持")
+    if (status == 404 or status >= 500 or "<html" in text.lower()
+            or "bad gateway" in text.lower()
+            or any(token in text.lower() for token in missing)):
         return "broken"
     return "unknown"
 

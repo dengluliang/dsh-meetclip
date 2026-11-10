@@ -2,7 +2,7 @@ import test from 'node:test'
 import { readFile } from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import { qualifyModel } from '../src/host/models-probe.js'
-import { PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL, candidateOrder, modelOptions, preferModel, sortModels, splitModels, vendorOf, withoutHidden } from '../client-src/lib/models.js'
+import { PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL, candidateOrder, modelOptions, preferModel, sortModels, splitEntries, splitModels, vendorOf, withoutHidden } from '../client-src/lib/models.js'
 import { probeUsable, verdictOf } from '../src/host/models-probe.js'
 
 test('splits gateway models into speech and text', () => {
@@ -111,6 +111,9 @@ test('verdictOf 只把「明确不可用」判成过滤', () => {
   // 参数类 400 不下结论，保留可见。
   assert.equal(verdictOf(400, 'Param Incorrect'), 'unknown')
   assert.equal(verdictOf(0, '探测超时'), 'unknown')
+  // 目录里有、网关却没部署的模型也算明确不可用。
+  assert.equal(verdictOf(400, 'Not supported model nxai/claude-haiku-5-5'), 'broken')
+  assert.equal(verdictOf(400, 'invalid_model'), 'broken')
 })
 
 test('withoutHidden 去掉明确不可用的模型，且不会把列表清空', () => {
@@ -168,4 +171,25 @@ test('首次引导把这两个模型设成默认选择', async () => {
   const about = await readFile(new URL('../client-src/components/SetupWizard.jsx', import.meta.url), 'utf8')
   assert.match(about, /preferModel\(catalog\.asr, PREFERRED_SPEECH_MODEL\)/)
   assert.match(about, /preferModel\(catalog\.text, PREFERRED_TEXT_MODEL\)/)
+})
+
+test('splitEntries 按 model_type 分类，非对话模型不进下拉', () => {
+  const { asr, text } = splitEntries([
+    { id: 'mimo-v2.6-flash', wire: 'xiaomi/mimo-v2.6-flash', kind: 'llm' },
+    { id: 'MiLM2.1', wire: 'xiaomi/MiLM2.1', kind: 'llm' },
+    { id: 'mimo-v2.5-asr', wire: 'xiaomi/mimo-v2.5-asr', kind: 'speech2text' },
+    // 名字里没有任何关键词，只按名字猜会漏进文字列表。
+    { id: 'wan2.7-i2v', wire: 'tongyi/wan2.7-i2v', kind: 'video_generation' },
+    { id: 'kling-3.0-turbo', wire: 'ppio/kling-3.0-turbo', kind: 'video_generation' },
+    { id: 'embedding-2', wire: 'zhipuai/embedding-2', kind: 'text-embedding' },
+    { id: 'mimo-v2.5-tts', wire: 'xiaomi/mimo-v2.5-tts', kind: 'tts' }
+  ])
+  assert.deepEqual(asr, ['xiaomi/mimo-v2.5-asr'])
+  assert.deepEqual(text, ['xiaomi/mimo-v2.6-flash', 'xiaomi/MiLM2.1'])
+})
+
+test('没有 model_type 时 splitEntries 退回按名字判断', () => {
+  const { asr, text } = splitEntries(['mimo-v2.5-asr', 'gpt-transcribe', 'gpt-4o', 'bge-reranker-v2'])
+  assert.deepEqual(asr, ['mimo-v2.5-asr', 'gpt-transcribe'])
+  assert.deepEqual(text, ['gpt-4o'])
 })

@@ -145,6 +145,33 @@ def _temperature_rejected(failure, body: dict) -> bool:
     return "temperature" in message and "temperature" in body
 
 
+def _post_shaped(config, key: str, body: dict, timeout: float) -> dict:
+    """发请求，并在网关拒绝某些可选参数时逐个剔除后重试。
+
+    不同模型对 temperature / reasoning / reasoning_effort / response_format 的
+    支持不一样，统一按报错里点名的字段削掉，而不是给每个模型写特例。
+    """
+    for _ in range(len(providers.OPTIONAL_PARAMS) + 1):
+        try:
+            return _post_json(config.chat_url, key, body, timeout)
+        except Failure as exc:
+            if exc.kind != "http" or exc.status != 400:
+                raise
+            if _temperature_rejected(exc, body):
+                providers.block_temperature(config, body.get("model"))
+                body.pop("temperature", None)
+                continue
+            field = providers.field_from_error(str(exc))
+            candidates = [field] if field else []
+            candidates += [name for name in providers.OPTIONAL_PARAMS
+                           if name not in candidates]
+            dropped = next((name for name in candidates if name in body), None)
+            if not dropped:
+                raise
+            body.pop(dropped, None)
+    return _post_json(config.chat_url, key, body, timeout)
+
+
 def _retry_without_temperature(config, body: dict, post):
     """去掉 temperature 再试一次，并记住这个模型以后不再发。"""
     providers.block_temperature(config, body.get("model"))
@@ -192,19 +219,13 @@ def chat(content: str, instruction: str, *, priority: int | str = "notes", json_
         waited = gate_mod.shared(config.spacing).acquire(priority, config.spacing)
         started = time.monotonic()
         try:
-            root = _post_json(config.chat_url, key, body, timeout)
+            root = _post_shaped(config, key, body, timeout)
             text = defuse(_content(root))
             report(started, waited, "ok", root.get("usage") or {})
             return text
         except Failure as exc:
             last = exc
             report(started, waited, exc.kind)
-            if _temperature_rejected(exc, body):
-                # 只允许固定温度的模型：去掉字段重试一次，并记到 providers 里。
-                providers.block_temperature(config, body.get("model"))
-                body.pop("temperature", None)
-                tried = max(tried, attempt + 1)
-                continue
             if exc.kind == "http" and exc.status == 400 and wants_json:
                 # 这家网关不认 response_format：去掉再试一次，提示词本身已经要求只回 JSON。
                 body.pop("response_format", None)
@@ -239,13 +260,7 @@ def check_key(timeout: float = 20.0, *, config=None, key: str | None = None) -> 
         gate_mod.shared(config.spacing).acquire(0, config.spacing)
         body = providers.shape(config, {"model": providers.wire_model(config), "max_tokens": 8,
                                         "messages": [{"role": "user", "content": "回复一个字：好"}]}, 8)
-        try:
-            _post_json(config.chat_url, key, body, timeout)
-        except Failure as exc:
-            if not _temperature_rejected(exc, body):
-                raise
-            _retry_without_temperature(config, body,
-                                       lambda payload: _post_json(config.chat_url, key, payload, timeout))
+        _post_shaped(config, key, body, timeout)
         return {"ok": True, "seconds": round(time.monotonic() - started, 2),
                 "provider": config.provider, "model": config.model}
     except Failure as exc:

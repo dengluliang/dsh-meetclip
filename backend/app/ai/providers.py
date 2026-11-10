@@ -145,6 +145,21 @@ def reset_temperature_blocks() -> None:
     TEMPERATURE_BLOCKED.clear()
 
 
+# 各家模型对「可选参数」的容忍度不同：有的只认固定 temperature，有的不认
+# reasoning / reasoning_effort，有的不认 response_format。被 400 拒绝时按报错里的
+# 字段名逐个剔掉再试，比给每个模型写特例稳。
+OPTIONAL_PARAMS = ("reasoning_effort", "reasoning", "response_format", "temperature")
+
+
+def field_from_error(message: str) -> str | None:
+    """从网关报错里认出被拒的可选字段（含 pydantic 的 loc 形式）。"""
+    text = str(message or "").lower()
+    for key in OPTIONAL_PARAMS:
+        if key in text:
+            return key
+    return None
+
+
 def shape(config: Config, body: dict, max_tokens: int) -> dict:
     """按供应商把请求体塑形：关掉思考，用各自接受的 token 字段。"""
     if config.thinking == "effort":

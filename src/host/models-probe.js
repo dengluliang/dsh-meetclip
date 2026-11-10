@@ -58,7 +58,7 @@ export function qualifyModel(id, vendor) {
       if (!wire || seen.has(wire)) continue
       seen.add(wire)
       models.push(wire)
-      entries.push({ id, vendor, wire })
+      entries.push({ id, vendor, wire, kind: String(item?.model_type || '').trim() })
     }
     return { ok: true, models, entries, count: models.length }
   } catch (error) {
@@ -77,7 +77,8 @@ const DENIED_HINTS = ['不在 Key 的可用模型范围', '未指定供应商', 
 export function verdictOf(status, detail) {
   const text = String(detail || '')
   if (status === 401 || status === 403 || DENIED_HINTS.some((hint) => text.includes(hint))) return 'denied'
-  if (status === 404 || status >= 500 || /<html|bad gateway/i.test(text)) return 'broken'
+  const missing = /not supported model|model not found|does not exist|invalid_model|unsupported model|不支持/i
+  if (status === 404 || status >= 500 || /<html|bad gateway/i.test(text) || missing.test(text)) return 'broken'
   return 'unknown'
 }
 

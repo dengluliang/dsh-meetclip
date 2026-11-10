@@ -7,7 +7,7 @@ import { useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
 import {
   PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL,
-  candidateOrder, modelOptions, preferModel, splitModels, vendorOf, withoutHidden
+  candidateOrder, modelOptions, preferModel, splitEntries, splitModels, vendorOf, withoutHidden
 } from '../lib/models.js'
 
 // 不预置网关地址与模型：首次配置时由用户填写自己的 OpenAI 兼容服务。
@@ -127,20 +127,24 @@ export function SetupWizard({ status, onComplete }) {
     try {
       let ids = null
       let count = 0
+      let entries = []
       try {
         const result = await probeModels({ apiKey: key, baseUrl: baseUrl.trim() })
         ids = Array.isArray(result?.models) ? result.models : []
         count = Number(result?.count) || ids.length
+        entries = Array.isArray(result?.entries) ? result.entries : []
       } catch (failure) {
         if (failure?.status !== 404) throw failure
         // 宿主未重启时回退到后端目录（需要后端已运行）。
         const result = await modelCatalog()
         ids = Array.isArray(result?.models) ? result.models : []
         count = ids.length
+        entries = Array.isArray(result?.entries) ? result.entries : []
         if (!ids.length) throw new Error('需要重启 DeepSeek Harness 后再试')
       }
       if (!mounted.current || seq !== probeSeq.current) return
-      const split = splitModels(ids)
+      // 有 model_type 就按类型分（只有 llm 进文字、speech2text 进语音），否则按名字猜。
+      const split = entries.length ? splitEntries(entries) : splitModels(ids)
       probedKey.current = key
       setCatalog({ count, asr: split.asr, text: split.text })
     } catch (failure) {

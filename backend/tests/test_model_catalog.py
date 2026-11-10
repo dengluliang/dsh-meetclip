@@ -130,6 +130,9 @@ class ModelCatalogTests(unittest.TestCase):
         self.assertEqual(model_catalog._verdict(502, "<html><title>502 Bad Gateway</title>"), "broken")
         # 参数类 400 可能只是探测请求太小，保留在列表里，避免误删能用的模型。
         self.assertEqual(model_catalog._verdict(400, "Param Incorrect"), "unknown")
+        # 目录里有、网关其实没部署的模型：明确不可用。
+        self.assertEqual(model_catalog._verdict(400, "Not supported model nxai/x"), "broken")
+        self.assertEqual(model_catalog._verdict(400, "invalid_model"), "broken")
 
     def test_probe_usable_filters_only_text_models(self):
         entries = [

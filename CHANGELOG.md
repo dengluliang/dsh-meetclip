@@ -7,6 +7,16 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.10 让「其它模型」真的能用
+
+发布日期：2026-11-10。
+
+- **现象**：除了 `mimo-v2.6-flash` 与 `moonshot/kimi-k3.1-pro`，清单里其余模型大多「测试连接」失败，看起来像模型不可用。
+- **根因一：不是对话模型被当成了文字模型**。网关的 `model_type` 会把 `mimo-v2.5-asr`、`mimo-v2.5-tts`、布局模型都标成 `llm`；只按类型或只按名字猜，都会让 ASR / TTS / 图生视频 / rerank 这类模型出现在文字下拉里，选中必然 400。现在分类**先看名字再看类型**，文字下拉只保留对话模型。
+- **根因二：请求体带了模型不认的可选参数**。`reasoning_effort`、`reasoning`、`response_format`、`temperature` 各家支持不一致，例如 `xiaomi/DeepSeek-R1-0528` 会因为 `reasoning_effort` 直接 400。现在按报错里点名的字段逐个剔除后重试（`temperature` 仍按「地址 + 模型」记忆），设置页「测试连接」与正式调用共用同一套逻辑。
+- **筛选判定更准**：`Not supported model` / `invalid_model` / 404 / 5xx / HTML 都归为「明确不可用」并从下拉里隐藏；只有探测不下结论的才保留。
+- **验证**：跨供应商抽样 10 个 `llm` 模型，修复前 6 个失败（多为参数或非对话模型），修复后 8 个通过，剩下 2 个是网关目录里有、实际不支持的模型（已被归入隐藏）；`DeepSeek-R1-0528`、`zhipuai/glm-4.6`、`azure_openai/gpt-4.1` 由失败转通过；前端 266/266、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
+
 ## 0.9.9 首次引导默认选中 mimo-v2.5-asr 与 mimo-v2.6-flash
 
 发布日期：2026-11-10。

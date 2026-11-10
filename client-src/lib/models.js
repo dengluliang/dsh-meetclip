@@ -5,21 +5,40 @@ const SPEECH = /asr|transcribe|whisper/i
 const SPEECH_DROP = /tts|voiceclone|voicedesign/i
 const TEXT_DROP = /embed|rerank|ocr|tts|voiceclone|voicedesign|image|moderation|realtime|sora|dall-e|whisper|transcribe|asr/i
 
-export function splitModels(ids = []) {
+/**
+ * 按目录条目分类，优先用网关给的 `model_type`。
+ *
+ * 只按名字猜会漏掉一批「不是对话模型、但名字里没有关键词」的条目（例如
+ * `wan2.7-i2v`、`kling-3.0-turbo`），选中后必然报 400。有 `model_type` 时以它为准：
+ * 只有 `llm` 进文字下拉、`speech2text` 进语音下拉，其它类型（embedding、生图、
+ * 图生视频、rerank、tts）直接不出现。
+ */
+export function splitEntries(entries = []) {
   const seen = new Set()
   const asr = []
   const text = []
-  for (const raw of Array.isArray(ids) ? ids : []) {
-    const id = String(raw || '').trim()
-    if (!id || id.endsWith(':batch') || seen.has(id)) continue
-    seen.add(id)
-    if (SPEECH.test(id)) {
-      if (!SPEECH_DROP.test(id)) asr.push(id)
-    } else if (!TEXT_DROP.test(id)) {
-      text.push(id)
+  for (const row of Array.isArray(entries) ? entries : []) {
+    const wire = String((typeof row === 'string' ? row : (row?.wire || row?.id)) || '').trim()
+    if (!wire || wire.endsWith(':batch') || seen.has(wire)) continue
+    seen.add(wire)
+    const kind = String((typeof row === 'string' ? '' : row?.kind) || '').trim().toLowerCase()
+    const name = String((typeof row === 'string' ? wire : (row?.id || wire)) || '')
+    // 先看名字：网关会把 mimo-v2.5-asr / mimo-v2.5-tts 也标成 llm。
+    if (SPEECH_DROP.test(name)) continue
+    if (SPEECH.test(name)) { asr.push(wire); continue }
+    if (TEXT_DROP.test(name)) continue
+    if (kind === 'speech2text') { asr.push(wire); continue }
+    if (kind) {
+      if (kind === 'llm') text.push(wire)
+      continue
     }
+    text.push(wire)
   }
   return { asr, text }
+}
+
+export function splitModels(ids = []) {
+  return splitEntries(ids)
 }
 
 // 同一个网关里的模型通常是「同族 + 变体」（`vendor/xxx`、`xxx-flash`、`xxx-pro`）。

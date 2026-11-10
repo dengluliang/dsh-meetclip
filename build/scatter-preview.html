@@ -29,7 +29,7 @@
     --dsw-elevation-soft: 0 10px 30px -18px rgba(0, 0, 0, .28);
     --dsh-frame-top-clearance: 0px;
   }
-  :root[data-theme='dark'] {
+  body[data-ds-dark-theme] {
     --dsw-alias-bg-base: #151517;
     --dsw-alias-bg-layer-1: #1f1f22;
     --dsw-alias-bg-layer-2: #2b2b2d;
@@ -51,12 +51,19 @@
     --dsw-alias-state-error-primary: #ff6b64;
     --dsw-alias-state-idle-primary: #6d6d72;
     --dsw-elevation-soft: 0 12px 34px -18px rgba(0, 0, 0, .8);
+    background: #151517;
+    color: #f6f6f7;
   }
-  :root[data-theme='dark'] body { background: #151517; color: #f6f6f7; }
   #root { height: 100vh; }
 </style>
 <script>
-  if (window.location.search.includes('theme=dark')) document.documentElement.dataset.theme = 'dark'
+  // 深色与真实 DSH 保持一致：body[data-ds-dark-theme] 标记，token 也挂在这个属性上
+  if (window.location.search.includes('theme=dark')) {
+    document.documentElement.style.background = '#151517'
+    document.documentElement.style.colorScheme = 'dark'
+    const markDark = () => document.body ? document.body.setAttribute('data-ds-dark-theme', '') : requestAnimationFrame(markDark)
+    markDark()
+  }
   window.__ModuleLoader__ = { load(entry) { window.__entry = entry } }
 </script>
 </head>

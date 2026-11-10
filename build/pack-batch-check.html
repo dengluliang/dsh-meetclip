@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>会摘 · 批次卡放进卡包（深色可读性核对）</title>
+<!-- 直接引用 client-src/styles.css，用于核对「批次卡当卡包正面」时的对比度；
+     ?theme=dark 用真实 DSH 的 body[data-ds-dark-theme] 标记深色。 -->
+<link rel="stylesheet" href="../client-src/styles.css" />
+<style>
+  html, body { margin: 0; height: 100%; background: #f7f6f3; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif; }
+  :root {
+    --dsw-alias-bg-base: #f7f6f3;
+    --dsw-alias-bg-layer-1: #fff;
+    --dsw-alias-bg-layer-2: #fff;
+    --dsw-alias-label-primary: #1d1d1f;
+    --dsw-alias-label-secondary: #6b6b70;
+    --dsw-alias-label-tertiary: #929298;
+    --dsw-alias-label-caption: #b0b0b5;
+    --dsw-alias-border-l1: rgba(0, 0, 0, .07);
+    --dsw-alias-border-l2: rgba(0, 0, 0, .1);
+    --dsw-alias-border-l4: rgba(0, 0, 0, .16);
+    --dsw-alias-brand-primary: #1d1d1f;
+    --dsw-alias-interactive-bg-hover: rgba(0, 0, 0, .045);
+    --dsw-alias-interactive-bg-active: rgba(0, 0, 0, .075);
+    --dsw-alias-state-success-primary: #2f9d62;
+    --dsw-alias-state-warn-primary: #c58a20;
+    --dsw-alias-state-error-primary: #d24b45;
+    --dsw-alias-state-idle-primary: #b5b5ba;
+    --dsw-elevation-soft: 0 10px 30px -18px rgba(0, 0, 0, .28);
+  }
+  body[data-ds-dark-theme] {
+    --dsw-alias-bg-base: #151517;
+    --dsw-alias-bg-layer-1: #232324;
+    --dsw-alias-bg-layer-2: #2c2c2e;
+    --dsw-alias-label-primary: #f9fafb;
+    --dsw-alias-label-secondary: #cfd3d6;
+    --dsw-alias-label-tertiary: #adb2b8;
+    --dsw-alias-label-caption: #979da6;
+    --dsw-alias-border-l1: rgba(255, 255, 255, .06);
+    --dsw-alias-border-l2: rgba(255, 255, 255, .12);
+    --dsw-alias-border-l4: rgba(255, 255, 255, .2);
+    --dsw-alias-brand-primary: #f9fafb;
+    --dsw-alias-interactive-bg-hover: rgba(255, 255, 255, .08);
+    --dsw-alias-interactive-bg-active: rgba(255, 255, 255, .12);
+    --dsw-alias-state-success-primary: #4cc38a;
+    --dsw-alias-state-warn-primary: #e0a43a;
+    --dsw-alias-state-error-primary: #ff6b64;
+    --dsw-alias-state-idle-primary: #6d6d72;
+    --dsw-elevation-soft: 0 12px 34px -18px rgba(0, 0, 0, .8);
+    background: #151517;
+    color: #f9fafb;
+  }
+  .stage { display: flex; gap: 48px; align-items: flex-start; padding: 40px; }
+  .cell { width: 320px; }
+  .cell > h4 { margin: 0 0 10px; font-size: 11px; font-weight: 500; color: var(--dsw-alias-label-tertiary); }
+  .cell .mc-pack-card { height: 240px; }
+</style>
+<script>
+  if (window.location.search.includes('theme=dark')) {
+    document.documentElement.style.background = '#151517'
+    document.documentElement.style.colorScheme = 'dark'
+    const markDark = () => document.body ? document.body.setAttribute('data-ds-dark-theme', '') : requestAnimationFrame(markDark)
+    markDark()
+  }
+</script>
+</head>
+<body>
+<div class="stage mc-root">
+  <div class="cell">
+    <h4>卡包（正面是批次卡）</h4>
+    <article class="mc-pack-card" data-pack-id="check-pack">
+      <span class="mc-pack-tab">
+        <span class="mc-pack-tab-label">卡包</span>
+        <strong>小米18 Fold</strong>
+        <em>2 张</em>
+      </span>
+      <span class="mc-pack-back" data-type="batch" data-slot="1" aria-hidden="true"></span>
+      <div class="mc-pack-front" aria-hidden="true">
+        <div class="mc-batch-card mc-pack-front-card">
+          <div class="mc-batch-head">
+            <span class="mc-batch-tag">批次</span>
+            <span class="mc-batch-head-meta">11/09 15:49</span>
+          </div>
+          <h3 class="mc-batch-title">批量视频 · 11-09 15:49</h3>
+          <div class="mc-batch-progress" aria-hidden="true"><span style="width: 92%"></span></div>
+          <div class="mc-batch-counts"><span>45/49 完成</span></div>
+          <div class="mc-batch-platforms"><span>bilibili 45</span></div>
+          <div class="mc-batch-foot"><span>查看 49 条</span><span>已完成</span></div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="cell">
+    <h4>批次卡（不套卡包）</h4>
+    <article class="mc-batch-card" data-batch-id="check-batch">
+      <div class="mc-batch-head">
+        <span class="mc-batch-tag">批次</span>
+        <span class="mc-batch-head-meta">11/09 15:49</span>
+      </div>
+      <h3 class="mc-batch-title">批量视频 · 11-09 15:49</h3>
+      <div class="mc-batch-progress" aria-hidden="true"><span style="width: 92%"></span></div>
+      <div class="mc-batch-counts"><span>45/49 完成</span></div>
+      <div class="mc-batch-platforms"><span>bilibili 45</span></div>
+      <div class="mc-batch-foot"><span>查看 49 条</span><span>已完成</span></div>
+    </article>
+  </div>
+</div>
+</body>
+</html>

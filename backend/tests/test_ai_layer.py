@@ -291,6 +291,56 @@ class AILayerTests(unittest.TestCase):
         finally:
             self.providers.reset_temperature_blocks()
 
+    def test_unknown_optional_param_is_stripped_one_by_one(self):
+        """模型不认 reasoning_effort / reasoning 时逐字段剔掉，而不是整体失败。"""
+        self.providers.reset_temperature_blocks()
+        bodies = []
+
+        def post(url, key, body, timeout):
+            bodies.append(sorted(body.keys()))
+            if "reasoning_effort" in body:
+                raise self.Failure(
+                    "http",
+                    "AI 服务返回 HTTP 400：\"{'type': 'literal_error', 'loc': ('body', "
+                    "'reasoning_effort'), 'msg': 'Input should be ...'}\"",
+                    status=400)
+            if "reasoning" in body:
+                raise self.Failure(
+                    "http",
+                    'AI 服务返回 HTTP 400：{"error":{"message":"unknown field reasoning"}}',
+                    status=400)
+            return OK
+
+        with patch.object(self.client_mod, "_post_json", side_effect=post):
+            text = self.client_mod.chat("x", "y", role="single")
+        self.assertEqual(text, "纪要正文")
+        self.assertIn("reasoning_effort", bodies[0])
+        self.assertNotIn("reasoning_effort", bodies[-1])
+        self.assertNotIn("reasoning", bodies[-1])
+        # 其它必要字段还在。
+        for field in ("model", "messages", "max_tokens", "stream"):
+            self.assertIn(field, bodies[-1])
+
+    def test_check_key_strips_rejected_optional_param(self):
+        """设置页「测试连接」同样要把模型不认的字段剔掉再试。"""
+        self.providers.reset_temperature_blocks()
+        attempts = []
+
+        def post(url, key, body, timeout):
+            attempts.append("reasoning_effort" in body)
+            if "reasoning_effort" in body:
+                raise self.Failure("http", "loc ('body', 'reasoning_effort') literal_error",
+                                   status=400)
+            return OK
+
+        cfg = self.providers.Config(provider="mimo", base="https://example.com/v1",
+                                    model="xiaomi/DeepSeek-R1-0528", spacing=0.0,
+                                    json_mode=True, thinking="reasoning")
+        with patch.object(self.client_mod, "_post_json", side_effect=post):
+            result = self.client_mod.check_key(10.0, config=cfg, key="test-key")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(attempts, [True, False])
+
     # ---------- 指标 ----------
     def test_metrics_are_numbers_only(self):
         with patch.object(self.client_mod, "_post_json", return_value=OK):

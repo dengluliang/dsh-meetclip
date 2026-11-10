@@ -3483,7 +3483,8 @@ var styles_default = `.mc-root {
   padding: 5px 10px;
   border: .5px solid var(--mc-line);
   border-radius: 999px;
-  background: rgba(255, 255, 255, .9);
+  /* \u6BDB\u73BB\u7483\u80F6\u56CA\u8DDF\u4E3B\u9898\u8D70\uFF1A\u6D45\u8272\u662F\u767D\uFF0C\u6DF1\u8272\u662F\u62AC\u5347\u5C42\uFF0C\u907F\u514D\u767D\u5E95\u767D\u5B57 */
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 92%, transparent);
   color: var(--dsw-alias-label-secondary);
   box-shadow: 0 8px 20px -14px rgb(0 0 0 / .35);
   backdrop-filter: blur(16px) saturate(150%);
@@ -3850,16 +3851,15 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-pack-modal-actions { flex: 0 0 auto; align-items: center; justify-content: flex-end; padding-top: 2px; }
 .mc-pack-modal-hint { flex: 1 1 auto; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; text-align: left; }
 
-[data-theme='dark'] .mc-pack-tab { background: rgba(26, 26, 32, .94); border-color: rgba(255, 255, 255, .14); }
-[data-theme='dark'] .mc-pack-back { border-color: rgba(255, 255, 255, .13); filter: brightness(.8) saturate(.9); }
-[data-theme='dark'] .mc-pack-front { background: #202027; }
-[data-theme='dark'] .mc-pack-empty-face { background: rgba(32, 32, 39, .7); border-color: rgba(255, 255, 255, .18); }
-[data-theme='dark'] .mc-pack-glow { border-color: rgba(255, 255, 255, .3); box-shadow: 0 0 30px 9px rgba(255, 255, 255, .16); }
-[data-theme='dark'] .mc-pack-glow[data-ready='true'] { border-color: rgba(255, 255, 255, .45); box-shadow: 0 0 38px 13px rgba(255, 255, 255, .24); }
-[data-theme='dark'] .mc-pack-row-tools button { background: rgba(26, 26, 32, .86); border-color: rgba(255, 255, 255, .18); color: #f0f0f4; }
-[data-theme='dark'] .mc-pack-row-tools button:hover { background: rgba(38, 38, 46, .96); }
-[data-theme='dark'] .mc-pack-fallback-card { background: rgba(255, 255, 255, .035); border-color: rgba(255, 255, 255, .1); }
-[data-theme='dark'] .mc-pack-undo { background: rgba(26, 26, 32, .95); border-color: rgba(255, 255, 255, .14); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-back { border-color: rgba(255, 255, 255, .13); filter: brightness(.72) saturate(.9); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-front { background: var(--dsw-alias-bg-layer-2); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-empty-face { background: rgba(32, 32, 39, .7); border-color: rgba(255, 255, 255, .18); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-glow { border-color: rgba(255, 255, 255, .3); box-shadow: 0 0 30px 9px rgba(255, 255, 255, .16); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-glow[data-ready='true'] { border-color: rgba(255, 255, 255, .45); box-shadow: 0 0 38px 13px rgba(255, 255, 255, .24); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-row-tools button { background: rgba(26, 26, 32, .86); border-color: rgba(255, 255, 255, .18); color: #f0f0f4; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-row-tools button:hover { background: rgba(38, 38, 46, .96); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-fallback-card { background: rgba(255, 255, 255, .035); border-color: rgba(255, 255, 255, .1); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-undo { background: rgba(26, 26, 32, .95); border-color: rgba(255, 255, 255, .14); }
 
 @media (hover: none) {
   .mc-pack-row-tools { opacity: 1; transform: none; }
@@ -4079,7 +4079,7 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-side-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .mc-side-title strong { font-size: 14px; font-weight: 600; }
 .mc-side-title span { color: var(--dsw-alias-label-tertiary); font-size: 10.5px; }
-[data-theme='dark'] .mc-ambient i { opacity: .12; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-ambient i { opacity: .12; }
 
 .mc-home-card-foot > span:first-child { flex: 1 1 auto; }
 .mc-home-card-foot > span:nth-child(2) { flex: 0 0 auto; }
@@ -4110,46 +4110,46 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
   .mc-home-headline { font-size: 22px; }
 }
 
-[data-theme='dark'] .mc-home-cover { filter: brightness(.72) saturate(.9); }
-[data-theme='dark'] .mc-home-cover-fallback { color: rgba(255,255,255,.24); }
-[data-theme='dark'] .mc-home-type { background: rgba(20,20,24,.62); color: #f5f5f7; }
-[data-theme='dark'] .mc-home-card-actions button { background: rgba(20,20,24,.7); color: #f5f5f7; border-color: rgba(255,255,255,.16); }
-[data-theme='dark'] .mc-home-card-actions button[data-action='delete'] { color: #ff9a93; border-color: rgba(255,120,110,.34); }
-[data-theme='dark'] .mc-home-card-actions button[data-action='delete']:hover { background: rgba(70,24,22,.85); }
-[data-theme='dark'] .mc-card-actions button { background: rgba(20,20,24,.7); color: #f5f5f7; border-color: rgba(255,255,255,.16); }
-[data-theme='dark'] .mc-card-actions button[data-action='delete'] { color: #ff9a93; border-color: rgba(255,120,110,.34); }
-[data-theme='dark'] .mc-card-actions button[data-action='delete']:hover { background: rgba(70,24,22,.85); }
-[data-theme='dark'] .mc-status-pop { box-shadow: 0 24px 60px -18px rgb(0 0 0 / .7); }
-[data-theme='dark'] .mc-home-card-snippet { color: color-mix(in srgb, var(--dsw-alias-label-primary) 74%, transparent); }
-[data-theme='dark'] .mc-home-card-foot,
-[data-theme='dark'] .mc-home-status,
-[data-theme='dark'] .mc-home-type-inline { color: color-mix(in srgb, var(--dsw-alias-label-primary) 58%, transparent); }
-[data-theme='dark'] .mc-home-quote-mark { color: color-mix(in srgb, var(--dsw-alias-label-primary) 42%, transparent); }
-[data-theme='dark'] .mc-home-active-pill { background: color-mix(in srgb, #ff6b64 20%, transparent); color: #ffaaa4; }
-[data-theme='dark'] .mc-home-active-pill[data-status='queued'] { background: color-mix(in srgb, #e0a43a 22%, transparent); color: #f0c27a; }
-[data-theme='dark'] .mc-home-card[data-active='true'] { background: linear-gradient(180deg, color-mix(in srgb, #ff6b64 10%, var(--dsw-alias-bg-layer-2)) 0, var(--dsw-alias-bg-layer-2) 48%); }
-[data-theme='dark'] .mc-home-card[data-kind='meeting'] .mc-home-card-snippet,
-[data-theme='dark'] .mc-home-card[data-kind='meeting'] .mc-home-card-foot { color: color-mix(in srgb, var(--dsw-alias-label-primary) 66%, transparent); }
-[data-theme='dark'] .mc-home-card[data-kind='meeting'] { border-color: rgba(255,255,255,.1); }
-[data-theme='dark'] .mc-image-card { border-color: rgba(255,255,255,.12); }
-[data-theme='dark'] .mc-sticky-card {
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-cover { filter: brightness(.72) saturate(.9); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-cover-fallback { color: rgba(255,255,255,.24); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-type { background: rgba(20,20,24,.62); color: #f5f5f7; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card-actions button { background: rgba(20,20,24,.7); color: #f5f5f7; border-color: rgba(255,255,255,.16); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card-actions button[data-action='delete'] { color: #ff9a93; border-color: rgba(255,120,110,.34); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card-actions button[data-action='delete']:hover { background: rgba(70,24,22,.85); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-card-actions button { background: rgba(20,20,24,.7); color: #f5f5f7; border-color: rgba(255,255,255,.16); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-card-actions button[data-action='delete'] { color: #ff9a93; border-color: rgba(255,120,110,.34); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-card-actions button[data-action='delete']:hover { background: rgba(70,24,22,.85); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-status-pop { box-shadow: 0 24px 60px -18px rgb(0 0 0 / .7); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card-snippet { color: color-mix(in srgb, var(--dsw-alias-label-primary) 74%, transparent); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card-foot,
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-status,
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-type-inline { color: color-mix(in srgb, var(--dsw-alias-label-primary) 58%, transparent); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-quote-mark { color: color-mix(in srgb, var(--dsw-alias-label-primary) 42%, transparent); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-active-pill { background: color-mix(in srgb, #ff6b64 20%, transparent); color: #ffaaa4; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-active-pill[data-status='queued'] { background: color-mix(in srgb, #e0a43a 22%, transparent); color: #f0c27a; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card[data-active='true'] { background: linear-gradient(180deg, color-mix(in srgb, #ff6b64 10%, var(--dsw-alias-bg-layer-2)) 0, var(--dsw-alias-bg-layer-2) 48%); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card[data-kind='meeting'] .mc-home-card-snippet,
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card[data-kind='meeting'] .mc-home-card-foot { color: color-mix(in srgb, var(--dsw-alias-label-primary) 66%, transparent); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-home-card[data-kind='meeting'] { border-color: rgba(255,255,255,.1); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-image-card { border-color: rgba(255,255,255,.12); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-sticky-card {
   border-color: #4b432e;
   background: linear-gradient(160deg, #3b3628, #302c21);
   color: #f1e8d1;
   box-shadow: 0 12px 26px -16px rgb(0 0 0 / .65), inset 0 1px 0 rgb(255 255 255 / .06);
 }
-[data-theme='dark'] .mc-sticky-card[data-kind='todo'] {
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-sticky-card[data-kind='todo'] {
   border-color: #33414f;
   background: linear-gradient(160deg, #28333d, #202932);
   color: #dbe7f2;
   box-shadow: 0 12px 26px -16px rgb(0 0 0 / .6), inset 0 1px 0 rgb(255 255 255 / .06);
 }
-[data-theme='dark'] .mc-sticky-card::after { opacity: .35; }
-[data-theme='dark'] .mc-sticky-head { color: color-mix(in srgb, currentColor 80%, transparent); }
-[data-theme='dark'] .mc-sticky-todo input { accent-color: #7fb2dd; }
-[data-theme='dark'] .mc-note-editor { border-color: #4b432e; background: linear-gradient(160deg, #3b3628, #302c21); color: #f1e8d1; }
-[data-theme='dark'] .mc-note-editor-input { border-color: rgb(255 255 255 / .18); background: rgb(0 0 0 / .22); color: inherit; }
-[data-theme='dark'] .mc-note-editor-input:focus { border-color: rgb(255 255 255 / .34); background: rgb(0 0 0 / .32); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-sticky-card::after { opacity: .35; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-sticky-head { color: color-mix(in srgb, currentColor 80%, transparent); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-sticky-todo input { accent-color: #7fb2dd; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-note-editor { border-color: #4b432e; background: linear-gradient(160deg, #3b3628, #302c21); color: #f1e8d1; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-note-editor-input { border-color: rgb(255 255 255 / .18); background: rgb(0 0 0 / .22); color: inherit; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-note-editor-input:focus { border-color: rgb(255 255 255 / .34); background: rgb(0 0 0 / .32); }
 
 /* \u9996\u9875\uFF1A\u5355\u4E00\u91C7\u96C6\u5165\u53E3 */
 .mc-home-hero { max-width: 780px; }
@@ -51540,21 +51540,36 @@ init_react_shim();
 var SPEECH = /asr|transcribe|whisper/i;
 var SPEECH_DROP = /tts|voiceclone|voicedesign/i;
 var TEXT_DROP = /embed|rerank|ocr|tts|voiceclone|voicedesign|image|moderation|realtime|sora|dall-e|whisper|transcribe|asr/i;
-function splitModels(ids = []) {
+function splitEntries(entries = []) {
   const seen = /* @__PURE__ */ new Set();
   const asr = [];
   const text = [];
-  for (const raw of Array.isArray(ids) ? ids : []) {
-    const id = String(raw || "").trim();
-    if (!id || id.endsWith(":batch") || seen.has(id)) continue;
-    seen.add(id);
-    if (SPEECH.test(id)) {
-      if (!SPEECH_DROP.test(id)) asr.push(id);
-    } else if (!TEXT_DROP.test(id)) {
-      text.push(id);
+  for (const row of Array.isArray(entries) ? entries : []) {
+    const wire = String((typeof row === "string" ? row : row?.wire || row?.id) || "").trim();
+    if (!wire || wire.endsWith(":batch") || seen.has(wire)) continue;
+    seen.add(wire);
+    const kind = String((typeof row === "string" ? "" : row?.kind) || "").trim().toLowerCase();
+    const name = String((typeof row === "string" ? wire : row?.id || wire) || "");
+    if (SPEECH_DROP.test(name)) continue;
+    if (SPEECH.test(name)) {
+      asr.push(wire);
+      continue;
     }
+    if (TEXT_DROP.test(name)) continue;
+    if (kind === "speech2text") {
+      asr.push(wire);
+      continue;
+    }
+    if (kind) {
+      if (kind === "llm") text.push(wire);
+      continue;
+    }
+    text.push(wire);
   }
   return { asr, text };
+}
+function splitModels(ids = []) {
+  return splitEntries(ids);
 }
 function familyOf(id) {
   const value = String(id || "").trim();
@@ -51719,19 +51734,22 @@ function SetupWizard({ status: status3, onComplete }) {
     try {
       let ids = null;
       let count = 0;
+      let entries = [];
       try {
         const result = await probeModels({ apiKey: key, baseUrl: baseUrl.trim() });
         ids = Array.isArray(result?.models) ? result.models : [];
         count = Number(result?.count) || ids.length;
+        entries = Array.isArray(result?.entries) ? result.entries : [];
       } catch (failure) {
         if (failure?.status !== 404) throw failure;
         const result = await modelCatalog();
         ids = Array.isArray(result?.models) ? result.models : [];
         count = ids.length;
+        entries = Array.isArray(result?.entries) ? result.entries : [];
         if (!ids.length) throw new Error("\u9700\u8981\u91CD\u542F DeepSeek Harness \u540E\u518D\u8BD5");
       }
       if (!mounted.current || seq !== probeSeq.current) return;
-      const split = splitModels(ids);
+      const split = entries.length ? splitEntries(entries) : splitModels(ids);
       probedKey.current = key;
       setCatalog({ count, asr: split.asr, text: split.text });
     } catch (failure) {
@@ -53263,6 +53281,7 @@ function SettingsModels({ t }) {
   const [asr, setAsr] = React.useState(null);
   const [ai, setAi] = React.useState(null);
   const [models, setModels] = React.useState([]);
+  const [entries, setEntries] = React.useState([]);
   const [hidden, setHidden] = React.useState([]);
   const [showHidden, setShowHidden] = React.useState(false);
   const [filtering, setFiltering] = React.useState(false);
@@ -53303,6 +53322,7 @@ function SettingsModels({ t }) {
     try {
       const result = await modelCatalog();
       setModels(Array.isArray(result?.models) ? result.models : []);
+      setEntries(Array.isArray(result?.entries) ? result.entries : []);
       setCatalogError(result?.error || "");
       return result;
     } catch (failure) {
@@ -53564,7 +53584,7 @@ function SettingsModels({ t }) {
   }
   const asrCustomOn = Boolean(asr?.custom?.enabled);
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== "mimo");
-  const { asr: asrModels, text: allTextModels } = splitModels(models);
+  const { asr: asrModels, text: allTextModels } = entries.length ? splitEntries(entries) : splitModels(models);
   const textModels = showHidden ? allTextModels : withoutHidden(allTextModels, hidden);
   const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr);
   const textOptions = modelOptions(textModels, aiCustomOn ? "" : defaultText);

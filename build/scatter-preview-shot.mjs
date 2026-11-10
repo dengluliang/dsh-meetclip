@@ -1,5 +1,5 @@
 // 用无头 Chrome 给散落画布预览页截图，产出 docs/assets/scatter-preview.png。
-// 用法：node build/scatter-preview-shot.mjs [--drag] [--dark] [--board] [--paste-text] [--paste-image] [--paste-heic]
+// 用法：node build/scatter-preview-shot.mjs [--drag] [--dark] [--board] [--paste-text] [--paste-image] [--paste-heic] [--packs] [--packs-dark]
 import { spawnSync } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -16,10 +16,12 @@ const pasteImage = process.argv.includes('--paste-image')
 const pasteHeic = process.argv.includes('--paste-heic')
 const board = process.argv.includes('--board')
 const packs = process.argv.includes('--packs')
+const packsDark = process.argv.includes('--packs-dark')
 const packOverlay = process.argv.includes('--pack-overlay')
 const packHotzone = process.argv.includes('--pack-hotzone')
 const paste = pasteText ? 'paste=text' : pasteImage ? 'paste=image' : pasteHeic ? 'paste=heic' : ''
-const query = [drag ? 'demo=drag' : '', packHotzone ? 'demo=pack-hotzone' : '', packOverlay ? 'packs=1&demo=pack-overlay' : packs ? 'packs=1' : '', dark ? 'theme=dark' : '', board ? 'board=1' : '', paste].filter(Boolean).join('&')
+const darkQuery = dark || packsDark ? 'theme=dark' : ''
+const query = [drag ? 'demo=drag' : '', packHotzone ? 'demo=pack-hotzone' : '', packOverlay ? 'packs=1&demo=pack-overlay' : packs || packsDark ? 'packs=1' : '', darkQuery, board ? 'board=1' : '', paste].filter(Boolean).join('&')
 const page = `file://${path.join(here, 'scatter-preview.html')}${query ? `?${query}` : ''}`
 const output = path.join(root,
   packHotzone ? 'build/pack-hotzone-preview.png'
@@ -29,6 +31,7 @@ const output = path.join(root,
         : pasteHeic ? 'build/paste-heic-preview.png'
         : board ? 'build/board-image-preview.png'
         : drag ? 'build/scatter-drag.png'
+          : packsDark ? 'build/pack-preview-dark.png'
           : packs ? 'build/pack-preview.png'
             : dark ? 'build/scatter-preview-dark.png'
               : 'docs/assets/scatter-preview.png')

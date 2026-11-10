@@ -113,6 +113,27 @@ test('pack card, glow and full-card overlay styles are present', async () => {
   assert.doesNotMatch(css, /\.mc-pack-sort-handle/)
   assert.match(css, /\.mc-pack-undo \{/)
   assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\.mc-pack-glow/)
-  assert.match(css, /\[data-theme='dark'\] \.mc-pack-tab/)
-  assert.match(css, /\[data-theme='dark'\] \.mc-pack-back/)
+  // 深色标记由 DSH 打在 body 上（body[data-ds-dark-theme]），预览页仍用 :root[data-theme='dark']；
+  // 两者都写进 :is()，只写其中一种时另一种就是死代码。
+  assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-back/)
+  assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-front/)
+})
+
+// 卡包胶囊浮在成员卡上：底色必须跟主题走，写死成白色会在深色模式变成白底白字
+// （批次卡进卡包时整条「卡包 · 标题 · N 张」都看不见）。
+test('pack tab pill follows the theme instead of a hard-coded white surface', async () => {
+  const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
+  const tab = (css.match(/\.mc-pack-tab \{[^}]*\}/g) || [])[0] || ''
+  assert.match(tab, /background: color-mix\(in srgb, var\(--dsw-alias-bg-layer-1\)/, '卡包胶囊应使用主题抬升层做底色')
+  assert.doesNotMatch(tab, /rgba\(255,\s*255,\s*255/, '卡包胶囊不能再写死浅色底')
+})
+
+// 深色覆盖必须同时认 DSH 的 body 属性与预览页的 data-theme，且数量配对，
+// 否则新增规则时容易只写一种、在真实界面里静默失效。
+test('dark overrides cover both host and preview theme hooks', async () => {
+  const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
+  const paired = (css.match(/:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\)/g) || []).length
+  assert.ok(paired >= 30, `深色覆盖太少：${paired}`)
+  assert.equal((css.match(/body\[data-ds-dark-theme\]/g) || []).length, paired)
+  assert.equal((css.match(/\[data-theme='dark'\]/g) || []).length, paired)
 })

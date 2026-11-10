@@ -1,7 +1,7 @@
 import {
   asrEngines, aiStatus, checkAI, modelCatalog, probeUsableCatalog, removeAIKey, saveAIConfig, saveAIKey, saveAsrEngine, testAIModel, testAsrEngine
 } from '../lib/api.js'
-import { modelOptions, splitModels, withoutHidden } from '../lib/models.js'
+import { modelOptions, splitEntries, splitModels, withoutHidden } from '../lib/models.js'
 
 // 不预置任何网关地址与模型：用户填自己的 OpenAI 兼容服务，占位符只是格式示例。
 const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
@@ -16,6 +16,7 @@ export function SettingsModels({ t }) {
   const [asr, setAsr] = React.useState(null)
   const [ai, setAi] = React.useState(null)
   const [models, setModels] = React.useState([])
+  const [entries, setEntries] = React.useState([])
   // 拉完清单后在后台探测：只隐藏网关明确调不通的模型。
   const [hidden, setHidden] = React.useState([])
   const [showHidden, setShowHidden] = React.useState(false)
@@ -59,6 +60,7 @@ export function SettingsModels({ t }) {
     try {
       const result = await modelCatalog()
       setModels(Array.isArray(result?.models) ? result.models : [])
+      setEntries(Array.isArray(result?.entries) ? result.entries : [])
       setCatalogError(result?.error || '')
       return result
     } catch (failure) {
@@ -278,7 +280,7 @@ export function SettingsModels({ t }) {
 
   const asrCustomOn = Boolean(asr?.custom?.enabled)
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== 'mimo')
-  const { asr: asrModels, text: allTextModels } = splitModels(models)
+  const { asr: asrModels, text: allTextModels } = entries.length ? splitEntries(entries) : splitModels(models)
   const textModels = showHidden ? allTextModels : withoutHidden(allTextModels, hidden)
   const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr)
   const textOptions = modelOptions(textModels, aiCustomOn ? '' : defaultText)
