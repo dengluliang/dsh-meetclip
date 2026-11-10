@@ -51591,6 +51591,14 @@ function candidateOrder(list = [], { current = "", vendor = "" } = {}) {
   const rank = (id) => id === cur ? 0 : own && vendorOf2(id) === own ? 1 : 2;
   return items.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
 }
+var PREFERRED_SPEECH_MODEL = "mimo-v2.5-asr";
+var PREFERRED_TEXT_MODEL = "mimo-v2.6-flash";
+function preferModel(list = [], wanted = "") {
+  const want = String(wanted || "").trim();
+  const items = Array.isArray(list) ? list : [];
+  if (!want) return "";
+  return items.find((id) => id === want) || items.find((id) => String(id || "").endsWith("/" + want)) || "";
+}
 function vendorOf(model) {
   const value = String(model || "").trim();
   return value.includes("/") ? value.split("/")[0] : "";
@@ -51677,12 +51685,24 @@ function SetupWizard({ status: status3, onComplete }) {
   }, [catalog]);
   React.useEffect(() => {
     if (!catalog) return;
-    const asrDefault = catalog.asr?.[0] || "";
+    const asrDefault = preferModel(catalog.asr, PREFERRED_SPEECH_MODEL) || catalog.asr?.[0] || "";
     const vendor = vendorOf(asrDefault);
-    const textDefault = vendor && catalog.text?.find((id) => vendorOf(id) === vendor) || catalog.text?.[0] || "";
+    const textDefault = preferModel(catalog.text, PREFERRED_TEXT_MODEL) || vendor && catalog.text?.find((id) => vendorOf(id) === vendor) || catalog.text?.[0] || "";
     setAsrModel((current) => current || asrDefault);
     setTextModel((current) => current || textDefault);
   }, [catalog]);
+  React.useEffect(() => {
+    if (!hidden.length || !catalog) return;
+    const blocked = new Set(hidden.map((row) => row.model));
+    setAsrModel((current) => {
+      if (!current || !blocked.has(current)) return current;
+      return preferModel(catalog.asr, PREFERRED_SPEECH_MODEL) || catalog.asr?.[0] || "";
+    });
+    setTextModel((current) => {
+      if (!current || !blocked.has(current)) return current;
+      return preferModel(withoutHidden(catalog.text, hidden), PREFERRED_TEXT_MODEL) || withoutHidden(catalog.text, hidden)[0] || "";
+    });
+  }, [hidden]);
   async function discover({ force = false } = {}) {
     const key = apiKey.trim();
     if (key.length < 16) return;

@@ -72,6 +72,22 @@ export function candidateOrder(list = [], { current = '', vendor = '' } = {}) {
     .map((item) => item.id)
 }
 
+// 首次引导的默认模型：清单里存在就优先选中，没有（换了别的网关）再退回原规则。
+export const PREFERRED_SPEECH_MODEL = 'mimo-v2.5-asr'
+export const PREFERRED_TEXT_MODEL = 'mimo-v2.6-flash'
+
+/**
+ * 在清单里找指定模型，允许网关加供应商前缀（`xiaomi/mimo-v2.5-asr` 也算命中）。
+ */
+export function preferModel(list = [], wanted = '') {
+  const want = String(wanted || '').trim()
+  const items = Array.isArray(list) ? list : []
+  if (!want) return ''
+  return items.find((id) => id === want)
+    || items.find((id) => String(id || '').endsWith('/' + want))
+    || ''
+}
+
 export function vendorOf(model) {
   const value = String(model || '').trim()
   return value.includes('/') ? value.split('/')[0] : ''

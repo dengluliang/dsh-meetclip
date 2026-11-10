@@ -1,7 +1,8 @@
 import test from 'node:test'
+import { readFile } from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import { qualifyModel } from '../src/host/models-probe.js'
-import { candidateOrder, modelOptions, sortModels, splitModels, vendorOf, withoutHidden } from '../client-src/lib/models.js'
+import { PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL, candidateOrder, modelOptions, preferModel, sortModels, splitModels, vendorOf, withoutHidden } from '../client-src/lib/models.js'
 import { probeUsable, verdictOf } from '../src/host/models-probe.js'
 
 test('splits gateway models into speech and text', () => {
@@ -150,4 +151,21 @@ test('probeUsable 只隐藏拒绝与坏掉的模型，未知保持可见', async
   } finally {
     globalThis.fetch = original
   }
+})
+
+test('preferModel 命中默认模型，带供应商前缀也算', () => {
+  assert.equal(PREFERRED_SPEECH_MODEL, 'mimo-v2.5-asr')
+  assert.equal(PREFERRED_TEXT_MODEL, 'mimo-v2.6-flash')
+  assert.equal(preferModel(['xiaomi/ASR_NonStreaming', 'xiaomi/mimo-v2.5-asr'], 'mimo-v2.5-asr'), 'xiaomi/mimo-v2.5-asr')
+  assert.equal(preferModel(['mimo-v2.5-asr'], 'mimo-v2.5-asr'), 'mimo-v2.5-asr')
+  assert.equal(preferModel(['xiaomi/mimo-v2.6-flash', 'deepseek/x'], 'mimo-v2.6-flash'), 'xiaomi/mimo-v2.6-flash')
+  // 换了网关没有这两个模型时返回空，交给调用方退回第一项。
+  assert.equal(preferModel(['openai/gpt-4o'], 'mimo-v2.6-flash'), '')
+  assert.equal(preferModel([], 'mimo-v2.5-asr'), '')
+})
+
+test('首次引导把这两个模型设成默认选择', async () => {
+  const about = await readFile(new URL('../client-src/components/SetupWizard.jsx', import.meta.url), 'utf8')
+  assert.match(about, /preferModel\(catalog\.asr, PREFERRED_SPEECH_MODEL\)/)
+  assert.match(about, /preferModel\(catalog\.text, PREFERRED_TEXT_MODEL\)/)
 })

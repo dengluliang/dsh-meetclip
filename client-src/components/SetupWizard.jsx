@@ -5,7 +5,10 @@ import {
 } from '../lib/api.js'
 import { useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
-import { candidateOrder, modelOptions, splitModels, vendorOf, withoutHidden } from '../lib/models.js'
+import {
+  PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL,
+  candidateOrder, modelOptions, preferModel, splitModels, vendorOf, withoutHidden
+} from '../lib/models.js'
 
 // 不预置网关地址与模型：首次配置时由用户填写自己的 OpenAI 兼容服务。
 const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
@@ -86,12 +89,30 @@ export function SetupWizard({ status, onComplete }) {
   // 文字模型优先取与语音同一个供应商的（同一个 Key 的权限通常按供应商划分）。
   React.useEffect(() => {
     if (!catalog) return
-    const asrDefault = catalog.asr?.[0] || ''
+    // 默认选中 mimo-v2.5-asr 与 mimo-v2.6-flash（清单里有才用），否则退回原规则。
+    const asrDefault = preferModel(catalog.asr, PREFERRED_SPEECH_MODEL) || catalog.asr?.[0] || ''
     const vendor = vendorOf(asrDefault)
-    const textDefault = (vendor && catalog.text?.find((id) => vendorOf(id) === vendor)) || catalog.text?.[0] || ''
+    const textDefault = preferModel(catalog.text, PREFERRED_TEXT_MODEL)
+      || (vendor && catalog.text?.find((id) => vendorOf(id) === vendor))
+      || catalog.text?.[0] || ''
     setAsrModel((current) => current || asrDefault)
     setTextModel((current) => current || textDefault)
   }, [catalog])
+
+  // 探测结果可能把默认项判成不可用：这时换回清单里第一个还能用的。
+  React.useEffect(() => {
+    if (!hidden.length || !catalog) return
+    const blocked = new Set(hidden.map((row) => row.model))
+    setAsrModel((current) => {
+      if (!current || !blocked.has(current)) return current
+      return preferModel(catalog.asr, PREFERRED_SPEECH_MODEL) || catalog.asr?.[0] || ''
+    })
+    setTextModel((current) => {
+      if (!current || !blocked.has(current)) return current
+      return preferModel(withoutHidden(catalog.text, hidden), PREFERRED_TEXT_MODEL)
+        || withoutHidden(catalog.text, hidden)[0] || ''
+    })
+  }, [hidden])
 
   async function discover({ force = false } = {}) {
     const key = apiKey.trim()
