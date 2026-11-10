@@ -72,9 +72,13 @@ shasum -a 256 -c SHA256SUMS.txt
 1. **填服务地址（Base URL）与 API Key** → 拉取模型清单，分别选择「语音转文字」与「文字总结」的模型。地址不预置，填你自己能访问的 OpenAI 兼容网关即可；点「下一步」时引导会真的各发一次最小请求，能通才保存，不会再出现「看着选好了、其实调不通」。如果部署方在 `cordis.patch.yml` 的 meetclip config 里配了 `aiBaseUrl`，这一栏会自动带出来，只需要粘贴 Key。
 
    ```yaml
-   meetclip:
-     aiBaseUrl: https://your-gateway.example/v1   # 可选：部署内统一网关，留空则每次手填
+   # ~/.dsh/profiles/<profile>/cordis.patch.yml（$DSH_HOME/profiles/<profile>/）
+   - id: meetclip
+     config:
+       aiBaseUrl: https://your-gateway.example/v1   # 可选：部署内统一网关，留空则每次手填
    ```
+
+   也可以直接把插件自带那段 `- id: meetclip` 的 `config: {}` 改成 `config: { aiBaseUrl: … }`；改完重启 DSH 生效。
 
    > **模型名要不要带供应商前缀**：不少网关（例如 MiMo / Mify 这类兼容层）调用时要求写 `供应商/模型名`，而它自己的 `/models` 只返回裸 id，直接拿裸 id 调用会得到 `401 该模型未指定供应商`。插件会按目录里的 `owned_by` 自动补成可直接调用的名字再保存；网关不返回 `owned_by` 时，用环境变量 `MEETCLIP_AI_MODEL_PREFIX=<供应商>` 兜底。语音转写与 AI 纪要走同一套规则。
 2. **选存储位置 + 一键安装并配置** → 先在「存储位置」确认资料保存的文件夹（默认建议 `~/Documents/会摘资料`，可点「选择…」换任意可写目录），再自动安装 Python 环境、启动本地引擎、装 `yt-dlp` / `ffmpeg`。
