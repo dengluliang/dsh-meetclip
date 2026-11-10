@@ -1,0 +1,15 @@
+{
+  "name": "meetclip-build",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Build-time browser dependencies for the MeetClip client bundles and preview pages.",
+  "devDependencies": {
+    "esbuild": "0.25.0",
+    "hls.js": "1.6.15",
+    "qrcode-generator": "1.4.4",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-test-renderer": "19.2.0"
+  }
+}

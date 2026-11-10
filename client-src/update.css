@@ -1,0 +1,139 @@
+/* 设置 → 关于：版本信息、更新进度和发布说明。
+   使用与设置页一致的卡片节奏；进度条复用 .mc-progress 的视觉语言。 */
+
+.mc-about-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mc-about-head .mc-card-title { margin-bottom: 4px; }
+
+.mc-about-version {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  border: .5px solid var(--mc-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);
+  color: var(--dsw-alias-label-secondary);
+  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.mc-about-meta {
+  margin-left: 8px;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.mc-about-path {
+  display: inline-block;
+  max-width: min(420px, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.mc-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dsw-alias-brand-primary);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.mc-link-button:hover { text-decoration: underline; }
+.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }
+
+.mc-update-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: .5px solid var(--mc-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);
+}
+
+.mc-update-summary strong { font-size: 13px; font-weight: 550; }
+.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }
+.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }
+.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }
+
+.mc-about-warning {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.mc-update-card { gap: 10px; }
+
+.mc-update-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.mc-update-head strong { font-weight: 550; }
+
+.mc-update-percent {
+  margin-left: auto;
+  color: var(--dsw-alias-label-secondary);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.mc-update-bar {
+  flex: 1 1 auto !important;
+  width: 100%;
+  height: 7px !important;
+}
+
+.mc-update-bar span {
+  transition: width .25s ease;
+}
+
+.mc-update-bar span.is-indeterminate {
+  width: 35%;
+  animation: mc-update-sweep 1.15s ease-in-out infinite;
+}
+
+@keyframes mc-update-sweep {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(320%); }
+}
+
+.mc-update-notes-card .mc-update-notes {
+  max-height: 260px;
+  margin: 0;
+  padding: 10px 12px;
+  overflow: auto;
+  border: .5px solid var(--mc-line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);
+  color: var(--dsw-alias-label-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .mc-about-head { gap: 10px; }
+  .mc-about-version { font-size: 11px; }
+  .mc-about-path { max-width: 100%; }
+}

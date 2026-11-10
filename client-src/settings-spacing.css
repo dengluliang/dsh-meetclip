@@ -1,0 +1,71 @@
+/* 设置页统一节奏。
+ *
+ * 背景：宿主样式里这些块各自带 margin（.mc-actions 10px、.mc-foot-meta 0、
+ * .mc-card-hint 8px、.mc-form-note 6px…），叠在一起时「按钮 → 说明文字」有时 0px、
+ * 有时 14px，看起来忽紧忽松。这里把卡片改成 flex 列 + 统一 gap，
+ * 并把卡片内子块的上下 margin 归零，间距只由一套数值决定：
+ *
+ *   小节之间 22px · 小节标题 ↔ 卡片 10px · 卡片内块间隔 14px · 按钮横排 8px
+ *
+ * 只作用于设置页与设置里的卡片（.mc-settings-shell / .mc-lib-card），
+ * 不影响首页、资料库与弹窗里同名类（它们用 .mc-card-text 等更细的元素）。
+ */
+
+.mc-settings-shell { gap: 18px; }
+.mc-settings-panel { gap: 22px; }
+.mc-settings-panel .mc-section { gap: 10px; }
+
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card,
+.mc-lib-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 间距统一由卡片的 gap 负责，子块自己的 margin 全部归零。 */
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > *,
+.mc-lib-card > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* 例外：标题和「行下面的说明」与主体属于一组，比常规块间距略紧，
+   但仍留出 10px，不会贴在一起。 */
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-title { margin-bottom: -4px; }
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note { margin-top: -4px; }
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-divider { margin: -2px 0; }
+
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,
+.mc-lib-card .mc-actions {
+  gap: 8px;
+  margin-top: 0;
+}
+
+/* 说明文字：同一页里别再混用 10.5/11/11.5/12 四种字号。 */
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-foot-meta,
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-hint,
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-card-text,
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-form-note,
+.mc-lib-card > .mc-foot-meta,
+.mc-lib-card > .mc-lib-foot,
+.mc-lib-card > .mc-lib-empty-text {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--dsw-alias-label-secondary);
+}
+
+/* 设置 → 资料空间：弹层里的块间距与设置页一致 */
+.mc-lib-panel { gap: 12px; }
+.mc-lib-modal > .mc-lib-panel { padding: 14px 16px 16px; }
+
+/* 行式信息后面接按钮时，行与行之间的分隔线已经提供视觉分组，
+   这里让最后一行与按钮之间保持 14px（由卡片 gap 给），不再额外加 margin。 */
+:is(.mc-settings-shell, .mc-settings-panel) .mc-card > .mc-rows:last-child { margin-bottom: 0; }
+
+@media (max-width: 640px) {
+  .mc-settings-panel { gap: 18px; }
+  :is(.mc-settings-shell, .mc-settings-panel) .mc-card,
+  .mc-lib-card { gap: 12px; }
+  :is(.mc-settings-shell, .mc-settings-panel) .mc-card .mc-actions,
+  .mc-lib-card .mc-actions { gap: 6px; }
+}

@@ -1,0 +1,4 @@
+- insert:
+    - id: meetclip
+      name: '@meetclip/dsh-meetclip'
+      config: {}

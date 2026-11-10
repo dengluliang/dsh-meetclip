@@ -1,0 +1,65 @@
+{
+  "name": "@meetclip/dsh-meetclip",
+  "version": "0.9.0",
+  "type": "module",
+  "description": "MeetClip for DeepSeek Harness: capture live streams, videos and meetings, transcribe them, take timestamped notes and search the local library.",
+  "license": "MIT",
+  "author": "dengluliang",
+  "homepage": "https://github.com/dengluliang/dsh-meetclip#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dengluliang/dsh-meetclip.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dengluliang/dsh-meetclip/issues"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "meetclip",
+    "live-stream",
+    "transcription",
+    "meeting-notes",
+    "asr",
+    "bilibili",
+    "feishu"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src/**/*.js",
+    "skills/**/*",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "backend/app/**/*.py",
+    "backend/requirements.txt",
+    "LICENSE",
+    "README.md",
+    "INSTALL.md"
+  ],
+  "scripts": {
+    "build:client": "node build/build-client.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "pack:tgz": "npm pack --pack-destination dist",
+    "release": "node build/release.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>会摘设置 · 模型预览</title>
+<style>
+html, body { margin: 0; height: 100%; }
+body {
+  background: #151517;
+  color: #f2f2f2;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+:root {
+  --dsw-alias-bg-base: #151517;
+  --dsw-alias-bg-layer-1: #232323;
+  --dsw-alias-bg-layer-2: #2c2c2e;
+  --dsw-alias-bg-overlay: #2c2c2e;
+  --dsw-alias-label-primary: #f2f2f2;
+  --dsw-alias-label-secondary: #b3b3b8;
+  --dsw-alias-label-tertiary: #86868c;
+  --dsw-alias-label-caption: #6f6f75;
+  --dsw-alias-label-primary-inverted: #151517;
+  --dsw-alias-border-l1: rgba(255, 255, 255, .08);
+  --dsw-alias-border-l2: rgba(255, 255, 255, .14);
+  --dsw-alias-border-l4: rgba(255, 255, 255, .22);
+  --dsw-alias-brand-primary: #f2f2f2;
+  --dsw-alias-button-primary-fill: #f2f2f2;
+  --dsw-alias-button-primary-hover: #ffffff;
+  --dsw-alias-interactive-bg-hover: rgba(255, 255, 255, .06);
+  --dsw-alias-interactive-bg-active: rgba(255, 255, 255, .1);
+  --dsw-alias-state-success-primary: #4fbf7d;
+  --dsw-alias-state-warn-primary: #d8a441;
+  --dsw-alias-state-error-primary: #e66a63;
+  --dsw-alias-state-idle-primary: #6f6f75;
+  --dsw-elevation-soft: 0 10px 30px -18px rgba(0, 0, 0, .7);
+  --dsh-frame-top-clearance: 0px;
+  --mc-line: rgba(255, 255, 255, .12);
+  --mc-shadow: 0 10px 30px -18px rgba(0, 0, 0, .7);
+  --mc-glass: rgba(44, 44, 46, .72);
+  --mc-serif: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
+}
+</style>
+<script>
+if (new URLSearchParams(location.search).get('theme') === 'light') {
+  const light = {
+    '--dsw-alias-bg-base': '#f7f6f3',
+    '--dsw-alias-bg-layer-1': '#ffffff',
+    '--dsw-alias-bg-layer-2': '#ffffff',
+    '--dsw-alias-bg-overlay': '#ffffff',
+    '--dsw-alias-label-primary': '#1d1d1f',
+    '--dsw-alias-label-secondary': '#6b6b70',
+    '--dsw-alias-label-tertiary': '#929298',
+    '--dsw-alias-border-l1': 'rgba(0,0,0,.08)',
+    '--dsw-alias-border-l2': 'rgba(0,0,0,.12)',
+    '--dsw-alias-brand-primary': '#1d1d1f',
+    '--dsw-alias-interactive-bg-hover': 'rgba(0,0,0,.045)',
+    '--mc-line': 'rgba(0,0,0,.12)'
+  }
+  for (const [k, v] of Object.entries(light)) document.documentElement.style.setProperty(k, v)
+  document.body.style.background = light['--dsw-alias-bg-base']
+  document.body.style.color = light['--dsw-alias-label-primary']
+}
+</script>
+</head>
+<body>
+<div id="root"></div>
+<script src="./settings-preview.js"></script>
+</body>
+</html>

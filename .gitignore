@@ -1,0 +1,32 @@
+# macOS / editor
+.DS_Store
+
+# Installed and generated dependencies
+node_modules/
+build/node_modules/
+
+# Distribution artifacts stay local; releases are uploaded to GitHub
+dist/
+backups/
+
+# Runtime data, logs and secrets never belong in the repository
+data/
+*.log
+.env
+.env.*
+!.env.example
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Generated preview bundles and screenshots
+build/*-preview.js
+build/*.png
+client.js.bak-*
+*.tmp
+
+# Local debug copies of e2e scripts
+build/.live-dbg*

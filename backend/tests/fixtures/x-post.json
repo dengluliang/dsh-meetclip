@@ -1,0 +1,35 @@
+{
+  "full_text": "X 平台新品演示",
+  "created_at": "Fri Oct 23 00:00:00 +0000 2026",
+  "user": {"name": "演示作者", "screen_name": "example", "id_str": "1"},
+  "extended_entities": {
+    "media": [
+      {
+        "id_str": "1001",
+        "type": "video",
+        "media_url_https": "https://pbs.twimg.com/media/demo1.jpg",
+        "video_info": {
+          "duration_millis": 5000,
+          "variants": [{
+            "url": "https://video.twimg.com/ext_tw_video/vid/1280x720/demo1.mp4",
+            "bitrate": 1000000,
+            "content_type": "video/mp4"
+          }]
+        }
+      },
+      {
+        "id_str": "1002",
+        "type": "video",
+        "media_url_https": "https://pbs.twimg.com/media/demo2.jpg",
+        "video_info": {
+          "duration_millis": 10000,
+          "variants": [{
+            "url": "https://video.twimg.com/ext_tw_video/vid/1280x720/demo2.mp4",
+            "bitrate": 1000000,
+            "content_type": "video/mp4"
+          }]
+        }
+      }
+    ]
+  }
+}
