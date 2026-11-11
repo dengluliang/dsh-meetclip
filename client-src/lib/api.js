@@ -680,8 +680,8 @@ export function updateStatus() {
   return app('/update')
 }
 
-/** 检查 GitHub 最新版本；autoInstall 为真时发现新版本会直接下载并安装。 */
-export function updateCheck({ autoInstall = true } = {}) {
+/** 检查 GitHub 最新版本；默认只检查，只有显式 autoInstall: true 才会顺带下载安装。 */
+export function updateCheck({ autoInstall = false } = {}) {
   return app('/update', {
     method: 'POST',
     body: JSON.stringify({ action: 'check', auto_install: Boolean(autoInstall) })

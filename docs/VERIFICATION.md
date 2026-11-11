@@ -24,6 +24,24 @@
 - 未配置网关时：新建记录、导入会议、写笔记均正常；语音/纪要显示「未配置」并按设置页提示补齐地址，不再出现 URL 解析错误。
 - 设置 → 飞书：未配置 `feishuPackage`/`feishuRegistry` 时显示「未配置 MCP 源」的说明卡，安装按钮置灰；配置后恢复原有安装/登录流程。
 
+## 0.9.14 检查更新不再自动安装，状态行改问「是否升级最新的 vX」（2026-11-11）
+
+### 改动
+
+- `client-src/lib/update.js`：`updateSummary()` 把「有可升级版本」排到 `restartRequired` 前面——查到新版本时这一行显示 **是否升级最新的 vX**（明细「点『点击升级』下载并安装」），确实没有可升级版本才显示「已安装 vX」或「已是最新版本 vX」；源码运行仍提示 `git pull`，不出现「点击升级」。
+- `src/host/routes.js` + `src/host/update.js`：`POST /meetclip/app/update` 的 `check` 改为只有显式 `auto_install: true` 才顺带安装，`startCheck()` 默认 `autoInstall: false`；客户端「检查更新」固定发 `auto_install: false`，下载安装走独立的 `install` 动作。
+- 预览：`build/about-preview.jsx` 新增 `update-ready-restart` 状态，复现「运行 0.9.11 / 磁盘 0.9.12 待重启 / 最新 0.9.13」。
+
+### 自动化验证
+
+- 更新相关用例 **48/48**：新增「默认 check 不安装」「只有显式 true 才安装」「待重启 + 有更新仍先问是否升级」「源码运行不出现点击升级」「检查更新固定 `auto_install: false`」5 项。
+- `node --test tests/*.test.mjs` **275/275** 通过；`node build/build-client.mjs` 重新生成 `client.js`（2,220,056 bytes）。
+- 无头 Chrome 截图三态：`build/about-preview-update-ready-restart.png`（是否升级最新的 v0.9.13 + 点击升级）、`build/about-preview-update-ready.png`、`build/about-preview-uptodate.png`（按钮仍是「检查更新」）。
+
+### 未执行
+
+- 应用内目测：客户端改的是 bundle，刷新页面即可；Host 侧默认值改动需要重启 DSH 才生效。
+
 ## 0.9.13 纪要「结论和待办」标记列对齐（2026-11-11）
 
 ### 改动

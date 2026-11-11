@@ -5868,7 +5868,7 @@ function openExternal(target, url) {
 function updateStatus() {
   return app("/update");
 }
-function updateCheck({ autoInstall = true } = {}) {
+function updateCheck({ autoInstall = false } = {}) {
   return app("/update", {
     method: "POST",
     body: JSON.stringify({ action: "check", auto_install: Boolean(autoInstall) })
@@ -52613,15 +52613,19 @@ function updateSummary(status3) {
   if (job?.state === "done" && job.kind === "rollback" && job.version) {
     return { tone: "warn", text: `\u5DF2\u56DE\u9000\u5230 v${job.version}`, detail: "\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548" };
   }
+  const isSource = status3.target?.kind === "source";
+  if (status3.updateAvailable && status3.latest) {
+    if (isSource) {
+      return { tone: "warn", text: `\u53D1\u73B0\u65B0\u7248\u672C v${status3.latest.version}`, detail: "\u6E90\u7801\u8FD0\u884C\uFF0C\u8BF7 git pull \u540E\u91CD\u542F" };
+    }
+    return { tone: "warn", text: `\u662F\u5426\u5347\u7EA7\u6700\u65B0\u7684 v${status3.latest.version}`, detail: "\u70B9\u300C\u70B9\u51FB\u5347\u7EA7\u300D\u4E0B\u8F7D\u5E76\u5B89\u88C5" };
+  }
   if (status3.restartRequired) {
     return {
       tone: "warn",
       text: `\u5DF2\u5B89\u88C5 v${status3.installedVersion || "?"}`,
       detail: status3.restartDirection === "rollback" ? "\u91CD\u542F\u540E\u56DE\u5230\u8FD9\u4E2A\u7248\u672C" : ""
     };
-  }
-  if (status3.updateAvailable && status3.latest) {
-    return { tone: "warn", text: `\u53D1\u73B0\u65B0\u7248\u672C v${status3.latest.version}`, detail: "\u70B9\u300C\u70B9\u51FB\u5347\u7EA7\u300D\u4E0B\u8F7D\u5E76\u5B89\u88C5" };
   }
   if (status3.latest) {
     return { tone: "ok", text: `\u5DF2\u662F\u6700\u65B0\u7248\u672C v${status3.currentVersion}`, detail: "" };

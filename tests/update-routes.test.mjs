@@ -132,6 +132,29 @@ test('POST check forwards auto_install and returns the job immediately', async (
   await runtime.dispose()
 })
 
+test('POST check不带 auto_install 时只检查，不自动安装', async () => {
+  const { runtime, routes, calls } = await setup()
+  const res = response()
+  await routes.get('/meetclip/app/update').handler(
+    request({ method: 'POST', body: { action: 'check' } }), res
+  )
+  assert.equal(res.status, 200)
+  assert.deepEqual(calls[0], ['check', { autoInstall: false }])
+  assert.equal(JSON.parse(res.body).job.state, 'checking')
+  await runtime.dispose()
+})
+
+test('POST check只有显式 auto_install: true 才顺带安装', async () => {
+  const { runtime, routes, calls } = await setup()
+  const res = response()
+  await routes.get('/meetclip/app/update').handler(
+    request({ method: 'POST', body: { action: 'check', auto_install: true } }), res
+  )
+  assert.equal(res.status, 200)
+  assert.deepEqual(calls[0], ['check', { autoInstall: true }])
+  await runtime.dispose()
+})
+
 test('POST install and cancel map to the manager actions', async () => {
   const { runtime, routes, calls } = await setup()
   const installRes = response()

@@ -158,17 +158,72 @@ test('updatePrimary 在没有更新时是检查更新，查到更新后变成点
   )
 })
 
-test('发现新版本时提示改为等待点击升级', () => {
+test('发现新版本时这一行直接问是否升级，回答方式就是点击升级', () => {
   const summary = updateSummary({
     currentVersion: '0.9.5',
     latest: { version: '0.9.6' },
     updateAvailable: true,
+    target: { kind: 'installed' },
     job: null
   })
   assert.equal(summary.tone, 'warn')
-  assert.match(summary.text, /发现新版本 v0\.9\.6/)
+  assert.equal(summary.text, '是否升级最新的 v0.9.6')
   assert.match(summary.detail, /点击升级/)
   assert.doesNotMatch(summary.detail, /立即更新/)
+})
+
+test('已装好新版本还没重启、同时又有更新时，仍然先问是否升级', () => {
+  // 截图里的状态：运行 0.9.11、磁盘 0.9.12 等待重启、最新 0.9.13。
+  // 这里不能只剩一句「已安装 v0.9.12」，否则看不出还有一个能升的版本。
+  const summary = updateSummary({
+    currentVersion: '0.9.11',
+    installedVersion: '0.9.12',
+    restartRequired: true,
+    latest: { version: '0.9.13' },
+    updateAvailable: true,
+    target: { kind: 'installed' },
+    job: null
+  })
+  assert.equal(summary.tone, 'warn')
+  assert.equal(summary.text, '是否升级最新的 v0.9.13')
+  assert.doesNotMatch(summary.text, /已安装/)
+  assert.match(summary.detail, /点击升级/)
+  // 没有可升版本时才是「已安装 vX」。
+  assert.equal(updateSummary({
+    currentVersion: '0.9.11',
+    installedVersion: '0.9.13',
+    restartRequired: true,
+    latest: { version: '0.9.13' },
+    updateAvailable: false,
+    target: { kind: 'installed' }
+  }).text, '已安装 v0.9.13')
+})
+
+test('源码运行时不给出点击升级的按钮，只提示 git pull', () => {
+  const summary = updateSummary({
+    currentVersion: '0.9.5',
+    latest: { version: '0.9.6' },
+    updateAvailable: true,
+    target: { kind: 'source' }
+  })
+  assert.equal(summary.tone, 'warn')
+  assert.match(summary.text, /发现新版本 v0\.9\.6/)
+  assert.match(summary.detail, /git pull/)
+})
+
+test('检查更新只查询版本，不会自动下载安装', async () => {
+  const [source, api, client] = await Promise.all([
+    readFile(new URL('../client-src/lib/update.js', import.meta.url), 'utf8'),
+    readFile(new URL('../client-src/lib/api.js', import.meta.url), 'utf8'),
+    readFile(new URL('../client.js', import.meta.url), 'utf8')
+  ])
+  // 接口默认只检查，客户端调用时也显式传 false：两道都要求用户再点一次「点击升级」。
+  assert.match(api, /export function updateCheck\(\{ autoInstall = false \} = \{\}\)/)
+  for (const text of [source, client]) {
+    assert.match(text, /updateCheck\(\{ autoInstall: false \}\)/)
+    assert.doesNotMatch(text, /updateCheck\(\{ autoInstall: true \}\)/)
+    assert.doesNotMatch(text, /updateCheck\(\{ autoInstall: !/)
+  }
 })
 
 test('关于页：更新内容按 Markdown 预览，且没有独立的刷新状态按钮', async () => {

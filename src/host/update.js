@@ -481,7 +481,8 @@ export class UpdateManager {
 
   // ------------------------------------------------------------- lifecycle
 
-  startCheck({ autoInstall = true } = {}) {
+  /** 默认只检查：安装要用户再点一次「点击升级」（POST install），或多传 autoInstall: true。 */
+  startCheck({ autoInstall = false } = {}) {
     if (this.running()) throw new UpdateError('已有更新任务在进行中', 'update-busy', 409)
     this.resetJob('checking', '检查更新')
     this.abort = new AbortController()

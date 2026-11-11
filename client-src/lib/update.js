@@ -76,15 +76,22 @@ export function updateSummary(status) {
   if (job?.state === 'done' && job.kind === 'rollback' && job.version) {
     return { tone: 'warn', text: `已回退到 v${job.version}`, detail: '重启 DeepSeek Harness 后生效' }
   }
+  // 查到新版本时这一行直接问「是否升级」，回答的方式就是同一位置的「点击升级」按钮。
+  // 必须排在 restartRequired 前面：装好新版本还没重启、同时又有更新时，只写「已安装 vX」
+  // 会让人以为没有可升级的版本，只剩一个没人解释的「点击升级」按钮。
+  const isSource = status.target?.kind === 'source'
+  if (status.updateAvailable && status.latest) {
+    if (isSource) {
+      return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '源码运行，请 git pull 后重启' }
+    }
+    return { tone: 'warn', text: `是否升级最新的 v${status.latest.version}`, detail: '点「点击升级」下载并安装' }
+  }
   if (status.restartRequired) {
     return {
       tone: 'warn',
       text: `已安装 v${status.installedVersion || '?'}`,
       detail: status.restartDirection === 'rollback' ? '重启后回到这个版本' : ''
     }
-  }
-  if (status.updateAvailable && status.latest) {
-    return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '点「点击升级」下载并安装' }
   }
   if (status.latest) {
     return { tone: 'ok', text: `已是最新版本 v${status.currentVersion}`, detail: '' }

@@ -132,6 +132,23 @@ function snapshot() {
     // 查到新版本、还没点升级：主按钮应该是「点击升级」。
     return { ...base, job: null }
   }
+  if (state === 'update-ready-restart') {
+    // 磁盘上装了 0.9.12、还在用 0.9.11，同时又有 0.9.13：这一行仍应问「是否升级最新的 v0.9.13」。
+    return {
+      ...base,
+      currentVersion: '0.9.11',
+      installedVersion: '0.9.12',
+      restartRequired: true,
+      restartDirection: 'update',
+      latest: { ...base.latest, version: '0.9.13', tag: 'v0.9.13' },
+      updateAvailable: true,
+      rollback: {
+        available: [{ version: '0.9.7', at: now - 86_400_000, direction: 'older' }],
+        canRollback: true
+      },
+      job: null
+    }
+  }
   if (state === 'rollback') {
     return {
       ...base,

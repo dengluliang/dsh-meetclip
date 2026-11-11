@@ -8,7 +8,7 @@
    - 当前运行版本（内存中的 Host 版本）
    - 已安装版本（磁盘上 `package.json` 的版本，替换后可能与运行版本不同）
    - 最新版本、发布仓库、上次检查时间和安装位置
-2. 点「检查更新」。它只检查并刷新状态；发现新版本后主按钮变成「点击升级」，再点一次才开始下载，页面显示阶段、百分比、已下载/总大小和速度。
+2. 点「检查更新」。它只检查并刷新状态，不会下载；发现新版本后状态行变成 **是否升级最新的 vX**，主按钮同一位置变成「点击升级」，再点一次才开始下载，页面显示阶段、百分比、已下载/总大小和速度。没有新版本时主按钮仍然是「检查更新」。
 3. 下载完成后自动校验 SHA-256、解包并替换。完成后显示「已安装 vX，重启 DeepSeek Harness 后生效」。
 4. 下载阶段可以取消；校验/安装阶段不能中断。下一次打开页面会显示上次的检查和安装结果。
 
@@ -90,10 +90,11 @@ mv dsh-meetclip.update-bak-0.9.0-20261110-135408-48172 dsh-meetclip
 ### `POST /meetclip/app/update`
 
 ```json
-{ "action": "check", "auto_install": true }
+{ "action": "check", "auto_install": false }
 ```
 
-- `check`：检查并（默认）自动安装。返回 `{ ok: true, job }` 后任务在后台跑，客户端轮询 GET。
+- `check`：只检查并回报结果，**默认不下载安装**；只有显式传 `"auto_install": true` 才会顺带安装（旧客户端兼容用）。返回 `{ ok: true, job }` 后任务在后台跑，客户端轮询 GET。
+- 客户端「检查更新」固定发 `auto_install: false`，下载安装必须再点「点击升级」，走下面的 `install`。
 - `install`：安装已经检查到的最新版本；没有可安装版本返回 409。
 - `rollback`：用本机升级备份回退；`version` 可选，缺省用最近一份备份。没有可用备份返回 409 `no-rollback`，源码方式运行返回 409 `target-source`，任务进行中返回 409 `update-busy`。
 - `cancel`：取消检查/下载。返回 `{ ok: true, status: "cancelled" | "too-late" | "not-running" }`。

@@ -101,7 +101,8 @@ export function registerAppRoutes(ctx, runtime) {
     const body = await readJsonBody(req, 64 * 1024)
     const action = String(body.action || '')
     if (action === 'check') {
-      const job = runtime.update.startCheck({ autoInstall: body.auto_install !== false })
+      // 「检查更新」只回报结果；下载安装必须显式带 auto_install: true，或用 install 动作。
+      const job = runtime.update.startCheck({ autoInstall: body.auto_install === true })
       jsonResponse(res, 200, { ok: true, job })
       return
     }

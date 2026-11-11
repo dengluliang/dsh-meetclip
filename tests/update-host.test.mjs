@@ -461,12 +461,15 @@ test('GitHub API fallback converts a release into the feed shape', async () => {
       }
     }
   )
-  manager.startCheck({ autoInstall: false })
+  // 不传参数就是只检查：默认不再自动下载、安装。
+  manager.startCheck()
   const job = await waitForIdle(manager)
   assert.equal(job.state, 'done')
   assert.match(job.message, /发现 v0\.9\.1/)
   assert.equal(manager.status().latest.version, '0.9.1')
   assert.equal(manager.status().updateAvailable, true)
+  // 只检查时安装目录不动，仍然是被测的旧版本。
+  assert.equal(JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8')).version, '0.9.0')
   await cleanupTarget(target)
 })
 
