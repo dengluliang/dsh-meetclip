@@ -1,8 +1,9 @@
 import { clock, dateTime, statusText } from '../../lib/format.js'
 import { platformLabel } from '../../lib/links.js'
+import { RefreshIcon } from '../Icon.jsx'
 import { VideoForm } from '../NewCaptureDialog.jsx'
 
-export function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh, initialAppending = false }) {
+export function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh, onRetry, retrying = false, initialAppending = false }) {
   const [appending, setAppending] = React.useState(Boolean(initialAppending))
 
   React.useEffect(() => {
@@ -24,6 +25,9 @@ export function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onR
   if (!batch) return null
   const members = batch.members || []
   const counts = batch.counts || {}
+  const failedCount = members.filter((member) => member?.id && member.status === 'error').length
+  const retryLabel = (t?.('batch.retryFailed') || '重试 {n}条').replace('{n}', String(failedCount))
+  const retryingLabel = t?.('batch.retrying') || '正在重试…'
   return (
     <div className="mc-modal-layer" role="dialog" aria-modal="true" aria-label={batch.title || '批次'}>
       <div className="mc-modal mc-batch-modal" data-appending={appending ? 'true' : undefined}>
@@ -76,6 +80,13 @@ export function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onR
               {members.length === 0 ? <p className="mc-foot-meta">这批记录已全部删除。</p> : null}
             </div>
             <div className="mc-modal-actions">
+              {failedCount > 0 && onRetry ? (
+                <button type="button" className="mc-button mc-batch-retry-action" disabled={retrying}
+                  onClick={() => onRetry(batch)}>
+                  <RefreshIcon size={13} spinning={retrying} />
+                  {retrying ? retryingLabel : retryLabel}
+                </button>
+              ) : null}
               {onDeleteAll ? (
                 <button type="button" className="mc-button" data-variant="danger"
                   onClick={() => onDeleteAll(batch)}>全部删除</button>

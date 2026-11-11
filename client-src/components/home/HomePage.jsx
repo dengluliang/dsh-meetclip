@@ -13,7 +13,7 @@ import { CaptureInline } from '../capture/CaptureInline.jsx'
 import { SetupProgressCards } from './SetupProgressCards.jsx'
 import { MAX_MEETING_FILES, filesFromPaths, mergeMeetingFiles } from '../../lib/meetingFiles.js'
 import { ContextMenu, useContextMenu } from '../ContextMenu.jsx'
-import { cancelLink, deleteSession, deleteSessions, revealRecord } from '../../lib/api.js'
+import { cancelLink, deleteSession, deleteSessions, retryLink, revealRecord } from '../../lib/api.js'
 import { openCardAgentDraft, sendPromptToAgent } from '../../lib/agent.js'
 import { imageFilesFromClipboard, isBoardImage, looksLikeImageFile, stickyFromClipboard } from '../../lib/paste.js'
 
@@ -534,6 +534,9 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const [openBatchId, setOpenBatchId] = React.useState('')
   const [batchAppend, setBatchAppend] = React.useState(false)
   const [focusedBatchId, setFocusedBatchId] = React.useState('')
+  // 批次卡上的「重试失败项」：按批次记住忙碌状态，失败项全部重新入队后刷新首页。
+  const [retryingBatches, setRetryingBatches] = React.useState({})
+  const retryingBatchesRef = React.useRef(new Set())
   const [packs, setPacks] = React.useState([])
   const packsRef = React.useRef(packs)
   packsRef.current = packs
@@ -1400,6 +1403,43 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     })
   }
 
+  async function retryBatchFailed(batch) {
+    const batchId = batch?.id
+    if (!batchId || retryingBatchesRef.current.has(batchId)) return
+    const ids = (batch.members || [])
+      .filter((member) => member?.id && member.status === 'error')
+      .map((member) => member.id)
+    if (!ids.length) {
+      onToast?.('这批没有失败的记录')
+      return
+    }
+    retryingBatchesRef.current.add(batchId)
+    setRetryingBatches((current) => ({ ...current, [batchId]: true }))
+    try {
+      // 逐条重新入队；某一条仍在处理中（409）不影响其他失败项。
+      const settled = await Promise.allSettled(ids.map((id) => retryLink(id)))
+      const queued = settled.filter((row) => row.status === 'fulfilled').length
+      const failed = settled.length - queued
+      if (failed) {
+        const reason = settled.find((row) => row.status === 'rejected')?.reason?.message || ''
+        onToast?.(t('batch.retryPartial').replace('{n}', String(queued)).replace('{m}', String(failed))
+          + (reason ? `：${reason}` : ''))
+      } else {
+        onToast?.(t('batch.retryQueued').replace('{n}', String(queued)))
+      }
+      await load(false)
+    } catch (failure) {
+      onToast?.(failure?.message || String(failure))
+    } finally {
+      retryingBatchesRef.current.delete(batchId)
+      setRetryingBatches((current) => {
+        const next = { ...current }
+        delete next[batchId]
+        return next
+      })
+    }
+  }
+
   function askDeleteBatch(batch) {
     const ids = (batch?.members || []).map((member) => member.id).filter(Boolean)
     if (!ids.length) {
@@ -1541,9 +1581,12 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     }
     if (entry.type === 'batch') {
       return <BatchCard item={entry.item} focused={!packMode && focusedBatchId === entry.item.id}
+        t={t}
+        retrying={Boolean(retryingBatches[entry.item.id])}
         onOpen={packMode ? () => openMember?.(entry) : (batch) => { setBatchAppend(false); setOpenBatchId(batch.id) }}
         onMenu={packMode ? undefined : (event) => batchMenu(entry, event)}
-        onDelete={packMode ? undefined : askDeleteBatch} />
+        onDelete={packMode ? undefined : askDeleteBatch}
+        onRetry={packMode ? undefined : retryBatchFailed} />
     }
     if (entry.type === 'note') {
       return <StickyCard note={entry.item} onToggle={toggleNote}
@@ -1705,6 +1748,8 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
       {openBatch ? (
         <BatchOverlay batch={openBatch} t={t}
           initialAppending={batchAppend}
+          retrying={Boolean(retryingBatches[openBatch.id])}
+          onRetry={retryBatchFailed}
           onClose={() => { setOpenBatchId(''); setBatchAppend(false) }}
           onRefresh={() => load(false)}
           onDeleteAll={askDeleteBatch}

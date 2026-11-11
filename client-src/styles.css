@@ -1688,6 +1688,12 @@
 .mc-batch-platforms span { padding: 1px 6px; border-radius: 999px; background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-tertiary); font-size: 10px; }
 .mc-batch-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 4px; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; }
 .mc-batch-foot span:first-child { color: var(--dsw-alias-label-secondary); }
+/* 批次卡上的失败重试：只占卡片底部原来显示「部分失败」的位置，失败项清零后自动消失。 */
+.mc-batch-retry { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 12%, transparent); color: var(--dsw-alias-state-error-primary); font: inherit; font-size: 10.5px; font-weight: 550; line-height: 1; white-space: nowrap; cursor: pointer; }
+.mc-batch-retry:hover { background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 21%, transparent); }
+.mc-batch-retry:focus-visible { outline: 2px solid var(--dsw-alias-state-error-primary); outline-offset: 2px; }
+.mc-batch-retry:disabled { opacity: .58; cursor: default; }
+.mc-batch-retry-action { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
 
 /* 批次浮层 */
 .mc-batch-modal { display: flex; flex-direction: column; width: min(680px, calc(100vw - 48px)); max-height: min(78vh, 760px); }

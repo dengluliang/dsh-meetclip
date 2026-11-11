@@ -3435,6 +3435,12 @@ var styles_default = `.mc-root {
 .mc-batch-platforms span { padding: 1px 6px; border-radius: 999px; background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-tertiary); font-size: 10px; }
 .mc-batch-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 4px; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; }
 .mc-batch-foot span:first-child { color: var(--dsw-alias-label-secondary); }
+/* \u6279\u6B21\u5361\u4E0A\u7684\u5931\u8D25\u91CD\u8BD5\uFF1A\u53EA\u5360\u5361\u7247\u5E95\u90E8\u539F\u6765\u663E\u793A\u300C\u90E8\u5206\u5931\u8D25\u300D\u7684\u4F4D\u7F6E\uFF0C\u5931\u8D25\u9879\u6E05\u96F6\u540E\u81EA\u52A8\u6D88\u5931\u3002 */
+.mc-batch-retry { display: inline-flex; align-items: center; gap: 4px; height: 20px; padding: 0 8px; border: 0; border-radius: 999px; background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 12%, transparent); color: var(--dsw-alias-state-error-primary); font: inherit; font-size: 10.5px; font-weight: 550; line-height: 1; white-space: nowrap; cursor: pointer; }
+.mc-batch-retry:hover { background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 21%, transparent); }
+.mc-batch-retry:focus-visible { outline: 2px solid var(--dsw-alias-state-error-primary); outline-offset: 2px; }
+.mc-batch-retry:disabled { opacity: .58; cursor: default; }
+.mc-batch-retry-action { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
 
 /* \u6279\u6B21\u6D6E\u5C42 */
 .mc-batch-modal { display: flex; flex-direction: column; width: min(680px, calc(100vw - 48px)); max-height: min(78vh, 760px); }
@@ -5341,6 +5347,30 @@ function MeetClipIcon({ size = 20, active: active2 = false }) {
     },
     /* @__PURE__ */ React.createElement("g", { fill: "none", stroke: "currentColor", strokeLinecap: "round", strokeWidth: "5" }, /* @__PURE__ */ React.createElement("path", { d: "M17 27v10" }), /* @__PURE__ */ React.createElement("path", { d: "M26 20v24" }), /* @__PURE__ */ React.createElement("path", { d: "M35 25v14" }), /* @__PURE__ */ React.createElement("path", { d: "M44 29v6" })),
     /* @__PURE__ */ React.createElement("path", { d: "M49 8h7v14l-3.5-2.7L49 22V8Z", fill: "currentColor" })
+  );
+}
+function RefreshIcon({ size = 14, spinning = false }) {
+  return /* @__PURE__ */ React.createElement(
+    "svg",
+    {
+      viewBox: "0 0 24 24",
+      width: size,
+      height: size,
+      "aria-hidden": "true",
+      className: spinning ? "mc-spin" : void 0,
+      style: { display: "block" }
+    },
+    /* @__PURE__ */ React.createElement(
+      "path",
+      {
+        d: "M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7",
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: "1.8",
+        strokeLinecap: "round",
+        strokeLinejoin: "round"
+      }
+    )
   );
 }
 function SearchIcon({ size = 14 }) {
@@ -47791,14 +47821,18 @@ function platformCounts(batch) {
   }
   return Object.entries(counts);
 }
-function BatchCard({ item, focused = false, onOpen, onMenu, onDelete }) {
+function BatchCard({ item, focused = false, t, retrying = false, onOpen, onMenu, onDelete, onRetry }) {
   const counts = item.counts || {};
   const total = Number(item.total) || (item.members || []).length;
   const done = Number(counts.done) || 0;
   const failed = Number(counts.error) || 0;
+  const failedMembers = (item.members || []).filter((member) => member?.id && member.status === "error");
+  const retryCount = failedMembers.length || failed;
   const active2 = Number(item.active) || 0;
   const percent = total > 0 ? Math.min(100, Math.round(done / total * 100)) : 0;
   const platforms = platformCounts(item);
+  const retryLabel = (t?.("batch.retryFailed") || "\u91CD\u8BD5 {n}\u6761").replace("{n}", String(retryCount));
+  const retryingLabel = t?.("batch.retrying") || "\u6B63\u5728\u91CD\u8BD5\u2026";
   return /* @__PURE__ */ React.createElement(
     "article",
     {
@@ -47837,13 +47871,31 @@ function BatchCard({ item, focused = false, onOpen, onMenu, onDelete }) {
     /* @__PURE__ */ React.createElement("div", { className: "mc-batch-progress", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${percent}%` } }), failed && total > 0 ? /* @__PURE__ */ React.createElement("i", { style: { width: `${Math.min(100 - percent, Math.round(failed / total * 100))}%` } }) : null),
     /* @__PURE__ */ React.createElement("div", { className: "mc-batch-counts" }, /* @__PURE__ */ React.createElement("span", null, done, "/", total, " \u5B8C\u6210"), active2 ? /* @__PURE__ */ React.createElement("span", { className: "is-active" }, active2, " \u8FDB\u884C\u4E2D") : null, failed ? /* @__PURE__ */ React.createElement("span", { className: "is-error" }, failed, " \u5931\u8D25") : null),
     /* @__PURE__ */ React.createElement("div", { className: "mc-batch-platforms" }, platforms.map(([platform, count]) => /* @__PURE__ */ React.createElement("span", { key: platform }, platformLabel(platform), " ", count))),
-    /* @__PURE__ */ React.createElement("div", { className: "mc-batch-foot" }, /* @__PURE__ */ React.createElement("span", null, "\u67E5\u770B ", total, " \u6761"), /* @__PURE__ */ React.createElement("span", null, active2 ? "\u5904\u7406\u4E2D" : failed ? "\u90E8\u5206\u5931\u8D25" : done >= total ? "\u5DF2\u5B8C\u6210" : "\u7B49\u5F85\u4E2D"))
+    /* @__PURE__ */ React.createElement("div", { className: "mc-batch-foot" }, /* @__PURE__ */ React.createElement("span", null, "\u67E5\u770B ", total, " \u6761"), retryCount > 0 && onRetry ? /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        type: "button",
+        className: "mc-batch-retry",
+        disabled: retrying,
+        title: retryLabel,
+        "aria-label": retryLabel,
+        onClick: (event) => {
+          event.stopPropagation();
+          onRetry(item);
+        },
+        onKeyDown: (event) => {
+          if (event.key === "Enter" || event.key === " ") event.stopPropagation();
+        }
+      },
+      /* @__PURE__ */ React.createElement(RefreshIcon, { size: 11, spinning: retrying }),
+      /* @__PURE__ */ React.createElement("span", null, retrying ? retryingLabel : retryLabel)
+    ) : /* @__PURE__ */ React.createElement("span", null, active2 ? "\u5904\u7406\u4E2D" : failed ? "\u90E8\u5206\u5931\u8D25" : done >= total ? "\u5DF2\u5B8C\u6210" : "\u7B49\u5F85\u4E2D"))
   );
 }
 
 // client-src/components/home/BatchOverlay.jsx
 init_react_shim();
-function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh, initialAppending = false }) {
+function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh, onRetry, retrying = false, initialAppending = false }) {
   const [appending, setAppending] = React.useState(Boolean(initialAppending));
   React.useEffect(() => {
     setAppending(Boolean(initialAppending));
@@ -47861,6 +47913,9 @@ function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh,
   if (!batch) return null;
   const members = batch.members || [];
   const counts = batch.counts || {};
+  const failedCount = members.filter((member) => member?.id && member.status === "error").length;
+  const retryLabel = (t?.("batch.retryFailed") || "\u91CD\u8BD5 {n}\u6761").replace("{n}", String(failedCount));
+  const retryingLabel = t?.("batch.retrying") || "\u6B63\u5728\u91CD\u8BD5\u2026";
   return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": batch.title || "\u6279\u6B21" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-batch-modal", "data-appending": appending ? "true" : void 0 }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head mc-batch-modal-head" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", null, appending ? t("batch.appendTitle") : batch.title || "\u6279\u91CF\u89C6\u9891"), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, appending ? `${batch.title || "\u6279\u91CF\u89C6\u9891"} \xB7 \u73B0\u6709 ${members.length} \u6761` : /* @__PURE__ */ React.createElement(React.Fragment, null, members.length, " \u6761 \xB7 ", dateTime(batch.created_at), batch.updated_at && batch.updated_at > Number(batch.created_at || 0) + 60 ? ` \xB7 \u66F4\u65B0 ${dateTime(batch.updated_at)}` : "", counts.done ? ` \xB7 \u5B8C\u6210 ${counts.done}` : "", counts.error ? ` \xB7 \u5931\u8D25 ${counts.error}` : "", counts.cancelled ? ` \xB7 \u53D6\u6D88 ${counts.cancelled}` : ""))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose, "aria-label": "\u5173\u95ED\u6279\u6B21" }, "\xD7")), appending ? /* @__PURE__ */ React.createElement("div", { className: "mc-batch-append" }, /* @__PURE__ */ React.createElement(
     VideoForm,
     {
@@ -47885,7 +47940,17 @@ function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh,
       member.duration ? clock(member.duration) : ""
     ].filter(Boolean).join(" \xB7 ")), member.error ? /* @__PURE__ */ React.createElement("em", { className: "mc-batch-member-error" }, member.error) : null),
     /* @__PURE__ */ React.createElement("span", { className: "mc-batch-member-open" }, "\u6253\u5F00")
-  )), members.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u8FD9\u6279\u8BB0\u5F55\u5DF2\u5168\u90E8\u5220\u9664\u3002") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, onDeleteAll ? /* @__PURE__ */ React.createElement(
+  )), members.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u8FD9\u6279\u8BB0\u5F55\u5DF2\u5168\u90E8\u5220\u9664\u3002") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, failedCount > 0 && onRetry ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-batch-retry-action",
+      disabled: retrying,
+      onClick: () => onRetry(batch)
+    },
+    /* @__PURE__ */ React.createElement(RefreshIcon, { size: 13, spinning: retrying }),
+    retrying ? retryingLabel : retryLabel
+  ) : null, onDeleteAll ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -49105,6 +49170,10 @@ var zh = {
   "new.batchVideoHint": "\u52A0\u5165\u6279\u6B21\u300C{title}\u300D\uFF08\u73B0\u6709 {n} \u6761\uFF09\uFF1A\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u63D0\u4EA4\u540E\u4ECD\u5F52\u5728\u8FD9\u5F20\u6279\u6B21\u5361\u91CC\u3002",
   "batch.append": "\u6279\u91CF\u52A0\u5165\u65B0\u94FE\u63A5",
   "batch.appendTitle": "\u52A0\u5165\u65B0\u94FE\u63A5",
+  "batch.retryFailed": "\u91CD\u8BD5 {n} \u6761\u5931\u8D25\u9879",
+  "batch.retrying": "\u6B63\u5728\u91CD\u8BD5\u2026",
+  "batch.retryQueued": "\u5DF2\u91CD\u65B0\u6392\u961F {n} \u6761",
+  "batch.retryPartial": "\u5DF2\u91CD\u65B0\u6392\u961F {n} \u6761\uFF0C{m} \u6761\u672A\u80FD\u91CD\u8BD5",
   "new.videoHint": "\u6BCF\u884C\u4E00\u4E2A\u94FE\u63A5\uFF0C\u6700\u591A 50 \u6761\uFF1B\u683C\u5F0F\u9519\u8BEF\u6216\u4E0D\u652F\u6301\u7684\u94FE\u63A5\u4F1A\u81EA\u52A8\u8DF3\u8FC7\u3002\u652F\u6301 B\u7AD9\u3001\u5FAE\u535A\u3001\u6296\u97F3\u3001YouTube\u3001X\u3002",
   "new.launchHint": "\u8F93\u5165 B\u7AD9\u76F4\u64AD\u94FE\u63A5\uFF0C\u9884\u68C0\u901A\u8FC7\u540E\u53EF\u5F00\u59CB\u91C7\u96C6\u3002",
   "new.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u6574\u6BB5\u79BB\u7EBF\u8F6C\u5199\uFF1B\u89C6\u9891\u4FDD\u7559\u7528\u4E8E\u56DE\u653E\u3002",
@@ -49560,6 +49629,10 @@ var en = {
   "new.batchVideoHint": "Adding to \u201C{title}\u201D ({n} so far): one link per line, up to 50; new links stay in this batch card.",
   "batch.append": "Add more links",
   "batch.appendTitle": "Add links",
+  "batch.retryFailed": "Retry {n} failed items",
+  "batch.retrying": "Retrying\u2026",
+  "batch.retryQueued": "Re-queued {n}",
+  "batch.retryPartial": "Re-queued {n}; {m} could not be retried",
   "new.videoHint": "One link per line, up to 50; malformed or unsupported links are skipped. Bilibili, Weibo, Douyin, YouTube and X.",
   "new.launchHint": "Paste a Bilibili live URL and start after the check passes.",
   "new.meetingHint": "Choose a local audio or video file; transcription is offline and the video stays for playback.",
@@ -50489,6 +50562,8 @@ function HomePage({
   const [openBatchId, setOpenBatchId] = React.useState("");
   const [batchAppend, setBatchAppend] = React.useState(false);
   const [focusedBatchId, setFocusedBatchId] = React.useState("");
+  const [retryingBatches, setRetryingBatches] = React.useState({});
+  const retryingBatchesRef = React.useRef(/* @__PURE__ */ new Set());
   const [packs, setPacks] = React.useState([]);
   const packsRef = React.useRef(packs);
   packsRef.current = packs;
@@ -51294,6 +51369,38 @@ function HomePage({
       }
     });
   }
+  async function retryBatchFailed(batch) {
+    const batchId = batch?.id;
+    if (!batchId || retryingBatchesRef.current.has(batchId)) return;
+    const ids = (batch.members || []).filter((member) => member?.id && member.status === "error").map((member) => member.id);
+    if (!ids.length) {
+      onToast?.("\u8FD9\u6279\u6CA1\u6709\u5931\u8D25\u7684\u8BB0\u5F55");
+      return;
+    }
+    retryingBatchesRef.current.add(batchId);
+    setRetryingBatches((current) => ({ ...current, [batchId]: true }));
+    try {
+      const settled = await Promise.allSettled(ids.map((id) => retryLink(id)));
+      const queued = settled.filter((row) => row.status === "fulfilled").length;
+      const failed = settled.length - queued;
+      if (failed) {
+        const reason = settled.find((row) => row.status === "rejected")?.reason?.message || "";
+        onToast?.(t("batch.retryPartial").replace("{n}", String(queued)).replace("{m}", String(failed)) + (reason ? `\uFF1A${reason}` : ""));
+      } else {
+        onToast?.(t("batch.retryQueued").replace("{n}", String(queued)));
+      }
+      await load(false);
+    } catch (failure) {
+      onToast?.(failure?.message || String(failure));
+    } finally {
+      retryingBatchesRef.current.delete(batchId);
+      setRetryingBatches((current) => {
+        const next = { ...current };
+        delete next[batchId];
+        return next;
+      });
+    }
+  }
   function askDeleteBatch(batch) {
     const ids = (batch?.members || []).map((member) => member.id).filter(Boolean);
     if (!ids.length) {
@@ -51445,12 +51552,15 @@ function HomePage({
         {
           item: entry.item,
           focused: !packMode && focusedBatchId === entry.item.id,
+          t,
+          retrying: Boolean(retryingBatches[entry.item.id]),
           onOpen: packMode ? () => openMember?.(entry) : (batch) => {
             setBatchAppend(false);
             setOpenBatchId(batch.id);
           },
           onMenu: packMode ? void 0 : (event) => batchMenu(entry, event),
-          onDelete: packMode ? void 0 : askDeleteBatch
+          onDelete: packMode ? void 0 : askDeleteBatch,
+          onRetry: packMode ? void 0 : retryBatchFailed
         }
       );
     }
@@ -51590,6 +51700,8 @@ function HomePage({
       batch: openBatch,
       t,
       initialAppending: batchAppend,
+      retrying: Boolean(retryingBatches[openBatch.id]),
+      onRetry: retryBatchFailed,
       onClose: () => {
         setOpenBatchId("");
         setBatchAppend(false);

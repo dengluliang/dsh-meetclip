@@ -200,6 +200,7 @@ const deleteCalls = []
 const renameCalls = []
 const interactionCalls = []
 const linkBatchBodies = []
+const retryLinkCalls = []
 const meetingImportBodies = []
 globalThis.fetch = async (url, options = {}) => {
   const target = String(url)
@@ -232,6 +233,22 @@ globalThis.fetch = async (url, options = {}) => {
   }
   if (target.includes('/api/link-videos/preview')) {
     return json({ ok: true, platform: 'bilibili', title: '预览视频', subtitle_status: 'none' })
+  }
+  if (/\/api\/link-videos\/[^/]+\/retry$/.test(target)) {
+    const id = decodeURIComponent(target.split('/').slice(-2)[0])
+    retryLinkCalls.push(id)
+    const batch = homePayload.batches.find((row) => (row.members || []).some((member) => member.id === id))
+    const member = batch?.members?.find((row) => row.id === id)
+    if (member) member.status = 'queued'
+    if (batch) {
+      const count = (status) => batch.members.filter((row) => row.status === status).length
+      batch.counts = {
+        queued: count('queued'), processing: count('processing'), done: count('done'),
+        error: count('error'), cancelled: count('cancelled')
+      }
+      batch.active = batch.counts.queued + batch.counts.processing
+    }
+    return json({ ok: true, queue_position: 1 })
   }
   if (target.includes('/api/link-videos/batch')) {
     const body = JSON.parse(String(options.body || '{}'))
@@ -1353,11 +1370,12 @@ try {
 
   // 批次卡与批次浮层
   homePayload.batches = [{
-    id: 'batch1', title: '批量视频 · 测试', created_at: 1793000400, total: 2,
-    counts: { queued: 1, processing: 0, done: 1, error: 0, cancelled: 0 }, active: 1,
+    id: 'batch1', title: '批量视频 · 测试', created_at: 1793000400, total: 3,
+    counts: { queued: 1, processing: 0, done: 1, error: 1, cancelled: 0 }, active: 1,
     members: [
       { id: 'x1', title: '批次视频一', status: 'done', platform: 'bilibili', source_url: 'https://www.bilibili.com/video/BV1', duration: 120, error: '' },
-      { id: 'x2', title: '批次视频二', status: 'queued', platform: 'weibo', source_url: 'https://weibo.com/1/a', duration: 0, error: '' }
+      { id: 'x2', title: '批次视频二', status: 'queued', platform: 'weibo', source_url: 'https://weibo.com/1/a', duration: 0, error: '' },
+      { id: 'x3', title: '批次视频三', status: 'error', platform: 'youtube', source_url: 'https://www.youtube.com/watch?v=x3', duration: 0, error: '下载失败：HTTP 403' }
     ]
   }]
   await act(async () => {
@@ -1367,7 +1385,7 @@ try {
   const batchCard = renderer.root.findAll((node) => String(node.props?.className || '').includes('mc-batch-card'))[0]
   if (!batchCard) throw new Error('Batch card missing')
   const batchText = textOf(batchCard.props.children)
-  for (const expected of ['批次', '查看 2 条', '1/2 完成']) {
+  for (const expected of ['批次', '查看 3 条', '1/3 完成', '1 失败', '重试 1 条失败项']) {
     if (!batchText.includes(expected)) throw new Error('Batch card missing ' + expected)
   }
   await act(async () => { batchCard.props.onClick() })
@@ -1375,6 +1393,15 @@ try {
   const batchModal = renderer.root.findAll((node) => String(node.props?.className || '').includes('mc-batch-modal'))[0]
   if (!batchModal) throw new Error('Batch overlay missing')
   if (!textOf(batchModal.props.children).includes('批次视频一')) throw new Error('Batch overlay member missing')
+  const batchRetry = batchModal.findAll((node) => String(node.props?.className || '').includes('mc-batch-retry-action'))[0]
+  if (!batchRetry) throw new Error('Batch overlay retry button missing')
+  if (!textOf(batchRetry.props.children).includes('重试 1 条失败项')) throw new Error('Batch retry label missing')
+  await act(async () => { batchRetry.props.onClick() })
+  await flush(400)
+  if (retryLinkCalls.filter((id) => id === 'x3').length !== 1) throw new Error('Failed batch member was not retried')
+  if (renderer.root.findAll((node) => String(node.props?.className || '').includes('mc-batch-retry-action')).length) {
+    throw new Error('Batch retry button should disappear after the failure is re-queued')
+  }
   const batchMember = batchModal.findAllByType('button').find((node) => textOf(node.props.children).includes('批次视频一'))
   if (!batchMember) throw new Error('Batch overlay member button missing')
   await act(async () => { batchMember.props.onClick() })
