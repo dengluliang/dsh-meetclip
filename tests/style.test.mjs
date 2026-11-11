@@ -138,20 +138,28 @@ test('dark overrides cover both host and preview theme hooks', async () => {
   assert.equal((css.match(/\[data-theme='dark'\]/g) || []).length, paired)
 })
 
-// 会议模板把结论和待办并进同一节：序号列和勾选框列必须等宽，
-// 否则「1. 结论」和「☐ 待办」的正文左边缘差 4px，整段读起来是锯齿的。
+// 会议模板把结论和待办并进同一节：序号和勾选框必须共用一条标记列——
+// 列宽一样（正文左边缘才对齐），两个标记也都在这一格里居中（往下扫才是同一根光轴）。
 test('conclusion numbers and todo checkboxes share one marker column', async () => {
   const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
-  const px = (rule, pattern) => Number((rule.match(pattern) || [])[1])
+  const num = (rule, pattern) => Number((rule.match(pattern) || [])[1])
   const list = (css.match(/\.mc-minutes-list \{[^}]*\}/g) || []).find((rule) => rule.includes('--mc-marker')) || ''
+  const li = (css.match(/\.mc-minutes-list li \{[^}]*\}/g) || [])[0] || ''
   const index = (css.match(/\.mc-minutes-conclusions \.mc-minutes-index \{[^}]*\}/g) || [])[0] || ''
   const box = (css.match(/\.mc-minutes-box \{[^}]*\}/g) || [])[0] || ''
-  const marker = px(list, /--mc-marker:\s*(\d+)px/)
+  const marker = num(list, /--mc-marker:\s*([\d.]+)px/)
+  const row = num(list, /--mc-row:\s*([\d.]+)px/)
   assert.ok(marker > 0, '「.mc-minutes-list」应声明 --mc-marker 作为两条列表共用的标记列宽')
+  assert.ok(row > 0, '「.mc-minutes-list」应声明 --mc-row 作为标记列的高（等于条目行高）')
+  const lineHeight = num(li, /font-size:\s*([\d.]+)px/) * num(li, /line-height:\s*([\d.]+)/)
+  assert.ok(Math.abs(lineHeight - row) < 0.05, `标记列高应与条目行高一致：${lineHeight} ≠ ${row}`)
   assert.match(index, /flex: 0 0 var\(--mc-marker\)/, '结论序号应占满标记列')
-  const basis = px(box, /flex: 0 0 (\d+)px/)
-  const right = px(box, /margin:\s*\d+px (\d+)px 0 0/)
-  assert.equal(basis + right, marker, `勾选框宽度加右留白应等于标记列宽：${basis} + ${right} ≠ ${marker}`)
+  assert.match(index, /height: var\(--mc-row\)/, '结论序号应占满标记列的高')
+  assert.match(index, /justify-content: center/, '序号在标记列里水平居中')
+  assert.match(index, /align-items: center/, '序号在标记列里垂直居中')
+  const basis = num(box, /flex: 0 0 ([\d.]+)px/)
+  const inset = num(box, /margin:\s*calc\(\(var\(--mc-row\) - [\d.]+px\) \/ 2\) ([\d.]+)px 0/)
+  assert.equal(basis + inset * 2, marker, `勾选框宽度加左右留白应等于标记列宽：${basis} + ${inset} × 2 ≠ ${marker}`)
 })
 
 // 合并节里结论块和待办块要能分开：待办跟在结论后面时补一档间距，

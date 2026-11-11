@@ -4995,17 +4995,18 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 button.mc-minutes-time:hover { text-decoration: underline; }
 span.mc-minutes-time { color: var(--dsw-alias-label-tertiary); cursor: default; }
 .mc-minutes-text { min-width: 0; }
-/* \u5E8F\u53F7\u548C\u52FE\u9009\u6846\u5171\u7528\u540C\u4E00\u6761\u6807\u8BB0\u5217\uFF1A16px\uFF08\u52FE\u9009\u6846 12px + \u53F3\u4FA7 4px \u7559\u767D\uFF09\uFF0C
-   \u4E24\u6761\u5217\u8868\u7684\u6B63\u6587\u624D\u4F1A\u843D\u5728\u540C\u4E00\u4E2A\u5DE6\u8FB9\u7F18\u4E0A\u2014\u2014\u4F1A\u8BAE\u6A21\u677F\u628A\u7ED3\u8BBA\u548C\u5F85\u529E\u5E76\u8FDB\u540C\u4E00\u8282\uFF0C\u9519\u5F00 4px \u4E00\u773C\u5C31\u80FD\u770B\u51FA\u6765\u3002 */
-.mc-minutes-list { --mc-marker: 16px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+/* \u5E8F\u53F7\u548C\u52FE\u9009\u6846\u5171\u7528\u540C\u4E00\u6761\u6807\u8BB0\u5217\uFF1A\u5BBD 16px\u3001\u9AD8 20.8px\uFF0813px \u5B57\u53F7 \xD7 1.6 \u884C\u9AD8\uFF09\u3002
+   \u4E24\u4E2A\u6807\u8BB0\u90FD\u5728\u8FD9\u4E00\u683C\u91CC\u6C34\u5E73\u5C45\u4E2D\u3001\u5E76\u5728\u6761\u76EE\u7B2C\u4E00\u884C\u91CC\u5782\u76F4\u5C45\u4E2D\uFF0C\u6240\u4EE5\u5F80\u4E0B\u626B\u8FD9\u4E00\u5217\u65F6\u6570\u5B57\u548C\u65B9\u6846\u843D\u5728\u540C\u4E00\u4E2A\u5149\u8F74\u4E0A\uFF1B
+   \u6B63\u6587\u4ECE 16 + 8 = 24px \u8D77\uFF0C\u7ED3\u8BBA\u548C\u5F85\u529E\u4E24\u6761\u5217\u8868\u7684\u5DE6\u8FB9\u7F18\u4E5F\u4E00\u81F4\u3002 */
+.mc-minutes-list { --mc-marker: 16px; --mc-row: 20.8px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .mc-minutes-list li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.6; }
-.mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
+.mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); align-self: flex-start; height: var(--mc-row); display: flex; align-items: center; justify-content: center; line-height: 1; color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
 .mc-minutes-todos li { align-items: flex-start; }
 /* \u5408\u5E76\u8282\u91CC\u7ED3\u8BBA\u548C\u5F85\u529E\u662F\u4E24\u7EC4\uFF1A\u5F85\u529E\u524D\u9762\u7559\u4E00\u6863\uFF08\u6761\u76EE\u95F4\u8DDD 6px + 10px\uFF09\uFF0C
    \u6807\u8BB0\u4ECE\u6570\u5B57\u6362\u6210\u52FE\u9009\u6846\u65F6\u4E0D\u4F1A\u770B\u6210\u540C\u4E00\u6761\u5217\u8868\uFF1B\u53EA\u6709\u5F85\u529E\u65F6\u76F8\u90BB\u9009\u62E9\u5668\u4E0D\u751F\u6548\uFF0C\u4E0D\u7559\u4E0B\u60AC\u7A7A\u95F4\u8DDD\u3002 */
 .mc-minutes-conclusions + .mc-minutes-todos { margin-top: 10px; }
-/* \u52FE\u9009\u6846\u5728\u7B2C\u4E00\u884C\u91CC\u5149\u5B66\u5C45\u4E2D\uFF1A\u884C\u9AD8 20.8px\u3001\u76D2 12px\uFF0C\u4E0A\u8FB9\u8DDD 4px \u6BD4\u539F\u6765\u7684 3px \u66F4\u8D34\u6B63\u6587\u3002 */
-.mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: 4px 4px 0 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
+/* \u52FE\u9009\u6846 12px\uFF0C\u5DE6\u53F3\u5404 2px \u8BA9\u5B83\u5728 16px \u7684\u6807\u8BB0\u5217\u91CC\u5C45\u4E2D\uFF0C\u4E0A\u8FB9\u8DDD (20.8 - 12) / 2 = 4.4px \u8BA9\u5B83\u5728\u7B2C\u4E00\u884C\u91CC\u5C45\u4E2D\u3002 */
+.mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: calc((var(--mc-row) - 12px) / 2) 2px 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
 button.mc-minutes-box { cursor: pointer; }
 button.mc-minutes-box:hover { border-color: var(--dsw-alias-brand-primary); }
 button.mc-minutes-box[aria-checked='true'] { border-color: var(--dsw-alias-brand-primary); background: var(--dsw-alias-brand-primary); position: relative; }

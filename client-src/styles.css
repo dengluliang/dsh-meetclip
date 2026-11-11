@@ -3248,17 +3248,18 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 button.mc-minutes-time:hover { text-decoration: underline; }
 span.mc-minutes-time { color: var(--dsw-alias-label-tertiary); cursor: default; }
 .mc-minutes-text { min-width: 0; }
-/* 序号和勾选框共用同一条标记列：16px（勾选框 12px + 右侧 4px 留白），
-   两条列表的正文才会落在同一个左边缘上——会议模板把结论和待办并进同一节，错开 4px 一眼就能看出来。 */
-.mc-minutes-list { --mc-marker: 16px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+/* 序号和勾选框共用同一条标记列：宽 16px、高 20.8px（13px 字号 × 1.6 行高）。
+   两个标记都在这一格里水平居中、并在条目第一行里垂直居中，所以往下扫这一列时数字和方框落在同一个光轴上；
+   正文从 16 + 8 = 24px 起，结论和待办两条列表的左边缘也一致。 */
+.mc-minutes-list { --mc-marker: 16px; --mc-row: 20.8px; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .mc-minutes-list li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.6; }
-.mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
+.mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); align-self: flex-start; height: var(--mc-row); display: flex; align-items: center; justify-content: center; line-height: 1; color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
 .mc-minutes-todos li { align-items: flex-start; }
 /* 合并节里结论和待办是两组：待办前面留一档（条目间距 6px + 10px），
    标记从数字换成勾选框时不会看成同一条列表；只有待办时相邻选择器不生效，不留下悬空间距。 */
 .mc-minutes-conclusions + .mc-minutes-todos { margin-top: 10px; }
-/* 勾选框在第一行里光学居中：行高 20.8px、盒 12px，上边距 4px 比原来的 3px 更贴正文。 */
-.mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: 4px 4px 0 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
+/* 勾选框 12px，左右各 2px 让它在 16px 的标记列里居中，上边距 (20.8 - 12) / 2 = 4.4px 让它在第一行里居中。 */
+.mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: calc((var(--mc-row) - 12px) / 2) 2px 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
 button.mc-minutes-box { cursor: pointer; }
 button.mc-minutes-box:hover { border-color: var(--dsw-alias-brand-primary); }
 button.mc-minutes-box[aria-checked='true'] { border-color: var(--dsw-alias-brand-primary); background: var(--dsw-alias-brand-primary); position: relative; }
