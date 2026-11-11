@@ -1,5 +1,6 @@
 import { addPackMembers, boardImageUrl, boardImages, createPack, createStickyNote, deleteBoardImage, deletePack, deleteStickyNote, fileUrl, homeFeed, listCards, openExternal, pickFile, removePackMembers, renamePack, renameSession, reorderPackMembers, stickyNotes, syncCards, updateStickyNote, uploadBoardImage } from '../../lib/api.js'
 import { clock, dateTime, kindInfo, statusText } from '../../lib/format.js'
+import { FEED_PAGE_SIZE, feedPageExhausted, mergeFeedPage } from '../../lib/feed-paging.js'
 import { NoteEditor } from './NoteEditor.jsx'
 import { PinMark, ScatterCanvas } from './ScatterCanvas.jsx'
 import { BatchCard } from './BatchCard.jsx'
@@ -552,12 +553,24 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const pinFlashTimer = React.useRef(null)
   const [loading, setLoading] = React.useState(true)
   const [more, setMore] = React.useState(false)
+  // 翻页状态机：more 只管页脚文字，done/error 决定还要不要再请求。
+  // 三者都存一份 ref，观察器回调不依赖闭包里的旧 state 也能立刻停手。
+  const [feedDone, setFeedDone] = React.useState(false)
+  const [moreError, setMoreError] = React.useState('')
+  const moreRef = React.useRef(false)
+  const doneRef = React.useRef(false)
+  const moreErrorRef = React.useRef('')
+  const offsetRef = React.useRef(0)
+  // 首屏重载会作废进行中的翻页请求，避免旧响应把新游标写回去。
+  const feedSeqRef = React.useRef(0)
   const [error, setError] = React.useState('')
   const [kind, setKind] = React.useState('all')
   const [mode, setMode] = React.useState('scatter')
   const [sort, setSort] = React.useState('recent')
   const [localRevision, setLocalRevision] = React.useState(0)
   const sentinel = React.useRef(null)
+  const itemsRef = React.useRef(items)
+  itemsRef.current = items
   const homeRef = React.useRef(null)
   const pastePointRef = React.useRef(null)
   const pasteSeqRef = React.useRef(0)
@@ -574,15 +587,30 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   const { menu, open: openMenu, close: closeMenu } = useContextMenu()
 
   const load = React.useCallback(async (reset = true) => {
-    if (reset) setLoading(true)
+    if (reset) {
+      feedSeqRef.current += 1
+      setLoading(true)
+    }
     try {
-      const next = await homeFeed({ limit: 60, offset: 0 })
+      const next = await homeFeed({ limit: FEED_PAGE_SIZE, offset: 0 })
+      const rows = next.items || []
       setData(next)
       setItems((current) => {
-        if (reset) return next.items || []
-        const seen = new Set((next.items || []).map((item) => item.id))
-        return [...(next.items || []), ...current.filter((item) => !seen.has(item.id))]
+        if (reset) return rows
+        const seen = new Set(rows.map((item) => item.id))
+        return [...rows, ...current.filter((item) => !seen.has(item.id))]
       })
+      if (reset) {
+        // 首屏重新加载（切换资料空间、刷新、删除后）要把翻页游标和「到底」状态归零，
+        // 否则旧游标会接着请求已经不存在的页。
+        offsetRef.current = rows.length
+        doneRef.current = feedPageExhausted(rows)
+        moreRef.current = false
+        moreErrorRef.current = ''
+        setFeedDone(doneRef.current)
+        setMore(false)
+        setMoreError('')
+      }
       setHighlights(next.highlights || [])
       setBatches(Array.isArray(next.batches) ? next.batches : [])
       setPacks(Array.isArray(next.packs) ? next.packs : [])
@@ -653,31 +681,54 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
   }, [])
 
   async function loadMore() {
-    if (more || items.length < 60) return
+    // 翻页到底、正在请求、上一次失败还没重试时，一律不再发请求。
+    // 少了这三道闸，观察器每次重新挂载都会立刻回调节点，页脚就在
+    // 「正在加载…」和「继续下滑」之间反复闪。
+    if (moreRef.current || doneRef.current || moreErrorRef.current) return
+    const offset = offsetRef.current
+    if (offset <= 0) return
+    const seq = feedSeqRef.current
+    moreRef.current = true
     setMore(true)
     try {
-      const next = await homeFeed({ limit: 60, offset: items.length })
+      const next = await homeFeed({ limit: FEED_PAGE_SIZE, offset })
+      if (seq !== feedSeqRef.current) return
       const rows = next.items || []
-      setItems((current) => {
-        const seen = new Set(current.map((item) => item.id))
-        return [...current, ...rows.filter((item) => !seen.has(item.id))]
-      })
+      // 游标按后端返回条数推进（而非 items.length）：有重复卡片时也能往前走，不会原地打转。
+      offsetRef.current = offset + rows.length
+      const known = new Set(itemsRef.current.map((item) => item.id))
+      const added = rows.filter((row) => row && !known.has(row.id)).length
+      setItems((current) => mergeFeedPage(current, rows))
+      // 短页是正常的最后一页；整页都是已有卡片说明分页原地打转了，同样到此为止，
+      // 否则观察器会一直把「正在加载…」和「继续下滑」翻来翻去。
+      if (feedPageExhausted(rows) || added === 0) {
+        doneRef.current = true
+        setFeedDone(true)
+      }
     } catch (failure) {
-      onToast?.(failure?.message || String(failure))
+      moreErrorRef.current = failure?.message || String(failure)
+      setMoreError(moreErrorRef.current)
     } finally {
+      moreRef.current = false
       setMore(false)
     }
   }
 
+  function retryMore() {
+    moreErrorRef.current = ''
+    setMoreError('')
+    loadMore()
+  }
+
   React.useEffect(() => {
     const node = sentinel.current
-    if (!node || mode !== 'feed' || typeof IntersectionObserver === 'undefined') return undefined
+    if (!node || mode !== 'feed' || feedDone || typeof IntersectionObserver === 'undefined') return undefined
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) loadMore()
     }, { rootMargin: '400px' })
     observer.observe(node)
     return () => observer.disconnect()
-  }, [mode, items.length, more])
+  }, [mode, items.length, more, feedDone, moreError])
 
   const batchMemberIds = React.useMemo(() => {
     const ids = new Set()
@@ -1585,7 +1636,13 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
               })}
             </div>
           ) : null}
-          {items.length >= 60 ? <div ref={sentinel} className="mc-home-more">{more ? '正在加载…' : '继续下滑'}</div> : null}
+          {items.length >= FEED_PAGE_SIZE ? (
+            <div ref={sentinel} className="mc-home-more" data-state={moreError ? 'error' : more ? 'loading' : feedDone ? 'done' : 'idle'}>
+              {moreError
+                ? <button type="button" className="mc-home-ghost" onClick={retryMore}>加载失败，点击重试</button>
+                : more ? '正在加载…' : feedDone ? '没有更多了' : '继续下滑'}
+            </div>
+          ) : null}
         </div>
       )}
       <div className="mc-home-dock" role="toolbar" aria-label="摘录墙视图">

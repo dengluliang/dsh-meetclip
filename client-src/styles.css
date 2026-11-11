@@ -2176,7 +2176,8 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-home-skeleton-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; }
 .mc-home-skeleton-grid .mc-home-skeleton { height: 280px; }
 @keyframes mc-shimmer { to { background-position: -220% 0; } }
-.mc-home-more { text-align: center; color: var(--dsw-alias-label-tertiary); font-size: 11px; padding: 20px; }
+.mc-home-more { display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; text-align: center; color: var(--dsw-alias-label-tertiary); font-size: 11px; padding: 20px; }
+.mc-home-more[data-state="done"] { color: var(--dsw-alias-label-tertiary); opacity: .75; }
 
 @media (max-width: 1100px) {
   .mc-search-trigger { min-width: 160px; }

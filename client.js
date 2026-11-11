@@ -3923,7 +3923,8 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-home-skeleton-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; }
 .mc-home-skeleton-grid .mc-home-skeleton { height: 280px; }
 @keyframes mc-shimmer { to { background-position: -220% 0; } }
-.mc-home-more { text-align: center; color: var(--dsw-alias-label-tertiary); font-size: 11px; padding: 20px; }
+.mc-home-more { display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; text-align: center; color: var(--dsw-alias-label-tertiary); font-size: 11px; padding: 20px; }
+.mc-home-more[data-state="done"] { color: var(--dsw-alias-label-tertiary); opacity: .75; }
 
 @media (max-width: 1100px) {
   .mc-search-trigger { min-width: 160px; }
@@ -46135,6 +46136,19 @@ function TopBar({
 // client-src/components/home/HomePage.jsx
 init_react_shim();
 
+// client-src/lib/feed-paging.js
+init_react_shim();
+var FEED_PAGE_SIZE = 60;
+function mergeFeedPage(current, rows) {
+  const base = Array.isArray(current) ? current : [];
+  const seen = new Set(base.map((item) => item && item.id));
+  const fresh = (Array.isArray(rows) ? rows : []).filter((item) => item && item.id && !seen.has(item.id));
+  return fresh.length ? [...base, ...fresh] : base;
+}
+function feedPageExhausted(rows, limit = FEED_PAGE_SIZE) {
+  return !Array.isArray(rows) || rows.length < limit;
+}
+
 // client-src/components/home/NoteEditor.jsx
 init_react_shim();
 function NoteEditor({
@@ -50487,12 +50501,21 @@ function HomePage({
   const pinFlashTimer = React.useRef(null);
   const [loading, setLoading] = React.useState(true);
   const [more, setMore] = React.useState(false);
+  const [feedDone, setFeedDone] = React.useState(false);
+  const [moreError, setMoreError] = React.useState("");
+  const moreRef = React.useRef(false);
+  const doneRef = React.useRef(false);
+  const moreErrorRef = React.useRef("");
+  const offsetRef = React.useRef(0);
+  const feedSeqRef = React.useRef(0);
   const [error, setError] = React.useState("");
   const [kind, setKind] = React.useState("all");
   const [mode, setMode] = React.useState("scatter");
   const [sort, setSort] = React.useState("recent");
   const [localRevision, setLocalRevision] = React.useState(0);
   const sentinel = React.useRef(null);
+  const itemsRef = React.useRef(items);
+  itemsRef.current = items;
   const homeRef = React.useRef(null);
   const pastePointRef = React.useRef(null);
   const pasteSeqRef = React.useRef(0);
@@ -50507,15 +50530,28 @@ function HomePage({
   const focusClearRef = React.useRef(null);
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
   const load = React.useCallback(async (reset = true) => {
-    if (reset) setLoading(true);
+    if (reset) {
+      feedSeqRef.current += 1;
+      setLoading(true);
+    }
     try {
-      const next = await homeFeed({ limit: 60, offset: 0 });
+      const next = await homeFeed({ limit: FEED_PAGE_SIZE, offset: 0 });
+      const rows = next.items || [];
       setData(next);
       setItems((current) => {
-        if (reset) return next.items || [];
-        const seen = new Set((next.items || []).map((item) => item.id));
-        return [...next.items || [], ...current.filter((item) => !seen.has(item.id))];
+        if (reset) return rows;
+        const seen = new Set(rows.map((item) => item.id));
+        return [...rows, ...current.filter((item) => !seen.has(item.id))];
       });
+      if (reset) {
+        offsetRef.current = rows.length;
+        doneRef.current = feedPageExhausted(rows);
+        moreRef.current = false;
+        moreErrorRef.current = "";
+        setFeedDone(doneRef.current);
+        setMore(false);
+        setMoreError("");
+      }
       setHighlights(next.highlights || []);
       setBatches(Array.isArray(next.batches) ? next.batches : []);
       setPacks(Array.isArray(next.packs) ? next.packs : []);
@@ -50591,30 +50627,46 @@ function HomePage({
     return () => window.removeEventListener("paste", onPaste);
   }, []);
   async function loadMore() {
-    if (more || items.length < 60) return;
+    if (moreRef.current || doneRef.current || moreErrorRef.current) return;
+    const offset = offsetRef.current;
+    if (offset <= 0) return;
+    const seq = feedSeqRef.current;
+    moreRef.current = true;
     setMore(true);
     try {
-      const next = await homeFeed({ limit: 60, offset: items.length });
+      const next = await homeFeed({ limit: FEED_PAGE_SIZE, offset });
+      if (seq !== feedSeqRef.current) return;
       const rows = next.items || [];
-      setItems((current) => {
-        const seen = new Set(current.map((item) => item.id));
-        return [...current, ...rows.filter((item) => !seen.has(item.id))];
-      });
+      offsetRef.current = offset + rows.length;
+      const known = new Set(itemsRef.current.map((item) => item.id));
+      const added = rows.filter((row) => row && !known.has(row.id)).length;
+      setItems((current) => mergeFeedPage(current, rows));
+      if (feedPageExhausted(rows) || added === 0) {
+        doneRef.current = true;
+        setFeedDone(true);
+      }
     } catch (failure) {
-      onToast?.(failure?.message || String(failure));
+      moreErrorRef.current = failure?.message || String(failure);
+      setMoreError(moreErrorRef.current);
     } finally {
+      moreRef.current = false;
       setMore(false);
     }
   }
+  function retryMore() {
+    moreErrorRef.current = "";
+    setMoreError("");
+    loadMore();
+  }
   React.useEffect(() => {
     const node = sentinel.current;
-    if (!node || mode !== "feed" || typeof IntersectionObserver === "undefined") return void 0;
+    if (!node || mode !== "feed" || feedDone || typeof IntersectionObserver === "undefined") return void 0;
     const observer = new IntersectionObserver((entries2) => {
       if (entries2.some((entry) => entry.isIntersecting)) loadMore();
     }, { rootMargin: "400px" });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [mode, items.length, more]);
+  }, [mode, items.length, more, feedDone, moreError]);
   const batchMemberIds = React.useMemo(() => {
     const ids = /* @__PURE__ */ new Set();
     for (const batch of batches) for (const member of batch.members || []) ids.add(member.id);
@@ -51481,7 +51533,7 @@ function HomePage({
       pinned ? /* @__PURE__ */ React.createElement(PinMark, null) : null,
       renderEntry(entry)
     );
-  })) : null, items.length >= 60 ? /* @__PURE__ */ React.createElement("div", { ref: sentinel, className: "mc-home-more" }, more ? "\u6B63\u5728\u52A0\u8F7D\u2026" : "\u7EE7\u7EED\u4E0B\u6ED1") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-home-dock", role: "toolbar", "aria-label": "\u6458\u5F55\u5899\u89C6\u56FE" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-seg", role: "tablist", "aria-label": "\u5C55\u793A\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "feed", "data-active": mode === "feed", onClick: () => setMode("feed") }, "\u4FE1\u606F\u6D41"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "scatter", "data-active": mode === "scatter", onClick: () => setMode("scatter") }, "\u6563\u843D")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-sep" }), /* @__PURE__ */ React.createElement("div", { className: "mc-home-chips", role: "tablist", "aria-label": "\u7B5B\u9009" }, FILTERS2.map((filter) => /* @__PURE__ */ React.createElement(
+  })) : null, items.length >= FEED_PAGE_SIZE ? /* @__PURE__ */ React.createElement("div", { ref: sentinel, className: "mc-home-more", "data-state": moreError ? "error" : more ? "loading" : feedDone ? "done" : "idle" }, moreError ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-ghost", onClick: retryMore }, "\u52A0\u8F7D\u5931\u8D25\uFF0C\u70B9\u51FB\u91CD\u8BD5") : more ? "\u6B63\u5728\u52A0\u8F7D\u2026" : feedDone ? "\u6CA1\u6709\u66F4\u591A\u4E86" : "\u7EE7\u7EED\u4E0B\u6ED1") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-home-dock", role: "toolbar", "aria-label": "\u6458\u5F55\u5899\u89C6\u56FE" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-seg", role: "tablist", "aria-label": "\u5C55\u793A\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "feed", "data-active": mode === "feed", onClick: () => setMode("feed") }, "\u4FE1\u606F\u6D41"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "scatter", "data-active": mode === "scatter", onClick: () => setMode("scatter") }, "\u6563\u843D")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-sep" }), /* @__PURE__ */ React.createElement("div", { className: "mc-home-chips", role: "tablist", "aria-label": "\u7B5B\u9009" }, FILTERS2.map((filter) => /* @__PURE__ */ React.createElement(
     "button",
     {
       key: filter.id,
