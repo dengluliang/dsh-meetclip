@@ -137,3 +137,19 @@ test('dark overrides cover both host and preview theme hooks', async () => {
   assert.equal((css.match(/body\[data-ds-dark-theme\]/g) || []).length, paired)
   assert.equal((css.match(/\[data-theme='dark'\]/g) || []).length, paired)
 })
+
+// 会议模板把结论和待办并进同一节：序号列和勾选框列必须等宽，
+// 否则「1. 结论」和「☐ 待办」的正文左边缘差 4px，整段读起来是锯齿的。
+test('conclusion numbers and todo checkboxes share one marker column', async () => {
+  const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
+  const px = (rule, pattern) => Number((rule.match(pattern) || [])[1])
+  const list = (css.match(/\.mc-minutes-list \{[^}]*\}/g) || []).find((rule) => rule.includes('--mc-marker')) || ''
+  const index = (css.match(/\.mc-minutes-conclusions \.mc-minutes-index \{[^}]*\}/g) || [])[0] || ''
+  const box = (css.match(/\.mc-minutes-box \{[^}]*\}/g) || [])[0] || ''
+  const marker = px(list, /--mc-marker:\s*(\d+)px/)
+  assert.ok(marker > 0, '「.mc-minutes-list」应声明 --mc-marker 作为两条列表共用的标记列宽')
+  assert.match(index, /flex: 0 0 var\(--mc-marker\)/, '结论序号应占满标记列')
+  const basis = px(box, /flex: 0 0 (\d+)px/)
+  const right = px(box, /margin:\s*\d+px (\d+)px 0 0/)
+  assert.equal(basis + right, marker, `勾选框宽度加右留白应等于标记列宽：${basis} + ${right} ≠ ${marker}`)
+})
