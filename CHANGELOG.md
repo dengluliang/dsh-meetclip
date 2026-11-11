@@ -7,6 +7,19 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.13 结论和待办的序号、勾选框对齐到同一条标记列
+
+发布日期：2026-11-11。
+
+- **现象**：会议模板的「结论和待办」把两条列表并进同一节后，编号结论与勾选待办的正文左边缘差 4px；正文对齐之后，序号和勾选框仍不在一条光轴上——数字贴着标记列左边，方框占满 12px 且靠左，水平中心差 2.5px、垂直又差 1px；两块之间还没有分组间距，读起来像一条列表在中途换了标记。
+- **根因**：两条列表各写死一套标记宽度（序号 `flex: 0 0 16px` + `gap: 8px`，勾选框 `width: 12px` + `gap: 8px`），正文因此落在 24px / 20px 两列；两个标记的垂直基准也不同（数字按 13px 正文的基线排，方框按顶边 + 3px 排）。
+- **修复**：`.mc-minutes-list` 声明 `--mc-marker: 16px`（列宽）与 `--mc-row: 20.8px`（列高 = 13px × 1.6 行高）；序号 `flex: 0 0 var(--mc-marker)` + `height: var(--mc-row)` + flex 居中，勾选框 `flex: 0 0 12px` + `margin: calc((var(--mc-row) - 12px) / 2) 2px 0`。两条列表正文同起 24px，数字与方框的水平中心、垂直中心都落在同一条中线上；两位序号（第 10 条）仍居中在列内。
+- **分组**：`.mc-minutes-conclusions + .mc-minutes-todos` 加 10px 上间距（条目间距 6px + 10px = 16px），结论块和待办块不再连成一条列表；待办单独成节（视频 / 直播模板）时相邻选择器不生效，不留悬空间距。
+- **预览与测试**：新增 `build/outcomes-preview.{jsx,html}` + `build/build-outcomes-preview.mjs` + `build/outcomes-preview-shot.mjs`（真实 `MinutesView` + 真实样式；`--metrics` 量列、`--stress` 补两位序号与长待办、`--done` 核对打勾划线）；`tests/style.test.mjs` 新增 2 项，守住「列宽相等 / 列高等于行高 / 标记居中 / 待办前间距大于条目间距」。前端 `node --test tests/*.test.mjs` **270/270** 通过。
+- **像素复核**：正文列 40 / 36 → 统一 40；序号与勾选框的中心差 2.5px（水平）/ 1px（垂直）→ ≤ 0.5px（无头 Chrome，见 `build/outcomes-align-compare.png`、`build/outcomes-axis-compare.png`）。
+
+> 上一节 0.9.12 的「信息流翻到底」修复包含在本版本中。
+
 ## 0.9.12 信息流翻到底后不再来回闪
 
 发布日期：2026-11-11。
