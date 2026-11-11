@@ -31,13 +31,14 @@
 - 现象：会议模板把结论和待办并进同一节，编号结论与勾选待办的正文左边缘差 4px；序号列（16px）和勾选框列（12px）也不等宽，整段读起来是锯齿的。
 - 根因：两条列表各自写死标记宽度——序号 `flex: 0 0 16px` + `gap: 8px`，勾选框 `width: 12px` + `gap: 8px`，正文因此落在 24px 和 20px 两列。
 - 修复：`.mc-minutes-list` 新增 `--mc-marker: 16px`，序号列按变量占位；`.mc-minutes-box` 改为 `flex: 0 0 12px` + `margin: 4px 4px 0 0`（12 + 4 = 16px），两条列表的正文都从 24px 起。勾选框上边距 3px → 4px，让 12px 的盒在 20.8px 行高里和正文第一行光学居中。
+- 分层：`.mc-minutes-conclusions + .mc-minutes-todos` 加 10px 上间距（条目间距 6px + 10px = 16px），结论块和待办块不再连成一条列表；单独出现待办（视频 / 直播模板）时相邻选择器不生效，不会留下悬空间距。
 - 新增预览：`build/outcomes-preview.jsx` + `build/outcomes-preview.html` + `build/build-outcomes-preview.mjs` + `build/outcomes-preview-shot.mjs`，用真实 `MinutesView` 和真实样式渲染这条记录（5 条结论 + 10 条待办）；`--metrics` 量序号 / 勾选框 / 正文的 x，`--stress` 补两位序号（1..10）和一条长待办，`--done` 把第一条待办标成已完成。
 
 ### 自动化验证
 
 - `node build/outcomes-preview-shot.mjs --metrics`：修复前正文列 **40 / 36**（结论 / 待办），修复后统一 **40**；序号列与勾选框列都从 16 起。
-- `node --test tests/*.test.mjs` **269/269** 通过，新增 `tests/style.test.mjs` 用例「conclusion numbers and todo checkboxes share one marker column」（勾选框宽度 + 右留白必须等于标记列宽）。
-- `node build/build-client.mjs` 重新生成 `client.js`（2 218 901 字节），`client.js` 内 `--mc-marker` 命中 2 处。
+- `node --test tests/*.test.mjs` **270/270** 通过，新增 `tests/style.test.mjs` 两个用例：「conclusion numbers and todo checkboxes share one marker column」（勾选框宽度 + 右留白必须等于标记列宽）与「the todo block is set off from the conclusions above it」（待办前间距必须大于条目间距）。
+- `node build/build-client.mjs` 重新生成 `client.js`（2 219 409 字节），`client.js` 内 `--mc-marker` 命中 2 处。
 - 无头 Chrome 复核浅色主题：`build/outcomes-align-compare.png`（上：修复前，下：修复后，红线为结论正文列）。
 
 ### 手工核对

@@ -5001,6 +5001,9 @@ span.mc-minutes-time { color: var(--dsw-alias-label-tertiary); cursor: default; 
 .mc-minutes-list li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.6; }
 .mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
 .mc-minutes-todos li { align-items: flex-start; }
+/* \u5408\u5E76\u8282\u91CC\u7ED3\u8BBA\u548C\u5F85\u529E\u662F\u4E24\u7EC4\uFF1A\u5F85\u529E\u524D\u9762\u7559\u4E00\u6863\uFF08\u6761\u76EE\u95F4\u8DDD 6px + 10px\uFF09\uFF0C
+   \u6807\u8BB0\u4ECE\u6570\u5B57\u6362\u6210\u52FE\u9009\u6846\u65F6\u4E0D\u4F1A\u770B\u6210\u540C\u4E00\u6761\u5217\u8868\uFF1B\u53EA\u6709\u5F85\u529E\u65F6\u76F8\u90BB\u9009\u62E9\u5668\u4E0D\u751F\u6548\uFF0C\u4E0D\u7559\u4E0B\u60AC\u7A7A\u95F4\u8DDD\u3002 */
+.mc-minutes-conclusions + .mc-minutes-todos { margin-top: 10px; }
 /* \u52FE\u9009\u6846\u5728\u7B2C\u4E00\u884C\u91CC\u5149\u5B66\u5C45\u4E2D\uFF1A\u884C\u9AD8 20.8px\u3001\u76D2 12px\uFF0C\u4E0A\u8FB9\u8DDD 4px \u6BD4\u539F\u6765\u7684 3px \u66F4\u8D34\u6B63\u6587\u3002 */
 .mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: 4px 4px 0 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
 button.mc-minutes-box { cursor: pointer; }

@@ -153,3 +153,14 @@ test('conclusion numbers and todo checkboxes share one marker column', async () 
   const right = px(box, /margin:\s*\d+px (\d+)px 0 0/)
   assert.equal(basis + right, marker, `勾选框宽度加右留白应等于标记列宽：${basis} + ${right} ≠ ${marker}`)
 })
+
+// 合并节里结论块和待办块要能分开：待办跟在结论后面时补一档间距，
+// 只挂在相邻选择器上，单独出现待办（视频/直播模板）时不会留下悬空的外边距。
+test('the todo block is set off from the conclusions above it', async () => {
+  const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
+  const rule = (css.match(/\.mc-minutes-conclusions \+ \.mc-minutes-todos \{[^}]*\}/g) || [])[0] || ''
+  const gap = Number((rule.match(/margin-top:\s*(\d+)px/) || [])[1])
+  const itemGap = Number((css.match(/\.mc-minutes-list \{[^}]*gap: (\d+)px/) || [])[1])
+  assert.ok(gap > 0, '待办跟在结论后面时应有额外的上间距')
+  assert.ok(gap > itemGap, `结论与待办之间的间距应大于条目间距：${gap} vs ${itemGap}`)
+})

@@ -3254,6 +3254,9 @@ span.mc-minutes-time { color: var(--dsw-alias-label-tertiary); cursor: default; 
 .mc-minutes-list li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; line-height: 1.6; }
 .mc-minutes-conclusions .mc-minutes-index { flex: 0 0 var(--mc-marker); color: var(--dsw-alias-label-tertiary); font-size: 11px; font-variant-numeric: tabular-nums; }
 .mc-minutes-todos li { align-items: flex-start; }
+/* 合并节里结论和待办是两组：待办前面留一档（条目间距 6px + 10px），
+   标记从数字换成勾选框时不会看成同一条列表；只有待办时相邻选择器不生效，不留下悬空间距。 */
+.mc-minutes-conclusions + .mc-minutes-todos { margin-top: 10px; }
 /* 勾选框在第一行里光学居中：行高 20.8px、盒 12px，上边距 4px 比原来的 3px 更贴正文。 */
 .mc-minutes-box { flex: 0 0 12px; width: 12px; height: 12px; margin: 4px 4px 0 0; padding: 0; border: 1.5px solid var(--mc-line); border-radius: 3px; background: transparent; cursor: default; }
 button.mc-minutes-box { cursor: pointer; }
