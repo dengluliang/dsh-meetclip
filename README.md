@@ -7,8 +7,6 @@
 
 ![会摘首页](docs/assets/home-wall-preview.png)
 
-> 个人开源项目，与 DeepSeek、飞书没有隶属关系。插件不内置任何公司的模型网关：Base URL、模型 ID 与 API Key 由你填写；语音与纪要共用一把 Key。飞书 MCP 默认指向 `@mi/feishu-mcp-pro` 与它的内网 npm 源，可用 `feishuPackage` / `feishuRegistry` 覆盖成你自己的镜像。
-
 ## 功能
 
 - **三种采集**：B 站直播（边录边转写）、视频链接（B 站 / YouTube 等）、本地会议音视频。
