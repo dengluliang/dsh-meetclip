@@ -14,7 +14,7 @@ DSH Web GUI
  fork 的 FastAPI 后端（backend/，插件独立 venv）
       ├─ SQLite / 媒体 / HLS / SSE / 统一队列
       ├─ yt-dlp + ffmpeg
-      ├─ MiMo 云端 ASR
+      ├─ 云端 ASR
       ├─ 纪要引擎（增量 + 终稿，证据行号 → 秒）+ AI 治理层（闸门/重试/指标）
       └─ CalDAV + macOS Keychain
 ```
@@ -22,7 +22,7 @@ DSH Web GUI
 ## 关键选择
 
 - **同源代理**：浏览器不接触后端 token，不引入 CORS；SSE 与媒体 Range 直接透传。
-- **纯云端转写**：时间戳来自 MiMo 的 4–15 秒停顿切分（片段级），说话人分离已下线；旧记录标签只读保留。`speakers_cloud.py` 只留一个可注册的云端分离接线位。
+- **纯云端转写**：时间戳来自云端 ASR 的 4–15 秒停顿切分（片段级），说话人分离已下线；旧记录标签只读保留。`speakers_cloud.py` 只留一个可注册的云端分离接线位。
 - **原生工具而非 MCP**：DSH 内不需要每轮 capability token；工具与 UI 调用同一后端接口。
 - **插件自带后端与 venv**：满足“不安装原 App 也能独立使用”；数据仍可复用原 `data/`。
 - **设置进 DSH Settings**：配置按宿主信息架构聚合；主面板只负责业务运行状态。

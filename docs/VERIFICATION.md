@@ -9,14 +9,14 @@
 - 后端：新增 `MEETCLIP_AI_BASE_URL` / `MEETCLIP_AI_MODEL` / `MEETCLIP_ASR_BASE_URL` / `MEETCLIP_ASR_MODEL` 环境变量回落，便于 CI 与无界面部署。
 - Host：`asr-probe` / `models-probe` 去掉内置地址与模型，空地址直接报「请先填写服务地址（Base URL）」；`feishu.js` 的包名与 npm 源改为 `settings.feishuPackage` / `settings.feishuRegistry` → 环境变量 → 空，`packageTarget()` 在未配置时给出可照做的中文提示；`status().package` 新增 `configured`。
 - 客户端：`SetupWizard` 首步新增「服务地址」输入（未填地址不拉模型、按钮置灰）；`SettingsModels` 的语音/文字两张卡各新增「服务地址 + 保存地址」，`modelOptions` 排序改为按当前配置的族名；`SetupProgressCards` 的配置表单补地址与模型；`feishuSummary` 优先提示「未配置 MCP 源」并置灰安装按钮。
-- 文档与测试：README / INSTALL / CHANGELOG / ARCHITECTURE / 调研文档里的内网地址、内网 npm 源、私有包名与厂商模型名全部替换为通用描述；前端与后端测试夹具改用 `https://gateway.example.test/v1` + `demo-*` 模型名。
+- 文档与测试：README / INSTALL / CHANGELOG / ARCHITECTURE / 调研文档里的私有地址、私有 npm 源、私有包名与厂商模型名全部替换为通用描述；前端与后端测试夹具改用 `https://gateway.example.test/v1` + `demo-*` 模型名。
 
 ### 自动化验证
 
 - 前端 `node --test tests/*.test.mjs` **242/242** 通过（含 `tests/feishu.test.mjs` 改为显式注入测试包名与源、`tests/host.test.mjs` 的 ASR 探针与模型清单用例改为传 `base_url`、新增「没填地址不发请求」断言）。
 - 后端 `MEETCLIP_TEST_PYTHON=…/python3.12 bash backend/tests/run-all.sh` **29 个测试文件全部 PASS**；重点：`test_cloud_asr` 补「不填 Base URL 返回 400 + 提示」、`test_task_queue` 与 `test_minutes*` 通过环境变量注入示例网关、`test_ai_layer` 的 `wire_model` 用例改为按 `MEETCLIP_AI_MODEL_PREFIX` 断言。
 - 基线对照：同样的后端用例在 git HEAD（0.9.1）上全部 PASS，说明本轮改动没有掩盖既有失败。
-- `node build/build-client.mjs` + `node --check client.js` 通过；重新构建的 `client.js` 里内网域名、内网源、私有包名与厂商前缀 0 命中。
+- `node build/build-client.mjs` + `node --check client.js` 通过；重新构建的 `client.js` 里私有域名、私有源、私有包名与厂商前缀 0 命中。
 - 全仓库扫描（源码 / 文档 / 测试 / 构建产物）上述四类标识 0 命中；`backend/data/` 属本地运行数据，已在 `.gitignore` 中排除。
 
 ### 手工核对
@@ -394,22 +394,22 @@
 - 修复：
   - `invalid_key` 显示「AI Key 无效」，`no_key` 才显示「未配置文字模型」；两者分别有独立提示。
   - 失败时读取 `/api/ai/status`，提示里带上当前模型：「AI Key 已配置（demo-flash），但上次调用被拒绝：AI Key 无效或无模型权限」，并提供「检查模型」按钮直接调 `/api/ai/check`。
-  - `own_key=false`（文字总结沿用 Mify/ASR 那把 Key）时额外提示：如该 Key 没有文本模型权限，请在「文字总结 → 自定义 API」单独填 Key。
+  - `own_key=false`（文字总结沿用云端 ASR 那把 Key）时额外提示：如该 Key 没有文本模型权限，请在「文字总结 → 自定义 API」单独填 Key。
   - 无 AI 内容时按钮文案改为「生成纪要」，有 AI 段落时才是「重新生成」。
   - 新增深色预览 `build/notes-preview-invalid.png` 复现该状态。
-- 本机实测（2026-11-06）：`/api/ai/status` 返回 `has_key=true`、`own_key=false`、`model=demo-flash`；`/api/ai/check` 当时返回 `invalid_key`。后续定位到这不是 Key 权限，而是模型名少了 Mify 网关要求的 `xiaomi/` 前缀（见下一条）。
+- 本机实测（2026-11-06）：`/api/ai/status` 返回 `has_key=true`、`own_key=false`、`model=demo-flash`；`/api/ai/check` 当时返回 `invalid_key`。后续定位到这不是 Key 权限，而是模型名少了网关要求的供应商前缀（见下一条）。
 - 前端重新构建、`node --check`、render/interaction smoke 均通过；`client.js` 重新同步到安装副本。
 
 
-### 2026-11-06 根因修复：Mify 网关的模型必须带供应商前缀
+### 2026-11-06 根因修复：网关的模型必须带供应商前缀
 
 - 现象：设置里显示 Key 与模型都已配置，`/api/ai/check` 仍返回 `invalid_key`；网关原始响应是 `{"error":{"message":"该模型未指定供应商","code":"401"}}`。
 - 根因：`/v1/models` 返回的模型 id 不带供应商前缀（如 `demo-flash`），但 `/v1/chat/completions` 需要 `demo-flash`。同一把 Key：
   - `POST /v1/chat/completions` with `demo-flash` → **401 该模型未指定供应商**；
-  - with `demo-flash` → **200**（`mimo-v2.6-pro`、`xiaomi/deepseek-v3.1` 同样可用）；
+  - with `demo-flash` → **200**（`mimo-v2.6-pro`、`vendor/deepseek-v3.1` 同样可用）；
   - `demo-asr` 做文本请求返回 400（它是 ASR 模型，符合预期）。
 - 修复：
-  - `backend/app/ai/providers.py` 新增 `wire_model()`：Mify 提供商下，模型 id 没有 `/` 时补 `xiaomi/`；OpenAI/自定义服务保持原样。
+  - `backend/app/ai/providers.py` 新增 `wire_model()`：默认网关提供商下，模型 id 没有 `/` 时补供应商前缀；OpenAI/自定义服务保持原样。
   - `ai/client.py` 的 `chat()` 与 `check_key()` 都走 `wire_model()`；设置里仍保存模型清单返回的无前缀 id，设置页下拉不受影响。
   - 401/403 现在把网关原始原因带进错误信息，后续可直接看到「该模型未指定供应商」而不是笼统的 Key 无效。
 - 复验：
@@ -423,7 +423,7 @@
 ### 2026-11-06 二次根因：思考模式吃光 token + 设置页「测试连接」
 
 - 现象：模型前缀修好后，真实长会议（789 行、3 个窗口）仍失败，纪要状态 `failed`，错误 `AI 返回了空内容`。
-- 根因：Mify 网关不执行 `reasoning: {"enabled": false}`。长提示词下思考把 `max_tokens=3000` 全部烧完，`finish_reason=length`、`content=null`，于是被当成「空内容」。
+- 根因：网关不执行 `reasoning: {"enabled": false}`。长提示词下思考把 `max_tokens=3000` 全部烧完，`finish_reason=length`、`content=null`，于是被当成「空内容」。
   - 同一提示词实测：只发 `reasoning.enabled=false` → 思考 2999 token、正文空；
   - 加发 `reasoning_effort: "none"` → 思考 0 token、正文 4280 字、JSON 可解析（41s）。
 - 修复：
@@ -438,7 +438,7 @@
 - 语音转文字、文字总结的模型下拉旁各有一个「测试连接」，测的是**下拉里当前选中、可能还没保存**的模型；结果行显示「模型可用：…」或错误原因。
 - 后端：
   - `POST /api/ai/test` 接受 `{provider, base_url, model, api_key?}`，走 `wire_model()` 与 15 秒超时，不写设置。
-  - `POST /api/asr/engines/test` 接受 `{base_url, model, api_key?}`，仍用 1 秒合成静音，不上传真实录音；`MiMoProvider` 支持探针直接带一把未保存的 Key。
+  - `POST /api/asr/engines/test` 接受 `{base_url, model, api_key?}`，仍用 1 秒合成静音，不上传真实录音；云端 ASR 提供商支持探针直接带一把未保存的 Key。
 - 实测：
   - `POST /api/ai/test {"provider":"mimo","model":"demo-flash"}` → `ok=true, seconds=0.6, wire_model=demo-flash`。
   - `POST /api/asr/engines/test {}` → `ok=true, model=demo-asr`，首字 0.17s。
@@ -527,7 +527,7 @@
 - `node build/build-client.mjs` 重新生成 `client.js`（设置只含云端语音卡片；概览为引擎状态条）。
 
 **未在本机验证**：
-- 真实 MiMo 批量转写后的片段级时间戳观感（需要真实音频与 API 额度）；
+- 真实云端批量转写后的片段级时间戳观感（需要真实音频与 API 额度）；
 - 旧记录重转后发言人标签清除的实际提示（逻辑有单测，UI 需在同一 GUI 里看一眼）；
 - 已安装 tgz 的升级路径（本次只改仓库源码，需重新打包安装后复验）。
 
@@ -569,7 +569,7 @@
 - 详情：时间轴（标记/截图/命中）、播放条（倍速/音量/直播最新）、转写自动跟随、信息字段与提示条。
 - 日历：未关联内容按月历与当天议程混排、独立本地/飞书/未关联开关、缓存/上次同步标记、日程详情「新建采集」自动关联。
 - 笔记：标题/列表/待办/删除线/代码块/分隔线/复制全文/字数/页内查找/快捷键；默认预览态。
-- 采集：类型草稿保留、默认新建类型、直播状态/开播时间、视频逐条移除/增加、会议热词多行与 MiMo 禁用、Esc/Enter。
+- 采集：类型草稿保留、默认新建类型、直播状态/开播时间、视频逐条移除/增加、会议热词多行与云端引擎禁用、Esc/Enter。
 - 详情：采集胶囊（时长/截图/画质）、实时预览/截图灵敏度、四步阶段标签、Markdown 下载、动作层级收敛（更多菜单）。
 - 首页：Hero 统计、链接输入、信息流/散落、金句卡、打开记录进资料库并选中。
 - 散落画布布局：`node --test tests/scatter-layout.test.mjs` 9/9（四类卡片互不重叠、避开 Hero、幂等、图钉不动、新增不洗牌、80 卡收敛、手动落点让位）。
@@ -588,7 +588,7 @@
 - HEIC/HEIF 图片：后端上传白名单新增 `image/heic`、`image/heif`（含 sequence 类型）并按扩展名兜住浏览器未上报 MIME 的 `.heic/.heif/.hif`；落盘后嗅探 `ftyp` 品牌，命中 HEIF 就用 `pillow-heif`（若安装）或 macOS `sips` 转成 JPEG 再入库，前端拿到的仍是普通图片卡。`backend/tests/test_home.py` 新增 3 条：真实 HEIC（sips 生成）上传转 JPEG、宽高回填 96×64、返回 `image/jpeg`；无 MIME 的 `.heic` 也能识别；损坏 HEIF 返回 400 且不留残文件。
 - HEIC 前端链路：`tests/paste.test.mjs` 覆盖 HEIC MIME、无 MIME 的 `.HEIC` 扩展名与拖入文件识别；`build/scatter-preview.html?paste=heic` 生成 `build/paste-heic-preview.png`，确认 HEIC 文件走 `POST /api/board/images` 并落成图片卡。
 - 图钉动效：基础 `.mc-scatter-card.is-pinned` / `.mc-scatter-pin` 移除常驻 animation，改为钉上时只给目标卡挂 700ms 的 `is-pinning`；用 `animationstart` 监听复现：修复前第二次钉卡会同时重播 `note-n1`、`note-n2` 的 sink+set，修复后只播本次目标卡（`[{"name":"mc-pin-sink","node":"note-n1"},{"name":"mc-pin-set","node":"note-n1"}]`）；信息流同样只播目标卡，700ms 后 `is-pinning` 归零。`tests/style.test.mjs` 断言基础规则无 animation、瞬时选择器存在。
-- 设置：模型/采集两个标签；模型含 Mify Key + 拉取模型清单、语音转文字、文字总结（各自可选模型与自定义 API），采集含默认类型/直播/视频；页面不含通用页、数据目录、端口、日志、运行信息等诊断内容。
+- 设置：模型/采集两个标签；模型含网关 Key + 拉取模型清单、语音转文字、文字总结（各自可选模型与自定义 API），采集含默认类型/直播/视频；页面不含通用页、数据目录、端口、日志、运行信息等诊断内容。
 - 真实音频会议导入：临时库 + 真实 6 秒音频 → `done`，1 段转写（本地模型下线后需用云端重跑复验）。
 - 同源代理媒体 Range：`206` + `Content-Range`；SSE：`text/event-stream` + 首个 `noop` 事件。
 - 真实 B站：`live.bilibili.com/1` 预检返回回放状态与标题；公开 BV 视频预读返回标题/时长/平台与可加入队列。

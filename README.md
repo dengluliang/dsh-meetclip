@@ -73,7 +73,7 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.5.tgz"
 3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频），或直接粘贴链接让 Agent 处理。
 4. 采集完成后在记录页看转写、打点、写笔记、生成 AI 纪要。
 
-飞书是可选项：**设置 → 会摘 → 飞书**（或首次引导第 2 步）点「安装飞书 MCP」并登录后，Agent 才能读写飞书文档、多维表格与 Wiki。默认使用 `@mi/feishu-mcp-pro` 与内网 npm 源；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）。
+飞书是可选项：**设置 → 会摘 → 飞书**（或首次引导第 2 步）点「安装飞书 MCP」并登录后，Agent 才能读写飞书文档、多维表格与 Wiki。包名与 npm 源自带默认值；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）。
 
 模型服务同理：插件不内置任何网关地址，但部署方可以在同一处 meetclip config 里写 `aiBaseUrl`，首次引导与设置页会直接带出该地址；没有配置时保持每次手填。
 
@@ -129,7 +129,7 @@ docs/                 架构、验证、更新说明
 - 自动更新只替换已安装副本，不自动重装 Python 依赖；若新版本改了 `backend/requirements.txt`，需在设置里重装运行环境。
 - 更新后必须重启 DSH 才能加载新的 Host/Client 代码（DSH 没有插件自重启 API）。
 - 网络受限时更新器会给出「连不上 GitHub」提示；暂不自动读取 `HTTPS_PROXY`。
-- 飞书 MCP 包名 / npm 源与模型服务地址都必须自己配置，插件不预置任何内部服务。
+- 飞书 MCP 包名 / npm 源与模型服务地址都可以在 config 里换成你自己的镜像或网关。
 - 主要验证平台是 macOS；Windows 的目录替换有回退逻辑但未实测。
 
 ## 许可证

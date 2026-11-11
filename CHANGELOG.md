@@ -23,7 +23,7 @@
 
 - **现象**：除了 `mimo-v2.6-flash` 与 `moonshot/kimi-k3.1-pro`，清单里其余模型大多「测试连接」失败，看起来像模型不可用。
 - **根因一：不是对话模型被当成了文字模型**。网关的 `model_type` 会把 `mimo-v2.5-asr`、`mimo-v2.5-tts`、布局模型都标成 `llm`；只按类型或只按名字猜，都会让 ASR / TTS / 图生视频 / rerank 这类模型出现在文字下拉里，选中必然 400。现在分类**先看名字再看类型**，文字下拉只保留对话模型。
-- **根因二：请求体带了模型不认的可选参数**。`reasoning_effort`、`reasoning`、`response_format`、`temperature` 各家支持不一致，例如 `xiaomi/DeepSeek-R1-0528` 会因为 `reasoning_effort` 直接 400。现在按报错里点名的字段逐个剔除后重试（`temperature` 仍按「地址 + 模型」记忆），设置页「测试连接」与正式调用共用同一套逻辑。
+- **根因二：请求体带了模型不认的可选参数**。`reasoning_effort`、`reasoning`、`response_format`、`temperature` 各家支持不一致，例如 `vendor/DeepSeek-R1-0528` 会因为 `reasoning_effort` 直接 400。现在按报错里点名的字段逐个剔除后重试（`temperature` 仍按「地址 + 模型」记忆），设置页「测试连接」与正式调用共用同一套逻辑。
 - **筛选判定更准**：`Not supported model` / `invalid_model` / 404 / 5xx / HTML 都归为「明确不可用」并从下拉里隐藏；只有探测不下结论的才保留。
 - **验证**：跨供应商抽样 10 个 `llm` 模型，修复前 6 个失败（多为参数或非对话模型），修复后 8 个通过，剩下 2 个是网关目录里有、实际不支持的模型（已被归入隐藏）；`DeepSeek-R1-0528`、`zhipuai/glm-4.6`、`azure_openai/gpt-4.1` 由失败转通过；前端 266/266、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
 
@@ -32,7 +32,7 @@
 发布日期：2026-11-10。
 
 - **需求**：拉完模型清单后，语音与文字默认落的是清单第一项（常见是 `ASR_NonStreaming` 之类），还得手动挑一次。
-- **改动**：清单里存在 `mimo-v2.5-asr` 与 `mimo-v2.6-flash`（允许网关加供应商前缀，如 `xiaomi/mimo-v2.5-asr`）就默认选中这两项；没有这两个模型时（换了别的网关）退回原来的规则：语音取第一项、文字优先同供应商。
+- **改动**：清单里存在 `mimo-v2.5-asr` 与 `mimo-v2.6-flash`（允许网关加供应商前缀，如 `vendor/mimo-v2.5-asr`）就默认选中这两项；没有这两个模型时（换了别的网关）退回原来的规则：语音取第一项、文字优先同供应商。
 - **与可用性探测配合**：如果探测把默认项判成不可用，自动换到清单里第一个仍可用的模型，不会留下一个必然报错的默认值。
 - **验证**：新增「默认值命中（含前缀）」「引导确实使用这两个默认值」2 项用例；前端 262/262、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
 
@@ -50,11 +50,11 @@
 
 发布日期：2026-11-10。
 
-- **现象**：同事首次使用，在引导里点「安装飞书 MCP」直接报错，最后停在「未配置 MCP 源」。原因有两层：0.9.2 去敏后 `feishuPackage` / `feishuRegistry` 默认值为空；引导里的安装按钮又只判断了 npx 与配置冲突，没判断源是否配置（设置页判断了），于是按钮可点、一点就抛「尚未配置飞书 MCP 包…」。
-- **恢复内置默认值**：`@mi/feishu-mcp-pro` 与内网 npm 源重新作为默认值写回代码，装好 Node 后在引导或设置里点一次即可完成安装、写配置、登录与连通性检测。`feishuPackage` / `feishuRegistry`（meetclip config 或 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）仍然优先，便于换成自己的镜像。
+- **现象**：新用户首次使用，在引导里点「安装飞书 MCP」直接报错，最后停在「未配置 MCP 源」。原因有两层：0.9.2 去敏后 `feishuPackage` / `feishuRegistry` 默认值为空；引导里的安装按钮又只判断了 npx 与配置冲突，没判断源是否配置（设置页判断了），于是按钮可点、一点就抛「尚未配置飞书 MCP 包…」。
+- **恢复内置默认值**：内置的飞书 MCP 包名与 npm 源重新作为默认值写回代码，装好 Node 后在引导或设置里点一次即可完成安装、写配置、登录与连通性检测。`feishuPackage` / `feishuRegistry`（meetclip config 或 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）仍然优先，便于换成自己的镜像。
 - **修掉按钮的判断遗漏**：引导里的安装按钮与设置页统一，源不可用时置灰而不是报后端错误。
 - **边界（请知悉）**：0.9.2 去敏删掉的两个值重新出现在源码与 release 里，公开仓库、release 包与 `latest.json` 中均可读到；如需彻底干净，改用环境变量或 config 指向自己的镜像，并另走私有分发渠道。
-- **验证**：npm 源匿名可解析（`npm view @mi/feishu-mcp-pro version` → 0.27.4，无 userconfig 也通）；新增「默认值 + config/环境变量覆盖」用例；前端 257/257、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
+- **验证**：npm 源匿名可解析（`npm view <内置包名> version` → 0.27.4，无 userconfig 也通）；新增「默认值 + config/环境变量覆盖」用例；前端 257/257、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
 
 ## 0.9.6 关于页：检查与升级分开，更新内容改成 Markdown 预览
 
@@ -71,12 +71,12 @@
 发布日期：2026-11-10。
 
 - **现象**：从 Release 新装，引导里填好网关地址与 API Key、模型也选好了，点「下一步」仍报错：语音是「云端语音凭证无效或无模型权限」，文字是上游原文 `{"error":{"message":"该模型未指定供应商","code":"401","type":"invalid_key"}}`；设置页两个「测试连接」同样不通，但 key 本身有权限。
-- **根因**：这类网关要求调用时写 `供应商/模型名`（如 `xiaomi/mimo-v2.5-asr`），而它自己的 `/models` 只返回裸 id（`mimo-v2.5-asr`、`mimo-v2.6-flash`）。0.9.2 去敏时删掉了硬编码前缀，语音侧又把 `config["model"]` 原样发出，于是引导存下的裸 id 全被拒；文字侧的前缀只能靠 `MEETCLIP_AI_MODEL_PREFIX`，默认空，等于同样不通。
+- **根因**：这类网关要求调用时写 `供应商/模型名`（如 `vendor/mimo-v2.5-asr`），而它自己的 `/models` 只返回裸 id（`mimo-v2.5-asr`、`mimo-v2.6-flash`）。0.9.2 去敏时删掉了硬编码前缀，语音侧又把 `config["model"]` 原样发出，于是引导存下的裸 id 全被拒；文字侧的前缀只能靠 `MEETCLIP_AI_MODEL_PREFIX`，默认空，等于同样不通。
 - **修复：按目录里的 `owned_by` 补全模型名**。Host 探针、后端 `/api/models/catalog` 与 `/api/ai/models` 现在都输出 `供应商/模型名`；`owned_by` 为空时保持原样，已带 `/` 的不重复拼接，同一个 id 由多个供应商提供时分别保留（如 `deepseek/` 与 `volcengine_maas/` 下的 `deepseek-v4-flash`）。语音与文字共用一套规则：设置里存什么就发什么，裸名再用 `MEETCLIP_ASR_MODEL_PREFIX` / `MEETCLIP_AI_MODEL_PREFIX` 兜底。
 - **引导：先验证再保存**。第 1 步拉完清单不再「界面显示第一项、状态仍为空」，而是落到具体模型（文字优先取与语音同供应商的）；「下一步」时逐个发最小请求验证，候选按「当前选择 → 同供应商 → 其余」排序，最多试 6 个，存下第一个真正能通的名字。两类都试不出来时，完成页与首页进度卡会带上网关原话。
 - **错误不再被吞**：语音 401/403 现在附带上游 `error.message`，并抹掉可能被回显的 `sk-…`；提示里含「供应商 / provider / vendor」时追加「模型名要带供应商前缀」的处置建议。
 - **部署统一地址（仍不内置）**：meetclip config 新增 `aiBaseUrl`，Host 把它作为后端的 `MEETCLIP_AI_BASE_URL` / `MEETCLIP_ASR_BASE_URL` 兜底（只配前一个时语音也回退到它），并在首次引导与首页配置卡里预填。公共包默认仍为空，不改 0.9.2 的去敏结论。
-- **验证**：对真实网关（283 个模型）跑通 `fetch_entries`，`xiaomi/mimo-v2.5-asr` 与 `xiaomi/mimo-v2.6-flash` 均可用；用真实 Key 复核语音测试 200（0.28s）、文字测试 200（0.49s）。新增 7 项前端模型前缀/候选排序用例与 `tests/ai-config.test.mjs`（3 项），后端补 `test_model_catalog`（2 项）、`test_cloud_asr`（5 项）；前端 252/252、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
+- **验证**：对真实网关（283 个模型）跑通 `fetch_entries`，`vendor/mimo-v2.5-asr` 与 `vendor/mimo-v2.6-flash` 均可用；用真实 Key 复核语音测试 200（0.28s）、文字测试 200（0.49s）。新增 7 项前端模型前缀/候选排序用例与 `tests/ai-config.test.mjs`（3 项），后端补 `test_model_catalog`（2 项）、`test_cloud_asr`（5 项）；前端 252/252、后端 29 个测试文件全部 PASS（Python 3.12 venv）。
 
 ## 0.9.4 卡包「移出」HTTP 400 修复
 
@@ -100,19 +100,19 @@
 
 发布日期：2026-11-10。相对 0.9.1 的三块界面级新功能（首页卡包、会议批量导入、应用内回退），以及一次面向开源的彻底去敏。
 
-### 开源去敏：不再内置任何组织内部服务
+### 开源去敏：不再硬编码任何内部服务
 
-- **移除内置网关**：原先预置的内网 LLM 网关地址与它配套的模型名，从客户端、Host 探针、FastAPI 后端与文档里全部删除。默认服务地址与模型改为空，首次引导、设置 → 模型、首页配置卡都新增「服务地址（Base URL）」输入，占位符为 `https://your-gateway.example/v1`；没填时保存/测试给出「请先填写服务地址（Base URL）」，不再偷偷请求内置地址。
-- **移除内网 npm 源与私有包名**：原先指向组织内部镜像的 npm 源与私有作用域包名一并删除。`feishuPackage` / `feishuRegistry` 成为 meetclip config 的配置项（也可用 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）；未配置时设置页显示「未配置 MCP 源」并说明该填在哪，安装按钮置灰，而不是报一个看不懂的网络错误。
-- **模型名与品牌措辞**：供应商前缀不再写死（改为可选 `MEETCLIP_AI_MODEL_PREFIX`）；模型清单排序改为按当前配置的族名排序；界面文案里的「Mify / MiMo」统一改为「云端语音 / 默认网关（OpenAI 兼容）」，「检查公司网络／VPN」改为「检查网络或代理」。
-- **行为不变的部分**：内置的 provider id 仍是 `mimo`（历史设置与记录里的引擎标识，不改数据库语义）；ASR 与纪要仍然共用一把 Key，仍支持自定义 API 与各自的模型。
+- **移除内置网关**：原先预置的私有 LLM 网关地址与它配套的模型名，从客户端、Host 探针、FastAPI 后端与文档里全部删除。默认服务地址与模型改为空，首次引导、设置 → 模型、首页配置卡都新增「服务地址（Base URL）」输入，占位符为 `https://your-gateway.example/v1`；没填时保存/测试给出「请先填写服务地址（Base URL）」，不再偷偷请求内置地址。
+- **移除内置的 npm 源与私有包名**：原先写死的 npm 源与私有作用域包名一并删除。`feishuPackage` / `feishuRegistry` 成为 meetclip config 的配置项（也可用 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）；未配置时设置页显示「未配置 MCP 源」并说明该填在哪，安装按钮置灰，而不是报一个看不懂的网络错误。
+- **模型名与品牌措辞**：供应商前缀不再写死（改为可选 `MEETCLIP_AI_MODEL_PREFIX`）；模型清单排序改为按当前配置的族名排序；界面文案里的厂商模型名统一改为「云端语音 / 默认网关（OpenAI 兼容）」；连接失败时的提示统一改成「检查网络或代理」。
+- **行为不变的部分**：内置的 provider id 沿用历史引擎标识（不改数据库语义）；ASR 与纪要仍然共用一把 Key，仍支持自定义 API 与各自的模型。
 - **升级提示**：已经配过网关的老用户设置在 `settings.json` 里，升级后照常可用；新装用户需要自己填一次地址、模型与 Key。
 
 ### 回归与验证
 
 - 前端 `node --test tests/*.test.mjs` 242/242 通过；后端 `bash backend/tests/run-all.sh` 29 个测试文件全部 PASS（用 Python 3.12 的 venv）。
 - 后端新增环境变量入口 `MEETCLIP_AI_BASE_URL` / `MEETCLIP_AI_MODEL` / `MEETCLIP_ASR_BASE_URL` / `MEETCLIP_ASR_MODEL`，便于 CI 与无界面部署；未配置时新记录仍可创建，只把「识别未就绪」如实显示出来。
-- 全仓库扫描：内网网关域名、内网 npm 源、私有包作用域与厂商前缀在源码、文档、测试与重新构建的 `client.js` 里均为 0 命中（`backend/data/` 是本地运行数据，不进仓库也不进包）。
+- 全仓库扫描：私有网关域名、私有 npm 源、私有包作用域与厂商前缀在源码、文档、测试与重新构建的 `client.js` 里均为 0 命中（`backend/data/` 是本地运行数据，不进仓库也不进包）。
 
 ### 设置 → 关于支持回退到升级前的本地版本
 
@@ -514,7 +514,7 @@ dsh plugin --profile desktop add "file:$PWD/dsh-meetclip-0.7.0.tgz"
 
 1. 输入服务地址与 API Key 并测试。
 2. 确认存储位置后点「一键安装并配置」：安装 Python 环境与 yt-dlp/ffmpeg。不会下载语音识别、时间戳或说话人模型。
-   同一屏下方的「飞书 MCP（可选）」里点「安装飞书 MCP」再「登录飞书」即可接入飞书（需要 Node.js 20+ 与作者环境的内网 npm 源）；不想用直接跳过。
+   同一屏下方的「飞书 MCP（可选）」里点「安装飞书 MCP」再「登录飞书」即可接入飞书（需要 Node.js 20+ 与可访问的 npm 源）；不想用直接跳过。
 3. 进入主界面；未完成项会显示为配置进度卡片。
 4. 如 macOS 拒绝访问文稿目录，请给 DSH 完全磁盘访问权限，或换到可写数据目录，或使用外部已启动的后端。
 

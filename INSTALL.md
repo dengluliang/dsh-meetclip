@@ -80,7 +80,7 @@ shasum -a 256 -c SHA256SUMS.txt
 
    也可以直接把插件自带那段 `- id: meetclip` 的 `config: {}` 改成 `config: { aiBaseUrl: … }`；改完重启 DSH 生效。
 
-   > **模型名要不要带供应商前缀**：不少网关（例如 MiMo / Mify 这类兼容层）调用时要求写 `供应商/模型名`，而它自己的 `/models` 只返回裸 id，直接拿裸 id 调用会得到 `401 该模型未指定供应商`。插件会按目录里的 `owned_by` 自动补成可直接调用的名字再保存；网关不返回 `owned_by` 时，用环境变量 `MEETCLIP_AI_MODEL_PREFIX=<供应商>` 兜底。语音转写与 AI 纪要走同一套规则。
+   > **模型名要不要带供应商前缀**：不少兼容层网关调用时要求写 `供应商/模型名`，而它自己的 `/models` 只返回裸 id，直接拿裸 id 调用会得到 `401 该模型未指定供应商`。插件会按目录里的 `owned_by` 自动补成可直接调用的名字再保存；网关不返回 `owned_by` 时，用环境变量 `MEETCLIP_AI_MODEL_PREFIX=<供应商>` 兜底。语音转写与 AI 纪要走同一套规则。
 2. **选存储位置 + 一键安装并配置** → 先在「存储位置」确认资料保存的文件夹（默认建议 `~/Documents/会摘资料`，可点「选择…」换任意可写目录），再自动安装 Python 环境、启动本地引擎、装 `yt-dlp` / `ffmpeg`。
    不想等安装完成可以点「后台完成」，先进入主界面，剩余安装在后台继续。
    同一屏下方的 **「飞书 MCP（可选）」** 可以顺手点「安装飞书 MCP」→「登录飞书」接入飞书（说明见下一节）；不装直接继续即可。
@@ -111,7 +111,7 @@ shasum -a 256 -c SHA256SUMS.txt
 - **界面**：设置 → 飞书 默认只有一行——状态（可以使用 / 未登录 / 未安装 / 需要 Node.js 20+）、账号与到期日、以及「重新登录」「更多」。检查更新、检测连接、重新安装、用设备码登录、退出登录、官方文档、移除 DSH 配置都收在「更多」里；运行条件、补丁路径、版本号不再展示，只在出问题时给一句原因（缺 Node、配置冲突、等待载入）。
 - **移除**：设置 → 飞书 → 更多 →「移除 DSH 配置」，只删这一段，不动登录状态。
 - **跳过**：不装不影响采集、转写、AI 纪要；以后随时可以补。
-- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问 npm 源。默认包名与源已内置（`@mi/feishu-mcp-pro` + 内网 npm 源），装好 Node 就能一键安装；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
+- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问 npm 源。包名与源自带默认值，装好 Node 就能一键安装；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
 - **其他编辑器**：官方 `setup`（会写 `~/.npmrc` 并把 Cursor / VS Code / Claude Code 等编辑器的 MCP 配置也改成飞书 MCP）DSH 用不到，设置里不再提供；要给其他编辑器配，按官方文档在终端跑 `npx -y --registry=<你的 npm 源> <你的飞书 MCP 包名>@latest setup`。
 - 官方文档：<https://open.feishu.cn/document/home/index>
 
@@ -142,7 +142,7 @@ shasum -a 256 -c SHA256SUMS.txt
 
 | 项 | 说明 |
 |---|---|
-| 服务 / 地址 / 模型 | 没有任何默认值：填你的 OpenAI 兼容网关 Base URL 与模型 ID，点「拉取模型列表」挑模型。OpenAI 官方、自建代理或公司网关都可以。 |
+| 服务 / 地址 / 模型 | 没有任何默认值：填你的 OpenAI 兼容网关 Base URL 与模型 ID，点「拉取模型列表」挑模型。OpenAI 官方、自建代理或企业网关都可以。 |
 | API Key | 不填也能用：默认沿用云识别那把 key。想单独计费或换服务时再填，**只存在系统钥匙串**。 |
 | 什么时候生成 | `不自动` / `结束时生成一次`（默认） / `边录边更新`（更贵，按间隔节流）。 |
 | 纪要语言 | 简体中文 / 繁體中文 / English / 日本語 / 한국어 —— 与转写语言无关，会说英文也照样中文纪要。 |

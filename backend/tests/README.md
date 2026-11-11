@@ -195,7 +195,7 @@ bash tests/run_toolbar_native.sh /tmp/meetclip-toolbar-native
 覆盖 WAV 参数、Base64 实际大小切分、SSE 增量结果与 JSON 回退、限流重试、权限失败与日志脱敏、流中断、截断、取消、片段幂等提交、重启恢复、重新转写保留旧文字与说话人、文件补转录跳过已完成片段，以及 60 分钟音频长度的模拟直播处理。模拟直播不等待一小时，也不证明真实服务延迟；真实网关验证使用 `eval/asr_cloud_probe.py`。
 
 
-云端预览的原生状态验证包含在 `bash tests/run_session_detail_native.sh --refresh-only`：同一片段增量文字替换、错误状态保留、正式提交后重新加载；`bash tests/run_settings_native.sh` 验证 MiMo 设置、网关和安全输入框，并覆盖浅／深色设置页面。完整详情页鼠标烟雾测试目前在进入笔记时的 `editor.isEditable` 断言失败（项目现有笔记默认进入预览），不计入本次通过项。
+云端预览的原生状态验证包含在 `bash tests/run_session_detail_native.sh --refresh-only`：同一片段增量文字替换、错误状态保留、正式提交后重新加载；`bash tests/run_settings_native.sh` 验证模型设置、网关和安全输入框，并覆盖浅／深色设置页面。完整详情页鼠标烟雾测试目前在进入笔记时的 `editor.isEditable` 断言失败（项目现有笔记默认进入预览），不计入本次通过项。
 
 云端预览顺序回归也包含在 `--refresh-only`：详情快照已读取完整结果时跳过旧逐字事件、慢刷新不回退已收到的文字、正式提交后预览不重新出现、重新转写隔离上一轮事件，以及真实 SSE 解析与断线续传。首次事件连接携带快照的游标，画质提示和采集状态从快照恢复。`test_cloud_asr.py` 同时以线程同步模拟数据库更新与事件发布之间的间隙，检查预览、片段提交与整轮提交均不会向详情暴露不匹配的结果和事件游标；使用临时数据库和模拟网关。
 
