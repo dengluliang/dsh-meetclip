@@ -17,10 +17,12 @@ from collections import deque
 from pathlib import Path
 
 import asr_engines
+import bilibili
 import capture
 import douyin
 import meeting
 import minutes
+import platform_errors
 import scheduler
 import settings
 import subtitles
@@ -123,14 +125,26 @@ class SubtitleChoiceError(RuntimeError):
     """所选字幕无法读取或无法确定语言；视频照常下载并保留。"""
 
 
+def _cookie_file_ready(path) -> bool:
+    try:
+        return path.exists() and path.stat().st_size > 0
+    except OSError:
+        return False
+
+
 def _access_attempts(url: str = "") -> list[list[str]]:
     # 即使允许读取登录态，公开视频也优先匿名访问；外部 yt-dlp 配置不能改变此策略。
     options = settings.get_all()
+    platform = detect_platform(url) if url else ""
     attempts = []
     # 抖音：设置里扫码登录后的专用 Cookie 文件优先；其余平台仍先匿名。
-    if url and detect_platform(url) == "douyin" and douyin.COOKIE_FILE.exists():
+    if platform == "douyin" and _cookie_file_ready(douyin.COOKIE_FILE):
         attempts.append(["--cookies", str(douyin.COOKIE_FILE)])
     attempts.append(["--no-cookies", "--no-cookies-from-browser"])
+    # B站扫码/Chrome 登录得到的 Cookie 同时服务直播与链接视频；匿名失败后才使用，
+    # 避免公开视频无谓携带登录态。只对 bilibili 生效，绝不发给其他平台。
+    if platform == "bilibili" and _cookie_file_ready(bilibili.COOKIE_FILE):
+        attempts.append(["--cookies", str(bilibili.COOKIE_FILE)])
     if options.get("link_browser_cookies"):
         attempts.append(["--no-cookies", "--cookies-from-browser",
                          options.get("link_cookie_browser") or "chrome"])
@@ -138,36 +152,23 @@ def _access_attempts(url: str = "") -> list[list[str]]:
 
 
 def _needs_login(message: str) -> bool:
-    return any(word in message.lower() for word in (
-        "login", "log in", "sign in", "cookie", "private", "members", "premium",
-        "age-restricted", "authentication", "protected tweet", "403", "401", "412", "登录", "会员",
-    ))
-
-
-DOUYIN_LOGIN_HINT = ("请在「设置 → 采集 → 视频」点「扫码登录」，用抖音 App 登录后"
-                     "点「读取 Cookie」。")
+    return platform_errors.needs_login(message)
 
 
 def _friendly_message(platform: str | None, message: str) -> str:
-    text = str(message or "")
-    if platform == "douyin" and _needs_login(text):
-        return f"抖音需要登录 Cookie（Fresh cookies）：{DOUYIN_LOGIN_HINT}"
-    if platform == "douyin" and "下载失败" not in text and (
-            "抖音页面" in text or "抖音视频" in text or "Douyin" in text):
-        return "抖音页面没有返回可下载的视频：请确认链接有效、已登录，并重新读取 Cookie。"
-    return text
+    return platform_errors.classify_failure(platform, message)["message"]
 
 
-def _access_error(errors: list[str]) -> LinkAccessError:
-    latest = errors[-1]
+def _access_error(errors: list[str], platform: str | None = None) -> LinkAccessError:
+    latest = errors[-1] if errors else "无法读取视频信息"
     if len(errors) > 1 and any(word in latest.lower() for word in (
         "cookies database", "failed to decrypt", "keychain", "keyring",
         "could not copy", "permission denied", "unable to extract browser cookies",
     )):
-        return LinkAccessError(
-            f"{errors[0][:180]}；无法读取所选浏览器的登录信息。"
-            "请在「设置 → 视频」选择已登录的浏览器后重试。"
-        )
+        classified = platform_errors.classify_failure(platform, latest)
+        error = LinkAccessError(classified["message"])
+        error.classification = classified
+        return error
     return LinkAccessError(latest[:300])
 
 
@@ -273,7 +274,7 @@ def _info_ytdlp(url: str) -> dict:
             break
     if fallback is not None:
         return fallback
-    raise _access_error(errors)
+    raise _access_error(errors, detect_platform(url))
 
 
 def _douyin_info(url: str) -> dict:
@@ -403,10 +404,18 @@ def preview(url: str) -> dict:
             "message": "可以加入转写队列",
         }
     except Exception as exc:
-        text = str(exc)
-        status = "login_required" if _needs_login(text) else "error"
-        return {"ok": False, "status": status, "url": original, "normalized_url": normalized,
-                "platform": platform, "message": _friendly_message(platform, text)[:400]}
+        failure = getattr(exc, "classification", None) or platform_errors.classify_failure(platform, str(exc))
+        return {
+            "ok": False,
+            "status": failure["status"],
+            "code": failure["code"],
+            "url": original,
+            "normalized_url": normalized,
+            "platform": platform,
+            "message": failure["message"][:400],
+            "action": failure.get("action"),
+            "detail": failure.get("detail", ""),
+        }
 
 
 def _disk_ok() -> bool:
@@ -733,9 +742,25 @@ class LinkTask:
                 minutes.finish(sid)
         except Exception as exc:
             if not self.cancel_flag.is_set():
-                msg = _friendly_message((db.get_session(sid) or {}).get("platform"), str(exc))
-                self._update("error", "error", error_code="link_video", error_message=msg, finished_at=time.time())
+                session = db.get_session(sid) or {}
+                platform = session.get("platform")
+                if isinstance(exc, SubtitleChoiceError):
+                    # 字幕选择需要用户重新选语言，不能被通用分类覆盖成「稍后重试」。
+                    msg = str(exc)
+                    failure = {"status": "error", "code": "subtitle_choice", "message": msg,
+                               "action": None, "detail": ""}
+                else:
+                    failure = getattr(exc, "classification", None) or platform_errors.classify_failure(platform, str(exc))
+                    msg = failure["message"]
+                code = "login_required" if failure["status"] == "login_required" else "link_video"
+                self._update("error", "error", error_code=code, error_message=msg, finished_at=time.time())
                 db.update_session(sid, status="error", error=msg, ended_at=time.time())
+                db.update_meta(sid, link_error={
+                    "code": failure["code"],
+                    "status": failure["status"],
+                    "action": failure.get("action"),
+                    "detail": failure.get("detail", ""),
+                })
                 self.emit("error", text=msg)
         finally:
             if self.cancel_flag.is_set():
@@ -795,7 +820,7 @@ class LinkTask:
             errors.append(message)
             if not _needs_login(message):
                 break
-        raise _access_error(errors)
+        raise _access_error(errors, detect_platform(url))
 
     def _import_subtitles(self, info: dict, source: Path) -> bool:
         self._update("transcribing", "subtitles", phase_text="正在读取字幕")
@@ -903,7 +928,7 @@ class LinkTask:
                         errors.append(str(fallback_exc))
                 if not _needs_login(errors[-1]):
                     break
-        raise _access_error(errors)
+        raise _access_error(errors, detect_platform(url))
 
     def _download_attempt(self, url: str, source: Path, info: dict,
                           cookie_args: list[str]) -> tuple[int, Path]:

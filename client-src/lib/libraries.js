@@ -132,7 +132,7 @@ export function libraryLoadErrorText(failure) {
   if (status === 404 || status === 405 || status === 501) {
     return '宿主还没加载多资料空间：请重启 DeepSeek Harness，或用最新的 dsh-meetclip 插件包重新安装「会摘」'
   }
-  if (status === 503) return '本地引擎没起来，稍后再试；持续失败请到 设置 → 采集 重启引擎'
+  if (status === 503) return '本地引擎没起来，稍后再试；持续失败请到会摘面板右上角「设置 → 采集」重启引擎'
   if (status === 409) return failure?.message || '操作被拒绝'
   return failure?.message || String(failure || '未知错误')
 }

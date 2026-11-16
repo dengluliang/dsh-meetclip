@@ -8,7 +8,7 @@
  *
  * 本模块不新增飞书授权、不写 auth.json、不把 token/正文写日志。
  */
-import { readAccessToken, validOpenUrl } from './feishu.js'
+import { readAccessToken, readAuthState, validOpenUrl } from './feishu.js'
 
 const DOC_TOOL = 'mcp__feishu__doc_read'
 const WIKI_TOOL = 'mcp__feishu__wiki_get_node'
@@ -35,6 +35,7 @@ const TYPE_LABELS = {
 const ENVIRONMENTAL = new Set([
   'feishu_unavailable',
   'feishu_not_logged_in',
+  'feishu_token_expired',
   'feishu_timeout',
   'feishu_denied',
   'feishu_read_failed'
@@ -98,13 +99,19 @@ function mapToolError(error, timeoutMs) {
   if (/unknown tool|tool .*not|cannot find tool|no such tool/.test(lower)) {
     return pushError('feishu_unavailable', '飞书 MCP 还没有载入，稍等几秒再试', {
       status: 409,
-      hint: '可以在设置 → 飞书里检查「是否生效」，或点「仅登记链接」。'
+      hint: '可以在会摘面板右上角「设置 → 飞书」检查「是否生效」，或点「仅登记链接」。'
     })
   }
-  if (/login|log in|not logged|unauthor|401|授权|登录|令牌|token.*(expired|invalid)/.test(lower)) {
+  if (/expired|过期|token.*invalid/.test(lower)) {
+    return pushError('feishu_token_expired', '飞书访问令牌已过期，需要刷新登录', {
+      status: 409,
+      hint: '到会摘面板右上角「设置 → 飞书」重新登录，或让飞书 MCP 载入后自动续期；也可以先仅登记链接。'
+    })
+  }
+  if (/login|log in|not logged|unauthor|401|授权|登录|令牌|token/.test(lower)) {
     return pushError('feishu_not_logged_in', '飞书登录已失效或未登录', {
       status: 409,
-      hint: '到设置 → 飞书重新登录后重试，或先仅登记链接。'
+      hint: '到会摘面板右上角「设置 → 飞书」重新登录后重试，或先仅登记链接。'
     })
   }
   if (/permission|forbidden|403|无权限|没有权限/.test(lower)) {
@@ -169,7 +176,7 @@ export async function callFeishuTool(tools, name, args, { timeoutMs = DEFAULT_TI
     if (!available) {
       throw pushError('feishu_unavailable', '飞书 MCP 还没有载入，稍等几秒再试', {
         status: 409,
-        hint: '可以在设置 → 飞书里检查「是否生效」，或点「仅登记链接」。'
+        hint: '可以在会摘面板右上角「设置 → 飞书」检查「是否生效」，或点「仅登记链接」。'
       })
     }
   }
@@ -276,7 +283,7 @@ function mapOpenApiCode(code, message) {
   if (numeric === 99991661 || numeric === 99991663 || numeric === 99991668 || /token|授权|登录/.test(text)) {
     return pushError('feishu_not_logged_in', '飞书登录已失效或未登录', {
       status: 409,
-      hint: '到设置 → 飞书重新登录后重试，或先仅登记链接。'
+      hint: '到会摘面板右上角「设置 → 飞书」重新登录后重试，或先仅登记链接。'
     })
   }
   if (numeric === 1770002 || numeric === 1770003 || /not found|不存在/.test(text)) {
@@ -330,12 +337,20 @@ async function openApiJson(path, token, { fetchImpl, timeoutMs }) {
   }
 }
 
-async function readViaOpenApi(doc, { fetchImpl = fetch, timeoutMs = 12_000, accessToken = '' } = {}) {
+async function readViaOpenApi(doc, {
+  fetchImpl = fetch, timeoutMs = 12_000, accessToken = '', authState = null
+} = {}) {
   const access = accessToken
   if (!access) {
+    if (authState?.present && authState?.loggedIn && authState?.accessExpired) {
+      throw pushError('feishu_token_expired', '飞书访问令牌已过期，需要刷新登录', {
+        status: 409,
+        hint: '到会摘面板右上角「设置 → 飞书」重新登录，或让飞书 MCP 载入后自动续期；也可以先仅登记链接。'
+      })
+    }
     throw pushError('feishu_not_logged_in', '飞书登录已失效或未登录', {
       status: 409,
-      hint: '到设置 → 飞书重新登录后重试，或先仅登记链接。'
+      hint: '到会摘面板右上角「设置 → 飞书」重新登录后重试，或先仅登记链接。'
     })
   }
   const encoded = encodeURIComponent(doc.token)
@@ -363,6 +378,7 @@ export async function readFeishuDoc(doc, {
   tools = null,
   fetchImpl = fetch,
   readToken = readAccessToken,
+  readAuth = readAuthState,
   timeoutMs = DEFAULT_TIMEOUT_MS
 } = {}) {
   const errors = []
@@ -375,17 +391,19 @@ export async function readFeishuDoc(doc, {
   } else {
     errors.push(pushError('feishu_unavailable', '飞书 MCP 还没有载入', {
       status: 409,
-      hint: '到设置 → 飞书安装/检查连接，或先仅登记链接。'
+      hint: '到会摘面板右上角「设置 → 飞书」安装/检查连接，或先仅登记链接。'
     }))
   }
 
   const fallbackable = !errors.length || shouldFallback(errors[0])
   if (doc.type === 'docx' && fallbackable) {
     try {
+      const accessToken = readToken()
       return await readViaOpenApi(doc, {
         fetchImpl,
         timeoutMs: Math.min(timeoutMs, 12_000),
-        accessToken: readToken()
+        accessToken,
+        authState: accessToken ? null : readAuth()
       })
     } catch (failure) {
       errors.push(failure)

@@ -23,7 +23,7 @@ export function StatusPopover({ t, data, health, error, onRefresh, onClose }) {
       {error ? <p className="mc-status-error">{error}</p> : null}
       <div className="mc-status-actions">
         <button type="button" className="mc-button mc-button-small" onClick={onRefresh}>刷新</button>
-        <span className="mc-status-hint">引擎设置、依赖和模型在 设置 → 会摘。</span>
+        <span className="mc-status-hint">引擎设置、依赖和模型在会摘面板右上角「设置」。</span>
       </div>
     </div>
   )

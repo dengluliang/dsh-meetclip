@@ -123,6 +123,8 @@ function packFor(id) {
   return packState.find((row) => String(row.id) === String(id)) || null
 }
 
+let linkPreviewResult = { ok: true, platform: 'bilibili', title: '预览视频', subtitle_status: 'none' }
+let asrReady = true
 const nowSeconds = Math.floor(Date.now() / 1000)
 const todayKey = new Date().toISOString().slice(0, 10)
 const calendarEvent = {
@@ -232,7 +234,7 @@ globalThis.fetch = async (url, options = {}) => {
     })
   }
   if (target.includes('/api/link-videos/preview')) {
-    return json({ ok: true, platform: 'bilibili', title: '预览视频', subtitle_status: 'none' })
+    return json(linkPreviewResult)
   }
   if (/\/api\/link-videos\/[^/]+\/retry$/.test(target)) {
     const id = decodeURIComponent(target.split('/').slice(-2)[0])
@@ -444,7 +446,7 @@ globalThis.fetch = async (url, options = {}) => {
     paths: ['/tmp/meeting.mp4', '/tmp/meeting-2.m4a'],
     bytes: 1024
   })
-  if (target.includes('/api/meeting/options')) return json({ languages: [{ id: '', name: '自动' }, { id: 'zh', name: '中文' }], aligner_ready: true, aligner_state: 'ready', asr_ready: true, asr_provider: 'mimo', hotwords_supported: false, diarize: { available: false, package: true, model_ready: false, model_state: 'ready', reason: '模型未下载' } })
+  if (target.includes('/api/meeting/options')) return json({ languages: [{ id: '', name: '自动' }, { id: 'zh', name: '中文' }], aligner_ready: true, aligner_state: 'ready', asr_ready: asrReady, asr_provider: 'mimo', hotwords_supported: false, diarize: { available: false, package: true, model_ready: false, model_state: 'ready', reason: '模型未下载' } })
   if (target.includes('/api/deps/install/status')) return json({ running: false, done: true, log: '', step: '完成', error: '' })
   if (target.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, asr: true, asr_runtime: true, ready: true })
   if (target.includes('/api/asr/engines')) return json({ default_provider: 'mimo', base_url: 'https://gateway.example.test/v1', model: 'demo-asr', default_model: 'demo-asr', default_has_key: true, has_api_key: true, custom: { base_url: '', model: '', enabled: false, has_key: false }, credential_error: '', ready: true })
@@ -570,6 +572,41 @@ try {
   if (!closeSearch) throw new Error('Search dialog close missing')
   await act(async () => { closeSearch.props.onClick() })
   await flush(80)
+
+  // 顶栏设置/帮助：设置是覆盖层，关闭后底层首页仍在。
+  const settingsButton = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '设置')
+  if (!settingsButton) throw new Error('Top bar settings entry missing')
+  await act(async () => { settingsButton.props.onClick() })
+  await flush(160)
+  text = JSON.stringify(renderer.toJSON())
+  for (const expected of ['会摘设置', '模型', '账号', '飞书']) {
+    if (!text.includes(expected)) throw new Error('Settings dialog missing ' + expected)
+  }
+  const accountTab = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '账号')
+  if (!accountTab) throw new Error('Account tab missing')
+  await act(async () => { accountTab.props.onClick() })
+  await flush(180)
+  text = JSON.stringify(renderer.toJSON())
+  for (const expected of ['B站账号', '抖音账号', '飞书']) {
+    if (!text.includes(expected)) throw new Error('Account tab missing ' + expected)
+  }
+  const closeSettings = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭设置')
+  if (!closeSettings) throw new Error('Settings dialog close missing')
+  await act(async () => { closeSettings.props.onClick() })
+  await flush(80)
+  if (!JSON.stringify(renderer.toJSON()).includes('发布会回放')) throw new Error('Closing settings lost the home page')
+
+  const helpButton = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '使用指南')
+  if (!helpButton) throw new Error('Top bar help entry missing')
+  await act(async () => { helpButton.props.onClick() })
+  await flush(80)
+  text = JSON.stringify(renderer.toJSON())
+  for (const expected of ['会摘怎么用', '四个入口', '账号什么时候需要', '设置在哪里']) {
+    if (!text.includes(expected)) throw new Error('Help dialog missing ' + expected)
+  }
+  const closeHelp = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭使用指南')
+  await act(async () => { closeHelp.props.onClick() })
+  await flush(60)
 
   // ＋ 只弹三入口菜单，不再直接选文件；选「会议录音」后才走文件选择流程（支持多选）。
   let plusButton = renderer.root.findAllByType('button').find((node) => node.props['data-testid'] === 'hero-new-capture')
@@ -761,9 +798,53 @@ try {
   for (const expected of ['视频链接', '加入队列']) {
     if (!text.includes(expected)) throw new Error('Inline video panel missing ' + expected)
   }
+  linkPreviewResult = {
+    ok: false, status: 'login_required', code: 'login_required', platform: 'bilibili',
+    message: '这条 B站视频需要登录后才能读取。请扫码登录 B站，登录后点「重试」。',
+    action: { id: 'bilibili_login', label: '扫码登录 B站', platform: 'bilibili' },
+    detail: 'ERROR: [BiliBili] HTTP Error 412'
+  }
+  const videoTextarea = renderer.root.findAllByType('textarea')[0]
+  if (!videoTextarea) throw new Error('Video URL textarea missing')
+  await act(async () => { videoTextarea.props.onChange({ target: { value: 'https://www.bilibili.com/video/BV1login' } }) })
+  await flush(80)
+  const previewButton = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '预读')
+  if (!previewButton) throw new Error('Video preview action missing')
+  await act(async () => { previewButton.props.onClick() })
+  await flush(250)
+  text = JSON.stringify(renderer.toJSON())
+  for (const expected of ['需要登录后才能继续', '扫码登录 B站', '技术详情']) {
+    if (!text.includes(expected)) throw new Error('Login notice missing ' + expected + ': ' + text.slice(0, 900))
+  }
+  linkPreviewResult = { ok: true, platform: 'bilibili', title: '预览视频', subtitle_status: 'none' }
   closeCapture = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭采集面板')
   await act(async () => { closeCapture.props.onClick() })
   await flush(50)
+
+  // 采集表单里点「去配置模型」打开设置弹层，关闭后表单与已输入内容都还在。
+  asrReady = false
+  plusButton = renderer.root.findAllByType('button').find((node) => node.props['data-testid'] === 'hero-new-capture')
+  await act(async () => { plusButton.props.onClick() })
+  await flush(60)
+  const meetingEntryAgain = renderer.root.findAll((node) => String(node.props?.className || '').includes('mc-home-plus-menu'))[0]
+    ?.findAllByType('button').find((node) => node.props['data-kind'] === 'meeting')
+  await act(async () => { meetingEntryAgain.props.onClick() })
+  await flush(160)
+  const modelLink = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '去配置模型')
+  if (!modelLink) throw new Error('Model setup action missing in capture inline')
+  await act(async () => { modelLink.props.onClick() })
+  await flush(160)
+  text = JSON.stringify(renderer.toJSON())
+  if (!text.includes('会摘设置')) throw new Error('Settings dialog did not open from capture inline')
+  const closeSettingsFromInline = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭设置')
+  await act(async () => { closeSettingsFromInline.props.onClick() })
+  await flush(80)
+  text = JSON.stringify(renderer.toJSON())
+  if (!text.includes('会议录音')) throw new Error('Closing settings lost the capture form')
+  const closeCaptureAfterSettings = renderer.root.findAllByType('button').find((node) => node.props['aria-label'] === '关闭采集面板')
+  await act(async () => { closeCaptureAfterSettings.props.onClick() })
+  await flush(50)
+  asrReady = true
 
   // 链接不再自动识别：贴链接回车就是把原文发给 Agent。
   const linkInput = heroInput()
@@ -1576,7 +1657,7 @@ try {
   })
   await flush(250)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['会摘设置', '模型', '采集', 'API Key']) {
+  for (const expected of ['会摘设置', '模型', '账号', '采集']) {
     if (!text.includes(expected)) throw new Error('Settings missing ' + expected)
   }
   for (const forbidden of ['通用', '界面语言', '数据目录', '日志', '运行信息', 'PID', '端口', '数据与诊断']) {
@@ -1588,7 +1669,7 @@ try {
   await act(async () => { modelsTab.props.onClick() })
   await flush(300)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['API Key', '拉取模型清单', '语音转文字', '文字总结', '自定义 API', 'Base URL', '模型 ID', 'demo-flash']) {
+  for (const expected of ['服务地址', 'API Key', '连接并获取模型', '语音转文字', '文字总结', '自定义 API（高级）']) {
     if (!text.includes(expected)) throw new Error('Models tab missing ' + expected)
   }
 
@@ -1597,7 +1678,7 @@ try {
   await act(async () => { captureTab.props.onClick() })
   await flush(200)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['新建默认类型', '扫码登录', '截图灵敏度', '没人说话', '抖音账号', '扫码登录', '读取 Cookie']) {
+  for (const expected of ['新建默认类型', 'B站账号已移到', '截图灵敏度', '没人说话', '允许链接视频读取浏览器登录状态', '最高画质']) {
     if (!text.includes(expected)) throw new Error('Capture tab missing ' + expected)
   }
   for (const expected of ['资料库', 'DSH 工作区', '在 Finder 中打开', '更换…', '添加为 DSH 工作区']) {

@@ -51,10 +51,19 @@ globalThis.fetch = async (url, options = {}) => {
   if (path.includes('/app/models')) return json({ ok: true, models: ['demo-asr', 'ASR_NonStreaming', 'gpt-4o', 'demo-flash'], count: 4 })
   if (path.includes('/app/status')) return json(baseStatus())
   if (path.includes('/app/setup/status')) {
-    state.env = true
-    return json({ ok: true, env: { ...baseStatus().env, job: { state: 'done', step: '完成', log: 'ready' } } })
+    return json({
+      ok: true,
+      env: {
+        ...baseStatus().env,
+        ready: state.env,
+        job: state.env ? { state: 'done', step: '完成', log: 'ready' } : null
+      }
+    })
   }
-  if (path.includes('/app/setup')) return json({ ok: true, job: { state: 'running', step: '安装' } })
+  if (path.includes('/app/setup')) {
+    state.env = true
+    return json({ ok: true, job: { state: 'running', step: '安装' } })
+  }
   if (path.includes('/app/backend')) { state.backend = true; return json({ ok: true }) }
   if (path.includes('/app/workspace')) {
     return json({ ok: true, created: true, workspace: { id: 'w1', title: '会摘资料', path: '/tmp/data' } })
@@ -74,6 +83,7 @@ globalThis.fetch = async (url, options = {}) => {
   }
   if (path.includes('/app/feishu/')) return json({ ok: true, job: feishu.job })
   if (path.includes('/api/asr/engines/test')) { state.key = true; return json({ ok: true, message: '云端语音测试通过' }) }
+  if (path.includes('/api/ai/test')) return json({ ok: true, seconds: 0.2, model: JSON.parse(options.body || '{}').model, provider: 'mimo' })
   if (path.includes('/api/asr/engines') && String(options.method || '').toUpperCase() === 'POST') {
     saved.push(JSON.parse(options.body || '{}'))
     state.key = true
@@ -100,15 +110,25 @@ await act(async () => { renderer = TestRenderer.create(React.createElement(Main,
 await new Promise((r) => setTimeout(r, 120))
 const text = () => JSON.stringify(renderer.toJSON())
 const buttons = () => renderer.root.findAllByType('button')
-const buttonWith = (label) => buttons().find((n) => JSON.stringify(n.props.children).includes(label))
+function textOf(node) {
+  if (node === null || node === undefined || typeof node === 'boolean') return ''
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(textOf).join('')
+  if (node.props) return textOf(node.props.children)
+  return ''
+}
+const buttonWith = (label) => buttons().find((n) => textOf(n.props.children).includes(label))
 
-if (!text().includes('连接 Mify') || !text().includes('获取模型')) throw new Error('Cloud setup step did not render')
+if (!text().includes('连接模型服务') || !text().includes('获取模型')) throw new Error('Cloud setup step did not render')
 if (!text().includes('跳过')) throw new Error('Skip action must be visible before testing')
 if (text().includes('下一步')) throw new Error('Next must stay hidden until the API key is tested')
 if (!text().includes('云端模型') || !text().includes('安装环境') || !text().includes('完成')) {
   throw new Error('Wizard must advertise three steps')
 }
 if (text().includes('飞书 MCP') && !text().includes('云端模型')) throw new Error('Unexpected wizard state')
+const baseInput = renderer.root.findAllByType('input').find((n) => String(n.props.placeholder || '').includes('your-gateway'))
+if (!baseInput) throw new Error('Base URL input missing')
+await act(async () => { baseInput.props.onChange({ target: { value: 'https://gateway.example.test/v1' } }) })
 const keyInput = renderer.root.findAllByType('input').find((n) => n.props.type === 'password')
 if (!keyInput) throw new Error('API key input missing')
 await act(async () => { keyInput.props.onChange({ target: { value: 'sk-test-key-1234567890' } }) })
@@ -135,22 +155,13 @@ await new Promise((r) => setTimeout(r, 60))
 if (catalogCalls() !== beforeBlur) throw new Error('Blurring the API key refetched the catalog')
 const nextButton = buttonWith('下一步')
 if (!nextButton) throw new Error('Next step missing')
-if (text().includes('跳过')) throw new Error('Skip should disappear after a successful test')
 await act(async () => { nextButton.props.onClick() })
 await new Promise((r) => setTimeout(r, 100))
 if (!text().includes('存储位置')) throw new Error('Storage location row missing in step 2: ' + text().slice(0, 500))
 if (!text().includes('/tmp/data')) throw new Error('Storage location did not default to the host suggestion')
-// Merged step: the Feishu MCP block lives inside the install step now.
-if (!text().includes('飞书 MCP（可选）')) throw new Error('Feishu block missing from the install step: ' + text().slice(0, 900))
-const feishuInstall = buttonWith('安装飞书 MCP')
-if (!feishuInstall) throw new Error('Feishu install action missing from step 2')
-await act(async () => { feishuInstall.props.onClick() })
-await new Promise((r) => setTimeout(r, 1600))
-if (!text().includes('登录飞书')) throw new Error('Login action missing after the Feishu install: ' + text().slice(0, 1200))
-const loginButton = buttonWith('登录飞书')
-await act(async () => { loginButton.props.onClick() })
-await new Promise((r) => setTimeout(r, 1800))
-if (!text().includes('已配置并登录')) throw new Error('Login result missing: ' + text().slice(0, 1200))
+if (!text().includes('打开完全磁盘访问设置')) throw new Error('Permission action missing from step 2')
+if (!buttonWith('上一步')) throw new Error('Back action missing from step 2')
+if (!text().includes('3–10 分钟')) throw new Error('Install estimate missing from step 2')
 const installButton = buttonWith('一键安装并配置')
 if (!installButton) throw new Error('Install button missing')
 await act(async () => { installButton.props.onClick() })
@@ -162,8 +173,8 @@ if (!text().includes('进入主界面')) throw new Error('Setup done action miss
 if (!text().includes('已添加 DSH 工作区：') || !text().includes('会摘资料')) {
   throw new Error('Workspace result missing: ' + text().slice(0, 800))
 }
-if (!text().includes('飞书 MCP（可选）') || !text().includes('已配置并登录')) {
-  throw new Error('Feishu block missing on the done step: ' + text().slice(0, 900))
+for (const expected of ['现在试一次', '发布会直播', '视频链接', '会议录音', '飞书文档', '连接账号（可选）', 'B站账号', '抖音账号', '飞书 MCP（可选）']) {
+  if (!text().includes(expected)) throw new Error('Done step missing ' + expected + ': ' + text().slice(0, 1200))
 }
 if (!saved.some((item) => item.model === 'ASR_NonStreaming')) throw new Error('Selected ASR model was not saved: ' + JSON.stringify(saved))
 if (!saved.some((item) => item.model === 'gpt-4o')) throw new Error('Selected text model was not saved: ' + JSON.stringify(saved))

@@ -55,7 +55,7 @@ def _import_engine(asr_provider):
     except ValueError as exc:
         raise HTTPException(400, str(exc))
     if not asr_engines.ready(config):
-        raise HTTPException(400, "所选转录引擎未就绪，请检查 设置 → 会摘 → 模型")
+        raise HTTPException(400, "所选转录引擎未就绪，请检查会摘面板右上角「设置 → 模型」")
     return config
 
 

@@ -38,7 +38,8 @@ const DEFAULT_TIMEOUT_MS = 300_000
 const OPEN_HOSTS = [
   'feishu.cn',
   'larksuite.com',
-  'github.com'
+  'github.com',
+  'nodejs.org'
 ]
 
 export function dshHome() {
@@ -587,6 +588,11 @@ export class FeishuManager {
     return next
   }
 
+  /** 真正读过一篇文档后才算「可以使用」，避免只凭 token 元数据过度承诺。 */
+  recordDocRead() {
+    return this.writeState({ lastDocReadAt: Date.now() })
+  }
+
   binaries() {
     return resolveBinaries({
       pathValue: process.env.PATH,
@@ -664,6 +670,7 @@ export class FeishuManager {
       auth: readAuthState(os.homedir()),
       pinnedVersion: state.version || '',
       installedAt: state.installedAt || null,
+      lastDocReadAt: Number(state.lastDocReadAt) || 0,
       job: this.jobSnapshot()
     }
   }

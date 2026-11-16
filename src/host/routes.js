@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { jsonResponse, readJsonBody, requireBrowser } from './http.js'
 import { readLogTail } from './config.js'
-import { openTarget, openUrl, pickFile, receiveUpload, revealSession } from './files.js'
+import { openFullDiskAccess, openTarget, openUrl, pickFile, receiveUpload, revealSession } from './files.js'
 import { receiveFallbackUpload } from './fallback.js'
 import { FEISHU_DOC_URL, validOpenUrl } from './feishu.js'
 import { createFeishuDocCard, previewFeishuDoc } from './doc-cards.js'
@@ -406,6 +406,7 @@ export function registerAppRoutes(ctx, runtime) {
         tools: ctx.get('tools'),
         url: body.url
       })
+      if (result?.has_content) runtime.feishu.recordDocRead()
       jsonResponse(res, 200, result)
     } catch (error) {
       if (error?.name === 'DocCardError') {
@@ -435,6 +436,7 @@ export function registerAppRoutes(ctx, runtime) {
         title: body.title,
         linkOnly: body.link_only === true
       })
+      if (result && result.link_only === false) runtime.feishu.recordDocRead()
       jsonResponse(res, 200, result)
     } catch (error) {
       if (error?.name === 'DocCardError') {
@@ -455,6 +457,11 @@ export function registerAppRoutes(ctx, runtime) {
     const target = String(body.target || '')
     if (target === 'feishu-doc') {
       const result = await openUrl(FEISHU_DOC_URL)
+      jsonResponse(res, result.ok ? 200 : 400, result)
+      return
+    }
+    if (target === 'full-disk-access') {
+      const result = await openFullDiskAccess()
       jsonResponse(res, result.ok ? 200 : 400, result)
       return
     }

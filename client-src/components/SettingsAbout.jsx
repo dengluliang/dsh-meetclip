@@ -17,7 +17,7 @@ function dotTone(tone) {
   return tone === 'ok' ? 'ok' : tone === 'warn' ? 'warn' : tone === 'error' ? 'error' : 'idle'
 }
 
-export function SettingsAbout({ t }) {
+export function SettingsAbout({ t, onRestartSetup = null }) {
   const { status, error, busy, notice, actions } = useUpdate()
   const tr = (key, fallback) => {
     const value = typeof t === 'function' ? t(key) : ''
@@ -49,6 +49,7 @@ export function SettingsAbout({ t }) {
   const backups = rollbackCandidates(status)
   const [rollbackChoice, setRollbackChoice] = React.useState('')
   const [pendingRollback, setPendingRollback] = React.useState('')
+  const [restartSetupPrompt, setRestartSetupPrompt] = React.useState(false)
   const selectedBackup = backups.find((row) => row.version === rollbackChoice) || backups[0] || null
   // 备份可能在别处被清理或已被换掉；这时确认条自动收起，避免对着过期版本操作。
   const pendingBackup = backups.find((row) => row.version === pendingRollback) || null
@@ -231,6 +232,28 @@ export function SettingsAbout({ t }) {
         ) : null}
         {notice ? <p className="mc-foot-meta" role="status">{notice}</p> : null}
         {error ? <p className="mc-error-text" role="alert">{error}</p> : null}
+
+        {onRestartSetup ? (
+          <div className="mc-about-reset">
+            <div>
+              <strong>配置与修复</strong>
+              <p className="mc-foot-meta">重新打开首次配置向导，可补模型、账号或重新安装运行环境；不会删除资料库。</p>
+            </div>
+            {restartSetupPrompt ? (
+              <div className="mc-actions">
+                <button type="button" className="mc-button mc-button-small" onClick={() => setRestartSetupPrompt(false)}>取消</button>
+                <button type="button" className="mc-button mc-button-small" data-variant="primary"
+                  onClick={() => { setRestartSetupPrompt(false); onRestartSetup() }}>
+                  确认重新配置
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="mc-button mc-button-small" onClick={() => setRestartSetupPrompt(true)}>
+                重新运行配置向导
+              </button>
+            )}
+          </div>
+        ) : null}
 
         <p className="mc-foot-meta">
           {tr('about.privacy', '检查更新只访问 GitHub，不上传资料库、笔记或转写。自动更新会替换 DSH 里已安装的插件副本，重启 DSH 后生效。')}

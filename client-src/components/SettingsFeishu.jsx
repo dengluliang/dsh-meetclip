@@ -1,5 +1,7 @@
+import { openExternal } from '../lib/api.js'
 import { feishuSummary, useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel } from './feishu/FeishuParts.jsx'
+import { FeishuDocProbe } from './login/FeishuDocProbe.jsx'
 
 const DOT_TONES = { ok: 'ok', warn: 'warn', error: 'error', pending: 'idle' }
 
@@ -39,9 +41,9 @@ export function SettingsFeishu() {
       disabled: disabled || !canInstall,
       run: actions.install
     }
-  } else if (status && !signedIn) {
+  } else if (status && (!signedIn || auth.accessExpired)) {
     primary = {
-      label: busy === 'login' ? '等待授权…' : auth.expired ? '重新登录' : '登录飞书',
+      label: busy === 'login' ? '等待授权…' : auth.accessExpired ? '刷新飞书登录' : auth.expired ? '重新登录' : '登录飞书',
       disabled,
       run: () => actions.login('auto')
     }
@@ -71,6 +73,10 @@ export function SettingsFeishu() {
               <button type="button" className="mc-button" disabled={disabled}
                 onClick={() => actions.login('auto')}>{busy === 'login' ? '等待授权…' : '重新登录'}</button>
             ) : null}
+            {installed ? (
+              <button type="button" className="mc-button" disabled={disabled}
+                onClick={() => actions.login('device')}>设备码登录</button>
+            ) : null}
             <button type="button" className="mc-button" aria-expanded={more}
               onClick={toggleMore}>{more ? '收起' : '更多'}</button>
           </div>
@@ -87,9 +93,17 @@ export function SettingsFeishu() {
           </p>
         ) : null}
         {summary.detail ? <p className="mc-feishu-note" data-tone={summary.tone}>{summary.detail}</p> : null}
+        {(!runtime.npxOk || !runtime.nodeOk) && installed ? (
+          <div className="mc-actions">
+            <button type="button" className="mc-button mc-button-small"
+              onClick={() => openExternal('url', 'https://nodejs.org/zh-cn').catch(() => {})}>安装 Node.js</button>
+            <button type="button" className="mc-button mc-button-small" onClick={actions.status}>重新检测</button>
+          </div>
+        ) : null}
         {notice ? <p className="mc-feishu-note" role="status">{notice}</p> : null}
         {error ? <p className="mc-error-text" role="alert">{error}</p> : null}
 
+        {signedIn ? <FeishuDocProbe onLogin={() => actions.login('auto')} /> : null}
         <FeishuJobPanel job={job} actions={actions} />
 
         {more ? (
@@ -106,9 +120,6 @@ export function SettingsFeishu() {
                   {running && job?.action === 'install' ? '安装中…' : '重新安装'}
                 </button>
               ) : null}
-              <button type="button" className="mc-button" disabled={disabled} onClick={() => actions.login('device')}>
-                用设备码登录
-              </button>
               {signedIn ? (
                 <button type="button" className="mc-button" disabled={disabled} onClick={actions.logout}>
                   {busy === 'logout' ? '退出中…' : '退出登录'}

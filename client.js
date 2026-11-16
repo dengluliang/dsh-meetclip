@@ -4054,7 +4054,7 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-settings-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 4px 2px 2px; }
 .mc-settings-title { font-family: var(--mc-serif); font-size: 26px; line-height: 1.2; font-weight: 500; margin: 0; letter-spacing: -.01em; }
 .mc-settings-desc { color: var(--dsw-alias-label-secondary); font-size: 12.5px; margin: 6px 0 0; max-width: 640px; }
-.mc-settings-tabs { position: sticky; top: 4px; z-index: 6; display: inline-flex; align-self: flex-start; gap: 3px; padding: 4px; border: .5px solid var(--mc-line); border-radius: 12px; background: var(--mc-glass); backdrop-filter: blur(20px); box-shadow: var(--mc-shadow); }
+.mc-settings-tabs { position: sticky; top: 4px; z-index: 6; display: inline-flex; flex-wrap: wrap; align-self: flex-start; gap: 3px; padding: 4px; border: .5px solid var(--mc-line); border-radius: 12px; background: var(--mc-glass); backdrop-filter: blur(20px); box-shadow: var(--mc-shadow); }
 .mc-settings-tab { height: 30px; padding: 0 18px; border: 0; border-radius: 9px; background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12.5px; cursor: pointer; }
 .mc-settings-tab:hover { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-interactive-bg-hover); }
 .mc-settings-tab[aria-selected='true'] { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); box-shadow: var(--mc-shadow); }
@@ -5319,6 +5319,161 @@ body.mc-stage-resizing-stack, body.mc-stage-resizing-stack * { cursor: row-resiz
   -webkit-line-clamp: 2;
 }
 .mc-doc-preview-warning { color: var(--dsw-alias-state-warn-primary); }
+
+/* ============ \u914D\u7F6E/\u767B\u5F55\u65C5\u7A0B\uFF080.9.15\uFF09 ============ */
+.mc-topbar-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 32px;
+  padding: 0 10px;
+  border: .5px solid var(--mc-line);
+  border-radius: 10px;
+  background: var(--mc-glass);
+  backdrop-filter: blur(20px);
+  color: var(--dsw-alias-label-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.mc-topbar-tool:hover:not(:disabled) { color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-border-l4); }
+.mc-topbar-tool:disabled { opacity: .45; cursor: not-allowed; }
+.mc-topbar-tool-text { font-weight: 500; }
+
+.mc-settings-layer { z-index: 80; }
+.mc-settings-dialog {
+  width: min(1060px, 100%);
+  max-height: min(88vh, 880px);
+  padding: 0;
+  overflow: hidden;
+}
+.mc-settings-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: .5px solid var(--mc-line);
+  flex: 0 0 auto;
+}
+.mc-settings-dialog-title { font-family: var(--mc-serif); font-size: 18px; font-weight: 500; }
+.mc-settings-dialog-body { min-height: 0; overflow: auto; padding: 0 18px 18px; }
+.mc-settings-dialog .mc-settings-hero { display: none; }
+.mc-settings-dialog .mc-settings-shell { padding-top: 14px; max-width: none; }
+
+.mc-model-connection { display: flex; flex-direction: column; gap: 10px; }
+.mc-model-connection.is-compact { gap: 8px; }
+.mc-model-connection .mc-actions { margin-top: 0; }
+.mc-model-connection .mc-foot-meta:last-child { margin: 0; }
+
+.mc-account-grid { display: flex; flex-direction: column; gap: 10px; }
+.mc-account-grid + .mc-account-grid { margin-top: 12px; }
+.mc-login-card {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 14px;
+  border: .5px solid var(--mc-line);
+  border-radius: 16px;
+  background: var(--dsw-alias-bg-layer-1);
+}
+.mc-login-card.is-compact { padding: 12px; border-radius: 14px; }
+.mc-login-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mc-login-head strong { font-size: 13px; }
+.mc-login-state { font-size: 11.5px; color: var(--dsw-alias-label-secondary); }
+.mc-login-state[data-ok='true'] { color: var(--dsw-alias-state-success-primary); }
+.mc-login-state[data-ok='false'] { color: var(--dsw-alias-state-warn-primary); }
+.mc-login-hint { margin: 0; font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.mc-login-card .mc-actions { margin: 0; }
+.mc-douyin-steps { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 70%, transparent); }
+.mc-douyin-steps .mc-form-row { align-items: center; margin: 0; }
+.mc-douyin-steps .mc-form-row > span:first-child { width: 118px; flex: 0 0 auto; }
+.mc-inline-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border-radius: 12px; background: var(--dsw-alias-bg-layer-2); border: .5px solid var(--mc-line); font-size: 12px; }
+.mc-tech-detail { margin: 2px 0 0; font-size: 11.5px; color: var(--dsw-alias-label-tertiary); }
+.mc-tech-detail summary { cursor: pointer; }
+.mc-tech-detail p { margin: 6px 0 0; padding: 8px; border-radius: 8px; background: var(--dsw-alias-bg-base); white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace); }
+
+.mc-login-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 8px;
+  padding: 12px;
+  border: .5px solid var(--mc-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 7%, var(--dsw-alias-bg-layer-1));
+}
+.mc-login-notice[data-tone='error'] { background: color-mix(in srgb, var(--dsw-alias-state-error-primary) 7%, var(--dsw-alias-bg-layer-1)); }
+.mc-login-notice-main { display: flex; flex-direction: column; gap: 3px; }
+.mc-login-notice-main strong { font-size: 12.5px; }
+.mc-login-notice-main span { font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.mc-login-notice .mc-actions { margin: 0; }
+
+.mc-doc-probe { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; padding-top: 10px; border-top: .5px solid var(--mc-line); }
+.mc-doc-probe-title { font-size: 12.5px; font-weight: 600; }
+.mc-doc-probe-row { display: flex; gap: 8px; align-items: center; }
+.mc-doc-probe-row .mc-input { flex: 1 1 auto; min-width: 0; }
+.mc-doc-probe-error { display: flex; flex-direction: column; gap: 6px; }
+.mc-doc-probe .mc-form-note { margin: 0; padding-left: 0; }
+
+.mc-feishu-issue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  border: .5px solid var(--mc-line);
+  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 6%, var(--dsw-alias-bg-layer-1));
+}
+.mc-feishu-issue > div:first-child { display: flex; flex-direction: column; gap: 3px; }
+.mc-feishu-issue strong { font-size: 12.5px; }
+.mc-feishu-issue span { font-size: 12px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }
+.mc-feishu-issue .mc-actions { margin: 0; }
+
+.mc-help-dialog { width: min(720px, 100%); max-height: min(84vh, 760px); padding: 0; overflow: hidden; }
+.mc-help-dialog .mc-modal-head { padding: 16px 18px 12px; }
+.mc-help-body { overflow: auto; padding: 4px 18px 18px; display: flex; flex-direction: column; gap: 18px; }
+.mc-help-body section { display: flex; flex-direction: column; gap: 8px; }
+.mc-help-body h4 { margin: 0; font-size: 13px; }
+.mc-help-body p, .mc-help-body ul { margin: 0; font-size: 12.5px; line-height: 1.7; color: var(--dsw-alias-label-secondary); }
+.mc-help-body ul { padding-left: 18px; }
+.mc-help-entries { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mc-help-entries button { display: flex; flex-direction: column; gap: 4px; padding: 12px; text-align: left; border: .5px solid var(--mc-line); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; cursor: pointer; }
+.mc-help-entries button:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.mc-help-entries strong { font-size: 12.5px; }
+.mc-help-entries span { font-size: 11.5px; line-height: 1.5; color: var(--dsw-alias-label-secondary); }
+
+.mc-setup-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.mc-setup-checklist > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 12px; border: .5px solid var(--mc-line); background: var(--dsw-alias-bg-layer-1); }
+.mc-setup-checklist strong { font-size: 12px; }
+.mc-setup-checklist span { font-size: 11.5px; color: var(--dsw-alias-label-secondary); }
+.mc-setup-checklist > div[data-ok='true'] span { color: var(--dsw-alias-state-success-primary); }
+.mc-setup-checklist > div[data-ok='false'] span { color: var(--dsw-alias-state-error-primary); }
+.mc-setup-start { display: flex; flex-direction: column; gap: 8px; width: 100%; text-align: left; }
+.mc-setup-start > strong { font-size: 12.5px; }
+.mc-setup-start-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.mc-setup-start-grid button { display: flex; flex-direction: column; gap: 3px; padding: 10px; border: .5px solid var(--mc-line); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); font: inherit; text-align: left; cursor: pointer; }
+.mc-setup-start-grid button:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.mc-setup-start-grid strong { font-size: 12px; }
+.mc-setup-start-grid span { font-size: 11px; color: var(--dsw-alias-label-secondary); }
+.mc-setup-accounts { width: 100%; text-align: left; border: .5px solid var(--mc-line); border-radius: 14px; padding: 12px; background: var(--dsw-alias-bg-layer-1); }
+.mc-setup-accounts summary { cursor: pointer; font-size: 12.5px; font-weight: 600; }
+.mc-setup-accounts > * + * { margin-top: 10px; }
+.mc-about-reset { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px; border: .5px solid var(--mc-line); border-radius: 12px; background: var(--dsw-alias-bg-layer-1); }
+.mc-about-reset > div:first-child { display: flex; flex-direction: column; gap: 2px; max-width: 560px; }
+.mc-about-reset strong { font-size: 12.5px; }
+.mc-about-reset .mc-actions { margin: 0; }
+
+@media (max-width: 760px) {
+  .mc-search-trigger { min-width: 0; width: 32px; padding: 0; justify-content: center; }
+  .mc-search-trigger span, .mc-search-trigger kbd { display: none; }
+  .mc-settings-dialog { width: 100%; max-height: 94vh; border-radius: 18px; }
+  .mc-settings-dialog-body { padding: 0 12px 14px; }
+  .mc-help-entries, .mc-setup-checklist, .mc-setup-start-grid { grid-template-columns: 1fr 1fr; }
+  .mc-doc-probe-row { flex-direction: column; align-items: stretch; }
+  .mc-douyin-steps .mc-form-row > span:first-child { width: 100%; }
+}
 `;
 
 // client-src/libraries.css
@@ -5382,6 +5537,36 @@ init_react_shim();
 
 // client-src/lib/api.js
 init_react_shim();
+var STATUS_MESSAGES = {
+  400: "\u8BF7\u6C42\u5185\u5BB9\u4E0D\u5B8C\u6574\uFF0C\u8BF7\u68C0\u67E5\u586B\u5199\u7684\u5185\u5BB9",
+  401: "\u6CA1\u6709\u767B\u5F55\u6216\u51ED\u8BC1\u5DF2\u5931\u6548",
+  403: "\u6CA1\u6709\u6743\u9650\u6267\u884C\u8FD9\u4E2A\u64CD\u4F5C",
+  404: "\u63A5\u53E3\u4E0D\u5B58\u5728\uFF0C\u53EF\u80FD\u662F\u672C\u5730\u5F15\u64CE\u7248\u672C\u8FC7\u65E7\uFF1B\u8BF7\u91CD\u542F\u540E\u518D\u8BD5",
+  409: "\u5F53\u524D\u72B6\u6001\u4E0D\u5141\u8BB8\u8FD9\u4E2A\u64CD\u4F5C\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5",
+  422: "\u53C2\u6570\u683C\u5F0F\u4E0D\u6B63\u786E\uFF0C\u8BF7\u68C0\u67E5\u586B\u5199\u5185\u5BB9",
+  429: "\u8BF7\u6C42\u592A\u9891\u7E41\uFF0C\u8BF7\u7A0D\u7B49\u4E00\u4F1A\u513F\u518D\u8BD5",
+  500: "\u672C\u5730\u5F15\u64CE\u51FA\u9519\u4E86\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5",
+  502: "\u672C\u5730\u5F15\u64CE\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5",
+  503: "\u672C\u5730\u5F15\u64CE\u672A\u5C31\u7EEA\uFF0C\u8BF7\u5148\u542F\u52A8\u672C\u5730\u5F15\u64CE"
+};
+function formatDetail(detail) {
+  if (Array.isArray(detail)) {
+    return detail.map((item) => {
+      const where = Array.isArray(item?.loc) ? item.loc.filter((part) => part !== "body").join(".") : "";
+      return [where, item?.msg || item?.message || ""].filter(Boolean).join(": ");
+    }).filter(Boolean).join("\uFF1B");
+  }
+  if (detail && typeof detail === "object") {
+    return String(detail.message || detail.msg || detail.error || detail.detail || "");
+  }
+  return typeof detail === "string" ? detail : "";
+}
+function formatApiError(status3, data) {
+  const body = data && typeof data === "object" ? data : {};
+  const message = formatDetail(body.detail) || formatDetail(body.error) || formatDetail(body.message);
+  if (message) return message;
+  return STATUS_MESSAGES[status3] || `\u8BF7\u6C42\u5931\u8D25\uFF08HTTP ${status3}\uFF09`;
+}
 async function request(path, options = {}) {
   const response = await fetch(`/meetclip${path}`, {
     credentials: "same-origin",
@@ -5403,10 +5588,11 @@ async function request(path, options = {}) {
     }
   }
   if (!response.ok) {
-    const message = data && (data.detail || data.error || data.message) || `HTTP ${response.status}`;
-    const error = new Error(message);
+    const error = new Error(formatApiError(response.status, data));
     error.status = response.status;
     error.data = data;
+    error.code = data && typeof data === "object" ? data.code : "";
+    error.hint = data && typeof data === "object" ? data.hint : "";
     throw error;
   }
   return data;
@@ -5542,9 +5728,6 @@ function bilibiliStatus() {
 }
 function bilibiliRefresh() {
   return api("/bilibili/refresh", { method: "POST", body: "{}" });
-}
-function bilibiliLogout() {
-  return api("/bilibili/logout", { method: "POST", body: "{}" });
 }
 function bilibiliQrStart() {
   return api("/bilibili/qr", { method: "POST", body: "{}" });
@@ -5730,12 +5913,6 @@ function reorderPackMembers(id, members) {
 function deletePack(id) {
   return api(`/packs/${encodeURIComponent(id)}`, { method: "DELETE" });
 }
-function testMimoKey(apiKey, { baseUrl, model } = {}) {
-  return app("/asr/test", {
-    method: "POST",
-    body: JSON.stringify({ api_key: apiKey, base_url: baseUrl, model })
-  });
-}
 function probeModels({ apiKey, baseUrl } = {}) {
   return app("/models", {
     method: "POST",
@@ -5750,9 +5927,6 @@ function probeUsableModels({ apiKey, baseUrl, models = [] } = {}) {
     method: "POST",
     body: JSON.stringify({ probe: true, api_key: apiKey, base_url: baseUrl, models })
   });
-}
-function probeUsableCatalog() {
-  return api("/models/usable", { method: "POST", body: JSON.stringify({}) });
 }
 function getMinutes(id) {
   return api(`/sessions/${encodeURIComponent(id)}/minutes`);
@@ -5895,6 +6069,9 @@ function ensureLibraryWorkspace({ id, title } = {}) {
 function openExternal(target, url) {
   return app("/open", { method: "POST", body: JSON.stringify(url ? { target, url } : { target }) });
 }
+function openFullDiskAccess() {
+  return app("/open", { method: "POST", body: JSON.stringify({ target: "full-disk-access" }) });
+}
 function updateStatus() {
   return app("/update");
 }
@@ -6035,7 +6212,7 @@ function libraryLoadErrorText(failure) {
   if (status3 === 404 || status3 === 405 || status3 === 501) {
     return "\u5BBF\u4E3B\u8FD8\u6CA1\u52A0\u8F7D\u591A\u8D44\u6599\u7A7A\u95F4\uFF1A\u8BF7\u91CD\u542F DeepSeek Harness\uFF0C\u6216\u7528\u6700\u65B0\u7684 dsh-meetclip \u63D2\u4EF6\u5305\u91CD\u65B0\u5B89\u88C5\u300C\u4F1A\u6458\u300D";
   }
-  if (status3 === 503) return "\u672C\u5730\u5F15\u64CE\u6CA1\u8D77\u6765\uFF0C\u7A0D\u540E\u518D\u8BD5\uFF1B\u6301\u7EED\u5931\u8D25\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u91C7\u96C6 \u91CD\u542F\u5F15\u64CE";
+  if (status3 === 503) return "\u672C\u5730\u5F15\u64CE\u6CA1\u8D77\u6765\uFF0C\u7A0D\u540E\u518D\u8BD5\uFF1B\u6301\u7EED\u5931\u8D25\u8BF7\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6\u300D\u91CD\u542F\u5F15\u64CE";
   if (status3 === 409) return failure?.message || "\u64CD\u4F5C\u88AB\u62D2\u7EDD";
   return failure?.message || String(failure || "\u672A\u77E5\u9519\u8BEF");
 }
@@ -6362,7 +6539,7 @@ function LibraryPanel({
       onClick: submitSharing
     },
     working === "share" ? "\u51C6\u5907\u4E2D\u2026" : sharedDir ? "\u68C0\u67E5\u5171\u4EAB\u76EE\u5F55" : "\u542F\u7528\u5171\u4EAB"
-  ))), /* @__PURE__ */ React.createElement("p", { className: "mc-lib-foot" }, "\u4E91\u7AEF API Key \u4E0E\u65E5\u5386\u5BC6\u7801\u4FDD\u5B58\u5728 macOS \u94A5\u5319\u4E32\u91CC\uFF0C\u672C\u6765\u5C31\u6240\u6709\u7A7A\u95F4\u5171\u7528\uFF1B \u542F\u7528\u5171\u4EAB\u65F6\u53EA\u590D\u5236\u3001\u4E0D\u5220\u9664\u539F\u6587\u4EF6\u3002"))) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-lib-foot" }, "\u8FD9\u4E00\u4EFD\u653E\u5728\u54EA\u513F\u3001\u600E\u4E48\u642C\u5BB6\uFF1A\u8BBE\u7F6E \u2192 \u91C7\u96C6 \u2192 \u5B58\u50A8\u4F4D\u7F6E\uFF08\u90A3\u91CC\u8FD8\u80FD\u628A\u5B83\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A\uFF09\u3002"));
+  ))), /* @__PURE__ */ React.createElement("p", { className: "mc-lib-foot" }, "\u4E91\u7AEF API Key \u4E0E\u65E5\u5386\u5BC6\u7801\u4FDD\u5B58\u5728 macOS \u94A5\u5319\u4E32\u91CC\uFF0C\u672C\u6765\u5C31\u6240\u6709\u7A7A\u95F4\u5171\u7528\uFF1B \u542F\u7528\u5171\u4EAB\u65F6\u53EA\u590D\u5236\u3001\u4E0D\u5220\u9664\u539F\u6587\u4EF6\u3002"))) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-lib-foot" }, "\u8FD9\u4E00\u4EFD\u653E\u5728\u54EA\u513F\u3001\u600E\u4E48\u642C\u5BB6\uFF1A\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6 \u2192 \u5B58\u50A8\u4F4D\u7F6E\u300D\uFF08\u90A3\u91CC\u8FD8\u80FD\u628A\u5B83\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A\uFF09\u3002"));
 }
 
 // client-src/components/RecordsBrowser.jsx
@@ -15614,7 +15791,7 @@ function requireEventemitter3() {
       }
       return names;
     };
-    EventEmitter2.prototype.listeners = function listeners2(event) {
+    EventEmitter2.prototype.listeners = function listeners3(event) {
       var evt = prefix ? prefix + event : event, handlers = this._events[evt];
       if (!handlers) return [];
       if (handlers.fn) return [handlers.fn];
@@ -15624,57 +15801,57 @@ function requireEventemitter3() {
       return ee;
     };
     EventEmitter2.prototype.listenerCount = function listenerCount(event) {
-      var evt = prefix ? prefix + event : event, listeners2 = this._events[evt];
-      if (!listeners2) return 0;
-      if (listeners2.fn) return 1;
-      return listeners2.length;
+      var evt = prefix ? prefix + event : event, listeners3 = this._events[evt];
+      if (!listeners3) return 0;
+      if (listeners3.fn) return 1;
+      return listeners3.length;
     };
     EventEmitter2.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
       var evt = prefix ? prefix + event : event;
       if (!this._events[evt]) return false;
-      var listeners2 = this._events[evt], len = arguments.length, args, i;
-      if (listeners2.fn) {
-        if (listeners2.once) this.removeListener(event, listeners2.fn, void 0, true);
+      var listeners3 = this._events[evt], len = arguments.length, args, i;
+      if (listeners3.fn) {
+        if (listeners3.once) this.removeListener(event, listeners3.fn, void 0, true);
         switch (len) {
           case 1:
-            return listeners2.fn.call(listeners2.context), true;
+            return listeners3.fn.call(listeners3.context), true;
           case 2:
-            return listeners2.fn.call(listeners2.context, a1), true;
+            return listeners3.fn.call(listeners3.context, a1), true;
           case 3:
-            return listeners2.fn.call(listeners2.context, a1, a2), true;
+            return listeners3.fn.call(listeners3.context, a1, a2), true;
           case 4:
-            return listeners2.fn.call(listeners2.context, a1, a2, a3), true;
+            return listeners3.fn.call(listeners3.context, a1, a2, a3), true;
           case 5:
-            return listeners2.fn.call(listeners2.context, a1, a2, a3, a4), true;
+            return listeners3.fn.call(listeners3.context, a1, a2, a3, a4), true;
           case 6:
-            return listeners2.fn.call(listeners2.context, a1, a2, a3, a4, a5), true;
+            return listeners3.fn.call(listeners3.context, a1, a2, a3, a4, a5), true;
         }
         for (i = 1, args = new Array(len - 1); i < len; i++) {
           args[i - 1] = arguments[i];
         }
-        listeners2.fn.apply(listeners2.context, args);
+        listeners3.fn.apply(listeners3.context, args);
       } else {
-        var length = listeners2.length, j;
+        var length = listeners3.length, j;
         for (i = 0; i < length; i++) {
-          if (listeners2[i].once) this.removeListener(event, listeners2[i].fn, void 0, true);
+          if (listeners3[i].once) this.removeListener(event, listeners3[i].fn, void 0, true);
           switch (len) {
             case 1:
-              listeners2[i].fn.call(listeners2[i].context);
+              listeners3[i].fn.call(listeners3[i].context);
               break;
             case 2:
-              listeners2[i].fn.call(listeners2[i].context, a1);
+              listeners3[i].fn.call(listeners3[i].context, a1);
               break;
             case 3:
-              listeners2[i].fn.call(listeners2[i].context, a1, a2);
+              listeners3[i].fn.call(listeners3[i].context, a1, a2);
               break;
             case 4:
-              listeners2[i].fn.call(listeners2[i].context, a1, a2, a3);
+              listeners3[i].fn.call(listeners3[i].context, a1, a2, a3);
               break;
             default:
               if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
                 args[j - 1] = arguments[j];
               }
-              listeners2[i].fn.apply(listeners2[i].context, args);
+              listeners3[i].fn.apply(listeners3[i].context, args);
           }
         }
       }
@@ -15693,15 +15870,15 @@ function requireEventemitter3() {
         clearEvent(this, evt);
         return this;
       }
-      var listeners2 = this._events[evt];
-      if (listeners2.fn) {
-        if (listeners2.fn === fn && (!once || listeners2.once) && (!context || listeners2.context === context)) {
+      var listeners3 = this._events[evt];
+      if (listeners3.fn) {
+        if (listeners3.fn === fn && (!once || listeners3.once) && (!context || listeners3.context === context)) {
           clearEvent(this, evt);
         }
       } else {
-        for (var i = 0, events = [], length = listeners2.length; i < length; i++) {
-          if (listeners2[i].fn !== fn || once && !listeners2[i].once || context && listeners2[i].context !== context) {
-            events.push(listeners2[i]);
+        for (var i = 0, events = [], length = listeners3.length; i < length; i++) {
+          if (listeners3[i].fn !== fn || once && !listeners3[i].once || context && listeners3[i].context !== context) {
+            events.push(listeners3[i]);
           }
         }
         if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
@@ -39498,9 +39675,9 @@ function createReloadGate({ gap = 0, task, now: now2 = () => Date.now(), schedul
     const priority = state2.queuedPriority;
     state2.queued = false;
     state2.queuedPriority = false;
-    request2(priority);
+    request3(priority);
   }
-  function request2(priority = false) {
+  function request3(priority = false) {
     if (state2.stopped) return;
     if (state2.running) {
       state2.queued = true;
@@ -39526,7 +39703,7 @@ function createReloadGate({ gap = 0, task, now: now2 = () => Date.now(), schedul
     run(priority);
   }
   return {
-    request: request2,
+    request: request3,
     stop() {
       state2.stopped = true;
       state2.queued = false;
@@ -39701,6 +39878,368 @@ function ScreenCaptureDialog({ t, sessionId, onClose, onDone }) {
     onClose();
   }
   return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-capture-dialog" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u5185\u5F55\u89C6\u9891"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: cancel, "aria-label": "\u5173\u95ED" }, "\xD7")), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u5728\u7CFB\u7EDF\u9009\u62E9\u5668\u4E2D\u9009\u62E9\u6B63\u5728\u64AD\u653E\u89C6\u9891\u7684\u6D4F\u89C8\u5668\u7A97\u53E3\uFF1B\u5185\u5F55\u7ED3\u675F\u540E\u4F1A\u81EA\u52A8\u8F6C\u5199\u3002"), phase === "starting" ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note" }, "\u6B63\u5728\u7B49\u5F85\u5C4F\u5E55\u5F55\u5236\u6388\u6743\u2026") : null, phase === "recording" ? /* @__PURE__ */ React.createElement("div", { className: "mc-recording" }, /* @__PURE__ */ React.createElement("span", { className: "mc-dot", "data-state": "error" }), /* @__PURE__ */ React.createElement("strong", null, "\u6B63\u5728\u5185\u5F55 ", Math.floor(seconds / 60), ":", String(seconds % 60).padStart(2, "0"))) : null, phase === "uploading" ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note" }, "\u6B63\u5728\u4FDD\u5B58\u5185\u5F55 ", Math.round(progress * 100), "%\u2026") : null, phase === "done" ? /* @__PURE__ */ React.createElement("div", { className: "mc-ok-text" }, "\u5185\u5F55\u5DF2\u4FDD\u5B58\uFF0C\u6B63\u5728\u8F6C\u5199\u3002") : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, phase === "recording" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "stop", onClick: stopRecording }, "\u505C\u6B62\u5E76\u4FDD\u5B58") : null, phase === "done" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: onClose }, "\u5B8C\u6210") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: cancel }, "\u53D6\u6D88\u5185\u5F55"))));
+}
+
+// client-src/components/login/LoginRequiredNotice.jsx
+init_react_shim();
+
+// client-src/lib/settings-bus.js
+init_react_shim();
+var request2 = null;
+var sequence = 0;
+var listeners2 = /* @__PURE__ */ new Set();
+function openSettings({ tab = "models", anchor = "", reason = "" } = {}) {
+  sequence += 1;
+  request2 = { tab, anchor, reason, nonce: sequence };
+  for (const listener of listeners2) {
+    try {
+      listener(request2);
+    } catch {
+    }
+  }
+  return request2;
+}
+function getSettingsRequest() {
+  return request2;
+}
+function closeSettings() {
+  request2 = null;
+  for (const listener of listeners2) {
+    try {
+      listener(null);
+    } catch {
+    }
+  }
+}
+function subscribeSettings(listener) {
+  listeners2.add(listener);
+  return () => {
+    listeners2.delete(listener);
+  };
+}
+
+// client-src/components/login/BilibiliLoginCard.jsx
+init_react_shim();
+
+// client-src/components/QrCode.jsx
+init_react_shim();
+var import_qrcode_generator = __toESM(require_qrcode(), 1);
+function QrCode({ value, size = 180 }) {
+  const src = React.useMemo(() => {
+    if (!value) return "";
+    try {
+      const qr = (0, import_qrcode_generator.default)(0, "M");
+      qr.addData(value);
+      qr.make();
+      return qr.createDataURL(4, 8);
+    } catch {
+      return "";
+    }
+  }, [value]);
+  if (!src) return null;
+  return /* @__PURE__ */ React.createElement("img", { className: "mc-qr", src, width: size, height: size, alt: "QR" });
+}
+
+// client-src/components/login/BilibiliLoginCard.jsx
+function explain(value) {
+  const text = String(value || "");
+  if (/failed to fetch|econnrefused|http 502|http 503|未启动/i.test(text)) {
+    return "\u672C\u5730\u5F15\u64CE\u672A\u5C31\u7EEA\uFF1A\u8BF7\u5148\u5728\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6\u300D\u542F\u52A8\u672C\u5730\u5F15\u64CE\u3002";
+  }
+  if (/timed out|timeout|network|连接/i.test(text)) {
+    return "\u8FDE\u4E0D\u4E0A B\u7AD9\u767B\u5F55\u670D\u52A1\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u540E\u91CD\u8BD5\u3002";
+  }
+  if (/完全磁盘访问|operation not permitted|permission denied/i.test(text)) {
+    return "\u8BFB\u4E0D\u5230\u6D4F\u89C8\u5668\u767B\u5F55\u4FE1\u606F\uFF1A\u8BF7\u7ED9 DeepSeek Harness \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\u540E\u518D\u8BD5\uFF0C\u6216\u6539\u7528\u626B\u7801\u767B\u5F55\u3002";
+  }
+  return text || "\u767B\u5F55\u6CA1\u6709\u5B8C\u6210\uFF0C\u8BF7\u91CD\u8BD5";
+}
+function BilibiliLoginCard({ compact = false, onLoggedIn }) {
+  const [status3, setStatus] = React.useState(null);
+  const [qr, setQr] = React.useState(null);
+  const [qrState, setQrState] = React.useState(null);
+  const [busy, setBusy] = React.useState("");
+  const [error, setError] = React.useState("");
+  const timerRef = React.useRef(null);
+  const loggedInRef = React.useRef(onLoggedIn);
+  loggedInRef.current = onLoggedIn;
+  const load = React.useCallback(async () => {
+    try {
+      const next = await bilibiliStatus();
+      setStatus(next);
+      setError("");
+      return next;
+    } catch (failure) {
+      setError(explain(failure?.message || failure));
+      return null;
+    }
+  }, []);
+  React.useEffect(() => {
+    load();
+  }, [load]);
+  React.useEffect(() => {
+    if (!qr?.key) return void 0;
+    const timer = setInterval(async () => {
+      try {
+        const result = await bilibiliQrPoll(qr.key);
+        setQrState(result);
+        if (result.state === "ok") {
+          clearInterval(timer);
+          setQr(null);
+          const next = await load();
+          if (next?.logged_in) loggedInRef.current?.(next);
+        }
+        if (result.state === "expired" || result.state === "error") clearInterval(timer);
+      } catch (failure) {
+        setQrState({ state: "error", message: explain(failure?.message || failure) });
+        clearInterval(timer);
+      }
+    }, 2e3);
+    timerRef.current = timer;
+    return () => clearInterval(timer);
+  }, [qr?.key, load]);
+  React.useEffect(() => () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, []);
+  async function startQr() {
+    setBusy("qr");
+    setError("");
+    setQrState(null);
+    try {
+      setQr(await bilibiliQrStart());
+    } catch (failure) {
+      setError(explain(failure?.message || failure));
+    } finally {
+      setBusy("");
+    }
+  }
+  async function readChrome() {
+    setBusy("chrome");
+    setError("");
+    try {
+      const next = await bilibiliRefresh();
+      setStatus(next);
+      if (next?.logged_in) loggedInRef.current?.(next);
+      else setError("Chrome \u91CC\u6CA1\u6709\u627E\u5230\u5DF2\u767B\u5F55\u7684 B\u7AD9\u8D26\u53F7\uFF0C\u8BF7\u6539\u7528\u626B\u7801\u767B\u5F55\u3002");
+    } catch (failure) {
+      setError(explain(failure?.message || failure));
+    } finally {
+      setBusy("");
+    }
+  }
+  const loggedIn = Boolean(status3?.logged_in);
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "B\u7AD9\u8D26\u53F7"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": loggedIn ? "true" : "false" }, status3 ? loggedIn ? `\u5DF2\u767B\u5F55${status3.uname ? ` \xB7 ${status3.uname}` : ""}` : "\u672A\u767B\u5F55" : "\u8BFB\u53D6\u4E2D\u2026")), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E\u53EF\u5F55\u76F4\u64AD\u539F\u753B\uFF0C\u4E5F\u80FD\u4E0B\u8F7D\u4F1A\u5458\u3001\u5145\u7535\u548C\u79C1\u4EAB\u89C6\u9891\u3002\u516C\u5F00\u89C6\u9891\u4E0D\u767B\u5F55\u4E5F\u80FD\u8BD5\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": loggedIn ? void 0 : "primary",
+      disabled: Boolean(busy),
+      onClick: startQr
+    },
+    busy === "qr" ? "\u751F\u6210\u4E8C\u7EF4\u7801\u2026" : loggedIn ? "\u91CD\u65B0\u626B\u7801\u767B\u5F55" : "\u626B\u7801\u767B\u5F55 B\u7AD9"
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: readChrome }, busy === "chrome" ? "\u8BFB\u53D6\u4E2D\u2026" : "Chrome \u91CC\u5DF2\u767B\u5F55\uFF1F\u8BFB\u53D6\u767B\u5F55\u6001")), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u8BFB\u53D6 Chrome \u767B\u5F55\u6001\u53EF\u80FD\u5F39\u51FA\u7CFB\u7EDF\u94A5\u5319\u4E32\u6388\u6743\uFF0C\u9700\u8981\u7B49\u5341\u51E0\u79D2\uFF1B\u6CA1\u6709\u53CD\u5E94\u5C31\u7528\u626B\u7801\u767B\u5F55\u3002"), qr ? /* @__PURE__ */ React.createElement("div", { className: "mc-qr-wrap" }, /* @__PURE__ */ React.createElement(QrCode, { value: qr.url, size: 168 }), /* @__PURE__ */ React.createElement("div", { className: "mc-qr-info" }, /* @__PURE__ */ React.createElement("strong", null, "\u8BF7\u7528 B\u7AD9 App \u626B\u7801"), /* @__PURE__ */ React.createElement("span", null, qrState?.message || "\u7B49\u5F85\u626B\u7801\u2026"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: startQr }, "\u5237\u65B0\u4E8C\u7EF4\u7801"))) : null, qrState?.state === "expired" ? /* @__PURE__ */ React.createElement("p", { className: "mc-warn" }, qrState.message) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
+}
+
+// client-src/components/login/DouyinLoginCard.jsx
+init_react_shim();
+var BROWSERS = [
+  ["chrome", "Chrome"],
+  ["safari", "Safari"],
+  ["firefox", "Firefox"],
+  ["edge", "Edge"],
+  ["brave", "Brave"],
+  ["chromium", "Chromium"]
+];
+function explain2(value) {
+  const text = String(value || "");
+  if (/not found|http 404/i.test(text)) {
+    return "\u672C\u5730\u5F15\u64CE\u8FD8\u662F\u65E7\u7248\u672C\uFF0C\u6CA1\u6709\u6296\u97F3\u63A5\u53E3\uFF1A\u8BF7\u91CD\u542F\u672C\u5730\u5F15\u64CE\u540E\u518D\u8BD5\u3002";
+  }
+  if (/failed to fetch|econnrefused|http 502|http 503|未启动/i.test(text)) {
+    return "\u672C\u5730\u5F15\u64CE\u672A\u5C31\u7EEA\uFF1A\u8BF7\u5148\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6\u300D\u542F\u52A8\u672C\u5730\u5F15\u64CE\u3002";
+  }
+  if (/could not find|operation not permitted|permission denied|not authorized|完全磁盘访问/i.test(text)) {
+    return "\u8BFB\u4E0D\u5230\u6D4F\u89C8\u5668 Cookie\uFF1AmacOS \u6CA1\u6709\u7ED9 DeepSeek Harness \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\u3002\u8BF7\u70B9\u300C\u6253\u5F00\u7CFB\u7EDF\u8BBE\u7F6E\u300D\u6388\u6743\uFF0C\u91CD\u542F\u5F15\u64CE\u540E\u518D\u8BFB\u53D6\u3002";
+  }
+  if (/没有抖音 Cookie|确认扫码登录的是当前选择的浏览器/i.test(text)) {
+    return "\u6D4F\u89C8\u5668\u91CC\u6CA1\u6709\u6296\u97F3\u767B\u5F55\u4FE1\u606F\uFF1A\u8BF7\u786E\u8BA4\u626B\u7801\u767B\u5F55\u7684\u662F\u4E0B\u9762\u9009\u4E2D\u7684\u6D4F\u89C8\u5668\uFF0C\u518D\u70B9\u300C\u8BFB\u53D6\u767B\u5F55\u72B6\u6001\u300D\u3002";
+  }
+  return text || "\u6296\u97F3\u767B\u5F55\u6CA1\u6709\u5B8C\u6210\uFF0C\u8BF7\u91CD\u8BD5";
+}
+function DouyinLoginCard({ compact = false, onLoggedIn }) {
+  const [status3, setStatus] = React.useState(null);
+  const [browser, setBrowser] = React.useState("chrome");
+  const [url, setUrl] = React.useState("");
+  const [busy, setBusy] = React.useState("");
+  const [message, setMessage] = React.useState("");
+  const [tone, setTone] = React.useState("info");
+  const [restartPrompt, setRestartPrompt] = React.useState(false);
+  const load = React.useCallback(async () => {
+    const [settings, state2] = await Promise.all([appSettings(), douyinStatus()]);
+    setStatus(state2);
+    setBrowser(settings?.link_cookie_browser || state2?.browser || "chrome");
+    setUrl((current) => current || state2?.last_url || "");
+    return state2;
+  }, []);
+  React.useEffect(() => {
+    load().catch((failure) => {
+      setTone("error");
+      setMessage(explain2(failure?.message || failure));
+    });
+  }, [load]);
+  function patch(next, nextTone = "info") {
+    setMessage(next);
+    setTone(nextTone);
+  }
+  async function chooseBrowser(value) {
+    setBrowser(value);
+    try {
+      await saveAppSettings({ link_cookie_browser: value });
+      patch(`\u5DF2\u9009\u62E9 ${BROWSERS.find(([id]) => id === value)?.[1] || value}\uFF1B\u626B\u7801\u767B\u5F55\u8BF7\u7528\u8FD9\u4E2A\u6D4F\u89C8\u5668\u3002`);
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    }
+  }
+  async function openLogin() {
+    setBusy("open");
+    patch("");
+    try {
+      const result = await douyinOpenLogin();
+      patch(`\u5DF2\u7528 ${result?.browser || browser} \u6253\u5F00\u6296\u97F3\u3002\u8BF7\u5728\u6D4F\u89C8\u5668\u91CC\u7528\u6296\u97F3 App \u626B\u7801\u767B\u5F55\uFF0C\u7136\u540E\u56DE\u6765\u70B9\u300C\u8BFB\u53D6\u767B\u5F55\u72B6\u6001\u300D\u3002`);
+      setTone("info");
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function readCookies() {
+    setBusy("read");
+    patch("");
+    try {
+      const result = await douyinImport(browser);
+      const next = await load();
+      patch(`\u5DF2\u8BFB\u53D6 ${result?.count || next?.count || 0} \u6761\u6296\u97F3\u767B\u5F55\u4FE1\u606F\uFF0C\u53EF\u4EE5\u7EE7\u7EED\u91CD\u8BD5\u521A\u624D\u7684\u89C6\u9891\u3002`);
+      setTone("info");
+      onLoggedIn?.(next);
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function test() {
+    setBusy("test");
+    patch("");
+    try {
+      const result = await douyinTest(url.trim());
+      if (result?.ok) patch(`\u6D4B\u8BD5\u901A\u8FC7\uFF1A${result.title || result.url || "\u6296\u97F3\u94FE\u63A5"}`);
+      else patch(`\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${result?.message || "\u672A\u77E5\u539F\u56E0"}`, "error");
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function openPermission() {
+    setBusy("permission");
+    try {
+      await douyinOpenPermission();
+      patch("\u5DF2\u6253\u5F00\u7CFB\u7EDF\u8BBE\u7F6E\u3002\u52FE\u9009 DeepSeek Harness \u7684\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\uFF0C\u7136\u540E\u91CD\u542F\u672C\u5730\u5F15\u64CE\u518D\u8BFB\u53D6\u3002");
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function restart() {
+    setBusy("restart");
+    setRestartPrompt(false);
+    try {
+      await backendAction("restart");
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await load();
+      patch("\u672C\u5730\u5F15\u64CE\u5DF2\u91CD\u542F\uFF0C\u53EF\u4EE5\u91CD\u65B0\u8BFB\u53D6\u6296\u97F3\u767B\u5F55\u72B6\u6001\u4E86\u3002");
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  async function clear() {
+    setBusy("clear");
+    try {
+      await douyinLogout();
+      await load();
+      patch("\u5DF2\u6E05\u9664\u6296\u97F3\u767B\u5F55\u4FE1\u606F\u3002");
+    } catch (failure) {
+      patch(explain2(failure?.message || failure), "error");
+    } finally {
+      setBusy("");
+    }
+  }
+  const needsRestart = /旧版本|未就绪|完全磁盘访问|重启引擎/.test(message);
+  const saved = Boolean(status3?.saved);
+  const when = status3?.updated_at ? new Date(status3.updated_at * 1e3).toLocaleString("zh-CN", { hour12: false }) : "";
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u6296\u97F3\u8D26\u53F7"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": saved ? "true" : "false" }, saved ? `\u5DF2\u8BFB\u53D6 ${status3.count || 0} \u6761` : "\u672A\u767B\u5F55")), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u6296\u97F3\u89C6\u9891\u901A\u5E38\u9700\u8981\u767B\u5F55\u3002\u6309\u4E09\u6B65\u6765\uFF1A\u9009\u6D4F\u89C8\u5668 \u2192 \u6253\u5F00\u6296\u97F3\u626B\u7801 \u2192 \u8BFB\u53D6\u767B\u5F55\u72B6\u6001\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-douyin-steps" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "1. \u6D4F\u89C8\u5668"), /* @__PURE__ */ React.createElement(
+    "select",
+    {
+      className: "mc-input mc-select",
+      value: browser,
+      disabled: Boolean(busy),
+      onChange: (event) => chooseBrowser(event.target.value)
+    },
+    BROWSERS.map(([id, label]) => /* @__PURE__ */ React.createElement("option", { key: id, value: id }, label))
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "2. \u6253\u5F00\u6296\u97F3"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: openLogin }, busy === "open" ? "\u6253\u5F00\u4E2D\u2026" : "\u6253\u5F00\u767B\u5F55\u9875\u626B\u7801")), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "3. \u8BFB\u53D6\u767B\u5F55\u72B6\u6001"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      "data-variant": "primary",
+      disabled: Boolean(busy),
+      onClick: readCookies
+    },
+    busy === "read" ? "\u8BFB\u53D6\u4E2D\u2026" : "\u8BFB\u53D6\u767B\u5F55\u72B6\u6001"
+  ))), when ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u4E0A\u6B21\u8BFB\u53D6\uFF1A", when) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6D4B\u8BD5\u94FE\u63A5"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: url,
+      spellCheck: false,
+      placeholder: "\u7C98\u8D34\u4E00\u6761\u6296\u97F3\u89C6\u9891\u94FE\u63A5\uFF08\u53EF\u9009\uFF09",
+      onChange: (event) => setUrl(event.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: test }, busy === "test" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: openPermission }, "\u6253\u5F00\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u8BBE\u7F6E"), needsRestart ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: () => setRestartPrompt(true) }, "\u91CD\u542F\u5F15\u64CE") : null, saved ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: clear }, "\u6E05\u9664\u767B\u5F55\u4FE1\u606F") : null), restartPrompt ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-confirm" }, /* @__PURE__ */ React.createElement("span", null, "\u91CD\u542F\u4F1A\u4E2D\u65AD\u6B63\u5728\u8FDB\u884C\u7684\u91C7\u96C6/\u8F6C\u5199\uFF0C\u786E\u5B9A\u7EE7\u7EED\uFF1F"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setRestartPrompt(false) }, "\u53D6\u6D88"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", "data-variant": "primary", disabled: Boolean(busy), onClick: restart }, busy === "restart" ? "\u91CD\u542F\u4E2D\u2026" : "\u786E\u8BA4\u91CD\u542F")) : null, message ? /* @__PURE__ */ React.createElement("p", { className: tone === "error" ? "mc-error-text mc-card-hint" : "mc-card-text mc-card-hint", role: "status" }, message) : null);
+}
+
+// client-src/components/login/LoginRequiredNotice.jsx
+function LoginRequiredNotice({ failure, platform = "", onRetry, onOpenSettings }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [busy, setBusy] = React.useState("");
+  const [message, setMessage] = React.useState("");
+  const action = failure?.action || null;
+  const actionId = action?.id || "";
+  const targetPlatform = action?.platform || platform || "";
+  const detail = failure?.detail || failure?.raw || "";
+  function retryAfterLogin() {
+    setMessage("\u767B\u5F55\u5B8C\u6210\uFF0C\u6B63\u5728\u91CD\u8BD5\u2026");
+    onRetry?.();
+  }
+  async function enableBrowserCookies() {
+    setBusy("cookies");
+    setMessage("");
+    try {
+      await saveAppSettings({ link_browser_cookies: true });
+      setMessage("\u5DF2\u5141\u8BB8\u8BFB\u53D6\u6D4F\u89C8\u5668\u767B\u5F55\u72B6\u6001\uFF0C\u6B63\u5728\u91CD\u8BD5\u2026");
+      onRetry?.();
+    } catch (error) {
+      setMessage(error?.message || "\u5F00\u542F\u6D4F\u89C8\u5668\u767B\u5F55\u72B6\u6001\u5931\u8D25\uFF0C\u8BF7\u5230\u8BBE\u7F6E\u91CC\u624B\u52A8\u6253\u5F00");
+    } finally {
+      setBusy("");
+    }
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-login-notice", "data-tone": failure?.status === "login_required" ? "warn" : "error" }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-notice-main" }, /* @__PURE__ */ React.createElement("strong", null, failure?.status === "login_required" ? "\u9700\u8981\u767B\u5F55\u540E\u624D\u80FD\u7EE7\u7EED" : "\u8FD9\u6761\u5185\u5BB9\u6682\u65F6\u6CA1\u6709\u8BFB\u5230"), /* @__PURE__ */ React.createElement("span", null, failure?.message || "\u8BF7\u7A0D\u540E\u91CD\u8BD5")), actionId === "bilibili_login" || targetPlatform === "bilibili" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setExpanded((value) => !value) }, expanded ? "\u6536\u8D77\u767B\u5F55" : "\u626B\u7801\u767B\u5F55 B\u7AD9")), expanded ? /* @__PURE__ */ React.createElement(BilibiliLoginCard, { compact: true, onLoggedIn: retryAfterLogin }) : null) : null, actionId === "douyin_login" || targetPlatform === "douyin" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setExpanded((value) => !value) }, expanded ? "\u6536\u8D77\u767B\u5F55" : "\u767B\u5F55\u6296\u97F3")), expanded ? /* @__PURE__ */ React.createElement(DouyinLoginCard, { compact: true, onLoggedIn: retryAfterLogin }) : null) : null, actionId === "browser_cookies" ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: Boolean(busy), onClick: enableBrowserCookies }, busy === "cookies" ? "\u6B63\u5728\u5F00\u542F\u2026" : "\u5141\u8BB8\u8BFB\u53D6\u6D4F\u89C8\u5668\u767B\u5F55\u72B6\u6001\u5E76\u91CD\u8BD5")) : null, !actionId ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => (onOpenSettings || openSettings)({ tab: "account", reason: "login" }) }, "\u6253\u5F00\u8D26\u53F7\u8BBE\u7F6E")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onRetry, disabled: Boolean(busy) }, actionId ? "\u767B\u5F55\u540E\u91CD\u8BD5" : "\u91CD\u8BD5")), message ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text mc-card-hint", role: "status" }, message) : null, detail ? /* @__PURE__ */ React.createElement("details", { className: "mc-tech-detail" }, /* @__PURE__ */ React.createElement("summary", null, "\u6280\u672F\u8BE6\u60C5"), /* @__PURE__ */ React.createElement("p", null, detail)) : null);
 }
 
 // client-src/components/RetranscribeDialog.jsx
@@ -42260,7 +42799,7 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
   if (detail?.diarize_error && detail?.status === "done" && !active2) {
     notices.push({ tone: "warn", text: `\u672A\u533A\u5206\u8BF4\u8BDD\u4EBA\uFF1A${detail.diarize_error}` });
   }
-  if (detail?.error && detail?.status === "error" && !partial) {
+  if (detail?.error && detail?.status === "error" && !partial && !detail?.link_error && linkJob?.error_code !== "login_required") {
     notices.push({ tone: "error", text: detail.error });
   }
   if (detail?.status === "cancelled" && !partial) {
@@ -42273,6 +42812,21 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
       action: { label: t("detail.startTranscribe"), run: confirmStart }
     });
   }
+  const loginFailure = (() => {
+    const stored = detail?.link_error;
+    if (stored && stored.status === "login_required") {
+      return { ...stored, message: stored.message || detail?.error || "\u9700\u8981\u767B\u5F55\u540E\u624D\u80FD\u7EE7\u7EED" };
+    }
+    if (linkJob?.error_code === "login_required") {
+      return {
+        status: "login_required",
+        platform: detail?.platform || "",
+        message: detail?.error || "\u9700\u8981\u767B\u5F55\u540E\u624D\u80FD\u7EE7\u7EED",
+        action: null
+      };
+    }
+    return null;
+  })();
   function applyMediaSeek(media, seconds, { quiet = false } = {}) {
     if (!media) return false;
     let target = Math.max(0, Number(seconds) || 0);
@@ -42947,7 +43501,14 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
       onClick: notice.action.run
     },
     notice.action.label
-  ) : null))) : null, detail?.live?.phase_text ? /* @__PURE__ */ React.createElement("div", { className: "mc-phase" }, /* @__PURE__ */ React.createElement("span", null, detail.live.phase_text), typeof detail.live.phase_progress === "number" ? /* @__PURE__ */ React.createElement("span", { className: "mc-progress" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${Math.max(0, Math.min(100, detail.live.phase_progress * 100))}%` } })) : null, /* @__PURE__ */ React.createElement("span", { className: "mc-phase-steps" }, (kind === "live" ? [["stopping", "\u7ED3\u675F\u76F4\u64AD\u6D41"], ["remux", "\u751F\u6210\u56DE\u653E\u6587\u4EF6"], ["transcribe", "\u5B8C\u6210\u8F6C\u5199"], ["done", "\u5DF2\u4FDD\u5B58"]] : [["extract", "\u63D0\u53D6\u97F3\u9891"], ["transcribe", "\u8F6C\u5199"], ["segments", "\u6574\u7406\u6BB5\u843D"], ["done", "\u5B8C\u6210"]]).map(([id, label]) => /* @__PURE__ */ React.createElement("span", { key: id, className: "mc-phase-step", "data-active": detail.live.phase === id }, label)))) : null, markOpen ? /* @__PURE__ */ React.createElement("div", { className: "mc-mark-editor" }, /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, clock(markTime)), /* @__PURE__ */ React.createElement(
+  ) : null))) : null, loginFailure ? /* @__PURE__ */ React.createElement(
+    LoginRequiredNotice,
+    {
+      failure: loginFailure,
+      platform: loginFailure.platform || detail?.platform || "",
+      onRetry: () => act("retry", () => retryLink(sessionId))
+    }
+  ) : null, detail?.live?.phase_text ? /* @__PURE__ */ React.createElement("div", { className: "mc-phase" }, /* @__PURE__ */ React.createElement("span", null, detail.live.phase_text), typeof detail.live.phase_progress === "number" ? /* @__PURE__ */ React.createElement("span", { className: "mc-progress" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${Math.max(0, Math.min(100, detail.live.phase_progress * 100))}%` } })) : null, /* @__PURE__ */ React.createElement("span", { className: "mc-phase-steps" }, (kind === "live" ? [["stopping", "\u7ED3\u675F\u76F4\u64AD\u6D41"], ["remux", "\u751F\u6210\u56DE\u653E\u6587\u4EF6"], ["transcribe", "\u5B8C\u6210\u8F6C\u5199"], ["done", "\u5DF2\u4FDD\u5B58"]] : [["extract", "\u63D0\u53D6\u97F3\u9891"], ["transcribe", "\u8F6C\u5199"], ["segments", "\u6574\u7406\u6BB5\u843D"], ["done", "\u5B8C\u6210"]]).map(([id, label]) => /* @__PURE__ */ React.createElement("span", { key: id, className: "mc-phase-step", "data-active": detail.live.phase === id }, label)))) : null, markOpen ? /* @__PURE__ */ React.createElement("div", { className: "mc-mark-editor" }, /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, clock(markTime)), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -44585,7 +45146,7 @@ function RecordsBrowser({ t, statusData, onStatusRefresh, focus, onFocusConsumed
         onRenameCancel: () => setRenamingId("")
       }
     );
-  })))), /* @__PURE__ */ React.createElement("div", { className: "mc-side-foot" }, selectedIds.size > 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-meta" }, "\u5DF2\u9009 ", selectedIds.size, " \u9879") : null, health.depsReady === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-side-card", "data-tone": "warn" }, /* @__PURE__ */ React.createElement("strong", null, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6"), /* @__PURE__ */ React.createElement("span", null, "\u76F4\u64AD\u91C7\u96C6\u6682\u4E0D\u53EF\u7528\uFF1B\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6\u3002")) : null, health.asrReady === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-side-card", "data-tone": "warn" }, /* @__PURE__ */ React.createElement("strong", null, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E"), /* @__PURE__ */ React.createElement("span", null, "\u91C7\u96C6\u7167\u5E38\u4FDD\u5B58\uFF0C\u6682\u4E0D\u751F\u6210\u8F6C\u5199\uFF1B\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B \u586B\u5199 API Key\u3002")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-error", role: "alert" }, /* @__PURE__ */ React.createElement("span", null, t("list.error")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => load(false) }, t("common.retry"))) : null, !envReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-note" }, t("engine.notReady")) : null, backendStopped ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: startEngine, disabled: starting }, starting ? t("status.loading") : t("list.startEngine")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-foot-meta" }, t("list.footer").replace("{count}", String(sessions.length))))), /* @__PURE__ */ React.createElement("section", { className: "mc-content" }, selected ? /* @__PURE__ */ React.createElement(
+  })))), /* @__PURE__ */ React.createElement("div", { className: "mc-side-foot" }, selectedIds.size > 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-meta" }, "\u5DF2\u9009 ", selectedIds.size, " \u9879") : null, health.depsReady === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-side-card", "data-tone": "warn" }, /* @__PURE__ */ React.createElement("strong", null, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6"), /* @__PURE__ */ React.createElement("span", null, "\u76F4\u64AD\u91C7\u96C6\u6682\u4E0D\u53EF\u7528\uFF1B\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6\u3002")) : null, health.asrReady === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-side-card", "data-tone": "warn" }, /* @__PURE__ */ React.createElement("strong", null, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E"), /* @__PURE__ */ React.createElement("span", null, "\u91C7\u96C6\u7167\u5E38\u4FDD\u5B58\uFF0C\u6682\u4E0D\u751F\u6210\u8F6C\u5199\uFF1B\u8BF7\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u586B\u5199 API Key\u3002")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-error", role: "alert" }, /* @__PURE__ */ React.createElement("span", null, t("list.error")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => load(false) }, t("common.retry"))) : null, !envReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-foot-note" }, t("engine.notReady")) : null, backendStopped ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: startEngine, disabled: starting }, starting ? t("status.loading") : t("list.startEngine")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-foot-meta" }, t("list.footer").replace("{count}", String(sessions.length))))), /* @__PURE__ */ React.createElement("section", { className: "mc-content" }, selected ? /* @__PURE__ */ React.createElement(
     SessionDetail,
     {
       key: selected.id,
@@ -44838,11 +45399,102 @@ function feishuSummary(status3) {
   }
   if (!dsh.entryPresent) return { tone: "pending", text: "\u672A\u5B89\u88C5" };
   if (!auth.loggedIn) {
-    return auth.expired ? { tone: "warn", text: "\u767B\u5F55\u5DF2\u8FC7\u671F", detail: "\u91CD\u65B0\u767B\u5F55\u540E\u6062\u590D" } : { tone: "warn", text: "\u672A\u767B\u5F55" };
+    return auth.expired ? { tone: "warn", text: "\u767B\u5F55\u5DF2\u8FC7\u671F", detail: "\u91CD\u65B0\u767B\u5F55\u540E\u6062\u590D\uFF1B\u5982\u679C\u53EA\u662F\u8BBF\u95EE\u4EE4\u724C\u8FC7\u671F\uFF0C\u91CD\u65B0\u767B\u5F55\u540E\u4F1A\u81EA\u52A8\u7EED\u671F\u3002" } : { tone: "warn", text: "\u672A\u767B\u5F55" };
+  }
+  if (auth.accessExpired && dsh.entryLive !== true) {
+    return {
+      tone: "warn",
+      text: "\u767B\u5F55\u5F85\u5237\u65B0",
+      detail: "\u98DE\u4E66\u8BBF\u95EE\u4EE4\u724C\u5DF2\u8FC7\u671F\uFF1B\u5230\u672C\u9875\u91CD\u65B0\u767B\u5F55\uFF0C\u6216\u7B49\u98DE\u4E66 MCP \u8F7D\u5165\u540E\u81EA\u52A8\u7EED\u671F\u3002"
+    };
   }
   if (dsh.entryLive === false) return { tone: "warn", text: "\u7B49\u5F85\u751F\u6548", detail: "\u914D\u7F6E\u5DF2\u5199\u5165\uFF0CDSH \u6B63\u5728\u8F7D\u5165" };
   if (dsh.entryLive === null) return { tone: "warn", text: "\u5DF2\u914D\u7F6E", detail: "\u5982\u679C Agent \u8FD8\u7528\u4E0D\u4E86\uFF0C\u91CD\u542F DeepSeek Harness" };
+  if (auth.accessExpired) {
+    return { tone: "warn", text: "\u767B\u5F55\u5F85\u5237\u65B0\uFF08MCP \u53EF\u81EA\u52A8\u7EED\u671F\uFF09", detail: "\u8BFB\u53D6\u6587\u6863\u65F6\u5982\u679C\u5931\u8D25\uFF0C\u70B9\u4E0B\u9762\u7684\u300C\u8BBE\u5907\u7801\u767B\u5F55\u300D\u6216\u91CD\u65B0\u767B\u5F55\u3002" };
+  }
+  if (!status3.lastDocReadAt) {
+    return { tone: "warn", text: "\u5DF2\u8FDE\u63A5\uFF0C\u5EFA\u8BAE\u8BD5\u8BFB", detail: "\u767B\u5F55\u53EA\u4EE3\u8868\u8D26\u53F7\u6709\u6548\uFF1B\u8BFB\u4E00\u7BC7\u6587\u6863\u624D\u80FD\u786E\u8BA4\u73B0\u5728\u771F\u7684\u80FD\u7528\u3002" };
+  }
   return { tone: "ok", text: "\u53EF\u4EE5\u4F7F\u7528" };
+}
+
+// client-src/components/feishu/FeishuParts.jsx
+init_react_shim();
+function FeishuStatusRows({ status: status3, compact = false }) {
+  const runtime = status3?.runtime || {};
+  const dsh = status3?.dsh || {};
+  const auth = status3?.auth || {};
+  let runtimeText = "\u8BFB\u53D6\u4E2D\u2026";
+  let runtimeTone = "";
+  if (status3) {
+    if (!runtime.npx) {
+      runtimeText = "\u6CA1\u6709\u627E\u5230 npx\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
+      runtimeTone = "error";
+    } else if (!runtime.node) {
+      runtimeText = "\u6CA1\u6709\u627E\u5230 node\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
+      runtimeTone = "error";
+    } else if (!runtime.nodeOk) {
+      runtimeText = `Node ${runtime.nodeVersion || "?"}\uFF0C\u98DE\u4E66 MCP \u9700\u8981 20 \u4EE5\u4E0A`;
+      runtimeTone = "error";
+    } else {
+      runtimeText = `Node ${runtime.nodeVersion} \xB7 npx ${runtime.npx}`;
+    }
+  }
+  let configText = "\u8BFB\u53D6\u4E2D\u2026";
+  let configTone = "";
+  if (status3) {
+    if (dsh.conflict) {
+      configText = `\u4E0E\u5DF2\u6709\u6761\u76EE\u51B2\u7A81\uFF1A${dsh.conflict} \u5DF2\u5360\u7528 serverName\u300C${dsh.serverName}\u300D`;
+      configTone = "error";
+    } else if (!dsh.entryPresent) {
+      configText = "\u672A\u5199\u5165";
+    } else if (dsh.entryLive === true) {
+      configText = "\u5DF2\u5199\u5165\u5E76\u5728 DeepSeek Harness \u4E2D\u751F\u6548";
+    } else if (dsh.entryLive === false) {
+      configText = "\u5DF2\u5199\u5165\uFF0C\u6B63\u5728\u7B49\u5F85 DSH \u8F7D\u5165";
+    } else {
+      configText = "\u5DF2\u5199\u5165\uFF08\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\uFF09";
+    }
+  }
+  let authText = "\u8BFB\u53D6\u4E2D\u2026";
+  let authTone = "";
+  if (status3) {
+    if (auth.loggedIn) {
+      authText = `\u5DF2\u767B\u5F55${auth.openId ? ` ${auth.openId}` : ""}${auth.refreshExpiresAt ? ` \xB7 \u6709\u6548\u671F\u81F3 ${formatDate(auth.refreshExpiresAt)}` : ""}`;
+      if (auth.accessExpired) authText += " \xB7 \u8BBF\u95EE\u4EE4\u724C\u5DF2\u8FC7\u671F\uFF0CMCP \u8F7D\u5165\u540E\u81EA\u52A8\u5237\u65B0";
+    } else if (auth.expired) {
+      authText = "\u767B\u5F55\u5DF2\u8FC7\u671F\uFF0C\u9700\u8981\u91CD\u65B0\u767B\u5F55";
+      authTone = "warn";
+    } else {
+      authText = "\u672A\u767B\u5F55";
+      authTone = "warn";
+    }
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u8FD0\u884C\u6761\u4EF6"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": runtimeTone || void 0 }, runtimeText)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "DSH \u914D\u7F6E"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": configTone || void 0 }, configText, !compact && status3 ? /* @__PURE__ */ React.createElement("em", { className: "mc-mono mc-feishu-path", title: dsh.patchPath }, `${dsh.patchScope === "profile" ? "profile \u8865\u4E01" : "home \u8865\u4E01"}\uFF1A${dsh.patchPath}`) : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u98DE\u4E66\u8D26\u53F7"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": authTone || void 0 }, authText)), status3?.pinnedVersion ? /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5165\u53E3\u7248\u672C"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, "@", status3.pinnedVersion, "\uFF08\u56FA\u5B9A\uFF0C\u53EF\u5728\u9700\u8981\u65F6\u66F4\u65B0\u5230\u6700\u65B0\uFF09")) : null);
+}
+function FeishuJobPanel({ job, actions, describe = true }) {
+  if (!job) return null;
+  const running = job.state === "running";
+  const failed = job.state === "error" || job.state === "cancelled";
+  if (!running && !failed && !job.url) return null;
+  const tail = String(job.log || "").split("\n").filter(Boolean).slice(-14).join("\n");
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-job" }, /* @__PURE__ */ React.createElement("div", { className: "mc-job-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.step || (running ? "\u8FDB\u884C\u4E2D\u2026" : "\u5DF2\u7ED3\u675F"))), describe && running && job.action === "login" ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u6D4F\u89C8\u5668\u6CA1\u5F39\u51FA\u65F6\uFF0C\u590D\u5236\u4E0B\u9762\u7684\u94FE\u63A5\u5230\u6D4F\u89C8\u5668\u6253\u5F00\uFF0C\u5B8C\u6210\u6388\u6743\u540E\u8FD9\u91CC\u4F1A\u81EA\u52A8\u5237\u65B0\u3002") : null, job.url && running ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-auth" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => actions.openUrl(job.url) }, "\u6253\u5F00\u6388\u6743\u9875"), /* @__PURE__ */ React.createElement("span", { className: "mc-mono", title: job.url }, job.url)) : null, tail ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, tail) : null, running ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.cancel }, "\u53D6\u6D88")) : null, failed && job.error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, job.error) : null);
+}
+function FeishuLoginActions({ status: status3, actions, busy, running }) {
+  const auth = status3?.auth || {};
+  const disabled = Boolean(busy) || running;
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": auth.loggedIn ? void 0 : "primary",
+      disabled,
+      onClick: () => actions.login("auto")
+    },
+    busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.loggedIn ? "\u91CD\u65B0\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66"
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), auth.loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null);
 }
 
 // client-src/components/capture/DocCardForm.jsx
@@ -44869,27 +45521,31 @@ function DocCardForm({ t, onClose, onCreated }) {
   const [busy, setBusy] = React.useState("");
   const [error, setError] = React.useState("");
   const [hint, setHint] = React.useState("");
-  const [status3, setStatus] = React.useState(null);
   const [preview, setPreview] = React.useState(null);
   const [previewing, setPreviewing] = React.useState(false);
   const [previewError, setPreviewError] = React.useState("");
   const [previewHint, setPreviewHint] = React.useState("");
   const [previewNonce, setPreviewNonce] = React.useState(0);
   const mounted = React.useRef(true);
-  const sequence = React.useRef(0);
+  const sequence2 = React.useRef(0);
   const titleTouched = React.useRef(false);
+  const retriedAfterLogin = React.useRef(false);
+  const feishu = useFeishu();
   React.useEffect(() => {
     mounted.current = true;
-    feishuStatus().then((value) => {
-      if (mounted.current) setStatus(value);
-    }).catch(() => {
-    });
     return () => {
       mounted.current = false;
     };
   }, []);
+  const summary = feishuSummary(feishu.status);
+  const installed = Boolean(feishu.status?.dsh?.entryPresent);
+  const loggedIn = Boolean(feishu.status?.auth?.loggedIn);
+  const accessExpired = Boolean(feishu.status?.auth?.accessExpired);
+  const canRead = installed && loggedIn && !accessExpired;
+  const jobRunning = feishu.status?.job?.state === "running";
+  const pending = busy === "read" || busy === "link" || jobRunning;
   React.useEffect(() => {
-    const current = ++sequence.current;
+    const current = ++sequence2.current;
     const value = url.trim();
     if (!value || !looksLikeFeishuDoc(value)) {
       setPreview(null);
@@ -44905,16 +45561,17 @@ function DocCardForm({ t, onClose, onCreated }) {
     const timer = setTimeout(async () => {
       try {
         const result = await previewFeishuDoc({ url: value, signal: controller.signal });
-        if (!mounted.current || current !== sequence.current) return;
+        if (!mounted.current || current !== sequence2.current) return;
         setPreview(result);
         if (!titleTouched.current && result?.title) setTitle(result.title);
+        feishu.load();
       } catch (failure) {
-        if (failure?.name === "AbortError" || !mounted.current || current !== sequence.current) return;
+        if (failure?.name === "AbortError" || !mounted.current || current !== sequence2.current) return;
         setPreview(null);
         setPreviewError(failure?.message || t("home.doc.previewFailed"));
         setPreviewHint(failure?.data?.hint || "");
       } finally {
-        if (mounted.current && current === sequence.current) setPreviewing(false);
+        if (mounted.current && current === sequence2.current) setPreviewing(false);
       }
     }, 650);
     return () => {
@@ -44922,11 +45579,13 @@ function DocCardForm({ t, onClose, onCreated }) {
       controller.abort();
     };
   }, [url, previewNonce]);
-  const summary = feishuSummary(status3);
-  const ready = summary.tone === "ok";
-  const pending = busy === "read" || busy === "link";
-  const label = preview ? DOC_LABELS[preview.doc_type] || t("home.docs.title") : "";
+  React.useEffect(() => {
+    if (!canRead || !previewError || retriedAfterLogin.current) return;
+    retriedAfterLogin.current = true;
+    setPreviewNonce((value) => value + 1);
+  }, [canRead, previewError]);
   function changeUrl(value) {
+    retriedAfterLogin.current = false;
     setUrl(value);
     if (!titleTouched.current) setTitle("");
     setPreview(null);
@@ -44965,6 +45624,7 @@ function DocCardForm({ t, onClose, onCreated }) {
       if (mounted.current) setBusy("");
     }
   }
+  const label = preview ? DOC_LABELS[preview.doc_type] || t("home.docs.title") : "";
   return /* @__PURE__ */ React.createElement("div", { className: "mc-new-form" }, /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, t("home.doc.hint")), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, t("home.doc.url")), /* @__PURE__ */ React.createElement(
     "input",
     {
@@ -44988,7 +45648,53 @@ function DocCardForm({ t, onClose, onCreated }) {
       placeholder: preview ? t("home.doc.titleAutoPlaceholder") : t("home.doc.titlePlaceholder"),
       spellCheck: false
     }
-  )), status3 && !ready ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "warn" }, t("home.doc.notReady"), "\uFF08", summary.text, "\uFF09") : null, pending ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, busy === "link" ? t("home.doc.linking") : t("home.doc.reading")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error, hint ? `\uFF1A${hint}` : "") : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending, onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending || !url.trim(), onClick: () => submit(true) }, t("home.doc.linkOnly")), /* @__PURE__ */ React.createElement(
+  )), !canRead ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-issue", "data-tone": summary.tone }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, summary.text), /* @__PURE__ */ React.createElement("span", null, summary.detail || "\u767B\u5F55\u540E\u8BFB\u5230\u7684\u6587\u6863\u624D\u80FD\u8FDB\u5165\u5361\u7247\u6B63\u6587\uFF1B\u4E5F\u53EF\u4EE5\u5148\u53EA\u767B\u8BB0\u94FE\u63A5\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: pending,
+      onClick: () => feishu.actions.install()
+    },
+    "\u5B89\u88C5\u5E76\u8FDE\u63A5\u98DE\u4E66"
+  ) : null, installed && (!loggedIn || accessExpired) ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      "data-variant": "primary",
+      disabled: pending,
+      onClick: () => feishu.actions.login("auto")
+    },
+    feishu.busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : accessExpired ? "\u5237\u65B0\u98DE\u4E66\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66"
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: pending,
+      onClick: () => feishu.actions.login("device")
+    },
+    "\u8BBE\u5907\u7801\u767B\u5F55"
+  )) : null, installed ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: pending,
+      onClick: feishu.actions.probe
+    },
+    "\u68C0\u6D4B\u8FDE\u63A5"
+  ) : null, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: pending,
+      onClick: () => submit(true)
+    },
+    "\u4EC5\u767B\u8BB0\u94FE\u63A5"
+  ))) : /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5DF2\u767B\u5F55\uFF1B\u8BFB\u5230\u6B63\u6587\u4F1A\u4E00\u8D77\u5B58\u8FDB\u5361\u7247\uFF0C\u8BFB\u4E0D\u5230\u65F6\u4E0B\u65B9\u4ECD\u53EF\u300C\u4EC5\u767B\u8BB0\u94FE\u63A5\u300D\u3002"), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: feishu.status?.job, actions: feishu.actions }), pending ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, busy === "link" ? t("home.doc.linking") : t("home.doc.reading")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error, hint ? `\uFF1A${hint}` : "") : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending, onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending || !url.trim(), onClick: () => submit(true) }, t("home.doc.linkOnly")), /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -45379,7 +46085,7 @@ function NewCaptureDialog({ t, onClose, onCreated, onSubmitted, statusData, init
       }
     },
     t(`new.${id}`)
-  ))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose, "aria-label": t("new.close") }, "\xD7")), /* @__PURE__ */ React.createElement("div", { className: "mc-new-body" }, health.depsReady === false && (kind === "launch" || kind === "video") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "error" }, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6\uFF08yt-dlp / ffmpeg\uFF09\uFF0C\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u3002") : null, health.asrReady === false && kind !== "video" && kind !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "warn" }, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E\uFF1A\u4ECD\u53EF\u4FDD\u5B58\u97F3\u89C6\u9891\u4E0E\u622A\u56FE\uFF0C\u914D\u7F6E\u540E\u53EF\u91CD\u65B0\u8F6C\u5199\u3002") : null, health.active > 0 && kind !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u5DF2\u6709 ", health.active, " \u4E2A\u4EFB\u52A1\u5728\u8FD0\u884C\uFF0C\u65B0\u4EFB\u52A1\u4F1A\u6392\u961F\uFF1B\u76F4\u64AD\u8F6E\u5230\u540E\u624D\u5F00\u59CB\u91C7\u96C6\u3002") : null, /* @__PURE__ */ React.createElement("div", { hidden: kind !== "launch" }, /* @__PURE__ */ React.createElement(LaunchForm, { t, health, initialUrl, onClose, onCreated })), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "video" }, /* @__PURE__ */ React.createElement(
+  ))), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose, "aria-label": t("new.close") }, "\xD7")), /* @__PURE__ */ React.createElement("div", { className: "mc-new-body" }, health.depsReady === false && (kind === "launch" || kind === "video") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "error" }, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6\uFF08yt-dlp / ffmpeg\uFF09\uFF0C\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u3002") : null, health.asrReady === false && kind !== "video" && kind !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "warn" }, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E\uFF1A\u4ECD\u53EF\u4FDD\u5B58\u97F3\u89C6\u9891\u4E0E\u622A\u56FE\uFF0C\u914D\u7F6E\u540E\u53EF\u91CD\u65B0\u8F6C\u5199\u3002", /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => openSettings({ tab: "models" }) }, "\u53BB\u914D\u7F6E\u6A21\u578B")) : null, health.active > 0 && kind !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u5DF2\u6709 ", health.active, " \u4E2A\u4EFB\u52A1\u5728\u8FD0\u884C\uFF0C\u65B0\u4EFB\u52A1\u4F1A\u6392\u961F\uFF1B\u76F4\u64AD\u8F6E\u5230\u540E\u624D\u5F00\u59CB\u91C7\u96C6\u3002") : null, /* @__PURE__ */ React.createElement("div", { hidden: kind !== "launch" }, /* @__PURE__ */ React.createElement(LaunchForm, { t, health, initialUrl, onClose, onCreated })), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "video" }, /* @__PURE__ */ React.createElement(
     VideoForm,
     {
       t,
@@ -45458,7 +46164,7 @@ function LaunchForm({ t, health, initialUrl = "", onClose, onCreated }) {
     }
   )), checking ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note" }, t("new.checking")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-error-text", role: "alert" }, error), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setCheckNonce((value) => value + 1) }, "\u91CD\u8BD5\u9884\u68C0")) : null, result ? /* @__PURE__ */ React.createElement("div", { className: "mc-preview-card" }, result.thumbnail ? /* @__PURE__ */ React.createElement("img", { src: result.thumbnail, alt: "", onError: (event) => {
     event.currentTarget.style.display = "none";
-  } }) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, result.title || t("new.noPreview")), /* @__PURE__ */ React.createElement("span", null, [result.uploader, result.category, result.message].filter(Boolean).join(" \xB7 ")), result.started_at ? /* @__PURE__ */ React.createElement("span", null, "\u5F00\u64AD ", dateTime(result.started_at)) : null, result.status ? /* @__PURE__ */ React.createElement("span", null, { live: "\u76F4\u64AD\u4E2D", not_started: "\u5C1A\u672A\u5F00\u64AD", replay: "\u8F6E\u64AD\u56DE\u653E", invalid: "\u94FE\u63A5\u65E0\u6548", unreachable: "\u6682\u65F6\u65E0\u6CD5\u8FDE\u63A5" }[result.status] || result.status) : null, result.ok ? /* @__PURE__ */ React.createElement("span", { className: "mc-ok-text" }, t("new.ready")) : /* @__PURE__ */ React.createElement("span", { className: "mc-error-text" }, result.message || t("new.failed")))) : null, createdId ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note" }, t("new.openRecord"), "\uFF1A", createdId) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", "data-new-submit": "true", disabled: !canSubmit, onClick: submit }, submitting ? t("new.checking") : t("new.start"))));
+  } }) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, result.title || t("new.noPreview")), /* @__PURE__ */ React.createElement("span", null, [result.uploader, result.category, result.message].filter(Boolean).join(" \xB7 ")), result.started_at ? /* @__PURE__ */ React.createElement("span", null, "\u5F00\u64AD ", dateTime(result.started_at)) : null, result.status ? /* @__PURE__ */ React.createElement("span", null, { live: "\u76F4\u64AD\u4E2D", not_started: "\u5C1A\u672A\u5F00\u64AD", replay: "\u8F6E\u64AD\u56DE\u653E", invalid: "\u94FE\u63A5\u65E0\u6548", unreachable: "\u6682\u65F6\u65E0\u6CD5\u8FDE\u63A5" }[result.status] || result.status) : null, result.ok ? /* @__PURE__ */ React.createElement("span", { className: "mc-ok-text" }, t("new.ready")) : /* @__PURE__ */ React.createElement("span", { className: "mc-error-text" }, result.message || t("new.failed")))) : null, result && !result.ok && result.action ? /* @__PURE__ */ React.createElement(LoginRequiredNotice, { failure: result, platform: result.platform || "bilibili", onRetry: () => setCheckNonce((value) => value + 1) }) : null, createdId ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note" }, t("new.openRecord"), "\uFF1A", createdId) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", "data-new-submit": "true", disabled: !canSubmit, onClick: submit }, submitting ? t("new.checking") : t("new.start"))));
 }
 function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreated, onSubmitted }) {
   const [text, setText] = React.useState(initialUrl);
@@ -45478,7 +46184,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
     const rows = parsed.accepted.slice(0, MAX_BATCH_LINKS);
     setEntries((current) => rows.map((row) => {
       const existing = current.find((entry) => entry.url === row.url);
-      return existing ? { ...existing, platform: row.platform } : { url: row.url, platform: row.platform, loading: false, preview: null, error: "", mode: "auto", trackId: "" };
+      return existing ? { ...existing, platform: row.platform } : { url: row.url, platform: row.platform, loading: false, preview: null, failure: null, error: "", mode: "auto", trackId: "" };
     }));
   }, [parsed]);
   React.useEffect(() => {
@@ -45497,6 +46203,14 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
         ...item,
         loading: false,
         preview,
+        failure: preview?.ok ? null : {
+          status: preview?.status || "",
+          code: preview?.code || "",
+          message: preview?.message || t("new.notSupported"),
+          action: preview?.action || null,
+          detail: preview?.detail || "",
+          platform: preview?.platform || item.platform || ""
+        },
         error: preview?.ok ? "" : preview?.message || t("new.notSupported"),
         trackId: preview?.default_subtitle_track_id || ""
       } : item));
@@ -45504,6 +46218,12 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
       setEntries((current) => current.map((item, i) => i === index ? {
         ...item,
         loading: false,
+        failure: {
+          status: "error",
+          message: failure?.message || String(failure),
+          detail: failure?.message || String(failure),
+          platform: item.platform || ""
+        },
         error: failure?.message || String(failure)
       } : item));
     }
@@ -45618,7 +46338,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
       spellCheck: false,
       rows: 4
     }
-  ), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: addLink, disabled: entries.length >= MAX_BATCH_LINKS }, "\u589E\u52A0\u94FE\u63A5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: previewAll, disabled: entries.length === 0 || previewingAll }, previewingAll ? t("new.checking") : t("new.previewAll")), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, entries.length, " / ", MAX_BATCH_LINKS)), parsed.total ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, "\u5DF2\u8BC6\u522B ", entries.length, " \u6761\u89C6\u9891\u94FE\u63A5", skippedText ? ` \xB7 \u81EA\u52A8\u8DF3\u8FC7\uFF1A${skippedText}` : "", entries.length >= MAX_BATCH_LINKS && parsed.skipped.overflow ? ` \xB7 \u5355\u6B21\u6700\u591A ${MAX_BATCH_LINKS} \u6761` : "") : null, entries.some((entry) => entry.platform === "douyin") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u6296\u97F3\u9700\u8981\u6D4F\u89C8\u5668 Cookie\uFF1A\u8BF7\u5728\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6 \u2192 \u89C6\u9891\u300D\u6253\u5F00\u626B\u7801\u767B\u5F55\u9875\uFF0C\u7528\u6296\u97F3 App \u626B\u7801\u767B\u5F55\u540E\u8BFB\u53D6\u6D4F\u89C8\u5668 Cookie\u3002") : null, entries.map((entry, index) => /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: addLink, disabled: entries.length >= MAX_BATCH_LINKS }, "\u589E\u52A0\u94FE\u63A5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: previewAll, disabled: entries.length === 0 || previewingAll }, previewingAll ? t("new.checking") : t("new.previewAll")), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, entries.length, " / ", MAX_BATCH_LINKS)), parsed.total ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, "\u5DF2\u8BC6\u522B ", entries.length, " \u6761\u89C6\u9891\u94FE\u63A5", skippedText ? ` \xB7 \u81EA\u52A8\u8DF3\u8FC7\uFF1A${skippedText}` : "", entries.length >= MAX_BATCH_LINKS && parsed.skipped.overflow ? ` \xB7 \u5355\u6B21\u6700\u591A ${MAX_BATCH_LINKS} \u6761` : "") : null, entries.some((entry) => entry.platform === "douyin") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u6296\u97F3\u89C6\u9891\u901A\u5E38\u9700\u8981\u767B\u5F55\uFF1A\u9884\u8BFB\u5931\u8D25\u65F6\u4E0B\u65B9\u4F1A\u76F4\u63A5\u51FA\u73B0\u300C\u767B\u5F55\u6296\u97F3\u300D\uFF0C\u6309\u4E09\u6B65\u5B8C\u6210\u540E\u91CD\u8BD5\u5373\u53EF\u3002") : null, entries.map((entry, index) => /* @__PURE__ */ React.createElement(
     VideoEntry,
     {
       key: `${entry.url}-${index}`,
@@ -45661,7 +46381,14 @@ function VideoEntry({ t, entry, removable, onRemove, onChangeTrack, onChangeMode
       referrerPolicy: "no-referrer",
       onError: () => setThumbFailed(true)
     }
-  ) : /* @__PURE__ */ React.createElement("span", { className: "mc-preview-thumb-placeholder" }, platformLabel(preview?.platform || entry.platform)), /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, preview?.title && preview.title !== "\u672A\u547D\u540D\u89C6\u9891" ? preview.title : entry.url), /* @__PURE__ */ React.createElement("span", null, [platformLabel(preview?.platform || entry.platform), preview?.uploader, preview?.duration ? duration(preview.duration) : "", preview?.filesize ? bytes(preview.filesize) : "", preview?.ok ? preview?.message : ""].filter(Boolean).join(" \xB7 ")), entry.loading ? /* @__PURE__ */ React.createElement("span", null, t("new.checking")) : null, entry.error ? /* @__PURE__ */ React.createElement("span", { className: "mc-error-text" }, entry.error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-entry-controls" }, preview?.ok && preview?.subtitle_status === "available" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: entry.mode, onChange: (event) => onChangeMode(event.target.value), "aria-label": "\u8F6C\u5199\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("option", { value: "auto" }, "\u5B57\u5E55\u4F18\u5148"), /* @__PURE__ */ React.createElement("option", { value: "asr" }, "\u8BED\u97F3\u8BC6\u522B")), entry.mode === "auto" && tracks.length > 1 ? /* @__PURE__ */ React.createElement("select", { className: `mc-input mc-select${needsTrack ? " mc-invalid" : ""}`, value: entry.trackId, onChange: (event) => onChangeTrack(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u5B57\u5E55\u8BED\u8A00"), tracks.map((track) => /* @__PURE__ */ React.createElement("option", { key: track.id, value: track.id }, track.title || track.language))) : null) : null, entry.error || preview?.ok === false ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, "\u91CD\u8BD5") : !preview ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, t("new.preview")) : null), preview?.ok && preview?.subtitle_status !== "available" ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u672A\u53D1\u73B0\u53EF\u7528\u5B57\u5E55\uFF0C\u5C06\u4F7F\u7528\u4E91\u7AEF ASR \u8F6C\u5199\u3002") : null));
+  ) : /* @__PURE__ */ React.createElement("span", { className: "mc-preview-thumb-placeholder" }, platformLabel(preview?.platform || entry.platform)), /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, preview?.title && preview.title !== "\u672A\u547D\u540D\u89C6\u9891" ? preview.title : entry.url), /* @__PURE__ */ React.createElement("span", null, [platformLabel(preview?.platform || entry.platform), preview?.uploader, preview?.duration ? duration(preview.duration) : "", preview?.filesize ? bytes(preview.filesize) : "", preview?.ok ? preview?.message : ""].filter(Boolean).join(" \xB7 ")), entry.loading ? /* @__PURE__ */ React.createElement("span", null, t("new.checking")) : null, entry.failure ? /* @__PURE__ */ React.createElement(
+    LoginRequiredNotice,
+    {
+      failure: entry.failure,
+      platform: entry.failure.platform || preview?.platform || entry.platform,
+      onRetry: onPreview
+    }
+  ) : entry.error ? /* @__PURE__ */ React.createElement("span", { className: "mc-error-text" }, entry.error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-entry-controls" }, preview?.ok && preview?.subtitle_status === "available" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: entry.mode, onChange: (event) => onChangeMode(event.target.value), "aria-label": "\u8F6C\u5199\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("option", { value: "auto" }, "\u5B57\u5E55\u4F18\u5148"), /* @__PURE__ */ React.createElement("option", { value: "asr" }, "\u8BED\u97F3\u8BC6\u522B")), entry.mode === "auto" && tracks.length > 1 ? /* @__PURE__ */ React.createElement("select", { className: `mc-input mc-select${needsTrack ? " mc-invalid" : ""}`, value: entry.trackId, onChange: (event) => onChangeTrack(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u8BF7\u9009\u62E9\u5B57\u5E55\u8BED\u8A00"), tracks.map((track) => /* @__PURE__ */ React.createElement("option", { key: track.id, value: track.id }, track.title || track.language))) : null) : null, (entry.error || preview?.ok === false) && !entry.failure?.action ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, "\u91CD\u8BD5") : !preview ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onPreview, disabled: entry.loading }, t("new.preview")) : null), preview?.ok && preview?.subtitle_status !== "available" ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u672A\u53D1\u73B0\u53EF\u7528\u5B57\u5E55\uFF0C\u5C06\u4F7F\u7528\u4E91\u7AEF ASR \u8F6C\u5199\u3002") : null));
 }
 function MeetingForm({ t, options, optionsError, initialFile = null, initialFiles = null, onClose, onCreated }) {
   const [files, setFiles] = React.useState(() => initialMeetingFiles(initialFiles, initialFile));
@@ -46131,6 +46858,9 @@ function TopBar({
   onLibraryCreate,
   onLibraryManage,
   onSearch,
+  onHelp,
+  onSettings,
+  settingsDisabled = false,
   libraryMenuOpen = false
 }) {
   return /* @__PURE__ */ React.createElement("header", { className: "mc-topbar" }, /* @__PURE__ */ React.createElement("div", { className: "mc-topbar-brand", title: t("panel.title") }, /* @__PURE__ */ React.createElement("span", { className: "mc-topbar-mark" }, /* @__PURE__ */ React.createElement(MeetClipIcon, { size: 19, active: true })), /* @__PURE__ */ React.createElement("span", null, "\u4F1A\u6458")), /* @__PURE__ */ React.createElement("nav", { className: "mc-topbar-nav", "aria-label": "\u4F1A\u6458\u5BFC\u822A" }, VIEWS.map((item) => /* @__PURE__ */ React.createElement(
@@ -46156,6 +46886,27 @@ function TopBar({
     /* @__PURE__ */ React.createElement(SearchIcon, { size: 14 }),
     /* @__PURE__ */ React.createElement("span", null, t("topbar.search")),
     /* @__PURE__ */ React.createElement("kbd", null, "\u2318K")
+  ) : null, onHelp ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-topbar-tool",
+      "aria-label": "\u4F7F\u7528\u6307\u5357",
+      title: "\u4F7F\u7528\u6307\u5357",
+      onClick: onHelp
+    },
+    "?"
+  ) : null, onSettings ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-topbar-tool mc-topbar-tool-text",
+      "aria-label": "\u8BBE\u7F6E",
+      title: settingsDisabled ? "\u5B8C\u6210\u9996\u6B21\u914D\u7F6E\u540E\u53EF\u4F7F\u7528" : "\u4F1A\u6458\u8BBE\u7F6E",
+      disabled: settingsDisabled,
+      onClick: onSettings
+    },
+    "\u8BBE\u7F6E"
   ) : null, /* @__PURE__ */ React.createElement(
     LibrarySwitcher,
     {
@@ -48527,10 +49278,14 @@ var TITLES = {
   meeting: ["\u4F1A\u8BAE\u5F55\u97F3", "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u53EF\u591A\u9009\uFF1B\u5BFC\u5165\u540E\u81EA\u52A8\u6536\u8FDB\u5361\u5305"],
   doc: ["\u98DE\u4E66\u6587\u6863", "\u8BFB\u53D6\u6587\u6863\u6B63\u6587\uFF0C\u751F\u6210\u53EF\u5728\u4F1A\u8BDD\u91CC @ \u7684\u4F1A\u6458\u5361\u7247"]
 };
+var PANEL_GAP = 10;
+var PANEL_MIN_HEIGHT = 200;
+var PANEL_MAX_HEIGHT = 660;
 function CaptureInline({ t, type = "launch", url = "", file = null, files = null, onClose, onCreated, onSubmitted }) {
   const [options, setOptions] = React.useState(null);
   const [optionsError, setOptionsError] = React.useState("");
   const [health, setHealth] = React.useState({ depsReady: null, asrReady: null, active: 0 });
+  const [panelMaxHeight, setPanelMaxHeight] = React.useState(0);
   const panelRef = React.useRef(null);
   React.useEffect(() => {
     let cancelled = false;
@@ -48582,6 +49337,54 @@ function CaptureInline({ t, type = "launch", url = "", file = null, files = null
     };
   }, []);
   React.useEffect(() => {
+    if (typeof window === "undefined") return void 0;
+    let settled = 0;
+    let frame = 0;
+    function measure() {
+      const node = panelRef.current;
+      if (!node || typeof node.getBoundingClientRect !== "function") return;
+      const rect = node.getBoundingClientRect();
+      if (!rect.height) return;
+      const boxStyle = window.getComputedStyle ? window.getComputedStyle(node) : null;
+      if (boxStyle && boxStyle.position === "fixed") return;
+      const home = node.closest(".mc-home");
+      const homeRect = home ? home.getBoundingClientRect() : null;
+      const dock = home ? home.querySelector(".mc-home-dock") : null;
+      const dockRect = dock ? dock.getBoundingClientRect() : null;
+      const limit = Math.min(
+        homeRect && homeRect.bottom > 0 ? homeRect.bottom : window.innerHeight,
+        dockRect && dockRect.height > 0 ? dockRect.top - PANEL_GAP : Number.POSITIVE_INFINITY
+      );
+      const scale = node.offsetHeight ? rect.height / node.offsetHeight : 1;
+      const ratio = scale > 0 ? scale : 1;
+      const space = Math.round((limit - rect.top - PANEL_GAP) / ratio);
+      const next = Math.max(PANEL_MIN_HEIGHT, Math.min(PANEL_MAX_HEIGHT, space));
+      if (Math.abs(next - settled) <= 6) return;
+      settled = next;
+      setPanelMaxHeight(next);
+    }
+    function remeasure() {
+      measure();
+      if (typeof window.requestAnimationFrame !== "function") return;
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        frame = window.requestAnimationFrame(measure);
+      });
+    }
+    measure();
+    window.addEventListener("resize", remeasure);
+    let observer = null;
+    if (typeof window.ResizeObserver === "function" && panelRef.current) {
+      observer = new window.ResizeObserver(remeasure);
+      observer.observe(panelRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", remeasure);
+      if (observer) observer.disconnect();
+      if (frame && typeof window.cancelAnimationFrame === "function") window.cancelAnimationFrame(frame);
+    };
+  }, [type]);
+  React.useEffect(() => {
     function onKey(event) {
       if (event.key !== "Escape") return;
       event.stopPropagation();
@@ -48598,6 +49401,7 @@ function CaptureInline({ t, type = "launch", url = "", file = null, files = null
       className: "mc-capture-inline mc-omnibox-pop",
       role: "dialog",
       "aria-label": title,
+      style: panelMaxHeight ? { maxHeight: `${panelMaxHeight}px` } : void 0,
       onKeyDown: (event) => {
         if (event.key !== "Enter" || event.shiftKey) return;
         const tag = event.target?.tagName;
@@ -48610,7 +49414,7 @@ function CaptureInline({ t, type = "launch", url = "", file = null, files = null
       }
     },
     /* @__PURE__ */ React.createElement("header", { className: "mc-capture-inline-head" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("span", null, subtitle)), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose, "aria-label": "\u5173\u95ED\u91C7\u96C6\u9762\u677F" }, "\xD7")),
-    /* @__PURE__ */ React.createElement("div", { className: "mc-capture-inline-body" }, health.depsReady === false && type !== "meeting" && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "error" }, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6\uFF08yt-dlp / ffmpeg\uFF09\uFF0C\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u3002") : null, health.asrReady === false && type !== "video" && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "warn" }, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E\uFF1A\u4ECD\u53EF\u4FDD\u5B58\u97F3\u89C6\u9891\u4E0E\u622A\u56FE\uFF0C\u914D\u7F6E\u540E\u53EF\u91CD\u65B0\u8F6C\u5199\u3002") : null, health.active > 0 && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u5DF2\u6709 ", health.active, " \u4E2A\u4EFB\u52A1\u5728\u8FD0\u884C\uFF0C\u65B0\u4EFB\u52A1\u4F1A\u6392\u961F\uFF1B\u76F4\u64AD\u8F6E\u5230\u540E\u624D\u5F00\u59CB\u91C7\u96C6\u3002") : null, type === "launch" ? /* @__PURE__ */ React.createElement(LaunchForm, { t, health, initialUrl: url, onClose, onCreated }) : null, type === "video" ? /* @__PURE__ */ React.createElement(
+    /* @__PURE__ */ React.createElement("div", { className: "mc-capture-inline-body" }, health.depsReady === false && type !== "meeting" && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "error" }, "\u7F3A\u5C11\u91C7\u96C6\u7EC4\u4EF6\uFF08yt-dlp / ffmpeg\uFF09\uFF0C\u8BF7\u5728\u9996\u9875\u300C\u914D\u7F6E\u8FDB\u5EA6\u300D\u4E2D\u5B89\u88C5\u3002") : null, health.asrReady === false && type !== "video" && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "warn" }, "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E\uFF1A\u4ECD\u53EF\u4FDD\u5B58\u97F3\u89C6\u9891\u4E0E\u622A\u56FE\uFF0C\u914D\u7F6E\u540E\u53EF\u91CD\u65B0\u8F6C\u5199\u3002", /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => openSettings({ tab: "models" }) }, "\u53BB\u914D\u7F6E\u6A21\u578B")) : null, health.active > 0 && type !== "doc" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u5DF2\u6709 ", health.active, " \u4E2A\u4EFB\u52A1\u5728\u8FD0\u884C\uFF0C\u65B0\u4EFB\u52A1\u4F1A\u6392\u961F\uFF1B\u76F4\u64AD\u8F6E\u5230\u540E\u624D\u5F00\u59CB\u91C7\u96C6\u3002") : null, type === "launch" ? /* @__PURE__ */ React.createElement(LaunchForm, { t, health, initialUrl: url, onClose, onCreated }) : null, type === "video" ? /* @__PURE__ */ React.createElement(
       VideoForm,
       {
         t,
@@ -48637,8 +49441,291 @@ function CaptureInline({ t, type = "launch", url = "", file = null, files = null
 
 // client-src/components/home/SetupProgressCards.jsx
 init_react_shim();
+
+// client-src/components/settings/ModelConnection.jsx
+init_react_shim();
+
+// client-src/lib/models.js
+init_react_shim();
+var SPEECH = /asr|transcribe|whisper/i;
+var SPEECH_DROP = /tts|voiceclone|voicedesign/i;
+var TEXT_DROP = /embed|rerank|ocr|tts|voiceclone|voicedesign|image|moderation|realtime|sora|dall-e|whisper|transcribe|asr/i;
+function splitEntries(entries = []) {
+  const seen = /* @__PURE__ */ new Set();
+  const asr = [];
+  const text = [];
+  for (const row of Array.isArray(entries) ? entries : []) {
+    const wire = String((typeof row === "string" ? row : row?.wire || row?.id) || "").trim();
+    if (!wire || wire.endsWith(":batch") || seen.has(wire)) continue;
+    seen.add(wire);
+    const kind = String((typeof row === "string" ? "" : row?.kind) || "").trim().toLowerCase();
+    const name = String((typeof row === "string" ? wire : row?.id || wire) || "");
+    if (SPEECH_DROP.test(name)) continue;
+    if (SPEECH.test(name)) {
+      asr.push(wire);
+      continue;
+    }
+    if (TEXT_DROP.test(name)) continue;
+    if (kind === "speech2text") {
+      asr.push(wire);
+      continue;
+    }
+    if (kind) {
+      if (kind === "llm") text.push(wire);
+      continue;
+    }
+    text.push(wire);
+  }
+  return { asr, text };
+}
+function splitModels(ids = []) {
+  return splitEntries(ids);
+}
+function familyOf(id) {
+  const value = String(id || "").trim();
+  if (!value) return "";
+  const slash = value.indexOf("/");
+  if (slash > 0) return value.slice(0, slash).toLowerCase();
+  return value.split(/[-_.]/)[0].toLowerCase();
+}
+function sortModels(list = [], current = "") {
+  const cur = String(current || "").trim();
+  const family = familyOf(cur);
+  return list.slice().sort((a, b) => {
+    if (a === cur) return -1;
+    if (b === cur) return 1;
+    const am = family && familyOf(a) === family ? 0 : 1;
+    const bm = family && familyOf(b) === family ? 0 : 1;
+    return am - bm || String(a).localeCompare(String(b));
+  });
+}
+function modelOptions(list = [], current = "") {
+  const cur = String(current || "").trim();
+  const items = cur && !list.includes(cur) ? [cur, ...list] : list;
+  return sortModels(items, cur).map((id) => ({
+    value: id,
+    label: id === cur ? `${id}\uFF08\u5F53\u524D\uFF09` : id
+  }));
+}
+function candidateOrder(list = [], { current = "", vendor = "" } = {}) {
+  const cur = String(current || "").trim();
+  const own = String(vendor || "").trim();
+  const vendorOf2 = (id) => String(id || "").includes("/") ? String(id).split("/")[0] : "";
+  const seen = /* @__PURE__ */ new Set();
+  const items = (Array.isArray(list) ? list : []).map((id) => String(id || "").trim()).filter((id) => id && !seen.has(id) && seen.add(id));
+  const rank = (id) => id === cur ? 0 : own && vendorOf2(id) === own ? 1 : 2;
+  return items.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
+}
+var PREFERRED_SPEECH_MODEL = "mimo-v2.5-asr";
+var PREFERRED_TEXT_MODEL = "mimo-v2.6-flash";
+function preferModel(list = [], wanted = "") {
+  const want = String(wanted || "").trim();
+  const items = Array.isArray(list) ? list : [];
+  if (!want) return "";
+  return items.find((id) => id === want) || items.find((id) => String(id || "").endsWith("/" + want)) || "";
+}
+function vendorOf(model) {
+  const value = String(model || "").trim();
+  return value.includes("/") ? value.split("/")[0] : "";
+}
+function withoutHidden(list = [], hidden = []) {
+  const items = Array.isArray(list) ? list : [];
+  const blocked = new Set(
+    (Array.isArray(hidden) ? hidden : []).map((row) => typeof row === "string" ? row : row?.model).filter(Boolean)
+  );
+  if (!blocked.size) return items;
+  const kept = items.filter((id) => !blocked.has(id));
+  return kept.length ? kept : items;
+}
+
+// client-src/components/settings/ModelConnection.jsx
 var BASE_PLACEHOLDER = "https://your-gateway.example/v1";
-var MODEL_PLACEHOLDER = "your-asr-model";
+function cleanBase(value) {
+  return String(value || "").trim().replace(/\/+$/, "");
+}
+function ModelConnection({
+  t,
+  initialBaseUrl = "",
+  initialApiKey = "",
+  initialAsr = "",
+  initialText = "",
+  hasSavedKey = false,
+  compact = false,
+  showSave = true,
+  saveLabel = "\u4FDD\u5B58\u5E76\u6D4B\u8BD5",
+  onSaved
+}) {
+  const [baseUrl, setBaseUrl] = React.useState(cleanBase(initialBaseUrl));
+  const [apiKey, setApiKey] = React.useState(initialApiKey);
+  const [catalog, setCatalog] = React.useState(null);
+  const [hidden, setHidden] = React.useState([]);
+  const [showHidden, setShowHidden] = React.useState(false);
+  const [asrModel, setAsrModel] = React.useState(initialAsr || "");
+  const [textModel, setTextModel] = React.useState(initialText || "");
+  const [busy, setBusy] = React.useState("");
+  const [error, setError] = React.useState("");
+  const [notice, setNotice] = React.useState("");
+  const [asrProbe, setAsrProbe] = React.useState(null);
+  const [textProbe, setTextProbe] = React.useState(null);
+  const asrModels = catalog?.asr || [];
+  const textModels = showHidden ? catalog?.text || [] : withoutHidden(catalog?.text || [], hidden);
+  const asrOptions = modelOptions(asrModels, asrModel);
+  const textOptions = modelOptions(textModels, textModel);
+  const canConnect = Boolean(cleanBase(baseUrl)) && (Boolean(apiKey.trim()) || hasSavedKey);
+  async function connect() {
+    const base = cleanBase(baseUrl);
+    if (!base) {
+      setError("\u8BF7\u5148\u586B\u5199\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
+    if (!apiKey.trim() && !hasSavedKey) {
+      setError("\u8BF7\u5148\u7C98\u8D34 API Key");
+      return;
+    }
+    setBusy("connect");
+    setError("");
+    setNotice("");
+    try {
+      const result = !apiKey.trim() && hasSavedKey ? await modelCatalog() : await probeModels({ apiKey: apiKey.trim(), baseUrl: base });
+      const ids = Array.isArray(result?.models) ? result.models : [];
+      const entries = Array.isArray(result?.entries) ? result.entries : [];
+      if (!ids.length && !entries.length) throw new Error("\u7F51\u5173\u6CA1\u6709\u8FD4\u56DE\u53EF\u7528\u6A21\u578B\uFF0C\u8BF7\u68C0\u67E5\u5730\u5740\u4E0E Key");
+      const split = entries.length ? splitEntries(entries) : splitModels(ids);
+      const nextAsr = preferModel(split.asr, PREFERRED_SPEECH_MODEL) || split.asr[0] || asrModel;
+      const nextText = preferModel(split.text, PREFERRED_TEXT_MODEL) || split.text.find((id) => id.split("/")[0] === String(nextAsr).split("/")[0]) || split.text[0] || textModel;
+      setCatalog({ count: Number(result?.count) || ids.length, asr: split.asr, text: split.text });
+      setAsrModel(nextAsr);
+      setTextModel(nextText);
+      setNotice(`\u5DF2\u83B7\u53D6 ${Number(result?.count) || ids.length} \u4E2A\u6A21\u578B\uFF0C\u8BF7\u786E\u8BA4\u8BED\u97F3\u4E0E\u6587\u5B57\u6A21\u578B`);
+      probeUsableModels({ apiKey: apiKey.trim(), baseUrl: base, models: split.text }).then((value) => {
+        if (value?.ok) setHidden(Array.isArray(value.hidden) ? value.hidden : []);
+      }).catch(() => {
+      });
+    } catch (failure) {
+      setCatalog(null);
+      setError(failure?.message || String(failure));
+    } finally {
+      setBusy("");
+    }
+  }
+  async function probeAsr() {
+    if (!asrModel) {
+      setAsrProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u8BED\u97F3\u6A21\u578B" });
+      return;
+    }
+    setAsrProbe({ busy: true, text: "\u6B63\u5728\u7528 1 \u79D2\u9759\u97F3\u6D4B\u8BD5\u2026" });
+    try {
+      const result = await testAsrEngine({
+        provider: "mimo",
+        base_url: cleanBase(baseUrl),
+        model: asrModel,
+        api_key: apiKey.trim() || void 0
+      });
+      setAsrProbe({ ok: true, text: `\u8BED\u97F3\u6A21\u578B\u53EF\u7528\uFF1A${result?.model || asrModel}` });
+    } catch (failure) {
+      setAsrProbe({ ok: false, text: `\u8BED\u97F3\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${failure?.message || "\u8FDE\u63A5\u5931\u8D25"}` });
+    }
+  }
+  async function probeText() {
+    if (!textModel) {
+      setTextProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u6587\u5B57\u6A21\u578B" });
+      return;
+    }
+    setTextProbe({ busy: true, text: "\u6B63\u5728\u8BF7\u6C42\u6587\u5B57\u6A21\u578B\u2026" });
+    try {
+      const result = await testAIModel({
+        provider: "mimo",
+        base_url: cleanBase(baseUrl),
+        model: textModel,
+        api_key: apiKey.trim() || void 0
+      });
+      if (result?.ok) setTextProbe({ ok: true, text: `\u6587\u5B57\u6A21\u578B\u53EF\u7528\uFF1A${result.model || textModel}${result.seconds ? `\uFF08${result.seconds}s\uFF09` : ""}` });
+      else setTextProbe({ ok: false, text: `\u6587\u5B57\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${result?.message || "Key \u6216\u6A21\u578B\u4E0D\u53EF\u7528"}` });
+    } catch (failure) {
+      setTextProbe({ ok: false, text: `\u6587\u5B57\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${failure?.message || "\u8FDE\u63A5\u5931\u8D25"}` });
+    }
+  }
+  async function save() {
+    const base = cleanBase(baseUrl);
+    if (!base) {
+      setError("\u8BF7\u5148\u586B\u5199\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
+      return;
+    }
+    if (!asrModel) {
+      setError("\u8BF7\u5148\u9009\u62E9\u8BED\u97F3\u8F6C\u6587\u5B57\u6A21\u578B");
+      return;
+    }
+    if (!textModel) {
+      setError("\u8BF7\u5148\u9009\u62E9\u6587\u5B57\u603B\u7ED3\u6A21\u578B");
+      return;
+    }
+    if (!apiKey.trim() && !hasSavedKey) {
+      setError("\u8BF7\u5148\u7C98\u8D34 API Key");
+      return;
+    }
+    setBusy("save");
+    setError("");
+    setNotice("");
+    try {
+      await saveAsrEngine({
+        mode: "default",
+        provider: "mimo",
+        base_url: base,
+        model: asrModel,
+        ...apiKey.trim() ? { api_key: apiKey.trim() } : {}
+      });
+      await saveAIConfig({ provider: "mimo", base_url: base, model: textModel });
+      await probeAsr();
+      await probeText();
+      setNotice("\u5DF2\u4FDD\u5B58\uFF0C\u5E76\u5B8C\u6210\u4E00\u6B21\u8FDE\u63A5\u6D4B\u8BD5");
+      await onSaved?.({ baseUrl: base, asrModel, textModel });
+      setApiKey("");
+    } catch (failure) {
+      setError(failure?.message || String(failure));
+    } finally {
+      setBusy("");
+    }
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-model-connection${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      value: baseUrl,
+      spellCheck: false,
+      placeholder: BASE_PLACEHOLDER,
+      onChange: (event) => {
+        setBaseUrl(event.target.value);
+        setError("");
+      }
+    }
+  )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-input",
+      type: "password",
+      value: apiKey,
+      autoComplete: "off",
+      spellCheck: false,
+      placeholder: hasSavedKey ? "\u5DF2\u914D\u7F6E\uFF1B\u7559\u7A7A\u5219\u4E0D\u4FEE\u6539" : "\u7C98\u8D34 API Key",
+      onChange: (event) => {
+        setApiKey(event.target.value);
+        setError("");
+      }
+    }
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": catalog ? void 0 : "primary",
+      disabled: busy === "connect" || !canConnect,
+      onClick: connect
+    },
+    busy === "connect" ? "\u8FDE\u63A5\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6\u6A21\u578B" : "\u8FDE\u63A5\u5E76\u83B7\u53D6\u6A21\u578B"
+  ), catalog ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u5DF2\u83B7\u53D6 ", catalog.count, " \u4E2A\u6A21\u578B") : null), catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), hidden.length ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5DF2\u9690\u85CF ", hidden.length, " \u4E2A\u8FD9\u4E2A Key \u8C03\u4E0D\u901A\u7684\u6A21\u578B", /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => setShowHidden((value) => !value) }, showHidden ? "\u53EA\u770B\u53EF\u7528" : "\u663E\u793A\u5168\u90E8")) : null, showSave ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeAsr }, "\u6D4B\u8BD5\u8BED\u97F3"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeText }, "\u6D4B\u8BD5\u6587\u5B57"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: Boolean(busy), onClick: save }, busy === "save" ? "\u4FDD\u5B58\u4E2D\u2026" : saveLabel)) : null) : null, asrProbe ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error" }, asrProbe.text) : null, textProbe ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": textProbe.ok ? void 0 : "error" }, textProbe.text) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002\u7F51\u5173\u5730\u5740\u53EF\u4EE5\u662F\u516C\u53F8\u7F51\u5173\u3001\u4EE3\u7406\u6216\u4F60\u81EA\u5DF1\u7684 OpenAI \u517C\u5BB9\u670D\u52A1\u3002"));
+}
+
+// client-src/components/home/SetupProgressCards.jsx
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -48646,10 +49733,6 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
   const [state2, setState] = React.useState(null);
   const [busy, setBusy] = React.useState("");
   const [keyOpen, setKeyOpen] = React.useState(false);
-  const [baseUrl, setBaseUrl] = React.useState("");
-  const [model, setModel] = React.useState("");
-  const [key, setKey] = React.useState("");
-  const [keyError, setKeyError] = React.useState("");
   const [failure, setFailure] = React.useState(null);
   const load = React.useCallback(async () => {
     try {
@@ -48659,7 +49742,6 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
         deps()
       ]);
       setState({ engine: engine2, options: options2, capture: capture2 });
-      setBaseUrl((current) => current || engine2?.default_base_url || engine2?.base_url || "");
     } catch {
       setState(null);
     }
@@ -48691,35 +49773,6 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
       setBusy("");
     }
   }
-  async function saveKey() {
-    if (!baseUrl.trim()) {
-      setKeyError("\u8BF7\u586B\u5199\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
-      return;
-    }
-    if (!model.trim()) {
-      setKeyError("\u8BF7\u586B\u5199\u6A21\u578B ID");
-      return;
-    }
-    if (!key.trim()) {
-      setKeyError("\u8BF7\u8F93\u5165 API Key");
-      return;
-    }
-    setBusy("key");
-    setKeyError("");
-    setFailure(null);
-    try {
-      await testMimoKey(key.trim(), { baseUrl: baseUrl.trim(), model: model.trim() });
-      await saveAsrEngine({ provider: "mimo", base_url: baseUrl.trim(), model: model.trim(), api_key: key.trim() });
-      await testAsrEngine();
-      setKey("");
-      setKeyOpen(false);
-      await load();
-    } catch (input) {
-      setKeyError(input?.message || "\u4E91\u7AEF\u8BED\u97F3\u914D\u7F6E\u5931\u8D25");
-    } finally {
-      setBusy("");
-    }
-  }
   if (!state2) return null;
   const { engine, options, capture } = state2;
   const cards = [];
@@ -48741,43 +49794,18 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
   }
   if (!cards.length && !keyOpen) return null;
   return /* @__PURE__ */ React.createElement("aside", { className: `mc-progress-cards is-${variant}`, "aria-label": "\u914D\u7F6E\u8FDB\u5EA6" }, /* @__PURE__ */ React.createElement("div", { className: "mc-progress-cards-head" }, /* @__PURE__ */ React.createElement("span", null, "\u914D\u7F6E\u8FDB\u5EA6"), /* @__PURE__ */ React.createElement("span", null, cards.length, " \u9879\u5F85\u5B8C\u6210")), /* @__PURE__ */ React.createElement("div", { className: "mc-progress-list" }, cards.map((card) => /* @__PURE__ */ React.createElement("section", { key: card.id, className: "mc-progress-card" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, card.title), /* @__PURE__ */ React.createElement("p", null, card.detail)), card.action, failure?.id === card.id ? /* @__PURE__ */ React.createElement("p", { className: "mc-progress-error" }, failure.message) : null, card.id === "asr" && keyOpen ? /* @__PURE__ */ React.createElement("div", { className: "mc-progress-key" }, /* @__PURE__ */ React.createElement(
-    "input",
+    ModelConnection,
     {
-      className: "mc-input",
-      value: baseUrl,
-      spellCheck: false,
-      placeholder: BASE_PLACEHOLDER,
-      onChange: (event) => {
-        setBaseUrl(event.target.value);
-        setKeyError("");
+      compact: true,
+      initialBaseUrl: engine?.base_url || engine?.default_base_url || "",
+      initialAsr: engine?.model || engine?.default_model || "",
+      hasSavedKey: Boolean(engine?.default_has_key ?? engine?.has_api_key),
+      onSaved: async () => {
+        setKeyOpen(false);
+        await load();
       }
     }
-  ), /* @__PURE__ */ React.createElement(
-    "input",
-    {
-      className: "mc-input",
-      value: model,
-      spellCheck: false,
-      placeholder: MODEL_PLACEHOLDER,
-      onChange: (event) => {
-        setModel(event.target.value);
-        setKeyError("");
-      }
-    }
-  ), /* @__PURE__ */ React.createElement(
-    "input",
-    {
-      className: "mc-input",
-      type: "password",
-      value: key,
-      placeholder: "API Key",
-      autoComplete: "off",
-      onChange: (event) => {
-        setKey(event.target.value);
-        setKeyError("");
-      }
-    }
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", "data-variant": "primary", disabled: busy === "key", onClick: saveKey }, busy === "key" ? "\u9A8C\u8BC1\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5"), keyError ? /* @__PURE__ */ React.createElement("p", { className: "mc-progress-error" }, keyError) : null) : null))));
+  )) : null))));
 }
 
 // client-src/lib/agent.js
@@ -48850,6 +49878,7 @@ var zh = {
   "settings.title": "\u4F1A\u6458",
   "settings.language": "\u754C\u9762\u8BED\u8A00",
   "settings.tab.models": "\u6A21\u578B",
+  "settings.tab.account": "\u8D26\u53F7",
   "settings.tab.libraries": "\u8D44\u6599\u7A7A\u95F4",
   "settings.tab.capture": "\u91C7\u96C6",
   "settings.tab.feishu": "\u98DE\u4E66",
@@ -49024,10 +50053,10 @@ var zh = {
   "minutes.selectHint": "\u53EF\u81EA\u7531\u9009\u62E9\u6587\u5B57\u590D\u5236\uFF0C\u4E5F\u53EF\u4EE5\u6574\u4EFD\u590D\u5236\uFF1B\u7ED3\u6784\u5316\u89C6\u56FE\u662F AI \u539F\u7A3F\uFF0C\u539F\u6587\u91CC\u7684\u4FEE\u6539\u4EE5\u539F\u6587\u4E3A\u51C6\u3002",
   "minutes.selectHintFoot": "\u9009\u4E2D\u4EFB\u610F\u6587\u5B57\u5373\u53EF\u590D\u5236",
   "minutes.regenerateHint": "\u91CD\u65B0\u6574\u7406\u4F1A\u8986\u76D6\u7B14\u8BB0\u91CC AI \u7EAA\u8981\u8FD9\u4E00\u8282\uFF0C\u4F60\u81EA\u5DF1\u5199\u7684\u5185\u5BB9\u4F1A\u4FDD\u7559\u3002",
-  "minutes.hintNoKey": "\u7EAA\u8981\u9700\u8981\u6587\u5B57\u6A21\u578B\uFF1A\u5230\u300C\u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B\u300D\u586B\u4E00\u628A API Key\u3002",
+  "minutes.hintNoKey": "\u7EAA\u8981\u9700\u8981\u6587\u5B57\u6A21\u578B\uFF1A\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u586B\u4E00\u628A API Key\u3002",
   "minutes.hintInvalidKey": "AI Key \u65E0\u6548\u6216\u65E0\u6A21\u578B\u6743\u9650\uFF0C\u8BF7\u5230\u8BBE\u7F6E\u91CC\u91CD\u65B0\u4FDD\u5B58\u3002",
   "minutes.hintRetry": "\u6587\u5B57\u6A21\u578B\u5DF2\u914D\u7F6E\uFF0C\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\u3002",
-  "minutes.hintInvalidConfigured": "AI Key \u5DF2\u914D\u7F6E{model}\uFF0C\u4F46\u4E0A\u6B21\u8C03\u7528\u88AB\u62D2\u7EDD{error}\u3002\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\uFF1B\u4ECD\u5931\u8D25\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u4F1A\u6458 \u2192 \u6A21\u578B \u68C0\u67E5 Key \u548C\u6A21\u578B\u3002",
+  "minutes.hintInvalidConfigured": "AI Key \u5DF2\u914D\u7F6E{model}\uFF0C\u4F46\u4E0A\u6B21\u8C03\u7528\u88AB\u62D2\u7EDD{error}\u3002\u91CD\u65B0\u6574\u7406\u4F1A\u518D\u8BD5\u4E00\u6B21\uFF1B\u4ECD\u5931\u8D25\u8BF7\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u68C0\u67E5 Key \u548C\u6A21\u578B\u3002",
   "minutes.checkModel": "\u68C0\u67E5\u6A21\u578B",
   "minutes.checking": "\u68C0\u67E5\u4E2D\u2026",
   "minutes.checkOk": "Key \u53EF\u7528",
@@ -49309,6 +50338,7 @@ var en = {
   "settings.title": "MeetClip",
   "settings.language": "Language",
   "settings.tab.models": "Models",
+  "settings.tab.account": "Account",
   "settings.tab.libraries": "Libraries",
   "settings.tab.capture": "Capture",
   "settings.tab.feishu": "Feishu",
@@ -51724,174 +52754,49 @@ function HomePage({
 // client-src/components/SetupWizard.jsx
 init_react_shim();
 
-// client-src/components/feishu/FeishuParts.jsx
+// client-src/components/login/FeishuDocProbe.jsx
 init_react_shim();
-function FeishuStatusRows({ status: status3, compact = false }) {
-  const runtime = status3?.runtime || {};
-  const dsh = status3?.dsh || {};
-  const auth = status3?.auth || {};
-  let runtimeText = "\u8BFB\u53D6\u4E2D\u2026";
-  let runtimeTone = "";
-  if (status3) {
-    if (!runtime.npx) {
-      runtimeText = "\u6CA1\u6709\u627E\u5230 npx\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
-      runtimeTone = "error";
-    } else if (!runtime.node) {
-      runtimeText = "\u6CA1\u6709\u627E\u5230 node\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
-      runtimeTone = "error";
-    } else if (!runtime.nodeOk) {
-      runtimeText = `Node ${runtime.nodeVersion || "?"}\uFF0C\u98DE\u4E66 MCP \u9700\u8981 20 \u4EE5\u4E0A`;
-      runtimeTone = "error";
-    } else {
-      runtimeText = `Node ${runtime.nodeVersion} \xB7 npx ${runtime.npx}`;
+function FeishuDocProbe({ compact = false, onLogin, onSuccess }) {
+  const [url, setUrl] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState(null);
+  async function run() {
+    const value = url.trim();
+    if (!value) {
+      setError({ message: "\u5148\u7C98\u8D34\u4E00\u7BC7\u98DE\u4E66\u6587\u6863\u94FE\u63A5" });
+      return;
+    }
+    setBusy(true);
+    setResult(null);
+    setError(null);
+    try {
+      const next = await previewFeishuDoc({ url: value });
+      setResult(next);
+      onSuccess?.(next);
+    } catch (failure) {
+      setError({
+        code: failure?.data?.code || "",
+        message: failure?.message || "\u8BFB\u53D6\u5931\u8D25",
+        hint: failure?.data?.hint || ""
+      });
+    } finally {
+      setBusy(false);
     }
   }
-  let configText = "\u8BFB\u53D6\u4E2D\u2026";
-  let configTone = "";
-  if (status3) {
-    if (dsh.conflict) {
-      configText = `\u4E0E\u5DF2\u6709\u6761\u76EE\u51B2\u7A81\uFF1A${dsh.conflict} \u5DF2\u5360\u7528 serverName\u300C${dsh.serverName}\u300D`;
-      configTone = "error";
-    } else if (!dsh.entryPresent) {
-      configText = "\u672A\u5199\u5165";
-    } else if (dsh.entryLive === true) {
-      configText = "\u5DF2\u5199\u5165\u5E76\u5728 DeepSeek Harness \u4E2D\u751F\u6548";
-    } else if (dsh.entryLive === false) {
-      configText = "\u5DF2\u5199\u5165\uFF0C\u6B63\u5728\u7B49\u5F85 DSH \u8F7D\u5165";
-    } else {
-      configText = "\u5DF2\u5199\u5165\uFF08\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\uFF09";
-    }
-  }
-  let authText = "\u8BFB\u53D6\u4E2D\u2026";
-  let authTone = "";
-  if (status3) {
-    if (auth.loggedIn) {
-      authText = `\u5DF2\u767B\u5F55${auth.openId ? ` ${auth.openId}` : ""}${auth.refreshExpiresAt ? ` \xB7 \u6709\u6548\u671F\u81F3 ${formatDate(auth.refreshExpiresAt)}` : ""}`;
-    } else if (auth.expired) {
-      authText = "\u767B\u5F55\u5DF2\u8FC7\u671F\uFF0C\u9700\u8981\u91CD\u65B0\u767B\u5F55";
-      authTone = "warn";
-    } else {
-      authText = "\u672A\u767B\u5F55";
-      authTone = "warn";
-    }
-  }
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u8FD0\u884C\u6761\u4EF6"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": runtimeTone || void 0 }, runtimeText)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "DSH \u914D\u7F6E"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": configTone || void 0 }, configText, !compact && status3 ? /* @__PURE__ */ React.createElement("em", { className: "mc-mono mc-feishu-path", title: dsh.patchPath }, `${dsh.patchScope === "profile" ? "profile \u8865\u4E01" : "home \u8865\u4E01"}\uFF1A${dsh.patchPath}`) : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u98DE\u4E66\u8D26\u53F7"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value", "data-tone": authTone || void 0 }, authText)), status3?.pinnedVersion ? /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5165\u53E3\u7248\u672C"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, "@", status3.pinnedVersion, "\uFF08\u56FA\u5B9A\uFF0C\u53EF\u5728\u9700\u8981\u65F6\u66F4\u65B0\u5230\u6700\u65B0\uFF09")) : null);
-}
-function FeishuJobPanel({ job, actions, describe = true }) {
-  if (!job) return null;
-  const running = job.state === "running";
-  const failed = job.state === "error" || job.state === "cancelled";
-  if (!running && !failed && !job.url) return null;
-  const tail = String(job.log || "").split("\n").filter(Boolean).slice(-14).join("\n");
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-job" }, /* @__PURE__ */ React.createElement("div", { className: "mc-job-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.step || (running ? "\u8FDB\u884C\u4E2D\u2026" : "\u5DF2\u7ED3\u675F"))), describe && running && job.action === "login" ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u6D4F\u89C8\u5668\u6CA1\u5F39\u51FA\u65F6\uFF0C\u590D\u5236\u4E0B\u9762\u7684\u94FE\u63A5\u5230\u6D4F\u89C8\u5668\u6253\u5F00\uFF0C\u5B8C\u6210\u6388\u6743\u540E\u8FD9\u91CC\u4F1A\u81EA\u52A8\u5237\u65B0\u3002") : null, job.url && running ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-auth" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => actions.openUrl(job.url) }, "\u6253\u5F00\u6388\u6743\u9875"), /* @__PURE__ */ React.createElement("span", { className: "mc-mono", title: job.url }, job.url)) : null, tail ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, tail) : null, running ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.cancel }, "\u53D6\u6D88")) : null, failed && job.error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, job.error) : null);
-}
-function FeishuLoginActions({ status: status3, actions, busy, running }) {
-  const auth = status3?.auth || {};
-  const disabled = Boolean(busy) || running;
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
-    "button",
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-doc-probe${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-doc-probe-title" }, "\u9A8C\u8BC1\u8BFB\u53D6"), /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, "\u767B\u5F55\u53EA\u4EE3\u8868\u8D26\u53F7\u6709\u6548\uFF1B\u8BFB\u4E00\u7BC7\u6587\u6863\u624D\u80FD\u786E\u8BA4 Agent \u548C\u98DE\u4E66\u5361\u7247\u771F\u7684\u80FD\u7528\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-doc-probe-row" }, /* @__PURE__ */ React.createElement(
+    "input",
     {
-      type: "button",
-      className: "mc-button",
-      "data-variant": auth.loggedIn ? void 0 : "primary",
-      disabled,
-      onClick: () => actions.login("auto")
-    },
-    busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.loggedIn ? "\u91CD\u65B0\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66"
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), auth.loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null);
-}
-
-// client-src/lib/models.js
-init_react_shim();
-var SPEECH = /asr|transcribe|whisper/i;
-var SPEECH_DROP = /tts|voiceclone|voicedesign/i;
-var TEXT_DROP = /embed|rerank|ocr|tts|voiceclone|voicedesign|image|moderation|realtime|sora|dall-e|whisper|transcribe|asr/i;
-function splitEntries(entries = []) {
-  const seen = /* @__PURE__ */ new Set();
-  const asr = [];
-  const text = [];
-  for (const row of Array.isArray(entries) ? entries : []) {
-    const wire = String((typeof row === "string" ? row : row?.wire || row?.id) || "").trim();
-    if (!wire || wire.endsWith(":batch") || seen.has(wire)) continue;
-    seen.add(wire);
-    const kind = String((typeof row === "string" ? "" : row?.kind) || "").trim().toLowerCase();
-    const name = String((typeof row === "string" ? wire : row?.id || wire) || "");
-    if (SPEECH_DROP.test(name)) continue;
-    if (SPEECH.test(name)) {
-      asr.push(wire);
-      continue;
+      className: "mc-input",
+      value: url,
+      spellCheck: false,
+      placeholder: "\u7C98\u8D34\u4E00\u7BC7\u98DE\u4E66\u6587\u6863\u94FE\u63A5\uFF0C\u4F8B\u5982 https://xxx.feishu.cn/docx/\u2026",
+      onChange: (event) => {
+        setUrl(event.target.value);
+        setError(null);
+      }
     }
-    if (TEXT_DROP.test(name)) continue;
-    if (kind === "speech2text") {
-      asr.push(wire);
-      continue;
-    }
-    if (kind) {
-      if (kind === "llm") text.push(wire);
-      continue;
-    }
-    text.push(wire);
-  }
-  return { asr, text };
-}
-function splitModels(ids = []) {
-  return splitEntries(ids);
-}
-function familyOf(id) {
-  const value = String(id || "").trim();
-  if (!value) return "";
-  const slash = value.indexOf("/");
-  if (slash > 0) return value.slice(0, slash).toLowerCase();
-  return value.split(/[-_.]/)[0].toLowerCase();
-}
-function sortModels(list = [], current = "") {
-  const cur = String(current || "").trim();
-  const family = familyOf(cur);
-  return list.slice().sort((a, b) => {
-    if (a === cur) return -1;
-    if (b === cur) return 1;
-    const am = family && familyOf(a) === family ? 0 : 1;
-    const bm = family && familyOf(b) === family ? 0 : 1;
-    return am - bm || String(a).localeCompare(String(b));
-  });
-}
-function modelOptions(list = [], current = "") {
-  const cur = String(current || "").trim();
-  const items = cur && !list.includes(cur) ? [cur, ...list] : list;
-  return sortModels(items, cur).map((id) => ({
-    value: id,
-    label: id === cur ? `${id}\uFF08\u5F53\u524D\uFF09` : id
-  }));
-}
-function candidateOrder(list = [], { current = "", vendor = "" } = {}) {
-  const cur = String(current || "").trim();
-  const own = String(vendor || "").trim();
-  const vendorOf2 = (id) => String(id || "").includes("/") ? String(id).split("/")[0] : "";
-  const seen = /* @__PURE__ */ new Set();
-  const items = (Array.isArray(list) ? list : []).map((id) => String(id || "").trim()).filter((id) => id && !seen.has(id) && seen.add(id));
-  const rank = (id) => id === cur ? 0 : own && vendorOf2(id) === own ? 1 : 2;
-  return items.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
-}
-var PREFERRED_SPEECH_MODEL = "mimo-v2.5-asr";
-var PREFERRED_TEXT_MODEL = "mimo-v2.6-flash";
-function preferModel(list = [], wanted = "") {
-  const want = String(wanted || "").trim();
-  const items = Array.isArray(list) ? list : [];
-  if (!want) return "";
-  return items.find((id) => id === want) || items.find((id) => String(id || "").endsWith("/" + want)) || "";
-}
-function vendorOf(model) {
-  const value = String(model || "").trim();
-  return value.includes("/") ? value.split("/")[0] : "";
-}
-function withoutHidden(list = [], hidden = []) {
-  const items = Array.isArray(list) ? list : [];
-  const blocked = new Set(
-    (Array.isArray(hidden) ? hidden : []).map((row) => typeof row === "string" ? row : row?.model).filter(Boolean)
-  );
-  if (!blocked.size) return items;
-  const kept = items.filter((id) => !blocked.has(id));
-  return kept.length ? kept : items;
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: run }, busy ? "\u8BFB\u53D6\u4E2D\u2026" : "\u6D4B\u8BD5\u8BFB\u53D6")), result ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": "ok", role: "status" }, "\u8BFB\u53D6\u6210\u529F\uFF1A", result.title || "\uFF08\u65E0\u6807\u9898\uFF09", result.has_content ? ` \xB7 ${result.content_chars} \u5B57\u6B63\u6587` : " \xB7 \u4EC5\u94FE\u63A5") : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-doc-probe-error" }, /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error.message, error.hint ? `\uFF1A${error.hint}` : ""), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, onLogin ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: onLogin }, "\u53BB\u767B\u5F55\u98DE\u4E66") : null)) : null);
 }
 
 // client-src/components/SetupWizard.jsx
@@ -51930,8 +52835,48 @@ function SetupWizard({ status: status3, onComplete }) {
   const probeSeq = React.useRef(0);
   const probedKey = React.useRef("");
   const inflight = React.useRef(/* @__PURE__ */ new Set());
+  const resumeRef = React.useRef(false);
   React.useEffect(() => () => {
     mounted.current = false;
+  }, []);
+  React.useEffect(() => {
+    if (resumeRef.current) return;
+    resumeRef.current = true;
+    let cancelled = false;
+    setupStatus().then((result) => {
+      if (cancelled || !mounted.current) return;
+      const env = result?.env || {};
+      const job = env.job || null;
+      if (env.ready) {
+        setEnvReady(true);
+        loadIssues().catch(() => {
+        });
+        setStep(3);
+        return;
+      }
+      if (job?.state === "running") {
+        setStep(2);
+        setBackground(true);
+        setRunning(true);
+        setDetail(job.step || "\u6B63\u5728\u5B89\u88C5");
+        waitExisting().then((next) => {
+          if (cancelled || !mounted.current || !next) return;
+          setEnvReady(true);
+          setRunning(false);
+          loadIssues().catch(() => {
+          });
+          setStep(3);
+        }).catch((failure) => {
+          if (cancelled || !mounted.current) return;
+          setError(failure?.message || String(failure));
+          setRunning(false);
+        });
+      }
+    }).catch(() => {
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
   React.useEffect(() => {
     const key = apiKey.trim();
@@ -52027,8 +52972,7 @@ function SetupWizard({ status: status3, onComplete }) {
       if (mounted.current) setProbing(inflight.current.size > 0);
     }
   }
-  async function waitSetup(action) {
-    await startSetup(action);
+  async function waitExisting() {
     for (let index = 0; index < 3600; index += 1) {
       await sleep(index === 0 ? 600 : 1500);
       if (!mounted.current) return null;
@@ -52042,6 +52986,10 @@ function SetupWizard({ status: status3, onComplete }) {
       if (env.ready && (!job.state || job.state === "done")) return env;
     }
     throw new Error("\u73AF\u5883\u5B89\u88C5\u8D85\u65F6\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5");
+  }
+  async function waitSetup(action) {
+    await startSetup(action);
+    return waitExisting();
   }
   async function waitEngine() {
     for (let index = 0; index < 180; index += 1) {
@@ -52154,7 +53102,7 @@ function SetupWizard({ status: status3, onComplete }) {
           foundIssues.push({ id: "text-model", title: "\u6587\u5B57\u6A21\u578B\u4E0D\u53EF\u7528", detail: textPick.error });
         }
       } else {
-        foundIssues.push({ id: "asr-key", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E", detail: "\u8FDB\u5165\u4E3B\u754C\u9762\u540E\u53EF\u5728 \u8BBE\u7F6E \u2192 \u6A21\u578B \u586B\u5199 API Key\u3002" });
+        foundIssues.push({ id: "asr-key", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u914D\u7F6E", detail: "\u5B8C\u6210\u5F15\u5BFC\u540E\u53EF\u5728\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u586B\u5199 API Key\u3002" });
       }
       setDetail("\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6");
       try {
@@ -52178,7 +53126,7 @@ function SetupWizard({ status: status3, onComplete }) {
       const [feed, options] = await Promise.all([homeFeed({ limit: 1 }), meetingOptions()]);
       if (!feed) foundIssues.push({ id: "home", title: "\u9996\u9875\u6570\u636E\u672A\u5C31\u7EEA", detail: "\u7A0D\u540E\u5237\u65B0\u5373\u53EF\u3002" });
       if (options?.asr_ready === false && !skippedKey) {
-        foundIssues.push({ id: "asr-ready", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u5C31\u7EEA", detail: "\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u6A21\u578B \u68C0\u67E5 API Key \u4E0E\u6A21\u578B\u3002" });
+        foundIssues.push({ id: "asr-ready", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u5C31\u7EEA", detail: "\u8BF7\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u68C0\u67E5 API Key \u4E0E\u6A21\u578B\u3002" });
       }
       setIssues(foundIssues);
       setDetail("\u6DFB\u52A0 DSH \u5DE5\u4F5C\u533A");
@@ -52212,7 +53160,7 @@ function SetupWizard({ status: status3, onComplete }) {
       setPickingDir(false);
     }
   }
-  async function finish() {
+  async function finish(start = "") {
     if (!workspaceInfo) {
       try {
         const created = await ensureWorkspace({});
@@ -52222,12 +53170,42 @@ function SetupWizard({ status: status3, onComplete }) {
         setWorkspaceError(failure?.message || String(failure));
       }
     }
-    onComplete();
+    onComplete(start ? { start } : void 0);
+  }
+  async function loadIssues() {
+    const found = [];
+    try {
+      const capture = await deps();
+      if (!capture?.yt_dlp || !capture?.ffmpeg) {
+        found.push({ id: "capture-deps", title: "\u91C7\u96C6\u7EC4\u4EF6\u672A\u5B89\u88C5\u5B8C\u6210", detail: "\u91CD\u65B0\u5B89\u88C5 yt-dlp \u4E0E ffmpeg \u540E\u53EF\u91C7\u96C6\u76F4\u64AD\u548C\u94FE\u63A5\u89C6\u9891\u3002" });
+      }
+    } catch (failure) {
+      found.push({ id: "capture-deps", title: "\u91C7\u96C6\u7EC4\u4EF6\u672A\u5C31\u7EEA", detail: failure?.message || String(failure) });
+    }
+    try {
+      const options = await meetingOptions();
+      if (options?.asr_ready === false) {
+        found.push({ id: "asr-ready", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u5C31\u7EEA", detail: "\u8BF7\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u6A21\u578B\u300D\u68C0\u67E5 API Key \u4E0E\u6A21\u578B\u3002" });
+      }
+    } catch (failure) {
+      found.push({ id: "asr-ready", title: "\u4E91\u7AEF\u8BED\u97F3\u672A\u5C31\u7EEA", detail: failure?.message || String(failure) });
+    }
+    setIssues(found);
+    return found;
+  }
+  async function retryWorkspace() {
+    setWorkspaceError("");
+    try {
+      const created = await ensureWorkspace({});
+      setWorkspaceInfo(created?.workspace || null);
+    } catch (failure) {
+      setWorkspaceError(failure?.message || String(failure));
+    }
   }
   const visibleText = showHidden ? catalog?.text || [] : withoutHidden(catalog?.text || [], hidden);
   const asrOptions = modelOptions(catalog?.asr || [], asrModel);
   const textOptions = modelOptions(visibleText, textModel);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF0C\u53EF\u9009\u63A5\u5165\u98DE\u4E66 MCP\u3002" : "\u672A\u5B8C\u6210\u9879\u4F1A\u5728\u9996\u9875\u63D0\u793A\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF1B\u8D26\u53F7\u53EF\u4EE5\u5728\u4E0B\u4E00\u6B65\u518D\u8FDE\u3002" : "\u68C0\u67E5\u5C31\u7EEA\u9879\uFF0C\u6309\u9700\u767B\u5F55\u8D26\u53F7\uFF0C\u7136\u540E\u76F4\u63A5\u8BD5\u4E00\u6761\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -52256,10 +53234,10 @@ function SetupWizard({ status: status3, onComplete }) {
       },
       placeholder: "\u7C98\u8D34 API Key"
     }
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine", "data-tone": hidden.length ? "warn" : void 0 }, probingUsable ? "\u6B63\u5728\u9010\u4E2A\u9A8C\u8BC1\u53EF\u7528\u6A21\u578B\u2026\uFF08\u53EF\u4EE5\u5148\u7528\u4E0B\u9762\u5DF2\u7ECF\u80FD\u7528\u7684\uFF09" : hidden.length ? `\u5DF2\u9690\u85CF ${hidden.length} \u4E2A\u8FD9\u4E2A Key \u8C03\u4E0D\u901A\u7684\u6A21\u578B${showHidden ? "" : "\uFF0C\u70B9\u300C\u663E\u793A\u5168\u90E8\u300D\u53EF\u6062\u590D"}` : "\u5DF2\u786E\u8BA4\u53EF\u9009\u6A21\u578B\u90FD\u80FD\u7528", hidden.length ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => setShowHidden((value) => !value) }, showHidden ? "\u53EA\u770B\u53EF\u7528" : "\u663E\u793A\u5168\u90E8") : null) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim() || !baseUrl.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setShowKey((v) => !v) }, showKey ? "\u9690\u85CF" : "\u663E\u793A"))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "Key \u53EA\u4FDD\u5B58\u5728\u672C\u673A\u94A5\u5319\u4E32\u3002"), probing ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, catalog ? "\u6B63\u5728\u66F4\u65B0\u6A21\u578B\u6E05\u5355\u2026" : "\u6B63\u5728\u83B7\u53D6\u6A21\u578B\u2026") : null, catalogError ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error" }, /* @__PURE__ */ React.createElement("strong", null, "\u6CA1\u6709\u8FDE\u4E0A"), /* @__PURE__ */ React.createElement("p", null, catalogError)) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, `\u5DF2\u83B7\u53D6 ${catalog.count || 0} \u4E2A\u6A21\u578B`) : null, catalog ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: asrModel, onChange: (event) => setAsrModel(event.target.value) }, asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: textModel, onChange: (event) => setTextModel(event.target.value) }, textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))))) : null, catalog ? /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine", "data-tone": hidden.length ? "warn" : void 0 }, probingUsable ? "\u6B63\u5728\u9010\u4E2A\u9A8C\u8BC1\u53EF\u7528\u6A21\u578B\u2026\uFF08\u53EF\u4EE5\u5148\u7528\u4E0B\u9762\u5DF2\u7ECF\u80FD\u7528\u7684\uFF09" : hidden.length ? `\u5DF2\u9690\u85CF ${hidden.length} \u4E2A\u8FD9\u4E2A Key \u8C03\u4E0D\u901A\u7684\u6A21\u578B${showHidden ? "" : "\uFF0C\u70B9\u300C\u663E\u793A\u5168\u90E8\u300D\u53EF\u6062\u590D"}` : "\u5DF2\u786E\u8BA4\u53EF\u9009\u6A21\u578B\u90FD\u80FD\u7528", hidden.length ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-link-button", onClick: () => setShowHidden((value) => !value) }, showHidden ? "\u53EA\u770B\u53EF\u7528" : "\u663E\u793A\u5168\u90E8") : null) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: probing || !apiKey.trim() || !baseUrl.trim(), onClick: () => discover({ force: true }) }, probing ? "\u83B7\u53D6\u4E2D\u2026" : catalog ? "\u91CD\u65B0\u83B7\u53D6" : "\u83B7\u53D6\u6A21\u578B"), catalog ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", onClick: () => setStep(2) }, "\u4E0B\u4E00\u6B65") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setSkippedKey(true);
     setStep(2);
-  } }, "\u8DF3\u8FC7"))) : null, step === 2 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
+  } }, catalog ? "\u8DF3\u8FC7\uFF0C\u7A0D\u540E\u518D\u914D" : "\u8DF3\u8FC7"))) : null, step === 2 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-key" }, /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -52277,13 +53255,32 @@ function SetupWizard({ status: status3, onComplete }) {
       onClick: chooseDir
     },
     pickingDir ? "\u9009\u62E9\u4E2D\u2026" : "\u9009\u62E9\u2026"
-  ))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u628A\u540C\u4E00\u76EE\u5F55\u6DFB\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A\uFF0C \u5728\u90A3\u4E2A\u5DE5\u4F5C\u533A\u65B0\u5EFA\u4F1A\u8BDD\uFF0C\u8F93\u5165 @ \u5C31\u80FD\u9009\u4F1A\u6458\u5361\u7247\uFF0C\u628A\u8BB0\u5F55\u5185\u5BB9\u5E26\u8FDB\u5BF9\u8BDD\uFF1B\u53EF\u4EE5\u8FDE\u7EED @ \u591A\u6761\u3002"), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5982\u679C\u7CFB\u7EDF\u63D0\u793A\u5B58\u50A8\u4F4D\u7F6E\u4E0D\u53EF\u5199\uFF1A\u5728 \u7CFB\u7EDF\u8BBE\u7F6E \u2192 \u9690\u79C1\u4E0E\u5B89\u5168\u6027 \u2192 \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650 \u52FE\u9009 DeepSeek Harness \u540E\uFF0C\u9700\u8981\u5B8C\u5168\u9000\u51FA\uFF08\u2318Q\uFF09\u518D\u6253\u5F00\uFF1B\u4E5F\u53EF\u4EE5\u70B9\u300C\u9009\u62E9\u2026\u300D\u6362\u5230\u300C\u6587\u7A3F\u300D\u4EE5\u5916\u7684\u76EE\u5F55\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: running ? "mc-setup-spinner" : "" }), /* @__PURE__ */ React.createElement("strong", null, detail || (running ? "\u51C6\u5907\u5B89\u88C5" : "\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u5F00\u59CB"))), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error", role: "alert" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: running, onClick: runInstall }, running ? "\u6B63\u5728\u914D\u7F6E\u2026" : "\u4E00\u952E\u5B89\u88C5\u5E76\u914D\u7F6E"), running ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  ))), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002\u5B8C\u6210\u540E\u4F1A\u81EA\u52A8\u628A\u540C\u4E00\u76EE\u5F55\u6DFB\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A\uFF0C \u5728\u90A3\u4E2A\u5DE5\u4F5C\u533A\u65B0\u5EFA\u4F1A\u8BDD\uFF0C\u8F93\u5165 @ \u5C31\u80FD\u9009\u4F1A\u6458\u5361\u7247\uFF0C\u628A\u8BB0\u5F55\u5185\u5BB9\u5E26\u8FDB\u5BF9\u8BDD\uFF1B\u53EF\u4EE5\u8FDE\u7EED @ \u591A\u6761\u3002"), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5982\u679C\u7CFB\u7EDF\u63D0\u793A\u5B58\u50A8\u4F4D\u7F6E\u4E0D\u53EF\u5199\uFF1A\u5728 \u7CFB\u7EDF\u8BBE\u7F6E \u2192 \u9690\u79C1\u4E0E\u5B89\u5168\u6027 \u2192 \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650 \u52FE\u9009 DeepSeek Harness \u540E\uFF0C\u9700\u8981\u5B8C\u5168\u9000\u51FA\uFF08\u2318Q\uFF09\u518D\u6253\u5F00\uFF1B\u4E5F\u53EF\u4EE5\u70B9\u300C\u9009\u62E9\u2026\u300D\u6362\u5230\u300C\u6587\u7A3F\u300D\u4EE5\u5916\u7684\u76EE\u5F55\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      onClick: () => openFullDiskAccess().catch(() => {
+      })
+    },
+    "\u6253\u5F00\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u8BBE\u7F6E"
+  )), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5B89\u88C5\u53EA\u505A\u4E00\u6B21\uFF0C\u901A\u5E38 3\u201310 \u5206\u949F\uFF1A\u521B\u5EFA\u72EC\u7ACB Python \u73AF\u5883 \u2192 \u542F\u52A8\u672C\u5730\u5F15\u64CE \u2192 \u5B89\u88C5 yt-dlp \u4E0E ffmpeg\u3002 \u53EF\u4EE5\u70B9\u300C\u540E\u53F0\u5B8C\u6210\u300D\u5148\u53BB\u4E3B\u754C\u9762\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: running ? "mc-setup-spinner" : "" }), /* @__PURE__ */ React.createElement("strong", null, detail || (running ? "\u51C6\u5907\u5B89\u88C5" : "\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u5F00\u59CB"))), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error", role: "alert" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: running, onClick: () => setStep(1) }, "\u4E0A\u4E00\u6B65"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: running, onClick: runInstall }, running ? "\u6B63\u5728\u914D\u7F6E\u2026" : "\u4E00\u952E\u5B89\u88C5\u5E76\u914D\u7F6E"), running ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setBackground(true);
     setStep(3);
-  } }, "\u540E\u53F0\u5B8C\u6210") : null, error ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: running, onClick: runInstall }, "\u91CD\u65B0\u5C1D\u8BD5") : null), /* @__PURE__ */ React.createElement(FeishuSetupSection, { feishu })) : null, step === 3 ? running && background ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon mc-setup-done-pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" })), /* @__PURE__ */ React.createElement("h3", null, "\u6B63\u5728\u540E\u53F0\u914D\u7F6E"), /* @__PURE__ */ React.createElement("p", null, "\u5B89\u88C5\u4F1A\u7EE7\u7EED\uFF1B\u5B8C\u6210\u540E\u8FDB\u5165\u4E3B\u754C\u9762\u5373\u53EF\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }), /* @__PURE__ */ React.createElement("strong", null, detail || "\u6B63\u5728\u914D\u7F6E\u2026")), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", disabled: !envReady, onClick: finish }, "\u8FDB\u5165\u4E3B\u754C\u9762"), !envReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u8FD0\u884C\u73AF\u5883\u5B8C\u6210\u540E\u5373\u53EF\u8FDB\u5165\u3002") : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError })) : error && background ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon mc-setup-done-error" }, "!"), /* @__PURE__ */ React.createElement("h3", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  } }, "\u540E\u53F0\u5B8C\u6210"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: async () => {
+    try {
+      await startSetup("cancel");
+    } catch {
+    }
+    setRunning(false);
+    setDetail("\u5DF2\u53D6\u6D88\u5B89\u88C5");
+  } }, "\u53D6\u6D88\u5B89\u88C5")) : null, error ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: running, onClick: runInstall }, "\u91CD\u65B0\u5C1D\u8BD5") : null)) : null, step === 3 ? running && background ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon mc-setup-done-pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" })), /* @__PURE__ */ React.createElement("h3", null, "\u6B63\u5728\u540E\u53F0\u914D\u7F6E"), /* @__PURE__ */ React.createElement("p", null, "\u5B89\u88C5\u4F1A\u7EE7\u7EED\uFF1B\u5B8C\u6210\u540E\u8FDB\u5165\u4E3B\u754C\u9762\u5373\u53EF\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }), /* @__PURE__ */ React.createElement("strong", null, detail || "\u6B63\u5728\u914D\u7F6E\u2026")), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", disabled: !envReady, onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762"), !envReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u8FD0\u884C\u73AF\u5883\u5B8C\u6210\u540E\u5373\u53EF\u8FDB\u5165\u3002") : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError })) : error && background ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon mc-setup-done-error" }, "!"), /* @__PURE__ */ React.createElement("h3", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setBackground(false);
     setStep(2);
-  } }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: finish }, "\u8FDB\u5165\u4E3B\u754C\u9762")), /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError })) : /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon" }, "\u2713"), /* @__PURE__ */ React.createElement("h3", null, issues.length ? "\u5DF2\u53EF\u8FDB\u5165\u4F1A\u6458" : "\u73AF\u5883\u5DF2\u5C31\u7EEA"), /* @__PURE__ */ React.createElement("p", null, issues.length ? "\u672A\u5B8C\u6210\u9879\u4F1A\u5728\u9996\u9875\u63D0\u793A\u3002" : "\u53EF\u4EE5\u5F00\u59CB\u91C7\u96C6\u4E86\u3002"), issues.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-issues" }, issues.map((issue) => /* @__PURE__ */ React.createElement("div", { key: issue.id }, /* @__PURE__ */ React.createElement("strong", null, issue.title), /* @__PURE__ */ React.createElement("span", null, issue.detail)))) : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError }), /* @__PURE__ */ React.createElement(FeishuSetupSection, { feishu }), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: finish }, "\u8FDB\u5165\u4E3B\u754C\u9762")) : null));
+  } }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762")), /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError })) : /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon" }, "\u2713"), /* @__PURE__ */ React.createElement("h3", null, issues.length ? "\u5DF2\u53EF\u8FDB\u5165\u4F1A\u6458" : "\u73AF\u5883\u5DF2\u5C31\u7EEA"), /* @__PURE__ */ React.createElement("p", null, issues.length ? "\u4E0B\u9762\u6807\u51FA\u7684\u9879\u53EF\u4EE5\u73B0\u5728\u8865\uFF0C\u4E5F\u53EF\u4EE5\u8FDB\u5165\u540E\u518D\u8865\u3002" : "\u53EF\u4EE5\u5F00\u59CB\u91C7\u96C6\u4E86\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-checklist" }, /* @__PURE__ */ React.createElement("div", { "data-ok": envReady ? "true" : "false" }, /* @__PURE__ */ React.createElement("strong", null, "\u8FD0\u884C\u73AF\u5883"), /* @__PURE__ */ React.createElement("span", null, envReady ? "\u5DF2\u5C31\u7EEA" : "\u672A\u5C31\u7EEA")), /* @__PURE__ */ React.createElement("div", { "data-ok": issues.some((row) => row.id === "capture-deps") ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u91C7\u96C6\u7EC4\u4EF6"), /* @__PURE__ */ React.createElement("span", null, issues.some((row) => row.id === "capture-deps") ? "\u9700\u8981\u5B89\u88C5" : "\u5DF2\u5B89\u88C5")), /* @__PURE__ */ React.createElement("div", { "data-ok": issues.some((row) => row.id.includes("asr") || row.id.includes("model")) ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u4E91\u7AEF\u8F6C\u5199"), /* @__PURE__ */ React.createElement("span", null, issues.some((row) => row.id.includes("asr") || row.id.includes("model")) ? "\u9700\u8981\u914D\u7F6E" : "\u5DF2\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { "data-ok": status3?.locations?.dataDirWritable === false ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("span", null, status3?.locations?.dataDirWritable === false ? "\u4E0D\u53EF\u5199" : "\u53EF\u5199"))), issues.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-issues" }, issues.map((issue) => /* @__PURE__ */ React.createElement("div", { key: issue.id }, /* @__PURE__ */ React.createElement("strong", null, issue.title), /* @__PURE__ */ React.createElement("span", null, issue.detail), issue.id === "capture-deps" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => {
+    setBackground(true);
+    runInstall();
+  } }, "\u91CD\u65B0\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6") : null, issue.id !== "capture-deps" && issue.id !== "home" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setStep(1) }, "\u8FD4\u56DE\u7B2C 1 \u6B65\u4FEE\u6539") : null))) : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError }), workspaceError ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: retryWorkspace }, "\u91CD\u8BD5\u6DFB\u52A0\u5DE5\u4F5C\u533A")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start" }, /* @__PURE__ */ React.createElement("strong", null, "\u73B0\u5728\u8BD5\u4E00\u6B21"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start-grid" }, [["launch", "\u53D1\u5E03\u4F1A\u76F4\u64AD"], ["video", "\u89C6\u9891\u94FE\u63A5"], ["meeting", "\u4F1A\u8BAE\u5F55\u97F3"], ["doc", "\u98DE\u4E66\u6587\u6863"]].map(([kind, label]) => /* @__PURE__ */ React.createElement("button", { key: kind, type: "button", onClick: () => finish(kind) }, /* @__PURE__ */ React.createElement("strong", null, label), /* @__PURE__ */ React.createElement("span", null, "\u8FDB\u5165\u540E\u76F4\u63A5\u6253\u5F00"))))), /* @__PURE__ */ React.createElement("details", { className: "mc-setup-accounts", open: false }, /* @__PURE__ */ React.createElement("summary", null, "\u8FDE\u63A5\u8D26\u53F7\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "B\u7AD9\u767B\u5F55\u540E\u53EF\u5F55\u539F\u753B/\u4F1A\u5458\u89C6\u9891\uFF1B\u6296\u97F3\u591A\u6570\u89C6\u9891\u9700\u8981\u767B\u5F55\uFF1B\u98DE\u4E66\u7528\u4E8E\u6587\u6863\u5361\u7247\u4E0E Agent \u8BFB\u5199\u3002"), /* @__PURE__ */ React.createElement(BilibiliLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(DouyinLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(FeishuSetupSection, { feishu })), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setStep(2) }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762"))) : null));
 }
 function storagePermissionMessage(target, info) {
   const state2 = info && info.exists === true && info.isDirectory === false ? "\u8FD9\u4E2A\u8DEF\u5F84\u4E0D\u662F\u6587\u4EF6\u5939" : "\u8FD9\u4E2A\u4F4D\u7F6E\u5F53\u524D\u4E0D\u53EF\u5199";
@@ -52296,358 +53293,18 @@ function FeishuSetupSection({ feishu }) {
   const loggedIn = Boolean(status3?.auth?.loggedIn);
   const busy = Boolean(feishu.busy) || running;
   const canInstall = Boolean(status3) && Boolean(status3.runtime?.npxOk) && !status3.dsh?.conflict && Boolean(status3.package?.configured);
-  const stateText = !status3 ? "\u8BFB\u53D6\u4E2D\u2026" : installed ? loggedIn ? "\u5DF2\u914D\u7F6E\u5E76\u767B\u5F55" : "\u5DF2\u914D\u7F6E\uFF0C\u672A\u767B\u5F55" : "\u672A\u914D\u7F6E";
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66 MCP\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("span", { "data-tone": installed && loggedIn ? "ok" : void 0 }, stateText)), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u8BA9 Agent \u76F4\u63A5\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF0C\u5DE5\u5177\u540D\u4EE5", /* @__PURE__ */ React.createElement("code", { className: "mc-mono" }, "mcp__feishu__"), " \u5F00\u5934\uFF1B\u4E0D\u88C5\u4E5F\u4E0D\u5F71\u54CD\u91C7\u96C6\u3001\u8F6C\u5199\u4E0E\u7EAA\u8981\u3002"), /* @__PURE__ */ React.createElement(FeishuStatusRows, { status: status3, compact: true }), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy || !canInstall, onClick: feishu.actions.install }, running && status3?.job?.action === "install" ? "\u6B63\u5728\u5B89\u88C5\u2026" : "\u5B89\u88C5\u98DE\u4E66 MCP") : null, installed && !loggedIn ? /* @__PURE__ */ React.createElement(FeishuLoginActions, { status: status3, actions: feishu.actions, busy: feishu.busy, running }) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.probe }, running && status3?.job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5") : null, installed && loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), feishu.error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, feishu.error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: status3?.job, actions: feishu.actions }));
+  const summary = feishuSummary(status3);
+  const stateText = !status3 ? "\u8BFB\u53D6\u4E2D\u2026" : `${summary.text}${installed ? "" : " \xB7 \u672A\u914D\u7F6E"}`;
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66 MCP\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("span", { "data-tone": installed && loggedIn ? "ok" : void 0 }, stateText)), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u8BA9 Agent \u76F4\u63A5\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF0C\u5DE5\u5177\u540D\u4EE5", /* @__PURE__ */ React.createElement("code", { className: "mc-mono" }, "mcp__feishu__"), " \u5F00\u5934\uFF1B\u4E0D\u88C5\u4E5F\u4E0D\u5F71\u54CD\u91C7\u96C6\u3001\u8F6C\u5199\u4E0E\u7EAA\u8981\u3002"), /* @__PURE__ */ React.createElement(FeishuStatusRows, { status: status3, compact: true }), installed && loggedIn ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => feishu.actions.login("auto") }) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy || !canInstall, onClick: feishu.actions.install }, running && status3?.job?.action === "install" ? "\u6B63\u5728\u5B89\u88C5\u2026" : "\u5B89\u88C5\u98DE\u4E66 MCP") : null, installed && !loggedIn ? /* @__PURE__ */ React.createElement(FeishuLoginActions, { status: status3, actions: feishu.actions, busy: feishu.busy, running }) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.probe }, running && status3?.job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5") : null, installed && loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), feishu.error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, feishu.error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: status3?.job, actions: feishu.actions }));
 }
 function WorkspaceNote({ info, error }) {
   if (info) return /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5DF2\u6DFB\u52A0 DSH \u5DE5\u4F5C\u533A\uFF1A", info.title, "\uFF1B\u5728\u90A3\u4E2A\u5DE5\u4F5C\u533A\u8F93\u5165 @ \u53EF\u9009\u4F1A\u6458\u5361\u7247");
-  if (error) return /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5DE5\u4F5C\u533A\u672A\u6DFB\u52A0\uFF1A", error, "\uFF08\u7A0D\u540E\u53EF\u5728 \u8BBE\u7F6E \u2192 \u91C7\u96C6 \u91CC\u91CD\u8BD5\uFF09");
+  if (error) return /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5DE5\u4F5C\u533A\u672A\u6DFB\u52A0\uFF1A", error, "\uFF08\u7A0D\u540E\u53EF\u5728\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6\u300D\u91CC\u91CD\u8BD5\uFF09");
   return null;
 }
 
-// client-src/components/Panel.jsx
-function Panel({ t }) {
-  const [data, setData] = React.useState(null);
-  const [error, setError] = React.useState("");
-  const [loading, setLoading] = React.useState(true);
-  const [revision, setRevision] = React.useState(0);
-  const [view2, setView] = React.useState("home");
-  const [newOpen, setNewOpen] = React.useState(false);
-  const [newInitialUrl, setNewInitialUrl] = React.useState("");
-  const [newInitialKind, setNewInitialKind] = React.useState("");
-  const [batchFocus, setBatchFocus] = React.useState(null);
-  const [packFocus, setPackFocus] = React.useState(null);
-  const [homeRevision, setHomeRevision] = React.useState(0);
-  const [searchOpen, setSearchOpen] = React.useState(false);
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [focus, setFocus] = React.useState(null);
-  const [notice, setNotice] = React.useState("");
-  const [setupMode, setSetupMode] = React.useState(false);
-  const [signal, setSignal] = React.useState(getStatusSignal);
-  const [libraryBusy, setLibraryBusy] = React.useState(false);
-  const [libraryTarget, setLibraryTarget] = React.useState(null);
-  const [libraryWork, setLibraryWork] = React.useState([]);
-  const [libraryManage, setLibraryManage] = React.useState(false);
-  const [libraryHint2, setLibraryHint] = React.useState(getLibraryHint);
-  React.useEffect(() => subscribeStatusSignal(setSignal), []);
-  React.useEffect(() => subscribeLibraryHint(setLibraryHint), []);
-  React.useEffect(() => {
-    if (!signal.revision) return;
-    setRevision((value) => value + 1);
-    setHomeRevision((value) => value + 1);
-  }, [signal.revision]);
-  const loadedRevision = React.useRef(0);
-  const load = React.useCallback(async (quiet = true) => {
-    if (!quiet) setLoading(true);
-    try {
-      const next = await status2();
-      loadedRevision.current = getStatusSignal().revision;
-      setData(next);
-      setError("");
-    } catch (failure) {
-      setError(failure?.message || String(failure));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-  React.useEffect(() => {
-    load(false);
-    const timer = setInterval(() => {
-      if (document.visibilityState === "visible") load(true);
-    }, 8e3);
-    return () => clearInterval(timer);
-  }, [load, revision]);
-  React.useEffect(() => {
-    if (!data) return;
-    if (signal.restarting) return;
-    if (loadedRevision.current < signal.revision) return;
-    const backendState = data.backend?.state;
-    if (data.env?.ready === false || backendState === "stopped" || backendState === "error") setSetupMode(true);
-  }, [data, signal.restarting, signal.revision]);
-  const libraries = data?.libraries || [];
-  const activeLibrary = data?.library || null;
-  const reloadLibraries = React.useCallback(async () => {
-    await load(true);
-  }, [load]);
-  const switchLibrary = React.useCallback(async (entry, interrupt = false) => {
-    if (!entry?.id || libraryBusy) return;
-    setLibraryBusy(true);
-    beginEngineRestart();
-    try {
-      const result = await activateLibrary({ id: entry.id, interrupt });
-      setLibraryTarget(null);
-      setLibraryWork([]);
-      setFocus(null);
-      setBatchFocus(null);
-      setRevision((value) => value + 1);
-      setHomeRevision((value) => value + 1);
-      if (result?.switched === false) setNotice(`\u5F53\u524D\u5DF2\u7ECF\u5728\u300C${entry.name}\u300D`);
-      else setNotice(`\u5DF2\u5207\u6362\u5230\u300C${entry.name}\u300D`);
-    } catch (failure) {
-      if (failure?.data?.code === "library_busy") {
-        setLibraryTarget(entry);
-        setLibraryWork(failure.data?.detail?.work || []);
-      } else {
-        setNotice(failure?.message || String(failure));
-      }
-    } finally {
-      endEngineRestart();
-      setLibraryBusy(false);
-    }
-  }, [libraryBusy]);
-  React.useEffect(() => {
-    if (!notice) return void 0;
-    const timer = setTimeout(() => setNotice(""), 4e3);
-    return () => clearTimeout(timer);
-  }, [notice]);
-  React.useEffect(() => {
-    function onKey(event) {
-      const modifier = event.metaKey || event.ctrlKey;
-      if (modifier && (event.key.toLowerCase() === "k" || event.shiftKey && event.key.toLowerCase() === "f")) {
-        const root = document.querySelector(".mc-root");
-        const active2 = document.activeElement;
-        if (root && active2 && root.contains(active2)) {
-          event.preventDefault();
-          setSearchQuery("");
-          setSearchOpen(true);
-        }
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-  const setupBlocked = Boolean(data) && !signal.restarting && (setupMode || data.env?.ready === false || ["stopped", "error"].includes(data.backend?.state));
-  const focusSeq = React.useRef(0);
-  const consumeFocus = React.useCallback(() => setFocus(null), []);
-  const openRecord = React.useCallback((record, time) => {
-    const id = record && typeof record === "object" ? record.id : record;
-    if (!id) return;
-    focusSeq.current += 1;
-    setView("library");
-    setFocus({
-      id,
-      title: record && typeof record === "object" && record.title || "",
-      kind: record && typeof record === "object" && record.kind || "",
-      time: typeof time === "number" ? time : null,
-      nonce: focusSeq.current
-    });
-  }, []);
-  function openSearchResult(result) {
-    const target = result?.target || {};
-    if (!target.session_id) {
-      setNotice("\u65E0\u6CD5\u5B9A\u4F4D\u8BE5\u7ED3\u679C\u3002");
-      return;
-    }
-    setSearchOpen(false);
-    setSearchQuery("");
-    openRecord({
-      id: target.session_id,
-      title: result.title || result.name || "\u8BB0\u5F55",
-      kind: result.kind || ""
-    }, typeof target.time === "number" ? target.time : null);
-  }
-  const handleCaptureCreated = React.useCallback((payload) => {
-    setHomeRevision((value) => value + 1);
-    setRevision((value) => value + 1);
-    if (payload && typeof payload === "object" && payload.kind === "doc") {
-      const card = payload.card || {};
-      const name = card.title || "\u98DE\u4E66\u6587\u6863";
-      if (payload.warning) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF1A${payload.warning}`);
-      else if (payload.link_only) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);
-      else setNotice(`\u5DF2\u751F\u6210\u4F1A\u6458\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);
-      return;
-    }
-    if (payload && typeof payload === "object" && payload.batch) {
-      setView("home");
-      setBatchFocus({ id: payload.batch.id, nonce: Date.now() });
-      const summary2 = payload.summary || {};
-      if (summary2.added || summary2.duplicates || summary2.failed) {
-        const parts = [`\u5DF2\u52A0\u5165 ${summary2.added || 0} \u6761`];
-        if (summary2.duplicates) parts.push(`${summary2.duplicates} \u6761\u91CD\u590D`);
-        if (summary2.failed) parts.push(`${summary2.failed} \u6761\u5931\u8D25`);
-        setNotice(parts.join("\uFF0C"));
-      }
-      return;
-    }
-    if (payload && typeof payload === "object" && Array.isArray(payload.ids)) {
-      setView("home");
-      const summary2 = payload.summary || {};
-      const parts = [`\u5DF2\u5BFC\u5165 ${payload.ids.length} \u4E2A\u6587\u4EF6`];
-      if (payload.pack?.title) parts.push(`\u5DF2\u6536\u8FDB\u300C${payload.pack.title}\u300D`);
-      if (payload.pack_error) parts.push(`\u5361\u5305\u521B\u5EFA\u5931\u8D25\uFF1A${payload.pack_error}`);
-      const failedNames = (Array.isArray(payload.results) ? payload.results : []).filter((row) => !row.ok).map((row) => row.name || row.title).filter(Boolean);
-      if (summary2.failed) {
-        const shown = failedNames.slice(0, 2).join("\u3001");
-        parts.push(`${summary2.failed} \u4E2A\u5931\u8D25${shown ? `\uFF1A${shown}${failedNames.length > 2 ? " \u7B49" : ""}` : ""}`);
-      }
-      setNotice(parts.join("\uFF0C"));
-      if (payload.pack?.id) setPackFocus({ id: payload.pack.id, nonce: Date.now() });
-      return;
-    }
-    const id = payload && typeof payload === "object" ? payload.id : payload;
-    if (!id) return;
-    const summary = payload && typeof payload === "object" ? payload.summary : null;
-    if (summary?.duplicates || summary?.failed) {
-      setNotice([
-        summary.duplicates ? `${summary.duplicates} \u6761\u91CD\u590D` : "",
-        summary.failed ? `${summary.failed} \u6761\u5931\u8D25` : ""
-      ].filter(Boolean).join("\uFF0C"));
-    }
-    openRecord({ id, title: "\u6B63\u5728\u5904\u7406\u2026" });
-  }, [openRecord]);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-root" }, /* @__PURE__ */ React.createElement("div", { className: "mc-ambient", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null)), /* @__PURE__ */ React.createElement(
-    TopBar,
-    {
-      t,
-      view: view2,
-      onView: (next) => {
-        setView(next);
-        setFocus(null);
-        setBatchFocus(null);
-      },
-      libraries,
-      activeLibrary,
-      libraryBusy,
-      onLibrarySelect: (entry) => switchLibrary(entry),
-      onLibraryCreate: () => setLibraryManage(true),
-      onLibraryManage: () => setLibraryManage(true),
-      onSearch: () => {
-        setSearchQuery("");
-        setSearchOpen(true);
-      }
-    }
-  ), libraryHint2 && !setupBlocked ? /* @__PURE__ */ React.createElement("div", { className: "mc-lib-hint", role: "status" }, /* @__PURE__ */ React.createElement("span", null, "\u5F53\u524D\u5DE5\u4F5C\u533A\u5C5E\u4E8E\u300C", libraryHint2.name, "\u300D\u8D44\u6599\u7A7A\u95F4\uFF0C\u6B63\u5728\u663E\u793A\u300C", activeLibrary?.name || "\u5F53\u524D\u7A7A\u95F4", "\u300D\u7684\u6570\u636E\u3002"), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      disabled: libraryBusy,
-      onClick: () => switchLibrary({ id: libraryHint2.id, name: libraryHint2.name })
-    },
-    "\u5207\u6362\u5230\u300C",
-    libraryHint2.name,
-    "\u300D"
-  )) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mc-error-title" }, t("status.hostError")), /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, error), /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, t("status.errorHint")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setRevision((value) => value + 1) }, t("common.retry"))) : null, !error && data && !setupBlocked && data.locations?.dataDirWritable === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-banner mc-banner-warn" }, /* @__PURE__ */ React.createElement("span", null, "\u6570\u636E\u76EE\u5F55\u4E0D\u53EF\u5199"), /* @__PURE__ */ React.createElement("span", { className: "mc-banner-hint" }, "\u8BF7\u7ED9 DeepSeek Harness \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\u540E\u5B8C\u5168\u9000\u51FA\uFF08\u2318Q\uFF09\u518D\u6253\u5F00\uFF1B \u6216\u5728\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6 \u2192 \u5B58\u50A8\u4F4D\u7F6E\u300D\u6362\u4E00\u4E2A\u53EF\u5199\u76EE\u5F55\u3002")) : null, !error && !data ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-loading" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }), /* @__PURE__ */ React.createElement("span", null, "\u6B63\u5728\u68C0\u67E5\u672C\u5730\u73AF\u5883\u2026")) : null, !error && setupBlocked ? /* @__PURE__ */ React.createElement(
-    SetupWizard,
-    {
-      t,
-      status: data,
-      onComplete: () => {
-        setSetupMode(false);
-        setRevision((value) => value + 1);
-        setView("home");
-        load(false);
-      }
-    }
-  ) : null, !error && data && !setupBlocked && view2 === "home" ? /* @__PURE__ */ React.createElement(
-    HomePage,
-    {
-      t,
-      revision: homeRevision,
-      onOpenRecord: openRecord,
-      onNewCapture: ({ url = "", kind = "" } = {}) => {
-        setNewInitialUrl(url);
-        setNewInitialKind(kind);
-        setNewOpen(true);
-      },
-      onToast: setNotice,
-      onCaptureCreated: handleCaptureCreated,
-      batchFocus,
-      onBatchFocusHandled: () => setBatchFocus(null),
-      packFocus,
-      onPackFocusHandled: () => setPackFocus(null),
-      library: activeLibrary,
-      dataDir: data?.locations?.dataDirCanonical || data?.locations?.dataDir || data?.library?.dataDir || ""
-    }
-  ) : null, !error && data && !setupBlocked && view2 === "library" ? /* @__PURE__ */ React.createElement(
-    RecordsBrowser,
-    {
-      t,
-      statusData: data,
-      focus,
-      onFocusConsumed: consumeFocus,
-      onStatusRefresh: () => setRevision((value) => value + 1)
-    }
-  ) : null, libraryTarget ? /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": "\u5207\u6362\u8D44\u6599\u7A7A\u95F4" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal", style: { width: "min(460px, 100%)" } }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8FD8\u6709\u4EFB\u52A1\u5728\u8DD1"), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5207\u5230\u300C", libraryTarget.name, "\u300D\u9700\u8981\u5148\u505C\u672C\u5730\u5F15\u64CE\u3002", busyWorkText(libraryWork), "\u4F1A\u53D7\u5F71\u54CD\uFF1B \u6B63\u5728\u91C7\u96C6\u7684\u76F4\u64AD\u4F1A\u5148\u4FDD\u5B58\u5DF2\u7ECF\u5F55\u5230\u7684\u90E8\u5206\uFF0C\u518D\u5982\u5B9E\u7ED3\u675F\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      disabled: libraryBusy,
-      onClick: () => {
-        setLibraryTarget(null);
-        setLibraryWork([]);
-      }
-    },
-    "\u53D6\u6D88"
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      "data-variant": "primary",
-      disabled: libraryBusy,
-      onClick: () => switchLibrary(libraryTarget, true)
-    },
-    libraryBusy ? "\u6B63\u5728\u6536\u5C3E\u5E76\u5207\u6362\u2026" : "\u505C\u6B62\u91C7\u96C6\u5E76\u5207\u6362"
-  )))) : null, libraryManage ? /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": "\u8D44\u6599\u7A7A\u95F4" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-lib-modal" }, /* @__PURE__ */ React.createElement("div", { className: "mc-lib-modal-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-lib-modal-title" }, "\u8D44\u6599\u7A7A\u95F4"), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-icon-button",
-      onClick: () => setLibraryManage(false),
-      "aria-label": "\u5173\u95ED"
-    },
-    "\xD7"
-  )), /* @__PURE__ */ React.createElement(
-    LibraryPanel,
-    {
-      t,
-      rows: libraries,
-      active: activeLibrary,
-      sharedDir: data?.sharedDir || "",
-      dataDir: data?.locations?.dataDir || "",
-      busy: libraryBusy,
-      showSharing: false,
-      variant: "dialog",
-      onSwitch: (entry) => switchLibrary(entry),
-      onChanged: reloadLibraries
-    }
-  ))) : null, notice ? /* @__PURE__ */ React.createElement("div", { className: "mc-banner" }, notice) : null, !setupBlocked && searchOpen ? /* @__PURE__ */ React.createElement(
-    GlobalSearchDialog,
-    {
-      t,
-      initialQuery: searchQuery,
-      onClose: () => {
-        setSearchOpen(false);
-        setSearchQuery("");
-      },
-      onOpenResult: openSearchResult
-    }
-  ) : null, !setupBlocked && newOpen ? /* @__PURE__ */ React.createElement(
-    NewCaptureDialog,
-    {
-      t,
-      statusData: data,
-      initialUrl: newInitialUrl,
-      initialKind: newInitialKind,
-      onClose: () => {
-        setNewOpen(false);
-        setNewInitialUrl("");
-        setNewInitialKind("");
-      },
-      onSubmitted: () => {
-        setHomeRevision((value) => value + 1);
-        setRevision((value) => value + 1);
-      },
-      onCreated: (payload) => {
-        setNewOpen(false);
-        setNewInitialUrl("");
-        setNewInitialKind("");
-        handleCaptureCreated(payload);
-      }
-    }
-  ) : null);
-}
+// client-src/components/SettingsDialog.jsx
+init_react_shim();
 
 // client-src/components/Settings.jsx
 init_react_shim();
@@ -52882,7 +53539,7 @@ function versionText(value) {
 function dotTone(tone) {
   return tone === "ok" ? "ok" : tone === "warn" ? "warn" : tone === "error" ? "error" : "idle";
 }
-function SettingsAbout({ t }) {
+function SettingsAbout({ t, onRestartSetup = null }) {
   const { status: status3, error, busy, notice, actions } = useUpdate();
   const tr = (key, fallback) => {
     const value = typeof t === "function" ? t(key) : "";
@@ -52906,6 +53563,7 @@ function SettingsAbout({ t }) {
   const backups = rollbackCandidates(status3);
   const [rollbackChoice, setRollbackChoice] = React.useState("");
   const [pendingRollback, setPendingRollback] = React.useState("");
+  const [restartSetupPrompt, setRestartSetupPrompt] = React.useState(false);
   const selectedBackup = backups.find((row) => row.version === rollbackChoice) || backups[0] || null;
   const pendingBackup = backups.find((row) => row.version === pendingRollback) || null;
   const rollbackVerb = selectedBackup?.direction === "newer" ? tr("about.rollbackRestoreTo", "\u5207\u6362\u56DE") : tr("about.rollbackTo", "\u56DE\u9000\u5230");
@@ -52980,7 +53638,19 @@ function SettingsAbout({ t }) {
       onClick: () => setPendingRollback("")
     },
     tr("about.cancel", "\u53D6\u6D88")
-  ))) : null, backups.length ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.rollbackHint", "\u56DE\u9000\u53EA\u5728\u672C\u5730\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u7684\u526F\u672C\uFF0C\u4E0D\u8054\u7F51\u3001\u4E0D\u4ECE GitHub \u4E0B\u8F7D\uFF1B\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u90FD\u4E0D\u52A8\u3002")) : null, isSource ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.sourceHint", "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002")) : null, restartRequired ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, status3?.restartDirection === "rollback" ? tr("about.restartAfterRollback", "\u56DE\u9000\u540E\u7684\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002") : tr("about.restart", "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.privacy", "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002"))), showProgress ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-update-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026")), /* @__PURE__ */ React.createElement("span", { className: "mc-update-percent" }, percent === null ? "" : `${percent.toFixed(1)}%`)), /* @__PURE__ */ React.createElement(
+  ))) : null, backups.length ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.rollbackHint", "\u56DE\u9000\u53EA\u5728\u672C\u5730\u628A\u5B89\u88C5\u76EE\u5F55\u6362\u56DE\u5347\u7EA7\u524D\u4FDD\u5B58\u7684\u526F\u672C\uFF0C\u4E0D\u8054\u7F51\u3001\u4E0D\u4ECE GitHub \u4E0B\u8F7D\uFF1B\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u548C\u8F6C\u5199\u90FD\u4E0D\u52A8\u3002")) : null, isSource ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, tr("about.sourceHint", "\u5F53\u524D\u4ECE\u6E90\u7801\u76EE\u5F55\u8FD0\u884C\uFF0C\u81EA\u52A8\u66F4\u65B0\u5DF2\u505C\u7528\uFF1B\u8BF7\u7528 git pull \u66F4\u65B0\u540E\u91CD\u542F\u3002")) : null, restartRequired ? /* @__PURE__ */ React.createElement("p", { className: "mc-about-warning", "data-tone": "warn" }, status3?.restartDirection === "rollback" ? tr("about.restartAfterRollback", "\u56DE\u9000\u540E\u7684\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002") : tr("about.restart", "\u65B0\u7248\u672C\u6587\u4EF6\u5DF2\u5C31\u4F4D\uFF0C\u91CD\u542F DeepSeek Harness \u540E\u751F\u6548\u3002")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, onRestartSetup ? /* @__PURE__ */ React.createElement("div", { className: "mc-about-reset" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, "\u914D\u7F6E\u4E0E\u4FEE\u590D"), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u91CD\u65B0\u6253\u5F00\u9996\u6B21\u914D\u7F6E\u5411\u5BFC\uFF0C\u53EF\u8865\u6A21\u578B\u3001\u8D26\u53F7\u6216\u91CD\u65B0\u5B89\u88C5\u8FD0\u884C\u73AF\u5883\uFF1B\u4E0D\u4F1A\u5220\u9664\u8D44\u6599\u5E93\u3002")), restartSetupPrompt ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setRestartSetupPrompt(false) }, "\u53D6\u6D88"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      "data-variant": "primary",
+      onClick: () => {
+        setRestartSetupPrompt(false);
+        onRestartSetup();
+      }
+    },
+    "\u786E\u8BA4\u91CD\u65B0\u914D\u7F6E"
+  )) : /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setRestartSetupPrompt(true) }, "\u91CD\u65B0\u8FD0\u884C\u914D\u7F6E\u5411\u5BFC")) : null, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, tr("about.privacy", "\u68C0\u67E5\u66F4\u65B0\u53EA\u8BBF\u95EE GitHub\uFF0C\u4E0D\u4E0A\u4F20\u8D44\u6599\u5E93\u3001\u7B14\u8BB0\u6216\u8F6C\u5199\u3002\u81EA\u52A8\u66F4\u65B0\u4F1A\u66FF\u6362 DSH \u91CC\u5DF2\u5B89\u88C5\u7684\u63D2\u4EF6\u526F\u672C\uFF0C\u91CD\u542F DSH \u540E\u751F\u6548\u3002"))), showProgress ? /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-update-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-update-head" }, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }) : null, /* @__PURE__ */ React.createElement("strong", null, job.phase || tr("about.working", "\u66F4\u65B0\u4E2D\u2026")), /* @__PURE__ */ React.createElement("span", { className: "mc-update-percent" }, percent === null ? "" : `${percent.toFixed(1)}%`)), /* @__PURE__ */ React.createElement(
     "div",
     {
       className: "mc-progress mc-update-bar",
@@ -53009,6 +53679,36 @@ function SettingsAbout({ t }) {
     },
     /* @__PURE__ */ React.createElement(Markdown, { text: latest.notes })
   )) : null);
+}
+
+// client-src/components/SettingsAccount.jsx
+init_react_shim();
+
+// client-src/components/login/FeishuAccountCard.jsx
+init_react_shim();
+function FeishuAccountCard({ compact = false }) {
+  const { status: status3, error, busy, actions } = useFeishu();
+  const summary = feishuSummary(status3);
+  const runtime = status3?.runtime || {};
+  const dsh = status3?.dsh || {};
+  const auth = status3?.auth || {};
+  const installed = Boolean(dsh.entryPresent);
+  const loggedIn = Boolean(auth.loggedIn);
+  const job = status3?.job || null;
+  const running = job?.state === "running";
+  const pkg = status3?.package || {};
+  const canInstall = Boolean(status3) && runtime.npxOk && !dsh.conflict && pkg.configured;
+  const disabled = Boolean(busy) || running;
+  const expiry = auth.refreshExpiresAt ? new Date(auth.refreshExpiresAt * 1e3).toLocaleDateString("zh-CN") : "";
+  const lastRead = status3?.lastDocReadAt ? new Date(status3.lastDocReadAt).toLocaleString("zh-CN", { hour12: false }) : "";
+  const primary = !status3 ? null : !installed ? { label: running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u5B89\u88C5\u5E76\u8FDE\u63A5", run: actions.install, disabled: disabled || !canInstall, variant: "primary" } : !loggedIn || auth.accessExpired ? { label: busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.accessExpired ? "\u5237\u65B0\u98DE\u4E66\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66", run: () => actions.login("auto"), disabled, variant: "primary" } : { label: running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5", run: actions.probe, disabled };
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card mc-feishu-login${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": summary.tone === "ok" ? "true" : "false" }, summary.text)), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E Agent \u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF1B\u9996\u9875\u300C\uFF0B \u2192 \u98DE\u4E66\u6587\u6863\u300D\u4E5F\u80FD\u8BFB\u53D6\u6B63\u6587\u3002"), summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": summary.tone }, summary.detail) : null, loggedIn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, expiry ? `\u767B\u5F55\u6709\u6548\u671F\u81F3 ${expiry}` : "\u5DF2\u767B\u5F55", lastRead ? ` \xB7 \u4E0A\u6B21\u6210\u529F\u8BFB\u6587\u6863\uFF1A${lastRead}` : " \xB7 \u8FD8\u6CA1\u6709\u9A8C\u8BC1\u8FC7\u8BFB\u6587\u6863") : null, !runtime.npxOk || !runtime.nodeOk ? /* @__PURE__ */ React.createElement("div", { className: "mc-form-note", "data-tone": "error" }, "\u98DE\u4E66 MCP \u9700\u8981 Node.js 20+\u3002\u88C5\u597D\u540E\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u3002", /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
+  }) }, "\u5B89\u88C5 Node.js"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B"))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, primary ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": primary.variant, disabled: primary.disabled, onClick: primary.run }, primary.label) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55") : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.probe }, "\u68C0\u6D4B\u8FDE\u63A5") : null, loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), loggedIn && summary.tone !== "pending" ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => actions.login("auto") }) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
+}
+
+// client-src/components/SettingsAccount.jsx
+function SettingsAccount() {
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8D26\u53F7"), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u4E09\u4E2A\u8D26\u53F7\u90FD\u662F\u53EF\u9009\u7684\uFF1AB\u7AD9\u7528\u4E8E\u539F\u753B/\u4F1A\u5458\u89C6\u9891\uFF0C\u6296\u97F3\u7528\u4E8E\u89C6\u9891\u4E0B\u8F7D\uFF0C\u98DE\u4E66\u7528\u4E8E\u6587\u6863\u5361\u7247\u4E0E Agent \u8BFB\u5199\u3002 \u516C\u5F00\u7684 B\u7AD9\u89C6\u9891\u4E0D\u767B\u5F55\u4E5F\u80FD\u8BD5\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-account-grid", "data-settings-anchor": "bilibili" }, /* @__PURE__ */ React.createElement(BilibiliLoginCard, null)), /* @__PURE__ */ React.createElement("div", { className: "mc-account-grid", "data-settings-anchor": "douyin" }, /* @__PURE__ */ React.createElement(DouyinLoginCard, null)), /* @__PURE__ */ React.createElement("div", { className: "mc-account-grid", "data-settings-anchor": "feishu" }, /* @__PURE__ */ React.createElement(FeishuAccountCard, null))));
 }
 
 // client-src/components/SettingsCapture.jsx
@@ -53168,11 +53868,12 @@ function SettingsStorage({ t }) {
     {
       type: "button",
       className: "mc-button",
-      disabled: Boolean(busy) || workspace?.available === false || Boolean(workspace?.workspace),
+      disabled: Boolean(busy) || Boolean(workspace?.workspace),
       onClick: addWorkspace
     },
-    workspace?.workspace ? "\u5DF2\u52A0\u5165\u5DE5\u4F5C\u533A" : busy === "workspace" ? "\u6DFB\u52A0\u4E2D\u2026" : "\u6DFB\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A"
-  )), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u3001\u6807\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002\u5207\u6362\u540E\u754C\u9762\u53EA\u663E\u793A\u65B0\u76EE\u5F55\u91CC\u7684\u8D44\u6599\uFF0C\u539F\u76EE\u5F55\u4E0D\u4F1A\u88AB\u5220\u9664\uFF1B \u5728\u8FD9\u4E2A\u5DE5\u4F5C\u533A\u91CC\u65B0\u5EFA\u4F1A\u8BDD\uFF0CAgent \u5C31\u80FD\u76F4\u63A5\u8BFB\u5230\u4F60\u91C7\u96C6\u7684\u5F55\u97F3\u3001\u622A\u56FE\u548C\u8F6C\u5199\u3002")), notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
+    workspace?.workspace ? "\u5DF2\u52A0\u5165\u5DE5\u4F5C\u533A" : busy === "workspace" ? "\u6DFB\u52A0\u4E2D\u2026" : workspace?.available === false ? "\u91CD\u8BD5\u6DFB\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A" : "\u6DFB\u52A0\u4E3A DSH \u5DE5\u4F5C\u533A"
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => openFullDiskAccess().catch(() => {
+  }) }, "\u6253\u5F00\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u8BBE\u7F6E")), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5F55\u97F3\u3001\u8F6C\u5199\u3001\u7B14\u8BB0\u3001\u6807\u8BB0\u4E0E\u6570\u636E\u5E93\u90FD\u4FDD\u5B58\u5728\u8FD9\u91CC\u3002\u5207\u6362\u540E\u754C\u9762\u53EA\u663E\u793A\u65B0\u76EE\u5F55\u91CC\u7684\u8D44\u6599\uFF0C\u539F\u76EE\u5F55\u4E0D\u4F1A\u88AB\u5220\u9664\uFF1B \u5728\u8FD9\u4E2A\u5DE5\u4F5C\u533A\u91CC\u65B0\u5EFA\u4F1A\u8BDD\uFF0CAgent \u5C31\u80FD\u76F4\u63A5\u8BFB\u5230\u4F60\u91C7\u96C6\u7684\u5F55\u97F3\u3001\u622A\u56FE\u548C\u8F6C\u5199\u3002")), notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
 }
 
 // client-src/components/SettingsCapture.jsx
@@ -53228,9 +53929,9 @@ function SettingsFeishu() {
       disabled: disabled || !canInstall,
       run: actions.install
     };
-  } else if (status3 && !signedIn) {
+  } else if (status3 && (!signedIn || auth.accessExpired)) {
     primary = {
-      label: busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.expired ? "\u91CD\u65B0\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66",
+      label: busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.accessExpired ? "\u5237\u65B0\u98DE\u4E66\u767B\u5F55" : auth.expired ? "\u91CD\u65B0\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66",
       disabled,
       run: () => actions.login("auto")
     };
@@ -53259,6 +53960,15 @@ function SettingsFeishu() {
       onClick: () => actions.login("auto")
     },
     busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : "\u91CD\u65B0\u767B\u5F55"
+  ) : null, installed ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      disabled,
+      onClick: () => actions.login("device")
+    },
+    "\u8BBE\u5907\u7801\u767B\u5F55"
   ) : null, /* @__PURE__ */ React.createElement(
     "button",
     {
@@ -53268,7 +53978,16 @@ function SettingsFeishu() {
       onClick: toggleMore
     },
     more ? "\u6536\u8D77" : "\u66F4\u591A"
-  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, status3 && !pkgReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": "warn" }, "\u672C\u63D2\u4EF6\u4E0D\u5185\u7F6E\u98DE\u4E66 MCP \u5305\uFF1A\u8BF7\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B", " ", /* @__PURE__ */ React.createElement("code", null, "feishuPackage"), " \u4E0E ", /* @__PURE__ */ React.createElement("code", null, "feishuRegistry"), "\uFF0C\u6216\u8BBE\u7F6E\u73AF\u5883\u53D8\u91CF", " ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_PACKAGE"), " / ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_REGISTRY"), "\u3002") : null, summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary.tone }, summary.detail) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, status3 && !pkgReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": "warn" }, "\u672C\u63D2\u4EF6\u4E0D\u5185\u7F6E\u98DE\u4E66 MCP \u5305\uFF1A\u8BF7\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B", " ", /* @__PURE__ */ React.createElement("code", null, "feishuPackage"), " \u4E0E ", /* @__PURE__ */ React.createElement("code", null, "feishuRegistry"), "\uFF0C\u6216\u8BBE\u7F6E\u73AF\u5883\u53D8\u91CF", " ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_PACKAGE"), " / ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_REGISTRY"), "\u3002") : null, summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary.tone }, summary.detail) : null, (!runtime.npxOk || !runtime.nodeOk) && installed ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
+      })
+    },
+    "\u5B89\u88C5 Node.js"
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, signedIn ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { onLogin: () => actions.login("auto") }) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -53372,33 +54091,9 @@ function SettingsLibraries({ t }) {
 
 // client-src/components/SettingsLive.jsx
 init_react_shim();
-
-// client-src/components/QrCode.jsx
-init_react_shim();
-var import_qrcode_generator = __toESM(require_qrcode(), 1);
-function QrCode({ value, size = 180 }) {
-  const src = React.useMemo(() => {
-    if (!value) return "";
-    try {
-      const qr = (0, import_qrcode_generator.default)(0, "M");
-      qr.addData(value);
-      qr.make();
-      return qr.createDataURL(4, 8);
-    } catch {
-      return "";
-    }
-  }, [value]);
-  if (!src) return null;
-  return /* @__PURE__ */ React.createElement("img", { className: "mc-qr", src, width: size, height: size, alt: "QR" });
-}
-
-// client-src/components/SettingsLive.jsx
 function SettingsLive({ t }) {
-  const [bili, setBili] = React.useState(null);
   const [settings, setSettings] = React.useState(null);
   const [ai, setAi] = React.useState(null);
-  const [qr, setQr] = React.useState(null);
-  const [qrState, setQrState] = React.useState(null);
   const [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState("");
   const [sensitivity, setSensitivity] = React.useState(0.5);
@@ -53406,8 +54101,7 @@ function SettingsLive({ t }) {
   const timerRef = React.useRef(null);
   const load = React.useCallback(async () => {
     try {
-      const [status3, prefs, aiState] = await Promise.all([bilibiliStatus(), appSettings(), aiStatus()]);
-      setBili(status3);
+      const [prefs, aiState] = await Promise.all([appSettings(), aiStatus()]);
       setSettings(prefs);
       setAi(aiState);
       setSensitivity(Number(prefs.shot_sensitivity ?? 0.5));
@@ -53419,60 +54113,6 @@ function SettingsLive({ t }) {
   React.useEffect(() => {
     load();
   }, [load]);
-  React.useEffect(() => {
-    if (!qr?.key) return void 0;
-    const poll = setInterval(async () => {
-      try {
-        const result = await bilibiliQrPoll(qr.key);
-        setQrState(result);
-        if (result.state === "ok") {
-          clearInterval(poll);
-          setQr(null);
-          await load();
-        }
-        if (result.state === "expired" || result.state === "error") clearInterval(poll);
-      } catch (failure) {
-        setQrState({ state: "error", message: failure?.message || String(failure) });
-        clearInterval(poll);
-      }
-    }, 2e3);
-    return () => clearInterval(poll);
-  }, [qr?.key, load]);
-  async function refreshChrome() {
-    setBusy("refresh");
-    setError("");
-    try {
-      const result = await bilibiliRefresh();
-      setBili(result);
-    } catch (failure) {
-      setError(failure?.message || String(failure));
-    } finally {
-      setBusy("");
-    }
-  }
-  async function logout() {
-    setBusy("logout");
-    try {
-      setBili(await bilibiliLogout());
-    } catch (failure) {
-      setError(failure?.message || String(failure));
-    } finally {
-      setBusy("");
-    }
-  }
-  async function startQr() {
-    setBusy("qr");
-    setError("");
-    setQrState(null);
-    try {
-      const result = await bilibiliQrStart();
-      setQr(result);
-    } catch (failure) {
-      setError(failure?.message || String(failure));
-    } finally {
-      setBusy("");
-    }
-  }
   function changeSensitivity(value) {
     setSensitivity(value);
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -53501,7 +54141,7 @@ function SettingsLive({ t }) {
   }
   const silenceMode = ai?.auto_end_silence || "prompt";
   const silenceMinutes = Math.round((Number(ai?.auto_end_after) || 600) / 60);
-  return /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, t("settings.live") || "\u53D1\u5E03\u4F1A\u76F4\u64AD"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement(Row2, { label: "B \u7AD9\u8D26\u53F7", value: bili?.logged_in ? bili.uname || "\u5DF2\u767B\u5F55" : "\u672A\u767B\u5F55" })), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: startQr, disabled: Boolean(busy) }, "\u626B\u7801\u767B\u5F55"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: refreshChrome, disabled: Boolean(busy) }, busy === "refresh" ? "\u8BFB\u53D6\u4E2D\u2026" : "\u8BFB\u53D6 Chrome \u767B\u5F55"), bili?.logged_in ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: logout, disabled: Boolean(busy) }, "\u9000\u51FA") : null), qr ? /* @__PURE__ */ React.createElement("div", { className: "mc-qr-wrap" }, /* @__PURE__ */ React.createElement(QrCode, { value: qr.url, size: 168 }), /* @__PURE__ */ React.createElement("div", { className: "mc-qr-info" }, /* @__PURE__ */ React.createElement("strong", null, "\u8BF7\u7528 B\u7AD9 App \u626B\u7801"), /* @__PURE__ */ React.createElement("span", null, qrState?.message || "\u7B49\u5F85\u626B\u7801\u2026"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: startQr }, "\u5237\u65B0\u4E8C\u7EF4\u7801"))) : null, qrState?.state === "expired" ? /* @__PURE__ */ React.createElement("p", { className: "mc-warn" }, qrState.message) : null), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u622A\u56FE\u7075\u654F\u5EA6"), /* @__PURE__ */ React.createElement("div", { className: "mc-slider-row" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, t("settings.live") || "\u53D1\u5E03\u4F1A\u76F4\u64AD"), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "B\u7AD9\u8D26\u53F7\u5DF2\u79FB\u5230\u300C\u8D26\u53F7\u300D\u9875\uFF1B\u8FD9\u91CC\u53EA\u653E\u76F4\u64AD\u753B\u9762\u7684\u622A\u56FE\u4E0E\u81EA\u52A8\u7ED3\u675F\u8BBE\u7F6E\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u622A\u56FE\u7075\u654F\u5EA6"), /* @__PURE__ */ React.createElement("div", { className: "mc-slider-row" }, /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "range",
@@ -53535,14 +54175,11 @@ function SettingsLive({ t }) {
     }
   )) : null), error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
 }
-function Row2({ label, value }) {
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, label), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, value));
-}
 
 // client-src/components/SettingsModels.jsx
 init_react_shim();
 var BASE_PLACEHOLDER3 = "https://your-gateway.example/v1";
-var MODEL_PLACEHOLDER2 = "your-asr-model";
+var MODEL_PLACEHOLDER = "your-asr-model";
 var TEXT_MODEL_PLACEHOLDER = "your-text-model";
 function mask(hasKey, placeholder) {
   return hasKey ? "\u5DF2\u914D\u7F6E\uFF1B\u7559\u7A7A\u5219\u4E0D\u4FEE\u6539" : placeholder;
@@ -53550,17 +54187,6 @@ function mask(hasKey, placeholder) {
 function SettingsModels({ t }) {
   const [asr, setAsr] = React.useState(null);
   const [ai, setAi] = React.useState(null);
-  const [models, setModels] = React.useState([]);
-  const [entries, setEntries] = React.useState([]);
-  const [hidden, setHidden] = React.useState([]);
-  const [showHidden, setShowHidden] = React.useState(false);
-  const [filtering, setFiltering] = React.useState(false);
-  const [catalogError, setCatalogError] = React.useState("");
-  const [keyDraft, setKeyDraft] = React.useState("");
-  const [defaultAsr, setDefaultAsr] = React.useState("");
-  const [defaultText, setDefaultText] = React.useState("");
-  const [asrBase, setAsrBase] = React.useState("");
-  const [aiBase, setAiBase] = React.useState("");
   const [asrCustom, setAsrCustom] = React.useState({ base_url: "", model: "", api_key: "" });
   const [aiCustom, setAiCustom] = React.useState({ base_url: "", model: "", api_key: "" });
   const [busy, setBusy] = React.useState("");
@@ -53572,10 +54198,6 @@ function SettingsModels({ t }) {
     const [nextAsr, nextAi] = await Promise.all([asrEngines(), aiStatus()]);
     setAsr(nextAsr);
     setAi(nextAi);
-    setDefaultAsr(nextAsr?.custom?.enabled ? nextAsr.default_model || "" : nextAsr?.model || "");
-    setAsrBase(nextAsr?.custom?.enabled ? "" : nextAsr?.default_base_url || nextAsr?.base_url || "");
-    setDefaultText(nextAi?.provider === "mimo" ? nextAi?.model || "" : "");
-    setAiBase(nextAi?.provider === "mimo" ? nextAi?.base_url || "" : "");
     setAsrCustom({
       base_url: nextAsr?.custom?.base_url || "",
       model: nextAsr?.custom?.model || "",
@@ -53588,38 +54210,9 @@ function SettingsModels({ t }) {
     });
     return nextAsr;
   }, []);
-  const pullCatalog = React.useCallback(async () => {
-    try {
-      const result = await modelCatalog();
-      setModels(Array.isArray(result?.models) ? result.models : []);
-      setEntries(Array.isArray(result?.entries) ? result.entries : []);
-      setCatalogError(result?.error || "");
-      return result;
-    } catch (failure) {
-      setModels([]);
-      setCatalogError(failure?.message || "\u62C9\u53D6\u5931\u8D25");
-      return null;
-    }
-  }, []);
   React.useEffect(() => {
-    let cancelled = false;
-    load().then((nextAsr) => {
-      if (!cancelled && (nextAsr?.default_has_key ?? nextAsr?.has_api_key)) return pullCatalog();
-    }).catch((failure) => {
-      if (!cancelled) setError(failure?.message || String(failure));
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [load, pullCatalog]);
-  React.useEffect(() => {
-    const key = keyDraft.trim();
-    if (key.length < 24) return void 0;
-    const timer = setTimeout(() => {
-      saveKeyAndPull();
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [keyDraft]);
+    load().catch((failure) => setError(failure?.message || String(failure)));
+  }, [load]);
   async function run(label, operation) {
     setBusy(label);
     setError("");
@@ -53633,153 +54226,41 @@ function SettingsModels({ t }) {
       setBusy("");
     }
   }
-  async function saveKeyAndPull() {
-    const key = keyDraft.trim();
-    if (key && /\s/.test(key)) {
-      setError("Key \u4E0D\u80FD\u5305\u542B\u7A7A\u683C\u6216\u6362\u884C\uFF0C\u8BF7\u53EA\u7C98\u8D34 Key \u672C\u8EAB");
-      return;
-    }
-    await run("key", async () => {
-      setCatalogError("");
-      if (key) {
-        await saveAsrEngine({ mode: "key", api_key: key });
-        setNotice("Key \u5DF2\u4FDD\u5B58\uFF0C\u6B63\u5728\u62C9\u53D6\u6A21\u578B\u6E05\u5355\u2026");
-      }
-      const result = await pullCatalog();
-      if (result?.models?.length) filterUsable();
-      if (result?.models?.length) {
-        setKeyDraft("");
-        setNotice(`\u5DF2\u83B7\u53D6 ${result.models.length} \u4E2A\u6A21\u578B`);
-      } else if (result) {
-        setNotice("\u6CA1\u6709\u83B7\u53D6\u5230\u6A21\u578B\u6E05\u5355");
-      }
-      await load();
-    });
-  }
-  async function filterUsable() {
-    setFiltering(true);
-    try {
-      const result = await probeUsableCatalog();
-      if (result?.ok) setHidden(Array.isArray(result.hidden) ? result.hidden : []);
-    } catch {
-    } finally {
-      setFiltering(false);
-    }
-  }
-  async function chooseAsrModel(model) {
-    if (!model) return;
-    if (!asrBase.trim()) {
-      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
-      return;
-    }
-    await run("asr-model", async () => {
-      await saveAsrEngine({ mode: "default", provider: "mimo", base_url: asrBase.trim(), model });
-      setDefaultAsr(model);
-      await load();
-      setNotice(`\u8BED\u97F3\u8F6C\u6587\u5B57\u5DF2\u4F7F\u7528 ${model}`);
-    });
-  }
-  async function saveAsrBase() {
-    const base = asrBase.trim();
-    if (!base) {
-      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
-      return;
-    }
-    if (!defaultAsr) {
-      setError("\u8BF7\u5148\u586B\u5199\u8BED\u97F3\u6A21\u578B ID");
-      return;
-    }
-    await run("asr-base", async () => {
-      await saveAsrEngine({ mode: "default", provider: "mimo", base_url: base, model: defaultAsr });
-      await pullCatalog();
-      await load();
-      setNotice("\u8BED\u97F3\u670D\u52A1\u5730\u5740\u5DF2\u4FDD\u5B58");
-    });
-  }
-  async function saveAiBase() {
-    const base = aiBase.trim();
-    if (!base) {
-      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
-      return;
-    }
-    if (!defaultText) {
-      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u6A21\u578B ID");
-      return;
-    }
-    await run("ai-base", async () => {
-      await saveAIConfig({ provider: "mimo", base_url: base, model: defaultText });
-      await load();
-      setNotice("\u6587\u5B57\u670D\u52A1\u5730\u5740\u5DF2\u4FDD\u5B58");
-    });
-  }
-  async function chooseTextModel(model) {
-    const value = String(model || "").trim();
-    if (!value || ai?.provider === "mimo" && value === ai?.model && !ai?.own_key) return;
-    if (!aiBase.trim()) {
-      setError("\u8BF7\u5148\u586B\u5199\u6587\u5B57\u670D\u52A1\u5730\u5740\uFF08Base URL\uFF09");
-      return;
-    }
-    await run("text-model", async () => {
-      await saveAIConfig({ provider: "mimo", base_url: aiBase.trim(), model: value });
-      if (ai?.own_key) {
-        try {
-          await removeAIKey();
-        } catch {
-        }
-      }
-      setDefaultText(value);
-      await load();
-    });
-  }
   async function probeAsrModel() {
-    const model = String(asrCustomOn ? asrCustom.model : defaultAsr || asr?.model || "").trim();
-    const base = String(asrCustomOn ? asrCustom.base_url.trim() : asrBase.trim()).trim();
+    const model = String(asr?.model || asr?.default_model || "").trim();
+    const base = String(asr?.base_url || asr?.default_base_url || "").trim();
     if (!model) {
-      setAsrProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u6216\u586B\u5199\u6A21\u578B" });
+      setAsrProbe({ ok: false, text: "\u8FD8\u6CA1\u6709\u4FDD\u5B58\u8BED\u97F3\u6A21\u578B\uFF0C\u8BF7\u5148\u5728\u4E0A\u65B9\u8FDE\u63A5\u5E76\u4FDD\u5B58" });
       return;
     }
     if (!base) {
-      setAsrProbe({ ok: false, text: "\u8BF7\u5148\u586B\u5199 Base URL" });
+      setAsrProbe({ ok: false, text: "\u8FD8\u6CA1\u6709\u4FDD\u5B58\u670D\u52A1\u5730\u5740\uFF0C\u8BF7\u5148\u5728\u4E0A\u65B9\u8FDE\u63A5\u5E76\u4FDD\u5B58" });
       return;
     }
     setAsrProbe({ state: "busy", text: "\u6B63\u5728\u7528 1 \u79D2\u9759\u97F3\u6D4B\u8BD5\u2026" });
     try {
-      const result = await testAsrEngine({
-        provider: "mimo",
-        base_url: base,
-        model,
-        api_key: asrCustomOn ? asrCustom.api_key.trim() : ""
-      });
-      setAsrProbe({ ok: true, text: `\u6A21\u578B\u53EF\u7528\uFF1A${result?.model || model}\uFF08${result?.message || "\u6D4B\u8BD5\u8BF7\u6C42\u6210\u529F"}\uFF09` });
+      const result = await testAsrEngine({ provider: "mimo", base_url: base, model });
+      setAsrProbe({ ok: true, text: `\u6A21\u578B\u53EF\u7528\uFF1A${result?.model || model}` });
     } catch (failure) {
       setAsrProbe({ ok: false, text: `\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${failure?.message || "\u8FDE\u63A5\u5931\u8D25"}` });
     }
   }
   async function probeTextModel() {
-    const custom = aiCustomOn;
-    const model = String(custom ? aiCustom.model : defaultText || ai?.model || "").trim();
-    const base = String(custom ? aiCustom.base_url : aiBase).trim();
+    const model = String(ai?.model || "").trim();
+    const base = String(ai?.base_url || "").trim();
     if (!model) {
-      setTextProbe({ ok: false, text: "\u8BF7\u5148\u9009\u62E9\u6216\u586B\u5199\u6A21\u578B" });
+      setTextProbe({ ok: false, text: "\u8FD8\u6CA1\u6709\u4FDD\u5B58\u6587\u5B57\u6A21\u578B\uFF0C\u8BF7\u5148\u5728\u4E0A\u65B9\u8FDE\u63A5\u5E76\u4FDD\u5B58" });
       return;
     }
     if (!base) {
-      setTextProbe({ ok: false, text: "\u8BF7\u5148\u586B\u5199 Base URL" });
+      setTextProbe({ ok: false, text: "\u8FD8\u6CA1\u6709\u4FDD\u5B58\u670D\u52A1\u5730\u5740\uFF0C\u8BF7\u5148\u5728\u4E0A\u65B9\u8FDE\u63A5\u5E76\u4FDD\u5B58" });
       return;
     }
     setTextProbe({ state: "busy", text: "\u6B63\u5728\u8BF7\u6C42\u6A21\u578B\u2026" });
     try {
-      const result = await testAIModel({
-        provider: custom ? "custom" : "mimo",
-        base_url: base,
-        model,
-        api_key: custom ? aiCustom.api_key.trim() : ""
-      });
-      if (result?.ok) {
-        setTextProbe({ ok: true, text: `\u6A21\u578B\u53EF\u7528\uFF1A${result.model || model}${result.seconds ? `\uFF08${result.seconds}s\uFF09` : ""}` });
-      } else {
-        setTextProbe({ ok: false, text: `\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${result?.message || "Key \u6216\u6A21\u578B\u4E0D\u53EF\u7528"}` });
-      }
+      const result = await testAIModel({ provider: ai?.provider === "custom" ? "custom" : "mimo", base_url: base, model });
+      if (result?.ok) setTextProbe({ ok: true, text: `\u6A21\u578B\u53EF\u7528\uFF1A${result.model || model}${result.seconds ? `\uFF08${result.seconds}s\uFF09` : ""}` });
+      else setTextProbe({ ok: false, text: `\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${result?.message || "Key \u6216\u6A21\u578B\u4E0D\u53EF\u7528"}` });
     } catch (failure) {
       setTextProbe({ ok: false, text: `\u6D4B\u8BD5\u672A\u901A\u8FC7\uFF1A${failure?.message || "\u8FDE\u63A5\u5931\u8D25"}` });
     }
@@ -53809,8 +54290,8 @@ function SettingsModels({ t }) {
       await saveAsrEngine({
         mode: "default",
         provider: "mimo",
-        base_url: asrBase.trim() || asr?.default_base_url || "",
-        model: defaultAsr || asr?.default_model
+        base_url: asr?.base_url || asr?.default_base_url || "",
+        model: asr?.model || asr?.default_model
       });
       setAsrCustom({ base_url: "", model: "", api_key: "" });
       setNotice("\u5DF2\u6062\u590D\u9ED8\u8BA4\u7F51\u5173");
@@ -53840,7 +54321,7 @@ function SettingsModels({ t }) {
   }
   async function resetAiCustom() {
     await run("ai-reset", async () => {
-      await saveAIConfig({ provider: "mimo", base_url: aiBase.trim(), model: defaultText || ai?.model || "" });
+      await saveAIConfig({ provider: "mimo", base_url: asr?.base_url || "", model: ai?.model || "" });
       if (ai?.own_key) {
         try {
           await removeAIKey();
@@ -53854,66 +54335,19 @@ function SettingsModels({ t }) {
   }
   const asrCustomOn = Boolean(asr?.custom?.enabled);
   const aiCustomOn = Boolean(ai?.provider && ai.provider !== "mimo");
-  const { asr: asrModels, text: allTextModels } = entries.length ? splitEntries(entries) : splitModels(models);
-  const textModels = showHidden ? allTextModels : withoutHidden(allTextModels, hidden);
-  const asrOptions = modelOptions(asrModels, asrCustomOn ? asr?.default_model : defaultAsr);
-  const textOptions = modelOptions(textModels, aiCustomOn ? "" : defaultText);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "API Key"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
-    "input",
+  const savedAsr = asr?.model || asr?.default_model || "";
+  const savedText = ai?.model || "";
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement(
+    ModelConnection,
     {
-      className: "mc-input",
-      type: "password",
-      value: keyDraft,
-      autoComplete: "off",
-      spellCheck: false,
-      placeholder: /无效|401|403/.test(catalogError) ? "Key \u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u7C98\u8D34 API Key" : mask(asr?.default_has_key, "\u7C98\u8D34 API Key"),
-      onChange: (event) => setKeyDraft(event.target.value),
-      onKeyDown: (event) => {
-        if (event.key === "Enter") saveKeyAndPull();
-      }
+      t,
+      initialBaseUrl: asr?.base_url || asr?.default_base_url || "",
+      initialAsr: savedAsr,
+      initialText: savedText,
+      hasSavedKey: Boolean(asr?.default_has_key ?? asr?.has_api_key),
+      onSaved: load
     }
-  )), /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, "\u66F4\u65B0 Key \u540E\uFF0C\u70B9\u300C\u62C9\u53D6\u6A21\u578B\u6E05\u5355\u300D\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: Boolean(busy), onClick: saveKeyAndPull }, busy === "key" ? "\u62C9\u53D6\u4E2D\u2026" : "\u62C9\u53D6\u6A21\u578B\u6E05\u5355")), catalogError ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": "error" }, catalogError) : null)), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
-    "select",
-    {
-      className: "mc-input mc-select",
-      value: asrCustomOn ? "" : defaultAsr,
-      disabled: Boolean(busy) || asrCustomOn,
-      onChange: (event) => {
-        setAsrProbe(null);
-        chooseAsrModel(event.target.value);
-      }
-    },
-    asrCustomOn ? /* @__PURE__ */ React.createElement("option", { value: "" }, "\u4F7F\u7528\u81EA\u5B9A\u4E49 API\uFF1A", asr?.model) : null,
-    asrOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button mc-button-small",
-      disabled: Boolean(busy),
-      onClick: probeAsrModel
-    },
-    asrProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"
-  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
-    "input",
-    {
-      className: "mc-input",
-      value: asrCustomOn ? asrCustom.base_url : asrBase,
-      spellCheck: false,
-      disabled: Boolean(busy) || asrCustomOn,
-      placeholder: BASE_PLACEHOLDER3,
-      onChange: (event) => setAsrBase(event.target.value)
-    }
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button mc-button-small",
-      disabled: Boolean(busy) || asrCustomOn,
-      onClick: saveAsrBase
-    },
-    busy === "asr-base" ? "\u4FDD\u5B58\u4E2D\u2026" : "\u4FDD\u5B58\u5730\u5740"
-  ))), asrProbe && asrProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error", role: "status" }, asrProbe.text) : null, asrProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, asrProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: asrCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
+  ), asrCustomOn || aiCustomOn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": "warn" }, "\u5F53\u524D\u6709\u670D\u52A1\u5728\u4F7F\u7528\u300C\u81EA\u5B9A\u4E49 API\u300D\u3002\u4E0A\u9762\u7684\u9ED8\u8BA4\u8FDE\u63A5\u4E0D\u4F1A\u8986\u76D6\u5B83\uFF1B\u8981\u56DE\u5230\u9ED8\u8BA4\u7F51\u5173\uFF0C\u8BF7\u5728\u5BF9\u5E94\u5C0F\u8282\u70B9\u300C\u6062\u590D\u9ED8\u8BA4\u300D\u3002") : null)), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5F53\u524D\u6A21\u578B"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, savedAsr || "\u672A\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", title: asr?.base_url || "" }, asr?.base_url || "\u672A\u914D\u7F6E"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeAsrModel }, asrProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5")), asrProbe && asrProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error", role: "status" }, asrProbe.text) : null, asrProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, asrProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: asrCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API\uFF08\u9AD8\u7EA7\uFF09"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -53928,7 +54362,7 @@ function SettingsModels({ t }) {
       className: "mc-input",
       value: asrCustom.model,
       spellCheck: false,
-      placeholder: MODEL_PLACEHOLDER2,
+      placeholder: MODEL_PLACEHOLDER,
       onChange: (event) => setAsrCustom((value) => ({ ...value, model: event.target.value }))
     }
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "API Key"), /* @__PURE__ */ React.createElement(
@@ -53941,48 +54375,7 @@ function SettingsModels({ t }) {
       placeholder: mask(asr?.custom?.has_key, "\u7C98\u8D34\u81EA\u5B9A\u4E49 API Key"),
       onChange: (event) => setAsrCustom((value) => ({ ...value, api_key: event.target.value }))
     }
-  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAsrCustom }, busy === "asr-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), asrCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAsrCustom }, "\u6062\u590D\u9ED8\u8BA4") : null))))), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6A21\u578B"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
-    "select",
-    {
-      className: "mc-input mc-select",
-      value: aiCustomOn ? "" : defaultText,
-      disabled: Boolean(busy) || aiCustomOn,
-      onChange: (event) => {
-        setTextProbe(null);
-        chooseTextModel(event.target.value);
-      }
-    },
-    aiCustomOn ? /* @__PURE__ */ React.createElement("option", { value: "" }, "\u4F7F\u7528\u81EA\u5B9A\u4E49 API\uFF1A", ai?.model) : null,
-    textOptions.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.value, value: item.value }, item.label))
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button mc-button-small",
-      disabled: Boolean(busy),
-      onClick: probeTextModel
-    },
-    textProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"
-  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("div", { className: "mc-model-row" }, /* @__PURE__ */ React.createElement(
-    "input",
-    {
-      className: "mc-input",
-      value: aiCustomOn ? aiCustom.base_url : aiBase,
-      spellCheck: false,
-      disabled: Boolean(busy) || aiCustomOn,
-      placeholder: BASE_PLACEHOLDER3,
-      onChange: (event) => setAiBase(event.target.value)
-    }
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button mc-button-small",
-      disabled: Boolean(busy) || aiCustomOn,
-      onClick: saveAiBase
-    },
-    busy === "ai-base" ? "\u4FDD\u5B58\u4E2D\u2026" : "\u4FDD\u5B58\u5730\u5740"
-  ))), textProbe && textProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": textProbe.ok ? void 0 : "error", role: "status" }, textProbe.text) : null, textProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, textProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: aiCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: saveAsrCustom }, busy === "asr-custom" ? "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u4E2D\u2026" : "\u4FDD\u5B58\u5E76\u6D4B\u8BD5\u8FDE\u63A5"), asrCustomOn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: Boolean(busy), onClick: resetAsrCustom }, "\u6062\u590D\u9ED8\u8BA4") : null))))), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u6587\u5B57\u603B\u7ED3"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5F53\u524D\u6A21\u578B"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, savedText || "\u672A\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", title: ai?.base_url || "" }, ai?.base_url || "\u672A\u914D\u7F6E"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeTextModel }, textProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5")), textProbe && textProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": textProbe.ok ? void 0 : "error", role: "status" }, textProbe.text) : null, textProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, textProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: aiCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API\uFF08\u9AD8\u7EA7\uFF09"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -54015,142 +54408,22 @@ function SettingsModels({ t }) {
 
 // client-src/components/SettingsVideo.jsx
 init_react_shim();
-var BROWSERS = ["chrome", "safari", "firefox", "edge", "brave", "chromium"];
+var BROWSERS2 = [
+  ["chrome", "Chrome"],
+  ["safari", "Safari"],
+  ["firefox", "Firefox"],
+  ["edge", "Edge"],
+  ["brave", "Brave"],
+  ["chromium", "Chromium"]
+];
 var HEIGHTS = [0, 720, 1080, 1440, 2160];
-function douyinError(failure) {
-  const text = failure?.message || String(failure || "");
-  if (/not found|http 404/i.test(text)) {
-    return "\u672C\u5730\u5F15\u64CE\u8FD8\u662F\u65E7\u7248\u672C\uFF0C\u6CA1\u6709\u6296\u97F3\u63A5\u53E3\uFF1A\u8BF7\u5230 \u8BBE\u7F6E \u2192 \u91C7\u96C6 \u91CD\u542F\u672C\u5730\u5F15\u64CE\u540E\u518D\u8BD5\u3002";
-  }
-  if (/failed to fetch|econnrefused|http 502|http 503|未启动/i.test(text)) {
-    return "\u672C\u5730\u5F15\u64CE\u672A\u5C31\u7EEA\uFF1A\u8BF7\u5148\u5728 \u8BBE\u7F6E \u2192 \u91C7\u96C6 \u542F\u52A8\u672C\u5730\u5F15\u64CE\u3002";
-  }
-  if (/could not find|operation not permitted|permission denied|not authorized|完全磁盘访问/i.test(text)) {
-    return "\u8BFB\u4E0D\u5230\u6D4F\u89C8\u5668 Cookie \u6570\u636E\u5E93\uFF1AmacOS \u6CA1\u6709\u7ED9 DeepSeek Harness \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\u3002\u8BF7\u5230 \u7CFB\u7EDF\u8BBE\u7F6E \u2192 \u9690\u79C1\u4E0E\u5B89\u5168\u6027 \u2192 \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650 \u52FE\u9009 DeepSeek Harness\uFF0C\u91CD\u542F\u5F15\u64CE\u540E\u518D\u8BD5\u3002";
-  }
-  return text;
-}
 function SettingsVideo({ t }) {
   const [settings, setSettings] = React.useState(null);
-  const [douyin, setDouyin] = React.useState(null);
-  const [douyinBusy, setDouyinBusy] = React.useState("");
-  const [douyinMessage, setDouyinMessage] = React.useState("");
-  const [douyinTone, setDouyinTone] = React.useState("info");
   const [error, setError] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   React.useEffect(() => {
     appSettings().then(setSettings).catch((failure) => setError(failure?.message || String(failure)));
-    douyinStatus().then((value) => {
-      setDouyin(value);
-      setDouyinTone("info");
-      setDouyinMessage("");
-    }).catch((failure) => {
-      setDouyin(null);
-      setDouyinMessage(douyinError(failure));
-      setDouyinTone("error");
-    });
   }, []);
-  async function refreshDouyin() {
-    try {
-      setDouyin(await douyinStatus());
-      setDouyinTone("info");
-      setDouyinMessage("");
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    }
-  }
-  async function openDouyinLogin() {
-    setDouyinBusy("open");
-    setDouyinMessage("");
-    try {
-      const result = await douyinOpenLogin();
-      setDouyinTone("info");
-      setDouyinMessage(`\u5DF2\u7528 ${result?.browser || "\u9ED8\u8BA4\u6D4F\u89C8\u5668"} \u6253\u5F00\u6296\u97F3\uFF1B\u626B\u7801\u767B\u5F55\u540E\u56DE\u6765\u70B9\u300C\u8BFB\u53D6 Cookie\u300D`);
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
-  async function importDouyinCookies() {
-    setDouyinBusy("import");
-    setDouyinMessage("");
-    try {
-      const result = await douyinImport(settings?.link_cookie_browser || "chrome");
-      await refreshDouyin();
-      setDouyinTone("info");
-      setDouyinMessage(`\u5DF2\u5BFC\u5165 ${result?.count || 0} \u6761\u6296\u97F3 Cookie`);
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
-  async function testDouyin() {
-    setDouyinBusy("test");
-    setDouyinMessage("");
-    try {
-      const result = await douyinTest(douyin?.last_url || "");
-      setDouyinTone(result?.ok ? "info" : "error");
-      setDouyinMessage(result?.ok ? `\u6D4B\u8BD5\u901A\u8FC7\uFF1A${result.title || result.url || "\u6296\u97F3\u94FE\u63A5"}` : `\u6D4B\u8BD5\u5931\u8D25\uFF1A${result?.message || "\u672A\u77E5\u539F\u56E0"}`);
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
-  async function clearDouyin() {
-    setDouyinBusy("clear");
-    setDouyinMessage("");
-    try {
-      await douyinLogout();
-      await refreshDouyin();
-      setDouyinTone("info");
-      setDouyinMessage("\u5DF2\u6E05\u9664\u6296\u97F3 Cookie");
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
-  const douyinNeedsRestart = /旧版本|未就绪|完全磁盘访问|重启引擎/.test(douyinMessage);
-  const douyinNeedsPermission = /完全磁盘访问|权限/.test(douyinMessage);
-  async function openPermissionSettings() {
-    setDouyinBusy("permission");
-    try {
-      await douyinOpenPermission();
-      setDouyinTone("info");
-      setDouyinMessage("\u5DF2\u6253\u5F00\u7CFB\u7EDF\u8BBE\u7F6E\uFF1A\u52FE\u9009 DeepSeek Harness \u7684\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\uFF0C\u7136\u540E\u70B9\u300C\u91CD\u542F\u5F15\u64CE\u300D\u518D\u8BFB\u53D6\u3002");
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
-  async function restartBackend() {
-    if (typeof window !== "undefined" && !window.confirm("\u91CD\u542F\u4F1A\u4E2D\u65AD\u6B63\u5728\u8FDB\u884C\u7684\u91C7\u96C6/\u8F6C\u5199\uFF0C\u786E\u5B9A\u7EE7\u7EED\uFF1F")) return;
-    setDouyinBusy("restart");
-    setDouyinMessage("\u6B63\u5728\u91CD\u542F\u672C\u5730\u5F15\u64CE\u2026");
-    setDouyinTone("info");
-    try {
-      await backendAction("restart");
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      await refreshDouyin();
-      setDouyinTone("info");
-      setDouyinMessage("\u672C\u5730\u5F15\u64CE\u5DF2\u91CD\u542F\uFF0C\u53EF\u4EE5\u626B\u7801\u767B\u5F55\u6296\u97F3\u4E86");
-    } catch (failure) {
-      setDouyinTone("error");
-      setDouyinMessage(douyinError(failure));
-    } finally {
-      setDouyinBusy("");
-    }
-  }
   async function update(patch) {
     setBusy(true);
     setError("");
@@ -54162,7 +54435,7 @@ function SettingsVideo({ t }) {
       setBusy(false);
     }
   }
-  return /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, t("settings.video") || "\u89C6\u9891"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("label", { className: "mc-check" }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, t("settings.video") || "\u89C6\u9891"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u91CC\u53EA\u63A7\u5236\u94FE\u63A5\u89C6\u9891\u7684\u901A\u7528\u753B\u8D28\u4E0E\u300CB\u7AD9/YouTube/X \u662F\u5426\u5141\u8BB8\u8BFB\u53D6\u6D4F\u89C8\u5668\u767B\u5F55\u6001\u300D\u3002 \u6296\u97F3\u767B\u5F55\u5DF2\u79FB\u5230\u300C\u8D26\u53F7\u300D\u9875\uFF0C\u6309\u4E09\u6B65\u5B8C\u6210\u3002"), /* @__PURE__ */ React.createElement("label", { className: "mc-check" }, /* @__PURE__ */ React.createElement(
     "input",
     {
       type: "checkbox",
@@ -54170,7 +54443,7 @@ function SettingsVideo({ t }) {
       disabled: busy,
       onChange: (event) => update({ link_browser_cookies: event.target.checked })
     }
-  ), "\u5141\u8BB8\u8BFB\u53D6\u6D4F\u89C8\u5668 Cookie"), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6D4F\u89C8\u5668"), /* @__PURE__ */ React.createElement(
+  ), "\u5141\u8BB8\u94FE\u63A5\u89C6\u9891\u8BFB\u53D6\u6D4F\u89C8\u5668\u767B\u5F55\u72B6\u6001"), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6D4F\u89C8\u5668"), /* @__PURE__ */ React.createElement(
     "select",
     {
       className: "mc-input mc-select",
@@ -54178,7 +54451,7 @@ function SettingsVideo({ t }) {
       disabled: busy,
       onChange: (event) => update({ link_cookie_browser: event.target.value })
     },
-    BROWSERS.map((value) => /* @__PURE__ */ React.createElement("option", { key: value, value }, value))
+    BROWSERS2.map(([value, label]) => /* @__PURE__ */ React.createElement("option", { key: value, value }, label))
   )), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6700\u9AD8\u753B\u8D28"), /* @__PURE__ */ React.createElement(
     "select",
     {
@@ -54188,75 +54461,22 @@ function SettingsVideo({ t }) {
       onChange: (event) => update({ link_max_height: Number(event.target.value) })
     },
     HEIGHTS.map((value) => /* @__PURE__ */ React.createElement("option", { key: value, value }, value === 0 ? "\u81EA\u52A8\uFF08\u6700\u9AD8\uFF09" : `${value}P`))
-  )), error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, error) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-card-divider" }), /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u6296\u97F3\u8D26\u53F7"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, douyin?.saved ? `\u5DF2\u5BFC\u5165 ${douyin.count || 0} \u6761 Cookie` : "\u672A\u5BFC\u5165 Cookie"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: openDouyinLogin,
-      disabled: Boolean(douyinBusy)
-    },
-    "\u626B\u7801\u767B\u5F55"
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: importDouyinCookies,
-      disabled: Boolean(douyinBusy)
-    },
-    douyinBusy === "import" ? "\u8BFB\u53D6\u4E2D\u2026" : "\u8BFB\u53D6 Cookie"
-  ), /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: testDouyin,
-      disabled: Boolean(douyinBusy) || !douyin?.last_url
-    },
-    douyinBusy === "test" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5"
-  ), douyinNeedsPermission ? /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: openPermissionSettings,
-      disabled: Boolean(douyinBusy)
-    },
-    "\u6253\u5F00\u6743\u9650\u8BBE\u7F6E"
-  ) : null, douyinNeedsRestart ? /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: restartBackend,
-      disabled: Boolean(douyinBusy),
-      title: "\u91CD\u542F\u4F1A\u4E2D\u65AD\u6B63\u5728\u8FDB\u884C\u7684\u91C7\u96C6/\u8F6C\u5199"
-    },
-    douyinBusy === "restart" ? "\u91CD\u542F\u4E2D\u2026" : "\u91CD\u542F\u5F15\u64CE"
-  ) : null, douyin?.saved ? /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button",
-      onClick: clearDouyin,
-      disabled: Boolean(douyinBusy)
-    },
-    "\u6E05\u9664"
-  ) : null), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text mc-card-hint" }, "\u5728\u6253\u5F00\u7684\u6D4F\u89C8\u5668\u91CC\u7528\u6296\u97F3 App \u626B\u7801\u767B\u5F55\uFF0C\u518D\u70B9\u300C\u8BFB\u53D6 Cookie\u300D\uFF1B\u53EA\u4FDD\u5B58 douyin.com \u57DF\u3002"), douyinMessage ? /* @__PURE__ */ React.createElement("p", { className: douyinTone === "error" ? "mc-error-text mc-card-hint" : "mc-card-text mc-card-hint", role: "status" }, douyinMessage) : null));
+  )), error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, error) : null));
 }
 
 // client-src/components/Settings.jsx
 var TABS = [
   ["models", "settings.tab.models", "\u6A21\u578B"],
-  ["libraries", "settings.tab.libraries", "\u8D44\u6599\u7A7A\u95F4"],
+  ["account", "settings.tab.account", "\u8D26\u53F7"],
   ["capture", "settings.tab.capture", "\u91C7\u96C6"],
   ["feishu", "settings.tab.feishu", "\u98DE\u4E66"],
+  ["libraries", "settings.tab.libraries", "\u8D44\u6599\u7A7A\u95F4"],
   ["about", "settings.tab.about", "\u5173\u4E8E"]
 ];
 var VALID = new Set(TABS.map(([id]) => id));
-function Settings2({ t }) {
+function Settings2({ t, initialTab = "", focusAnchor = "", focusNonce = 0, onRestartSetup = null }) {
   const [tab, setTab] = React.useState(() => {
+    if (VALID.has(initialTab)) return initialTab;
     const saved = localStorage.getItem("meetclip.settingsTab");
     return VALID.has(saved) ? saved : "models";
   });
@@ -54264,6 +54484,19 @@ function Settings2({ t }) {
     setTab(next);
     localStorage.setItem("meetclip.settingsTab", next);
   }
+  React.useEffect(() => {
+    if (VALID.has(initialTab)) setTab(initialTab);
+  }, [initialTab, focusNonce]);
+  React.useEffect(() => {
+    if (!focusAnchor || typeof document === "undefined") return;
+    const timer = setTimeout(() => {
+      const node = document.querySelector(`[data-settings-anchor="${focusAnchor}"]`);
+      if (node && typeof node.scrollIntoView === "function") {
+        node.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [focusAnchor, focusNonce, tab]);
   function label(key, fallback) {
     const value = typeof t === "function" ? t(key) : "";
     return value && value !== key ? value : fallback;
@@ -54279,7 +54512,474 @@ function Settings2({ t }) {
       onClick: () => selectTab(id)
     },
     label(key, fallback)
-  ))), tab === "models" ? /* @__PURE__ */ React.createElement(SettingsModels, { t }) : null, tab === "libraries" ? /* @__PURE__ */ React.createElement(SettingsLibraries, { t }) : null, tab === "capture" ? /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement(SettingsCapture, { t }), /* @__PURE__ */ React.createElement(SettingsLive, { t }), /* @__PURE__ */ React.createElement(SettingsVideo, { t })) : null, tab === "feishu" ? /* @__PURE__ */ React.createElement(SettingsFeishu, null) : null, tab === "about" ? /* @__PURE__ */ React.createElement(SettingsAbout, { t }) : null);
+  ))), tab === "models" ? /* @__PURE__ */ React.createElement(SettingsModels, { t }) : null, tab === "account" ? /* @__PURE__ */ React.createElement(SettingsAccount, null) : null, tab === "libraries" ? /* @__PURE__ */ React.createElement(SettingsLibraries, { t }) : null, tab === "capture" ? /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement(SettingsCapture, { t }), /* @__PURE__ */ React.createElement(SettingsLive, { t }), /* @__PURE__ */ React.createElement(SettingsVideo, { t })) : null, tab === "feishu" ? /* @__PURE__ */ React.createElement(SettingsFeishu, null) : null, tab === "about" ? /* @__PURE__ */ React.createElement(SettingsAbout, { t, onRestartSetup }) : null);
+}
+
+// client-src/components/SettingsDialog.jsx
+function SettingsDialog({ t, request: request3, onClose, onRestartSetup }) {
+  React.useEffect(() => {
+    function onKey(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    }
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [onClose]);
+  return /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      className: "mc-modal-layer mc-settings-layer",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": "\u4F1A\u6458\u8BBE\u7F6E",
+      onMouseDown: (event) => {
+        if (event.target === event.currentTarget) onClose();
+      }
+    },
+    /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-settings-dialog" }, /* @__PURE__ */ React.createElement("div", { className: "mc-settings-dialog-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-settings-dialog-title" }, "\u4F1A\u6458\u8BBE\u7F6E"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", "aria-label": "\u5173\u95ED\u8BBE\u7F6E", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("div", { className: "mc-settings-dialog-body" }, /* @__PURE__ */ React.createElement(
+      Settings2,
+      {
+        t,
+        initialTab: request3?.tab || "",
+        focusAnchor: request3?.anchor || "",
+        focusNonce: request3?.nonce || 0,
+        onRestartSetup
+      }
+    )))
+  );
+}
+
+// client-src/components/HelpDialog.jsx
+init_react_shim();
+var ENTRIES = [
+  { kind: "launch", title: "\u53D1\u5E03\u4F1A\u76F4\u64AD", hint: "\u8D34\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u8FB9\u5F55\u8FB9\u8F6C\u5199\uFF1B\u767B\u5F55 B\u7AD9\u53EF\u5F55\u539F\u753B" },
+  { kind: "video", title: "\u89C6\u9891\u94FE\u63A5", hint: "B\u7AD9\u3001YouTube\u3001\u6296\u97F3\u7B49\u94FE\u63A5\uFF1B\u6296\u97F3\u901A\u5E38\u8981\u767B\u5F55" },
+  { kind: "meeting", title: "\u4F1A\u8BAE\u5F55\u97F3", hint: "\u9009\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u53EF\u591A\u9009\u6279\u91CF\u5BFC\u5165" },
+  { kind: "doc", title: "\u98DE\u4E66\u6587\u6863", hint: "\u8BFB\u6210\u53EF @ \u7684\u5361\u7247\uFF1B\u4E5F\u53EF\u53EA\u767B\u8BB0\u94FE\u63A5" }
+];
+function HelpDialog({ onClose, onStart }) {
+  React.useEffect(() => {
+    function onKey(event) {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      onClose();
+    }
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [onClose]);
+  return /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      className: "mc-modal-layer",
+      role: "dialog",
+      "aria-modal": "true",
+      "aria-label": "\u4F1A\u6458\u4F7F\u7528\u6307\u5357",
+      onMouseDown: (event) => {
+        if (event.target === event.currentTarget) onClose();
+      }
+    },
+    /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-help-dialog" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u4F1A\u6458\u600E\u4E48\u7528"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", "aria-label": "\u5173\u95ED\u4F7F\u7528\u6307\u5357", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("div", { className: "mc-help-body" }, /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("h4", null, "\u56DB\u4E2A\u5165\u53E3"), /* @__PURE__ */ React.createElement("div", { className: "mc-help-entries" }, ENTRIES.map((entry) => /* @__PURE__ */ React.createElement("button", { key: entry.kind, type: "button", onClick: () => {
+      onClose();
+      onStart?.(entry.kind);
+    } }, /* @__PURE__ */ React.createElement("strong", null, entry.title), /* @__PURE__ */ React.createElement("span", null, entry.hint)))), /* @__PURE__ */ React.createElement("p", null, "\u4E00\u822C\u4ECE\u5DE6\u4FA7\u300C\uFF0B\u300D\u5F00\u59CB\uFF1B\u9996\u9875\u5BF9\u8BDD\u6846\u7528\u6765\u95EE Agent\uFF0C\u8D34\u94FE\u63A5\u4E5F\u4F1A\u4EA4\u7ED9 Agent \u5904\u7406\u3002")), /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("h4", null, "\u8D26\u53F7\u4EC0\u4E48\u65F6\u5019\u9700\u8981"), /* @__PURE__ */ React.createElement("ul", null, /* @__PURE__ */ React.createElement("li", null, "B\u7AD9\uFF1A\u5F55\u76F4\u64AD\u539F\u753B\u3001\u4F1A\u5458/\u79C1\u4EAB\u89C6\u9891\uFF1B\u516C\u5F00\u89C6\u9891\u53EF\u533F\u540D\u3002"), /* @__PURE__ */ React.createElement("li", null, "\u6296\u97F3\uFF1A\u591A\u6570\u89C6\u9891\u4E0B\u8F7D\u9700\u8981\u767B\u5F55\uFF1B\u6309\u300C\u9009\u6D4F\u89C8\u5668 \u2192 \u626B\u7801 \u2192 \u8BFB\u53D6\u767B\u5F55\u72B6\u6001\u300D\u4E09\u6B65\u8D70\u3002"), /* @__PURE__ */ React.createElement("li", null, "\u98DE\u4E66\uFF1A\u8BFB\u6587\u6863\u5361\u7247\u548C Agent \u8BFB\u5199\u98DE\u4E66\uFF1B\u53EA\u767B\u8BB0\u94FE\u63A5\u53EF\u4EE5\u4E0D\u767B\u5F55\u3002"))), /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("h4", null, "\u8BBE\u7F6E\u5728\u54EA\u91CC"), /* @__PURE__ */ React.createElement("p", null, "\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E\u300D\uFF1A\u6A21\u578B\u3001\u8D26\u53F7\u3001\u91C7\u96C6\u3001\u98DE\u4E66\u3001\u8D44\u6599\u7A7A\u95F4\u3001\u5173\u4E8E\u3002\u6539\u5B8C\u76F4\u63A5\u5173\u95ED\uFF0C\u5E95\u5C42\u9875\u9762\u4E0D\u4F1A\u4E22\u3002")), /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("h4", null, "\u9047\u5230\u95EE\u9898"), /* @__PURE__ */ React.createElement("ul", null, /* @__PURE__ */ React.createElement("li", null, "\u63D0\u793A\u9700\u8981\u767B\u5F55\uFF1A\u9519\u8BEF\u65C1\u8FB9\u5C31\u6709\u300C\u626B\u7801\u767B\u5F55 B\u7AD9 / \u767B\u5F55\u6296\u97F3\u300D\u3002"), /* @__PURE__ */ React.createElement("li", null, "\u98DE\u4E66\u8BF4\u5DF2\u767B\u5F55\u5374\u8BFB\u4E0D\u4E86\uFF1A\u5230\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u98DE\u4E66\u300D\u70B9\u300C\u6D4B\u8BD5\u8BFB\u53D6\u300D\uFF0C\u786E\u8BA4\u80FD\u8BFB\u4E00\u7BC7\u6587\u6863\u3002"), /* @__PURE__ */ React.createElement("li", null, "\u8BFB\u4E0D\u5230\u6D4F\u89C8\u5668 Cookie\uFF1A\u5230\u8BBE\u7F6E \u2192 \u8D26\u53F7\u70B9\u300C\u6253\u5F00\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u8BBE\u7F6E\u300D\uFF0C\u6388\u6743\u540E\u91CD\u542F\u5F15\u64CE\u3002"))), /* @__PURE__ */ React.createElement("section", null, /* @__PURE__ */ React.createElement("h4", null, "\u5FEB\u6377\u952E"), /* @__PURE__ */ React.createElement("p", null, "\u2318K \u641C\u7D22\uFF1B\u2318\u21A9 \u628A\u9996\u9875\u8F93\u5165\u53D1\u7ED9 Agent\uFF1BEsc \u5173\u95ED\u5F39\u5C42\u3002"))))
+  );
+}
+
+// client-src/components/Panel.jsx
+function Panel({ t }) {
+  const [data, setData] = React.useState(null);
+  const [error, setError] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+  const [revision, setRevision] = React.useState(0);
+  const [view2, setView] = React.useState("home");
+  const [newOpen, setNewOpen] = React.useState(false);
+  const [newInitialUrl, setNewInitialUrl] = React.useState("");
+  const [newInitialKind, setNewInitialKind] = React.useState("");
+  const [batchFocus, setBatchFocus] = React.useState(null);
+  const [packFocus, setPackFocus] = React.useState(null);
+  const [homeRevision, setHomeRevision] = React.useState(0);
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [focus, setFocus] = React.useState(null);
+  const [notice, setNotice] = React.useState("");
+  const [setupMode, setSetupMode] = React.useState(false);
+  const [forceSetup, setForceSetup] = React.useState(false);
+  const [settingsRequest, setSettingsRequest] = React.useState(getSettingsRequest);
+  const [helpOpen, setHelpOpen] = React.useState(false);
+  const [signal, setSignal] = React.useState(getStatusSignal);
+  const [libraryBusy, setLibraryBusy] = React.useState(false);
+  const [libraryTarget, setLibraryTarget] = React.useState(null);
+  const [libraryWork, setLibraryWork] = React.useState([]);
+  const [libraryManage, setLibraryManage] = React.useState(false);
+  const [libraryHint2, setLibraryHint] = React.useState(getLibraryHint);
+  React.useEffect(() => subscribeStatusSignal(setSignal), []);
+  React.useEffect(() => subscribeLibraryHint(setLibraryHint), []);
+  React.useEffect(() => subscribeSettings((request3) => setSettingsRequest(request3)), []);
+  React.useEffect(() => {
+    if (!signal.revision) return;
+    setRevision((value) => value + 1);
+    setHomeRevision((value) => value + 1);
+  }, [signal.revision]);
+  const loadedRevision = React.useRef(0);
+  const load = React.useCallback(async (quiet = true) => {
+    if (!quiet) setLoading(true);
+    try {
+      const next = await status2();
+      loadedRevision.current = getStatusSignal().revision;
+      setData(next);
+      setError("");
+    } catch (failure) {
+      setError(failure?.message || String(failure));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  React.useEffect(() => {
+    load(false);
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") load(true);
+    }, 8e3);
+    return () => clearInterval(timer);
+  }, [load, revision]);
+  React.useEffect(() => {
+    if (!data) return;
+    if (signal.restarting) return;
+    if (loadedRevision.current < signal.revision) return;
+    const backendState = data.backend?.state;
+    if (data.env?.ready === false || backendState === "stopped" || backendState === "error") setSetupMode(true);
+  }, [data, signal.restarting, signal.revision]);
+  const libraries = data?.libraries || [];
+  const activeLibrary = data?.library || null;
+  const reloadLibraries = React.useCallback(async () => {
+    await load(true);
+  }, [load]);
+  const switchLibrary = React.useCallback(async (entry, interrupt = false) => {
+    if (!entry?.id || libraryBusy) return;
+    setLibraryBusy(true);
+    beginEngineRestart();
+    try {
+      const result = await activateLibrary({ id: entry.id, interrupt });
+      setLibraryTarget(null);
+      setLibraryWork([]);
+      setFocus(null);
+      setBatchFocus(null);
+      setRevision((value) => value + 1);
+      setHomeRevision((value) => value + 1);
+      if (result?.switched === false) setNotice(`\u5F53\u524D\u5DF2\u7ECF\u5728\u300C${entry.name}\u300D`);
+      else setNotice(`\u5DF2\u5207\u6362\u5230\u300C${entry.name}\u300D`);
+    } catch (failure) {
+      if (failure?.data?.code === "library_busy") {
+        setLibraryTarget(entry);
+        setLibraryWork(failure.data?.detail?.work || []);
+      } else {
+        setNotice(failure?.message || String(failure));
+      }
+    } finally {
+      endEngineRestart();
+      setLibraryBusy(false);
+    }
+  }, [libraryBusy]);
+  React.useEffect(() => {
+    if (!notice) return void 0;
+    const timer = setTimeout(() => setNotice(""), 4e3);
+    return () => clearTimeout(timer);
+  }, [notice]);
+  React.useEffect(() => {
+    function onKey(event) {
+      const modifier = event.metaKey || event.ctrlKey;
+      if (modifier && (event.key.toLowerCase() === "k" || event.shiftKey && event.key.toLowerCase() === "f")) {
+        const root = document.querySelector(".mc-root");
+        const active2 = document.activeElement;
+        if (root && active2 && root.contains(active2)) {
+          event.preventDefault();
+          setSearchQuery("");
+          setSearchOpen(true);
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const setupBlocked = Boolean(data) && !signal.restarting && (setupMode || data.env?.ready === false || ["stopped", "error"].includes(data.backend?.state));
+  const focusSeq = React.useRef(0);
+  const consumeFocus = React.useCallback(() => setFocus(null), []);
+  const openRecord = React.useCallback((record, time) => {
+    const id = record && typeof record === "object" ? record.id : record;
+    if (!id) return;
+    focusSeq.current += 1;
+    setView("library");
+    setFocus({
+      id,
+      title: record && typeof record === "object" && record.title || "",
+      kind: record && typeof record === "object" && record.kind || "",
+      time: typeof time === "number" ? time : null,
+      nonce: focusSeq.current
+    });
+  }, []);
+  function openSearchResult(result) {
+    const target = result?.target || {};
+    if (!target.session_id) {
+      setNotice("\u65E0\u6CD5\u5B9A\u4F4D\u8BE5\u7ED3\u679C\u3002");
+      return;
+    }
+    setSearchOpen(false);
+    setSearchQuery("");
+    openRecord({
+      id: target.session_id,
+      title: result.title || result.name || "\u8BB0\u5F55",
+      kind: result.kind || ""
+    }, typeof target.time === "number" ? target.time : null);
+  }
+  const handleCaptureCreated = React.useCallback((payload) => {
+    setHomeRevision((value) => value + 1);
+    setRevision((value) => value + 1);
+    if (payload && typeof payload === "object" && payload.kind === "doc") {
+      const card = payload.card || {};
+      const name = card.title || "\u98DE\u4E66\u6587\u6863";
+      if (payload.warning) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF1A${payload.warning}`);
+      else if (payload.link_only) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);
+      else setNotice(`\u5DF2\u751F\u6210\u4F1A\u6458\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);
+      return;
+    }
+    if (payload && typeof payload === "object" && payload.batch) {
+      setView("home");
+      setBatchFocus({ id: payload.batch.id, nonce: Date.now() });
+      const summary2 = payload.summary || {};
+      if (summary2.added || summary2.duplicates || summary2.failed) {
+        const parts = [`\u5DF2\u52A0\u5165 ${summary2.added || 0} \u6761`];
+        if (summary2.duplicates) parts.push(`${summary2.duplicates} \u6761\u91CD\u590D`);
+        if (summary2.failed) parts.push(`${summary2.failed} \u6761\u5931\u8D25`);
+        setNotice(parts.join("\uFF0C"));
+      }
+      return;
+    }
+    if (payload && typeof payload === "object" && Array.isArray(payload.ids)) {
+      setView("home");
+      const summary2 = payload.summary || {};
+      const parts = [`\u5DF2\u5BFC\u5165 ${payload.ids.length} \u4E2A\u6587\u4EF6`];
+      if (payload.pack?.title) parts.push(`\u5DF2\u6536\u8FDB\u300C${payload.pack.title}\u300D`);
+      if (payload.pack_error) parts.push(`\u5361\u5305\u521B\u5EFA\u5931\u8D25\uFF1A${payload.pack_error}`);
+      const failedNames = (Array.isArray(payload.results) ? payload.results : []).filter((row) => !row.ok).map((row) => row.name || row.title).filter(Boolean);
+      if (summary2.failed) {
+        const shown = failedNames.slice(0, 2).join("\u3001");
+        parts.push(`${summary2.failed} \u4E2A\u5931\u8D25${shown ? `\uFF1A${shown}${failedNames.length > 2 ? " \u7B49" : ""}` : ""}`);
+      }
+      setNotice(parts.join("\uFF0C"));
+      if (payload.pack?.id) setPackFocus({ id: payload.pack.id, nonce: Date.now() });
+      return;
+    }
+    const id = payload && typeof payload === "object" ? payload.id : payload;
+    if (!id) return;
+    const summary = payload && typeof payload === "object" ? payload.summary : null;
+    if (summary?.duplicates || summary?.failed) {
+      setNotice([
+        summary.duplicates ? `${summary.duplicates} \u6761\u91CD\u590D` : "",
+        summary.failed ? `${summary.failed} \u6761\u5931\u8D25` : ""
+      ].filter(Boolean).join("\uFF0C"));
+    }
+    openRecord({ id, title: "\u6B63\u5728\u5904\u7406\u2026" });
+  }, [openRecord]);
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-root" }, /* @__PURE__ */ React.createElement("div", { className: "mc-ambient", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null), /* @__PURE__ */ React.createElement("i", null)), /* @__PURE__ */ React.createElement(
+    TopBar,
+    {
+      t,
+      view: view2,
+      onView: (next) => {
+        setView(next);
+        setFocus(null);
+        setBatchFocus(null);
+      },
+      libraries,
+      activeLibrary,
+      libraryBusy,
+      onLibrarySelect: (entry) => switchLibrary(entry),
+      onLibraryCreate: () => setLibraryManage(true),
+      onLibraryManage: () => setLibraryManage(true),
+      onSearch: () => {
+        setSearchQuery("");
+        setSearchOpen(true);
+      },
+      onHelp: () => setHelpOpen(true),
+      onSettings: () => setSettingsRequest(getSettingsRequest() || { tab: "models", nonce: Date.now() }),
+      settingsDisabled: setupBlocked || forceSetup
+    }
+  ), libraryHint2 && !setupBlocked ? /* @__PURE__ */ React.createElement("div", { className: "mc-lib-hint", role: "status" }, /* @__PURE__ */ React.createElement("span", null, "\u5F53\u524D\u5DE5\u4F5C\u533A\u5C5E\u4E8E\u300C", libraryHint2.name, "\u300D\u8D44\u6599\u7A7A\u95F4\uFF0C\u6B63\u5728\u663E\u793A\u300C", activeLibrary?.name || "\u5F53\u524D\u7A7A\u95F4", "\u300D\u7684\u6570\u636E\u3002"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      disabled: libraryBusy,
+      onClick: () => switchLibrary({ id: libraryHint2.id, name: libraryHint2.name })
+    },
+    "\u5207\u6362\u5230\u300C",
+    libraryHint2.name,
+    "\u300D"
+  )) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mc-error-title" }, t("status.hostError")), /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, error), /* @__PURE__ */ React.createElement("p", { className: "mc-error-text" }, t("status.errorHint")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setRevision((value) => value + 1) }, t("common.retry"))) : null, !error && data && !setupBlocked && data.locations?.dataDirWritable === false ? /* @__PURE__ */ React.createElement("div", { className: "mc-banner mc-banner-warn" }, /* @__PURE__ */ React.createElement("span", null, "\u6570\u636E\u76EE\u5F55\u4E0D\u53EF\u5199"), /* @__PURE__ */ React.createElement("span", { className: "mc-banner-hint" }, "\u8BF7\u7ED9 DeepSeek Harness \u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u6743\u9650\u540E\u5B8C\u5168\u9000\u51FA\uFF08\u2318Q\uFF09\u518D\u6253\u5F00\uFF1B \u6216\u5728\u4F1A\u6458\u9762\u677F\u53F3\u4E0A\u89D2\u300C\u8BBE\u7F6E \u2192 \u91C7\u96C6 \u2192 \u5B58\u50A8\u4F4D\u7F6E\u300D\u6362\u4E00\u4E2A\u53EF\u5199\u76EE\u5F55\u3002"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      onClick: () => openFullDiskAccess().catch(() => {
+      })
+    },
+    "\u6253\u5F00\u7CFB\u7EDF\u8BBE\u7F6E"
+  )) : null, !error && !data ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-loading" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-spinner" }), /* @__PURE__ */ React.createElement("span", null, "\u6B63\u5728\u68C0\u67E5\u672C\u5730\u73AF\u5883\u2026")) : null, !error && (setupBlocked || forceSetup) ? /* @__PURE__ */ React.createElement(
+    SetupWizard,
+    {
+      t,
+      status: data,
+      onComplete: (payload = {}) => {
+        setSetupMode(false);
+        setForceSetup(false);
+        setRevision((value) => value + 1);
+        setHomeRevision((value) => value + 1);
+        setView("home");
+        load(false);
+        if (payload?.start) {
+          setNewInitialUrl("");
+          setNewInitialKind(payload.start);
+          setNewOpen(true);
+        }
+      }
+    }
+  ) : null, !error && data && !setupBlocked && !forceSetup && view2 === "home" ? /* @__PURE__ */ React.createElement(
+    HomePage,
+    {
+      t,
+      revision: homeRevision,
+      onOpenRecord: openRecord,
+      onNewCapture: ({ url = "", kind = "" } = {}) => {
+        setNewInitialUrl(url);
+        setNewInitialKind(kind);
+        setNewOpen(true);
+      },
+      onToast: setNotice,
+      onCaptureCreated: handleCaptureCreated,
+      batchFocus,
+      onBatchFocusHandled: () => setBatchFocus(null),
+      packFocus,
+      onPackFocusHandled: () => setPackFocus(null),
+      library: activeLibrary,
+      dataDir: data?.locations?.dataDirCanonical || data?.locations?.dataDir || data?.library?.dataDir || ""
+    }
+  ) : null, !error && data && !setupBlocked && !forceSetup && view2 === "library" ? /* @__PURE__ */ React.createElement(
+    RecordsBrowser,
+    {
+      t,
+      statusData: data,
+      focus,
+      onFocusConsumed: consumeFocus,
+      onStatusRefresh: () => setRevision((value) => value + 1)
+    }
+  ) : null, libraryTarget ? /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": "\u5207\u6362\u8D44\u6599\u7A7A\u95F4" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal", style: { width: "min(460px, 100%)" } }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8FD8\u6709\u4EFB\u52A1\u5728\u8DD1"), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5207\u5230\u300C", libraryTarget.name, "\u300D\u9700\u8981\u5148\u505C\u672C\u5730\u5F15\u64CE\u3002", busyWorkText(libraryWork), "\u4F1A\u53D7\u5F71\u54CD\uFF1B \u6B63\u5728\u91C7\u96C6\u7684\u76F4\u64AD\u4F1A\u5148\u4FDD\u5B58\u5DF2\u7ECF\u5F55\u5230\u7684\u90E8\u5206\uFF0C\u518D\u5982\u5B9E\u7ED3\u675F\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      disabled: libraryBusy,
+      onClick: () => {
+        setLibraryTarget(null);
+        setLibraryWork([]);
+      }
+    },
+    "\u53D6\u6D88"
+  ), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": "primary",
+      disabled: libraryBusy,
+      onClick: () => switchLibrary(libraryTarget, true)
+    },
+    libraryBusy ? "\u6B63\u5728\u6536\u5C3E\u5E76\u5207\u6362\u2026" : "\u505C\u6B62\u91C7\u96C6\u5E76\u5207\u6362"
+  )))) : null, libraryManage ? /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": "\u8D44\u6599\u7A7A\u95F4" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-lib-modal" }, /* @__PURE__ */ React.createElement("div", { className: "mc-lib-modal-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-lib-modal-title" }, "\u8D44\u6599\u7A7A\u95F4"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-icon-button",
+      onClick: () => setLibraryManage(false),
+      "aria-label": "\u5173\u95ED"
+    },
+    "\xD7"
+  )), /* @__PURE__ */ React.createElement(
+    LibraryPanel,
+    {
+      t,
+      rows: libraries,
+      active: activeLibrary,
+      sharedDir: data?.sharedDir || "",
+      dataDir: data?.locations?.dataDir || "",
+      busy: libraryBusy,
+      showSharing: false,
+      variant: "dialog",
+      onSwitch: (entry) => switchLibrary(entry),
+      onChanged: reloadLibraries
+    }
+  ))) : null, notice ? /* @__PURE__ */ React.createElement("div", { className: "mc-banner" }, notice) : null, settingsRequest && !setupBlocked && !forceSetup ? /* @__PURE__ */ React.createElement(
+    SettingsDialog,
+    {
+      t,
+      request: settingsRequest,
+      onClose: () => {
+        closeSettings();
+        setSettingsRequest(null);
+      },
+      onRestartSetup: () => {
+        closeSettings();
+        setSettingsRequest(null);
+        setForceSetup(true);
+      }
+    }
+  ) : null, helpOpen ? /* @__PURE__ */ React.createElement(
+    HelpDialog,
+    {
+      onClose: () => setHelpOpen(false),
+      onStart: (kind) => {
+        setHelpOpen(false);
+        setView("home");
+        setNewInitialUrl("");
+        setNewInitialKind(kind);
+        setNewOpen(true);
+      }
+    }
+  ) : null, !setupBlocked && !forceSetup && searchOpen ? /* @__PURE__ */ React.createElement(
+    GlobalSearchDialog,
+    {
+      t,
+      initialQuery: searchQuery,
+      onClose: () => {
+        setSearchOpen(false);
+        setSearchQuery("");
+      },
+      onOpenResult: openSearchResult
+    }
+  ) : null, !setupBlocked && !forceSetup && newOpen ? /* @__PURE__ */ React.createElement(
+    NewCaptureDialog,
+    {
+      t,
+      statusData: data,
+      initialUrl: newInitialUrl,
+      initialKind: newInitialKind,
+      onClose: () => {
+        setNewOpen(false);
+        setNewInitialUrl("");
+        setNewInitialKind("");
+      },
+      onSubmitted: () => {
+        setHomeRevision((value) => value + 1);
+        setRevision((value) => value + 1);
+      },
+      onCreated: (payload) => {
+        setNewOpen(false);
+        setNewInitialUrl("");
+        setNewInitialKind("");
+        handleCaptureCreated(payload);
+      }
+    }
+  ) : null);
 }
 
 // client-src/lib/styles.js

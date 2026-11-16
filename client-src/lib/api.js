@@ -1,3 +1,37 @@
+const STATUS_MESSAGES = {
+  400: '请求内容不完整，请检查填写的内容',
+  401: '没有登录或凭证已失效',
+  403: '没有权限执行这个操作',
+  404: '接口不存在，可能是本地引擎版本过旧；请重启后再试',
+  409: '当前状态不允许这个操作，请刷新后重试',
+  422: '参数格式不正确，请检查填写内容',
+  429: '请求太频繁，请稍等一会儿再试',
+  500: '本地引擎出错了，请稍后重试',
+  502: '本地引擎暂时不可用，请稍后重试',
+  503: '本地引擎未就绪，请先启动本地引擎'
+}
+
+function formatDetail(detail) {
+  if (Array.isArray(detail)) {
+    return detail.map((item) => {
+      const where = Array.isArray(item?.loc) ? item.loc.filter((part) => part !== 'body').join('.') : ''
+      return [where, item?.msg || item?.message || ''].filter(Boolean).join(': ')
+    }).filter(Boolean).join('；')
+  }
+  if (detail && typeof detail === 'object') {
+    return String(detail.message || detail.msg || detail.error || detail.detail || '')
+  }
+  return typeof detail === 'string' ? detail : ''
+}
+
+/** 把 FastAPI / Host 的各种错误形状收敛成一句中文，避免 [object Object]。 */
+export function formatApiError(status, data) {
+  const body = data && typeof data === 'object' ? data : {}
+  const message = formatDetail(body.detail) || formatDetail(body.error) || formatDetail(body.message)
+  if (message) return message
+  return STATUS_MESSAGES[status] || `请求失败（HTTP ${status}）`
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`/meetclip${path}`, {
     credentials: 'same-origin',
@@ -15,10 +49,11 @@ async function request(path, options = {}) {
     try { data = JSON.parse(text) } catch { data = text }
   }
   if (!response.ok) {
-    const message = (data && (data.detail || data.error || data.message)) || `HTTP ${response.status}`
-    const error = new Error(message)
+    const error = new Error(formatApiError(response.status, data))
     error.status = response.status
     error.data = data
+    error.code = data && typeof data === 'object' ? data.code : ''
+    error.hint = data && typeof data === 'object' ? data.hint : ''
     throw error
   }
   return data
@@ -671,6 +706,11 @@ export function ensureLibraryWorkspace({ id, title } = {}) {
 
 export function openExternal(target, url) {
   return app('/open', { method: 'POST', body: JSON.stringify(url ? { target, url } : { target }) })
+}
+
+/** 打开 macOS 的「完全磁盘访问」面板；其他平台返回明确错误。 */
+export function openFullDiskAccess() {
+  return app('/open', { method: 'POST', body: JSON.stringify({ target: 'full-disk-access' }) })
 }
 
 // ------------------------------------------------------------------ 更新

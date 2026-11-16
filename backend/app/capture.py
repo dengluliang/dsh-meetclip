@@ -24,6 +24,7 @@ import asr_engines
 import cloud_transcription
 import bilibili
 import minutes
+import platform_errors
 import scheduler
 import settings
 import text_hygiene
@@ -130,7 +131,16 @@ def check_bilibili_live(url: str):
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
         if data.get("code") != 0:
-            return {"ok": False, "status": "invalid", "room_id": room_id, "message": f"房间查询失败：{data.get('message')}"}
+            failure = platform_errors.classify_live_api_failure(data.get("code"), data.get("message") or "")
+            return {
+                "ok": False,
+                "status": failure["status"],
+                "code": failure["code"],
+                "room_id": room_id,
+                "message": failure["message"],
+                "action": failure.get("action"),
+                "detail": failure.get("detail", ""),
+            }
         info = data["data"]
         live_status = info.get("live_status")  # 0 未开播 1 直播中 2 轮播
         title = (info.get("title") or f"直播间 {room_id}").strip()
@@ -579,7 +589,7 @@ class CaptureTask:
             try:
                 st = bilibili.ensure_login(DEPS["yt_dlp"])
                 if not st["logged_in"]:
-                    warn = "未登录 B站，画质最高 720P。可在 设置 → B站登录 扫码登录以获取 1080P 原画"
+                    warn = "未登录 B站，画质最高 720P。到会摘面板右上角「设置 → 账号」扫码登录后可录 1080P 原画，并支持会员/私享视频"
                 info = bilibili.get_stream(room)
                 if info:
                     self.headers = {"cookie": bilibili.cookie_header()}
@@ -596,7 +606,7 @@ class CaptureTask:
                            capture_output=True, text=True, timeout=30)
         url = r.stdout.strip().split("\n")[0] if r.stdout.strip() else None
         if not url:
-            raise RuntimeError(f"无法解析直播流地址：{(r.stderr or '')[:200]}")
+            raise RuntimeError("无法获取直播流：可能是直播已结束、需要登录或网络问题。请稍后重试；如果一直失败，展开技术详情反馈。")
         self.warn_once("quality", warn or "使用兼容方式取流，画质可能低于 1080P")
         return url, "兼容模式（降级）"
 

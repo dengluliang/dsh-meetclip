@@ -237,7 +237,7 @@ class MeetingTask(CaptureTask):
             if not DEPS["ffmpeg"]:
                 raise RuntimeError(HINT_FFMPEG)
             if not asr_engines.ready(self.engine_config):
-                raise RuntimeError("所选转录引擎未就绪，请检查 设置 → 会摘 → 模型")
+                raise RuntimeError("所选转录引擎未就绪，请检查会摘面板右上角「设置 → 模型」")
             p = self.params
             sess = db.get_session(sid) or {}
             self._set_phase("extract", "正在读取音视频…", None)

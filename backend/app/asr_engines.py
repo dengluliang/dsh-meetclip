@@ -116,7 +116,7 @@ def _failure_text(code, detail=""):
         text += "：" + detail
     lowered = detail.lower()
     if "供应商" in detail or "provider" in lowered or "vendor" in lowered:
-        text += "。模型名要带供应商前缀（形如 供应商/模型），请在 设置 → 模型 里重新选择一次"
+        text += "。模型名要带供应商前缀（形如 供应商/模型），请在会摘面板右上角「设置 → 模型」里重新选择一次"
     return text
 
 
@@ -296,8 +296,8 @@ def require_ready(config):
             raise ProviderError("请先为自定义 API 配置服务地址、模型与 Key")
         if config["provider"] == "mimo":
             if not (config.get("base_url") or "").strip() or not (config.get("model") or "").strip():
-                raise ProviderError("请先在 设置 → 会摘 → 模型 填写云端语音的服务地址与模型")
-            raise ProviderError("请先在 设置 → 会摘 → 模型 配置云端语音 API Key")
+                raise ProviderError("请先在会摘面板右上角「设置 → 模型」填写云端语音的服务地址与模型")
+            raise ProviderError("请先在会摘面板右上角「设置 → 模型」配置云端语音 API Key")
         raise ProviderError("请先启用本地语音识别模型")
     return provider
 

@@ -153,10 +153,23 @@ export function feishuSummary(status) {
   if (!dsh.entryPresent) return { tone: 'pending', text: '未安装' }
   if (!auth.loggedIn) {
     return auth.expired
-      ? { tone: 'warn', text: '登录已过期', detail: '重新登录后恢复' }
+      ? { tone: 'warn', text: '登录已过期', detail: '重新登录后恢复；如果只是访问令牌过期，重新登录后会自动续期。' }
       : { tone: 'warn', text: '未登录' }
+  }
+  if (auth.accessExpired && dsh.entryLive !== true) {
+    return {
+      tone: 'warn',
+      text: '登录待刷新',
+      detail: '飞书访问令牌已过期；到本页重新登录，或等飞书 MCP 载入后自动续期。'
+    }
   }
   if (dsh.entryLive === false) return { tone: 'warn', text: '等待生效', detail: '配置已写入，DSH 正在载入' }
   if (dsh.entryLive === null) return { tone: 'warn', text: '已配置', detail: '如果 Agent 还用不了，重启 DeepSeek Harness' }
+  if (auth.accessExpired) {
+    return { tone: 'warn', text: '登录待刷新（MCP 可自动续期）', detail: '读取文档时如果失败，点下面的「设备码登录」或重新登录。' }
+  }
+  if (!status.lastDocReadAt) {
+    return { tone: 'warn', text: '已连接，建议试读', detail: '登录只代表账号有效；读一篇文档才能确认现在真的能用。' }
+  }
   return { tone: 'ok', text: '可以使用' }
 }

@@ -10,6 +10,7 @@ import {
 import { motionOf, shouldReloadForEvent } from '../lib/liveEvents.js'
 import { createReloadGate } from '../lib/reload-gate.js'
 import { ScreenCaptureDialog } from './ScreenCaptureDialog.jsx'
+import { LoginRequiredNotice } from './login/LoginRequiredNotice.jsx'
 import { RetranscribeDialog } from './RetranscribeDialog.jsx'
 import { MinutesNotesPanel } from './MinutesNotesPanel.jsx'
 import { SpeakersPanel } from './SpeakersPanel.jsx'
@@ -548,7 +549,7 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
   if (detail?.diarize_error && detail?.status === 'done' && !active) {
     notices.push({ tone: 'warn', text: `未区分说话人：${detail.diarize_error}` })
   }
-  if (detail?.error && detail?.status === 'error' && !partial) {
+  if (detail?.error && detail?.status === 'error' && !partial && !detail?.link_error && linkJob?.error_code !== 'login_required') {
     notices.push({ tone: 'error', text: detail.error })
   }
   if (detail?.status === 'cancelled' && !partial) {
@@ -561,6 +562,21 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
       action: { label: t('detail.startTranscribe'), run: confirmStart }
     })
   }
+  const loginFailure = (() => {
+    const stored = detail?.link_error
+    if (stored && stored.status === 'login_required') {
+      return { ...stored, message: stored.message || detail?.error || '需要登录后才能继续' }
+    }
+    if (linkJob?.error_code === 'login_required') {
+      return {
+        status: 'login_required',
+        platform: detail?.platform || '',
+        message: detail?.error || '需要登录后才能继续',
+        action: null
+      }
+    }
+    return null
+  })()
 
   function applyMediaSeek(media, seconds, { quiet = false } = {}) {
     if (!media) return false
@@ -1272,6 +1288,14 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
             </div>
           ))}
         </div>
+      ) : null}
+
+      {loginFailure ? (
+        <LoginRequiredNotice
+          failure={loginFailure}
+          platform={loginFailure.platform || detail?.platform || ''}
+          onRetry={() => act('retry', () => retryLink(sessionId))}
+        />
       ) : null}
 
       {detail?.live?.phase_text ? (

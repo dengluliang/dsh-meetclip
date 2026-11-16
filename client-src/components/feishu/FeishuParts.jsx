@@ -45,6 +45,7 @@ export function FeishuStatusRows({ status, compact = false }) {
   if (status) {
     if (auth.loggedIn) {
       authText = `已登录${auth.openId ? ` ${auth.openId}` : ''}${auth.refreshExpiresAt ? ` · 有效期至 ${formatDate(auth.refreshExpiresAt)}` : ''}`
+      if (auth.accessExpired) authText += ' · 访问令牌已过期，MCP 载入后自动刷新'
     } else if (auth.expired) {
       authText = '登录已过期，需要重新登录'
       authTone = 'warn'

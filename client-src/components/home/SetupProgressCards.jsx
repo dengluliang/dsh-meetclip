@@ -1,11 +1,7 @@
 import {
-  asrEngines, deps, depsInstallStatus, installDeps,
-  meetingOptions, saveAsrEngine, testAsrEngine, testMimoKey
+  asrEngines, deps, depsInstallStatus, installDeps, meetingOptions
 } from '../../lib/api.js'
-
-// 不预置网关地址与模型：用户填自己的 OpenAI 兼容服务。
-const BASE_PLACEHOLDER = 'https://your-gateway.example/v1'
-const MODEL_PLACEHOLDER = 'your-asr-model'
+import { ModelConnection } from '../settings/ModelConnection.jsx'
 
 function wait(ms) { return new Promise((resolve) => setTimeout(resolve, ms)) }
 
@@ -13,10 +9,6 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
   const [state, setState] = React.useState(null)
   const [busy, setBusy] = React.useState('')
   const [keyOpen, setKeyOpen] = React.useState(false)
-  const [baseUrl, setBaseUrl] = React.useState('')
-  const [model, setModel] = React.useState('')
-  const [key, setKey] = React.useState('')
-  const [keyError, setKeyError] = React.useState('')
   const [failure, setFailure] = React.useState(null)
 
   const load = React.useCallback(async () => {
@@ -25,8 +17,6 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
         asrEngines(), meetingOptions(), deps()
       ])
       setState({ engine, options, capture })
-      // 部署在 meetclip config 里统一了网关地址时，这里直接带出来，只需粘贴 Key。
-      setBaseUrl((current) => current || engine?.default_base_url || engine?.base_url || '')
     } catch {
       setState(null)
     }
@@ -53,27 +43,6 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
       await load()
     } catch (input) {
       setFailure({ id: 'capture', message: input?.message || '采集组件安装失败' })
-    } finally {
-      setBusy('')
-    }
-  }
-
-  async function saveKey() {
-    if (!baseUrl.trim()) { setKeyError('请填写服务地址（Base URL）'); return }
-    if (!model.trim()) { setKeyError('请填写模型 ID'); return }
-    if (!key.trim()) { setKeyError('请输入 API Key'); return }
-    setBusy('key')
-    setKeyError('')
-    setFailure(null)
-    try {
-      await testMimoKey(key.trim(), { baseUrl: baseUrl.trim(), model: model.trim() })
-      await saveAsrEngine({ provider: 'mimo', base_url: baseUrl.trim(), model: model.trim(), api_key: key.trim() })
-      await testAsrEngine()
-      setKey('')
-      setKeyOpen(false)
-      await load()
-    } catch (input) {
-      setKeyError(input?.message || '云端语音配置失败')
     } finally {
       setBusy('')
     }
@@ -114,14 +83,13 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
             {failure?.id === card.id ? <p className="mc-progress-error">{failure.message}</p> : null}
             {card.id === 'asr' && keyOpen ? (
               <div className="mc-progress-key">
-                <input className="mc-input" value={baseUrl} spellCheck={false} placeholder={BASE_PLACEHOLDER}
-                  onChange={(event) => { setBaseUrl(event.target.value); setKeyError('') }} />
-                <input className="mc-input" value={model} spellCheck={false} placeholder={MODEL_PLACEHOLDER}
-                  onChange={(event) => { setModel(event.target.value); setKeyError('') }} />
-                <input className="mc-input" type="password" value={key} placeholder="API Key" autoComplete="off"
-                  onChange={(event) => { setKey(event.target.value); setKeyError('') }} />
-                <button type="button" className="mc-button mc-button-small" data-variant="primary" disabled={busy === 'key'} onClick={saveKey}>{busy === 'key' ? '验证中…' : '保存并测试'}</button>
-                {keyError ? <p className="mc-progress-error">{keyError}</p> : null}
+                <ModelConnection
+                  compact
+                  initialBaseUrl={engine?.base_url || engine?.default_base_url || ''}
+                  initialAsr={engine?.model || engine?.default_model || ''}
+                  hasSavedKey={Boolean(engine?.default_has_key ?? engine?.has_api_key)}
+                  onSaved={async () => { setKeyOpen(false); await load() }}
+                />
               </div>
             ) : null}
           </section>

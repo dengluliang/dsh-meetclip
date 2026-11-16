@@ -257,7 +257,8 @@ class LinkVideoTests(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertEqual(result["status"], "error")
         self.assertEqual(result["platform"], "x")
-        self.assertIn("No video could be found", result["message"])
+        self.assertIn("没有可采集的视频", result["message"])
+        self.assertIn("No video could be found", result["detail"])
 
     def test_x_anonymous_api_error_uses_syndication_before_reading_browser(self):
         playlist = {"_type": "playlist", "entries": [{"title": "公开帖第一段", "duration": 5}]}
@@ -490,8 +491,8 @@ class LinkVideoTests(unittest.TestCase):
         ]):
             result = self.link.preview("youtu.be/private")
         self.assertFalse(result["ok"])
-        self.assertIn("private video", result["message"])
         self.assertIn("选择已登录的浏览器", result["message"])
+        self.assertIn("浏览器 Cookie", result["message"])
         self.assertNotIn("/missing", result["message"])
 
     def test_network_error_does_not_trigger_browser_read_or_duplicate_metadata_request(self):
@@ -500,7 +501,9 @@ class LinkVideoTests(unittest.TestCase):
         with patch.object(self.link.subprocess, "run", side_effect=self.public_info):
             self.link.LinkTask(sid).run()
         self.assertEqual(len(self.info_calls), 1)
-        self.assertIn("503", self.db.get_session(sid)["error"])
+        session = self.db.get_session(sid)
+        self.assertIn("连不上平台", session["error"])
+        self.assertIn("503", (session.get("meta") or {}).get("link_error", {}).get("detail", ""))
 
     def test_three_link_batch_completes_serially_with_missing_chrome(self):
         urls = ["https://www.bilibili.com/video/first/", "https://bilibili.com/video/second/",
@@ -556,7 +559,7 @@ class LinkVideoTests(unittest.TestCase):
             return self.public_download(cmd, **_kwargs)
 
         with patch.object(self.link.subprocess, "Popen", side_effect=download):
-            with self.assertRaisesRegex(self.link.LinkAccessError, "403.*选择已登录的浏览器"):
+            with self.assertRaisesRegex(self.link.LinkAccessError, "选择已登录的浏览器"):
                 task._download("bilibili.com/video/private", source, {})
         self.assertEqual(len(calls), 2)
         for cmd in calls:
@@ -943,6 +946,17 @@ class LinkVideoTests(unittest.TestCase):
             self.assertIn("--no-cookies", attempts[1])
             plain = self.link._access_attempts("https://www.bilibili.com/video/BV1xx411c7mD")
             self.assertNotIn("--cookies", plain[0])
+        path.unlink(missing_ok=True)
+
+    def test_bilibili_uses_scanned_cookie_after_anonymous(self):
+        path = Path(self.data.name) / "bili_cookies.txt"
+        path.write_text("# Netscape HTTP Cookie File\n", encoding="utf-8")
+        with patch.object(self.link.bilibili, "COOKIE_FILE", path):
+            attempts = self.link._access_attempts("https://www.bilibili.com/video/BV1xx411c7mD")
+            self.assertEqual(attempts[0], ["--no-cookies", "--no-cookies-from-browser"])
+            self.assertEqual(attempts[1], ["--cookies", str(path)])
+            other = self.link._access_attempts("https://www.youtube.com/watch?v=abc")
+            self.assertNotIn(["--cookies", str(path)], other)
         path.unlink(missing_ok=True)
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import { SettingsAbout } from './SettingsAbout.jsx'
+import { SettingsAccount } from './SettingsAccount.jsx'
 import { SettingsCapture } from './SettingsCapture.jsx'
 import { SettingsFeishu } from './SettingsFeishu.jsx'
 import { SettingsLibraries } from './SettingsLibraries.jsx'
@@ -8,16 +9,18 @@ import { SettingsVideo } from './SettingsVideo.jsx'
 
 const TABS = [
   ['models', 'settings.tab.models', '模型'],
-  ['libraries', 'settings.tab.libraries', '资料空间'],
+  ['account', 'settings.tab.account', '账号'],
   ['capture', 'settings.tab.capture', '采集'],
   ['feishu', 'settings.tab.feishu', '飞书'],
+  ['libraries', 'settings.tab.libraries', '资料空间'],
   ['about', 'settings.tab.about', '关于']
 ]
 
 const VALID = new Set(TABS.map(([id]) => id))
 
-export function Settings({ t }) {
+export function Settings({ t, initialTab = '', focusAnchor = '', focusNonce = 0, onRestartSetup = null }) {
   const [tab, setTab] = React.useState(() => {
+    if (VALID.has(initialTab)) return initialTab
     const saved = localStorage.getItem('meetclip.settingsTab')
     return VALID.has(saved) ? saved : 'models'
   })
@@ -26,6 +29,21 @@ export function Settings({ t }) {
     setTab(next)
     localStorage.setItem('meetclip.settingsTab', next)
   }
+
+  React.useEffect(() => {
+    if (VALID.has(initialTab)) setTab(initialTab)
+  }, [initialTab, focusNonce])
+
+  React.useEffect(() => {
+    if (!focusAnchor || typeof document === 'undefined') return
+    const timer = setTimeout(() => {
+      const node = document.querySelector(`[data-settings-anchor="${focusAnchor}"]`)
+      if (node && typeof node.scrollIntoView === 'function') {
+        node.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }
+    }, 80)
+    return () => clearTimeout(timer)
+  }, [focusAnchor, focusNonce, tab])
 
   function label(key, fallback) {
     const value = typeof t === 'function' ? t(key) : ''
@@ -48,6 +66,7 @@ export function Settings({ t }) {
       </nav>
 
       {tab === 'models' ? <SettingsModels t={t} /> : null}
+      {tab === 'account' ? <SettingsAccount /> : null}
       {tab === 'libraries' ? <SettingsLibraries t={t} /> : null}
       {tab === 'capture' ? (
         <div className="mc-settings-panel">
@@ -57,7 +76,7 @@ export function Settings({ t }) {
         </div>
       ) : null}
       {tab === 'feishu' ? <SettingsFeishu /> : null}
-      {tab === 'about' ? <SettingsAbout t={t} /> : null}
+      {tab === 'about' ? <SettingsAbout t={t} onRestartSetup={onRestartSetup} /> : null}
     </div>
   )
 }

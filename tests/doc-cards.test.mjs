@@ -218,3 +218,23 @@ test('createFeishuDocCard 表格/非法链接', async () => {
     (error) => error.code === 'invalid_url' && error.status === 400
   )
 })
+
+test('readFeishuDoc 区分未登录与 access token 过期', async () => {
+  const doc = parseFeishuDocUrl(DOC_URL)
+  await assert.rejects(
+    () => readFeishuDoc(doc, {
+      tools: null,
+      readToken: () => '',
+      readAuth: () => ({ present: true, loggedIn: true, accessExpired: true })
+    }),
+    (error) => error.code === 'feishu_token_expired'
+  )
+  await assert.rejects(
+    () => readFeishuDoc(doc, {
+      tools: null,
+      readToken: () => '',
+      readAuth: () => ({ present: false, loggedIn: false, accessExpired: false })
+    }),
+    (error) => error.code === 'feishu_not_logged_in'
+  )
+})

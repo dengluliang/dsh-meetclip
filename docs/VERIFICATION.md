@@ -1,3 +1,46 @@
+## 内联采集面板底部操作行被裁掉（2026-11-16）
+
+- 用户反馈：批量加入视频时，再进一次同一张卡、再点批量增加，预读完成后「加入队列」亮了却点不了。
+- **现象**：首页「＋ → 视频链接」的内联面板（不是批次浮层）在**散落**模式下，贴两条以上链接或预读之后面板变高，底部「取消 / 加入队列」整行掉到视野外——按钮是启用态（深色主按钮），但 `elementFromPoint` 打不到它，点击等于点在空处。
+- **根因**：Hero 在散落模式位于 `.mc-scatter-world`（`transform: … scale()`）里，而 `.mc-home`、`.mc-scatter` 都是 `overflow: hidden`；面板 `top: calc(100% + 8px)` 从居中偏下的输入框往下展开，`max-height: min(68vh, 660px)` 允许它比「输入框下方到首页底部」那段空间高一倍，超出部分连同 sticky 操作行一起被裁掉。底部工具条 `.mc-home-dock`（`z-index: 30`）又在外层堆叠上下文里，面板（世界内的 `z-index: 110`）压不过它，两者重叠时更点不到。
+- **修复**：`client-src/components/capture/CaptureInline.jsx` 量一次几何再夹高度——`可用 = min(首页底部, 底部工具条顶 − 10) − 面板顶部 − 10`，`transform` 缩放按 `rect.height / offsetHeight` 换算回 CSS 像素，结果写进面板的 `maxHeight`（200–660px）；面板内部照旧滚动，操作行始终留在可视区。`resize` 与 `ResizeObserver` 会重算，窄屏 `position: fixed` 贴底浮层跳过这套逻辑（它本来贴着窗口底部）。
+- **验证**：新增 `build/capture-clip-preview.{jsx,html,js}` + `build/build-capture-clip-preview.mjs`：真实 `HomePage` + 假接口，走「＋ → 视频链接 → 贴两条 → 预读全部」，再用 `elementFromPoint` 判定主按钮是否真的命中。无头 Chrome × 1512×982、1440×900、1280×800、1100×800、900×800、760×820 六种窗口，散落与信息流两种模式全部 `reachable=true`；`?old=1`（用 `!important` 钉回 68vh 模拟修复前）同一场景为 `reachable=false`、`panel=436..1007` 越出 `home=14..821`。截图 `build/capture-clip-before.png`（操作行整行消失）/ `build/capture-clip-after.png`（操作行可见、位于底部工具条之上），由 `node build/capture-clip-shots.mjs` 生成。
+- **补充场景（用户追问）**：不必是「续加到原批次」——**已经有一张正在下载的批次卡时，在同一个面板里直接新开一批也点不了「加入队列」**，新链接进不了等待队列。harness 增加 `?active=1`（首页带一张 `processing` 批次卡 + 活跃记录，面板顶部出现「已有 1 个任务在运行，新任务会排队」、Hero 出现「2 条正在进行」）和 `?round2=1`（同一面板里再贴第二批）。修复前：`reachable=false`（按钮 `rect.y=968`，越出 `home.bottom=821`，点击落在空处，`batchBodies` 停在 1 条）；修复后：两轮都 `reachable=true`，第二轮 `batchBodies=2`、`batches=3`——新开一张批次卡，正在下载的那张继续跑。排队逻辑没动：新批次走不带 `batch_id` 的 `POST /api/link-videos/batch`，仍是新建记录 + `next_link_queue_order()` 顺序排队。
+- **回归**：`node --test tests/*.test.mjs` 282/282、`node build/render-smoke.mjs`、`node build/interaction-smoke.mjs`（含批次表单连续提交、批次浮层 `batch_id` 续加）全部通过；`client.js` 已重新构建（`node --check` 通过）。
+- **未处理**：≤700px 时 `.mc-capture-inline` 改成 `position: fixed` 贴底浮层，但它同样在 `transform` 世界里，`fixed` 会退化成相对世界的定位（本轮已在真机布局里复现到面板跑到屏幕上方），属于另一个问题；正常宽度的 DSH 面板不受影响。窗口极矮（实测视口 477px 高）时夹到 200px 的下限仍会压到底部工具条上——那种高度下面板本来也放不下表单，未追加处理。
+- **未做**：未同步到 `~/.dsh/profiles/desktop` 安装副本，未重启本地引擎（只改前端）。
+
+## 0.9.15 配置与登录旅程（2026-11-12）
+
+### 改动
+
+- 模型配置：新增共享 `ModelConnection`，设置页、首页配置进度统一为「地址 + Key → 拉模型 → 选模型 → 一次保存并测试」；删掉旧的独立 API Key 卡和两个 Base URL 行，解除「先有模型才能保存地址」死锁。
+- 设置与账号：顶栏新增设置覆盖层和帮助；`Settings` 新增「账号」页；B 站/抖音登录组件从采集页移到账号页，采集页保留画质、灵敏度、通用 Cookie。
+- B 站：`link_video._access_attempts` 在匿名之后使用 `bili_cookies.txt`，只对 bilibili 生效。
+- 错误：新增 `backend/app/platform_errors.py`；预览和任务错误带 `status/code/message/action/detail`；`link_jobs.error_code` 支持 `login_required`；视频/直播表单、记录详情复用登录提示。
+- 飞书：`accessExpired` 进入 summary；`feishu_token_expired`；`lastDocReadAt`；文档试读；Agent `meetclip_capture add_doc`。
+- 引导：挂载接回后台任务、上一步/取消、完成页清单/账号/四条快捷开始、完全磁盘访问按钮、重新运行配置向导。
+- 文档与截图：`INSTALL.md` 三分钟上手；`README` 首次使用；`docs/ONBOARDING.md`；`build/journey-preview.*` 与 `build/journey-shots.mjs` 生成前后对比图。
+
+### 自动化验证
+
+- 前端 `node --test tests/*.test.mjs`：**282/282**。
+- 后端 `MEETCLIP_TEST_PYTHON=… backend/tests/run-all.sh`：**30 个测试文件全部 PASS**（含新增 `test_platform_errors`）。
+- `node build/build-client.mjs` + `node --check client.js`；`client.js` 约 2.28 MB（0.9.15）。
+- `node build/interaction-smoke.mjs` PASS（新增设置弹层/账号页/帮助、视频表单 B 站登录提示）。
+- `node build/setup-smoke.mjs` PASS（重写：跳过、安装、完成页清单/账号/四条开始）。
+- `node build/feishu-smoke.mjs` PASS（重写：安装、登录、设备码、试读入口）。
+- `node build/config-journey-smoke.mjs` PASS（全新状态模型配置，无死锁；地址/Key/模型一次保存）。
+
+### 截图
+
+- `build/journey-shots/before/` 与 `after/` 各 17 张；`build/journey-shots/INDEX.md` 列明界面、before、after 和新增说明。
+- 对比方法：从 `git archive HEAD` 复制一份基线，复制同一 `journey-preview` harness，用无头 Chrome、1440×视口、浅色主题分别渲染 before/after；新界面在 before 里显示最接近的旧界面并标注「新增，无旧界面」。
+
+### 未执行
+
+- 未上传 GitHub、未发布 Release、未替换桌面 profile、未重启 DSH。
+
 # 验证记录
 
 ## 0.9.2 开源去敏（2026-11-10）

@@ -4,6 +4,8 @@ import {
 } from '../lib/api.js'
 import { bytes, clock, dateTime, duration } from '../lib/format.js'
 import { DocCardForm } from './capture/DocCardForm.jsx'
+import { LoginRequiredNotice } from './login/LoginRequiredNotice.jsx'
+import { openSettings } from '../lib/settings-bus.js'
 import { MAX_BATCH_LINKS, parseLinks, platformLabel, skipSummary } from '../lib/links.js'
 import {
   MAX_MEETING_FILES, batchImportBody, defaultPackTitle, filesFromPaths, mediaKind,
@@ -106,7 +108,10 @@ export function NewCaptureDialog({ t, onClose, onCreated, onSubmitted, statusDat
             <div className="mc-notice" data-tone="error">缺少采集组件（yt-dlp / ffmpeg），请在首页「配置进度」中安装。</div>
           ) : null}
           {health.asrReady === false && kind !== 'video' && kind !== 'doc' ? (
-            <div className="mc-notice" data-tone="warn">云端语音未配置：仍可保存音视频与截图，配置后可重新转写。</div>
+            <div className="mc-notice" data-tone="warn">
+              云端语音未配置：仍可保存音视频与截图，配置后可重新转写。
+              <button type="button" className="mc-link-button" onClick={() => openSettings({ tab: 'models' })}>去配置模型</button>
+            </div>
           ) : null}
           {health.active > 0 && kind !== 'doc' ? (
             <div className="mc-notice" data-tone="info">已有 {health.active} 个任务在运行，新任务会排队；直播轮到后才开始采集。</div>
@@ -216,6 +221,10 @@ export function LaunchForm({ t, health, initialUrl = '', onClose, onCreated }) {
         </div>
       ) : null}
 
+      {result && !result.ok && result.action ? (
+        <LoginRequiredNotice failure={result} platform={result.platform || 'bilibili'} onRetry={() => setCheckNonce((value) => value + 1)} />
+      ) : null}
+
       {createdId ? <div className="mc-inline-note">{t('new.openRecord')}：{createdId}</div> : null}
 
       <div className="mc-modal-actions">
@@ -249,7 +258,7 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
       const existing = current.find((entry) => entry.url === row.url)
       return existing
         ? { ...existing, platform: row.platform }
-        : { url: row.url, platform: row.platform, loading: false, preview: null, error: '', mode: 'auto', trackId: '' }
+        : { url: row.url, platform: row.platform, loading: false, preview: null, failure: null, error: '', mode: 'auto', trackId: '' }
     }))
   }, [parsed])
 
@@ -270,12 +279,25 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
         ...item,
         loading: false,
         preview,
+        failure: preview?.ok ? null : {
+          status: preview?.status || '',
+          code: preview?.code || '',
+          message: preview?.message || t('new.notSupported'),
+          action: preview?.action || null,
+          detail: preview?.detail || '',
+          platform: preview?.platform || item.platform || ''
+        },
         error: preview?.ok ? '' : (preview?.message || t('new.notSupported')),
         trackId: preview?.default_subtitle_track_id || ''
       } : item))
     } catch (failure) {
       setEntries((current) => current.map((item, i) => i === index ? {
-        ...item, loading: false, error: failure?.message || String(failure)
+        ...item, loading: false, failure: {
+          status: 'error',
+          message: failure?.message || String(failure),
+          detail: failure?.message || String(failure),
+          platform: item.platform || ''
+        }, error: failure?.message || String(failure)
       } : item))
     }
   }
@@ -425,7 +447,7 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
       ) : null}
       {entries.some((entry) => entry.platform === 'douyin') ? (
         <div className="mc-notice" data-tone="info">
-          抖音需要浏览器 Cookie：请在「设置 → 采集 → 视频」打开扫码登录页，用抖音 App 扫码登录后读取浏览器 Cookie。
+          抖音视频通常需要登录：预读失败时下方会直接出现「登录抖音」，按三步完成后重试即可。
         </div>
       ) : null}
 
@@ -497,7 +519,10 @@ function VideoEntry({ t, entry, removable, onRemove, onChangeTrack, onChangeMode
         <strong>{preview?.title && preview.title !== '未命名视频' ? preview.title : entry.url}</strong>
         <span>{[platformLabel(preview?.platform || entry.platform), preview?.uploader, preview?.duration ? duration(preview.duration) : '', preview?.filesize ? bytes(preview.filesize) : '', preview?.ok ? preview?.message : ''].filter(Boolean).join(' · ')}</span>
         {entry.loading ? <span>{t('new.checking')}</span> : null}
-        {entry.error ? <span className="mc-error-text">{entry.error}</span> : null}
+        {entry.failure ? (
+          <LoginRequiredNotice failure={entry.failure} platform={entry.failure.platform || preview?.platform || entry.platform}
+            onRetry={onPreview} />
+        ) : entry.error ? <span className="mc-error-text">{entry.error}</span> : null}
         <div className="mc-entry-controls">
           {preview?.ok && preview?.subtitle_status === 'available' ? (
             <>
@@ -513,7 +538,7 @@ function VideoEntry({ t, entry, removable, onRemove, onChangeTrack, onChangeMode
               ) : null}
             </>
           ) : null}
-          {entry.error || preview?.ok === false ? (
+          {(entry.error || preview?.ok === false) && !entry.failure?.action ? (
             <button type="button" className="mc-button mc-button-small" onClick={onPreview} disabled={entry.loading}>重试</button>
           ) : !preview ? (
             <button type="button" className="mc-button mc-button-small" onClick={onPreview} disabled={entry.loading}>{t('new.preview')}</button>

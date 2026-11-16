@@ -473,7 +473,7 @@ export function RecordsBrowser({ t, statusData, onStatusRefresh, focus, onFocusC
           {health.asrReady === false ? (
             <div className="mc-side-card" data-tone="warn">
               <strong>云端语音未配置</strong>
-              <span>采集照常保存，暂不生成转写；请到 设置 → 会摘 → 模型 填写 API Key。</span>
+              <span>采集照常保存，暂不生成转写；请到会摘面板右上角「设置 → 模型」填写 API Key。</span>
             </div>
           ) : null}
           {error ? (

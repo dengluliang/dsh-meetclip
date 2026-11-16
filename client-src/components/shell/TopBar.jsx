@@ -9,7 +9,7 @@ const VIEWS = [
 export function TopBar({
   t, view, onView,
   libraries, activeLibrary, libraryBusy, onLibrarySelect, onLibraryCreate, onLibraryManage,
-  onSearch, libraryMenuOpen = false
+  onSearch, onHelp, onSettings, settingsDisabled = false, libraryMenuOpen = false
 }) {
   return (
     <header className="mc-topbar">
@@ -31,6 +31,15 @@ export function TopBar({
           <span>{t('topbar.search')}</span>
           <kbd>⌘K</kbd>
         </button>
+      ) : null}
+      {onHelp ? (
+        <button type="button" className="mc-topbar-tool" aria-label="使用指南" title="使用指南"
+          onClick={onHelp}>?</button>
+      ) : null}
+      {onSettings ? (
+        <button type="button" className="mc-topbar-tool mc-topbar-tool-text" aria-label="设置"
+          title={settingsDisabled ? '完成首次配置后可使用' : '会摘设置'}
+          disabled={settingsDisabled} onClick={onSettings}>设置</button>
       ) : null}
       <LibrarySwitcher
         rows={libraries}

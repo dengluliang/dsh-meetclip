@@ -1,15 +1,8 @@
-import {
-  aiStatus, bilibiliQrPoll, bilibiliQrStart, bilibiliRefresh, bilibiliStatus,
-  bilibiliLogout, saveAIConfig, saveAppSettings, appSettings
-} from '../lib/api.js'
-import { QrCode } from './QrCode.jsx'
+import { aiStatus, saveAIConfig, saveAppSettings, appSettings } from '../lib/api.js'
 
 export function SettingsLive({ t }) {
-  const [bili, setBili] = React.useState(null)
   const [settings, setSettings] = React.useState(null)
   const [ai, setAi] = React.useState(null)
-  const [qr, setQr] = React.useState(null)
-  const [qrState, setQrState] = React.useState(null)
   const [error, setError] = React.useState('')
   const [busy, setBusy] = React.useState('')
   const [sensitivity, setSensitivity] = React.useState(0.5)
@@ -18,8 +11,7 @@ export function SettingsLive({ t }) {
 
   const load = React.useCallback(async () => {
     try {
-      const [status, prefs, aiState] = await Promise.all([bilibiliStatus(), appSettings(), aiStatus()])
-      setBili(status)
+      const [prefs, aiState] = await Promise.all([appSettings(), aiStatus()])
       setSettings(prefs)
       setAi(aiState)
       setSensitivity(Number(prefs.shot_sensitivity ?? 0.5))
@@ -30,59 +22,6 @@ export function SettingsLive({ t }) {
   }, [])
 
   React.useEffect(() => { load() }, [load])
-
-  React.useEffect(() => {
-    if (!qr?.key) return undefined
-    const poll = setInterval(async () => {
-      try {
-        const result = await bilibiliQrPoll(qr.key)
-        setQrState(result)
-        if (result.state === 'ok') {
-          clearInterval(poll)
-          setQr(null)
-          await load()
-        }
-        if (result.state === 'expired' || result.state === 'error') clearInterval(poll)
-      } catch (failure) {
-        setQrState({ state: 'error', message: failure?.message || String(failure) })
-        clearInterval(poll)
-      }
-    }, 2000)
-    return () => clearInterval(poll)
-  }, [qr?.key, load])
-
-  async function refreshChrome() {
-    setBusy('refresh')
-    setError('')
-    try {
-      const result = await bilibiliRefresh()
-      setBili(result)
-    } catch (failure) {
-      setError(failure?.message || String(failure))
-    } finally {
-      setBusy('')
-    }
-  }
-
-  async function logout() {
-    setBusy('logout')
-    try { setBili(await bilibiliLogout()) } catch (failure) { setError(failure?.message || String(failure)) }
-    finally { setBusy('') }
-  }
-
-  async function startQr() {
-    setBusy('qr')
-    setError('')
-    setQrState(null)
-    try {
-      const result = await bilibiliQrStart()
-      setQr(result)
-    } catch (failure) {
-      setError(failure?.message || String(failure))
-    } finally {
-      setBusy('')
-    }
-  }
 
   function changeSensitivity(value) {
     setSensitivity(value)
@@ -118,29 +57,9 @@ export function SettingsLive({ t }) {
   return (
     <section className="mc-section">
       <div className="mc-section-title">{t('settings.live') || '发布会直播'}</div>
-      <div className="mc-card">
-        <div className="mc-rows">
-          <Row label="B 站账号" value={bili?.logged_in ? (bili.uname || '已登录') : '未登录'} />
-        </div>
-        <div className="mc-actions">
-          <button type="button" className="mc-button" onClick={startQr} disabled={Boolean(busy)}>扫码登录</button>
-          <button type="button" className="mc-button" onClick={refreshChrome} disabled={Boolean(busy)}>
-            {busy === 'refresh' ? '读取中…' : '读取 Chrome 登录'}
-          </button>
-          {bili?.logged_in ? <button type="button" className="mc-button" onClick={logout} disabled={Boolean(busy)}>退出</button> : null}
-        </div>
-        {qr ? (
-          <div className="mc-qr-wrap">
-            <QrCode value={qr.url} size={168} />
-            <div className="mc-qr-info">
-              <strong>请用 B站 App 扫码</strong>
-              <span>{qrState?.message || '等待扫码…'}</span>
-              <button type="button" className="mc-button mc-button-small" onClick={startQr}>刷新二维码</button>
-            </div>
-          </div>
-        ) : null}
-        {qrState?.state === 'expired' ? <p className="mc-warn">{qrState.message}</p> : null}
-      </div>
+      <p className="mc-card-text">
+        B站账号已移到「账号」页；这里只放直播画面的截图与自动结束设置。
+      </p>
 
       <div className="mc-card">
         <div className="mc-form-row">
@@ -174,14 +93,5 @@ export function SettingsLive({ t }) {
       </div>
       {error ? <p className="mc-error-text" role="alert">{error}</p> : null}
     </section>
-  )
-}
-
-function Row({ label, value }) {
-  return (
-    <div className="mc-row">
-      <span className="mc-row-key">{label}</span>
-      <span className="mc-row-value">{value}</span>
-    </div>
   )
 }

@@ -1,5 +1,5 @@
 import {
-  ensureWorkspace, inspectDataDir, listSessions, pickFile, revealPath, status,
+  ensureWorkspace, inspectDataDir, listSessions, openFullDiskAccess, pickFile, revealPath, status,
   switchDataDir, workspaceStatus
 } from '../lib/api.js'
 import { beginEngineRestart, endEngineRestart } from '../lib/status-bus.js'
@@ -203,9 +203,12 @@ export function SettingsStorage({ t }) {
               {busy === 'pick' ? '选择中…' : '更换…'}
             </button>
             <button type="button" className="mc-button"
-              disabled={Boolean(busy) || workspace?.available === false || Boolean(workspace?.workspace)}
+              disabled={Boolean(busy) || Boolean(workspace?.workspace)}
               onClick={addWorkspace}>
-              {workspace?.workspace ? '已加入工作区' : busy === 'workspace' ? '添加中…' : '添加为 DSH 工作区'}
+              {workspace?.workspace ? '已加入工作区' : busy === 'workspace' ? '添加中…' : workspace?.available === false ? '重试添加为 DSH 工作区' : '添加为 DSH 工作区'}
+            </button>
+            <button type="button" className="mc-button" onClick={() => openFullDiskAccess().catch(() => {})}>
+              打开完全磁盘访问设置
             </button>
           </div>
           <p className="mc-foot-meta">

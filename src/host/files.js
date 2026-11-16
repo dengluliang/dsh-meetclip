@@ -189,6 +189,14 @@ export function openUrl(url) {
   })
 }
 
+/** 只有 macOS 有「完全磁盘访问」面板；其他平台明确返回不支持。 */
+export function openFullDiskAccess() {
+  if (process.platform !== 'darwin') {
+    return Promise.resolve({ ok: false, error: '只有 macOS 需要设置完全磁盘访问权限' })
+  }
+  return openUrl('x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles')
+}
+
 function respond(res, status, value) {
   if (res.headersSent) {
     res.end()

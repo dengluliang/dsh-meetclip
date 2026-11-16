@@ -53,7 +53,7 @@ def build_minutes(sid: str, req: MinutesReq | None = None):
     if mode not in ("final", "live"):
         raise HTTPException(400, "mode 只能是 final 或 live")
     if not ai_client.has_key():
-        raise HTTPException(400, "请先在 设置 → 会摘 → 模型 配置 AI Key，纪要需要文本模型")
+        raise HTTPException(400, "请先在会摘面板右上角「设置 → 模型」配置 AI Key，纪要需要文本模型")
     if not _has_rows(sid):
         raise HTTPException(400, "这条记录还没有转写内容，暂时无法整理纪要")
     queued = minutes.engine.request(sid, final=(mode == "final"))

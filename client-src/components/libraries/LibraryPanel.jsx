@@ -383,7 +383,7 @@ export function LibraryPanel({
       ) : null}
 
       <p className="mc-lib-foot">
-        这一份放在哪儿、怎么搬家：设置 → 采集 → 存储位置（那里还能把它加为 DSH 工作区）。
+        这一份放在哪儿、怎么搬家：会摘面板右上角「设置 → 采集 → 存储位置」（那里还能把它加为 DSH 工作区）。
       </p>
     </div>
   )

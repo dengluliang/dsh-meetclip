@@ -1,4 +1,4 @@
-import { activateLibrary, status } from '../lib/api.js'
+import { activateLibrary, openFullDiskAccess, status } from '../lib/api.js'
 import {
   beginEngineRestart, endEngineRestart, getLibraryHint, getStatusSignal,
   subscribeLibraryHint, subscribeStatusSignal
@@ -11,6 +11,9 @@ import { GlobalSearchDialog } from './GlobalSearchDialog.jsx'
 import { TopBar } from './shell/TopBar.jsx'
 import { HomePage } from './home/HomePage.jsx'
 import { SetupWizard } from './SetupWizard.jsx'
+import { SettingsDialog } from './SettingsDialog.jsx'
+import { HelpDialog } from './HelpDialog.jsx'
+import { closeSettings, getSettingsRequest, subscribeSettings } from '../lib/settings-bus.js'
 
 export function Panel({ t }) {
   const [data, setData] = React.useState(null)
@@ -29,6 +32,9 @@ export function Panel({ t }) {
   const [focus, setFocus] = React.useState(null)
   const [notice, setNotice] = React.useState('')
   const [setupMode, setSetupMode] = React.useState(false)
+  const [forceSetup, setForceSetup] = React.useState(false)
+  const [settingsRequest, setSettingsRequest] = React.useState(getSettingsRequest)
+  const [helpOpen, setHelpOpen] = React.useState(false)
   const [signal, setSignal] = React.useState(getStatusSignal)
   // 资料空间：切换会停/重启引擎，所以单独维护状态，避免把中途的 stopped 当成未配置。
   const [libraryBusy, setLibraryBusy] = React.useState(false)
@@ -39,6 +45,7 @@ export function Panel({ t }) {
 
   React.useEffect(() => subscribeStatusSignal(setSignal), [])
   React.useEffect(() => subscribeLibraryHint(setLibraryHint), [])
+  React.useEffect(() => subscribeSettings((request) => setSettingsRequest(request)), [])
 
   // A committed engine restart (storage switch) refreshes both the panel status
   // and the home feed without a page reload.
@@ -248,6 +255,9 @@ export function Panel({ t }) {
         onLibraryCreate={() => setLibraryManage(true)}
         onLibraryManage={() => setLibraryManage(true)}
         onSearch={() => { setSearchQuery(''); setSearchOpen(true) }}
+        onHelp={() => setHelpOpen(true)}
+        onSettings={() => setSettingsRequest(getSettingsRequest() || { tab: 'models', nonce: Date.now() })}
+        settingsDisabled={setupBlocked || forceSetup}
       />
 
       {libraryHint && !setupBlocked ? (
@@ -279,8 +289,10 @@ export function Panel({ t }) {
           <span>数据目录不可写</span>
           <span className="mc-banner-hint">
             请给 DeepSeek Harness 完全磁盘访问权限后完全退出（⌘Q）再打开；
-            或在「设置 → 采集 → 存储位置」换一个可写目录。
+            或在会摘面板右上角「设置 → 采集 → 存储位置」换一个可写目录。
           </span>
+          <button type="button" className="mc-button mc-button-small"
+            onClick={() => openFullDiskAccess().catch(() => {})}>打开系统设置</button>
         </div>
       ) : null}
 
@@ -291,20 +303,27 @@ export function Panel({ t }) {
         </div>
       ) : null}
 
-      {!error && setupBlocked ? (
+      {!error && (setupBlocked || forceSetup) ? (
         <SetupWizard
           t={t}
           status={data}
-          onComplete={() => {
+          onComplete={(payload = {}) => {
             setSetupMode(false)
+            setForceSetup(false)
             setRevision((value) => value + 1)
+            setHomeRevision((value) => value + 1)
             setView('home')
             load(false)
+            if (payload?.start) {
+              setNewInitialUrl('')
+              setNewInitialKind(payload.start)
+              setNewOpen(true)
+            }
           }}
         />
       ) : null}
 
-      {!error && data && !setupBlocked && view === 'home' ? (
+      {!error && data && !setupBlocked && !forceSetup && view === 'home' ? (
         <HomePage
           t={t}
           revision={homeRevision}
@@ -325,7 +344,7 @@ export function Panel({ t }) {
         />
       ) : null}
 
-      {!error && data && !setupBlocked && view === 'library' ? (
+      {!error && data && !setupBlocked && !forceSetup && view === 'library' ? (
         <RecordsBrowser
           t={t}
           statusData={data}
@@ -381,7 +400,33 @@ export function Panel({ t }) {
 
       {notice ? <div className="mc-banner">{notice}</div> : null}
 
-      {!setupBlocked && searchOpen ? (
+      {settingsRequest && !setupBlocked && !forceSetup ? (
+        <SettingsDialog
+          t={t}
+          request={settingsRequest}
+          onClose={() => { closeSettings(); setSettingsRequest(null) }}
+          onRestartSetup={() => {
+            closeSettings()
+            setSettingsRequest(null)
+            setForceSetup(true)
+          }}
+        />
+      ) : null}
+
+      {helpOpen ? (
+        <HelpDialog
+          onClose={() => setHelpOpen(false)}
+          onStart={(kind) => {
+            setHelpOpen(false)
+            setView('home')
+            setNewInitialUrl('')
+            setNewInitialKind(kind)
+            setNewOpen(true)
+          }}
+        />
+      ) : null}
+
+      {!setupBlocked && !forceSetup && searchOpen ? (
         <GlobalSearchDialog
           t={t}
           initialQuery={searchQuery}
@@ -390,7 +435,7 @@ export function Panel({ t }) {
         />
       ) : null}
 
-      {!setupBlocked && newOpen ? (
+      {!setupBlocked && !forceSetup && newOpen ? (
         <NewCaptureDialog
           t={t}
           statusData={data}

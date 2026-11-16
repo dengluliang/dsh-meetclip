@@ -1,10 +1,14 @@
 import {
   backendAction, deps, depsInstallStatus, ensureWorkspace, homeFeed, inspectDataDir, installDeps,
-  meetingOptions, modelCatalog, pickFile, probeModels, probeUsableModels, saveAIConfig, saveAsrEngine, savePrefs,
-  setupStatus, startSetup, status as hostStatus, testAIModel, testAsrEngine
+  meetingOptions, modelCatalog, openFullDiskAccess, pickFile, probeModels, probeUsableModels,
+  saveAIConfig, saveAsrEngine, savePrefs, setupStatus, startSetup, status as hostStatus,
+  testAIModel, testAsrEngine
 } from '../lib/api.js'
-import { useFeishu } from '../lib/feishu.js'
+import { feishuSummary, useFeishu } from '../lib/feishu.js'
 import { FeishuJobPanel, FeishuLoginActions, FeishuStatusRows } from './feishu/FeishuParts.jsx'
+import { BilibiliLoginCard } from './login/BilibiliLoginCard.jsx'
+import { DouyinLoginCard } from './login/DouyinLoginCard.jsx'
+import { FeishuDocProbe } from './login/FeishuDocProbe.jsx'
 import {
   PREFERRED_SPEECH_MODEL, PREFERRED_TEXT_MODEL,
   candidateOrder, modelOptions, preferModel, splitEntries, splitModels, vendorOf, withoutHidden
@@ -52,7 +56,48 @@ export function SetupWizard({ status, onComplete }) {
   const probeSeq = React.useRef(0)
   const probedKey = React.useRef('')
   const inflight = React.useRef(new Set())
+  const resumeRef = React.useRef(false)
   React.useEffect(() => () => { mounted.current = false }, [])
+
+  // 装到一半关掉面板/刷新页面，再从后台任务接回进度，而不是假装一切从头开始。
+  React.useEffect(() => {
+    if (resumeRef.current) return
+    resumeRef.current = true
+    let cancelled = false
+    setupStatus()
+      .then((result) => {
+        if (cancelled || !mounted.current) return
+        const env = result?.env || {}
+        const job = env.job || null
+        if (env.ready) {
+          setEnvReady(true)
+          loadIssues().catch(() => {})
+          setStep(3)
+          return
+        }
+        if (job?.state === 'running') {
+          setStep(2)
+          setBackground(true)
+          setRunning(true)
+          setDetail(job.step || '正在安装')
+          waitExisting()
+            .then((next) => {
+              if (cancelled || !mounted.current || !next) return
+              setEnvReady(true)
+              setRunning(false)
+              loadIssues().catch(() => {})
+              setStep(3)
+            })
+            .catch((failure) => {
+              if (cancelled || !mounted.current) return
+              setError(failure?.message || String(failure))
+              setRunning(false)
+            })
+        }
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
 
   // 输入停顿后再自动拉取；同一个 Key 只拉一次。
   // 之前是每次失焦都重拉，重拉期间把两张下拉整块卸载，点开列表时会消失再出现（闪一下）。
@@ -158,8 +203,7 @@ export function SetupWizard({ status, onComplete }) {
     }
   }
 
-  async function waitSetup(action) {
-    await startSetup(action)
+  async function waitExisting() {
     for (let index = 0; index < 3600; index += 1) {
       await sleep(index === 0 ? 600 : 1500)
       if (!mounted.current) return null
@@ -173,6 +217,11 @@ export function SetupWizard({ status, onComplete }) {
       if (env.ready && (!job.state || job.state === 'done')) return env
     }
     throw new Error('环境安装超时，请稍后重试')
+  }
+
+  async function waitSetup(action) {
+    await startSetup(action)
+    return waitExisting()
   }
 
   async function waitEngine() {
@@ -306,7 +355,7 @@ export function SetupWizard({ status, onComplete }) {
           foundIssues.push({ id: 'text-model', title: '文字模型不可用', detail: textPick.error })
         }
       } else {
-        foundIssues.push({ id: 'asr-key', title: '云端语音未配置', detail: '进入主界面后可在 设置 → 模型 填写 API Key。' })
+        foundIssues.push({ id: 'asr-key', title: '云端语音未配置', detail: '完成引导后可在会摘面板右上角「设置 → 模型」填写 API Key。' })
       }
 
       setDetail('安装采集组件')
@@ -332,7 +381,7 @@ export function SetupWizard({ status, onComplete }) {
       const [feed, options] = await Promise.all([homeFeed({ limit: 1 }), meetingOptions()])
       if (!feed) foundIssues.push({ id: 'home', title: '首页数据未就绪', detail: '稍后刷新即可。' })
       if (options?.asr_ready === false && !skippedKey) {
-        foundIssues.push({ id: 'asr-ready', title: '云端语音未就绪', detail: '请到 设置 → 模型 检查 API Key 与模型。' })
+        foundIssues.push({ id: 'asr-ready', title: '云端语音未就绪', detail: '请到会摘面板右上角「设置 → 模型」检查 API Key 与模型。' })
       }
       setIssues(foundIssues)
 
@@ -372,7 +421,7 @@ export function SetupWizard({ status, onComplete }) {
     }
   }
 
-  async function finish() {
+  async function finish(start = '') {
     if (!workspaceInfo) {
       try {
         const created = await ensureWorkspace({})
@@ -382,7 +431,39 @@ export function SetupWizard({ status, onComplete }) {
         setWorkspaceError(failure?.message || String(failure))
       }
     }
-    onComplete()
+    onComplete(start ? { start } : undefined)
+  }
+
+  async function loadIssues() {
+    const found = []
+    try {
+      const capture = await deps()
+      if (!capture?.yt_dlp || !capture?.ffmpeg) {
+        found.push({ id: 'capture-deps', title: '采集组件未安装完成', detail: '重新安装 yt-dlp 与 ffmpeg 后可采集直播和链接视频。' })
+      }
+    } catch (failure) {
+      found.push({ id: 'capture-deps', title: '采集组件未就绪', detail: failure?.message || String(failure) })
+    }
+    try {
+      const options = await meetingOptions()
+      if (options?.asr_ready === false) {
+        found.push({ id: 'asr-ready', title: '云端语音未就绪', detail: '请到会摘面板右上角「设置 → 模型」检查 API Key 与模型。' })
+      }
+    } catch (failure) {
+      found.push({ id: 'asr-ready', title: '云端语音未就绪', detail: failure?.message || String(failure) })
+    }
+    setIssues(found)
+    return found
+  }
+
+  async function retryWorkspace() {
+    setWorkspaceError('')
+    try {
+      const created = await ensureWorkspace({})
+      setWorkspaceInfo(created?.workspace || null)
+    } catch (failure) {
+      setWorkspaceError(failure?.message || String(failure))
+    }
   }
 
   const visibleText = showHidden ? (catalog?.text || []) : withoutHidden(catalog?.text || [], hidden)
@@ -397,7 +478,7 @@ export function SetupWizard({ status, onComplete }) {
           <div>
             <p className="mc-setup-eyebrow">首次使用 · {step} / 3</p>
             <h2>{step === 1 ? '连接模型服务' : step === 2 ? '安装环境' : '准备进入会摘'}</h2>
-            <p>{step === 1 ? '填写 OpenAI 兼容服务地址与 API Key，自动获取可用模型。' : step === 2 ? '安装 Python 环境与采集组件，可选接入飞书 MCP。' : '未完成项会在首页提示。'}</p>
+            <p>{step === 1 ? '填写 OpenAI 兼容服务地址与 API Key，自动获取可用模型。' : step === 2 ? '安装 Python 环境与采集组件；账号可以在下一步再连。' : '检查就绪项，按需登录账号，然后直接试一条。'}</p>
           </div>
         </div>
 
@@ -475,9 +556,10 @@ export function SetupWizard({ status, onComplete }) {
               </button>
               {catalog ? (
                 <button type="button" className="mc-button" data-variant="primary" onClick={() => setStep(2)}>下一步</button>
-              ) : (
-                <button type="button" className="mc-button" onClick={() => { setSkippedKey(true); setStep(2) }}>跳过</button>
-              )}
+              ) : null}
+              <button type="button" className="mc-button" onClick={() => { setSkippedKey(true); setStep(2) }}>
+                {catalog ? '跳过，稍后再配' : '跳过'}
+              </button>
             </div>
           </div>
         ) : null}
@@ -503,21 +585,36 @@ export function SetupWizard({ status, onComplete }) {
               如果系统提示存储位置不可写：在 系统设置 → 隐私与安全性 → 完全磁盘访问权限
               勾选 DeepSeek Harness 后，需要完全退出（⌘Q）再打开；也可以点「选择…」换到「文稿」以外的目录。
             </p>
+            <div className="mc-actions">
+              <button type="button" className="mc-button mc-button-small"
+                onClick={() => openFullDiskAccess().catch(() => {})}>打开完全磁盘访问设置</button>
+            </div>
+            <p className="mc-setup-fine">
+              安装只做一次，通常 3–10 分钟：创建独立 Python 环境 → 启动本地引擎 → 安装 yt-dlp 与 ffmpeg。
+              可以点「后台完成」先去主界面。
+            </p>
             <div className="mc-setup-progress">
               <div className="mc-setup-progress-head"><span className={running ? 'mc-setup-spinner' : ''} /><strong>{detail || (running ? '准备安装' : '点击下方按钮开始')}</strong></div>
               {log ? <pre className="mc-log">{log}</pre> : null}
             </div>
             {error ? <div className="mc-setup-error" role="alert"><strong>安装没有完成</strong><p>{error}</p></div> : null}
             <div className="mc-actions">
+              <button type="button" className="mc-button" disabled={running} onClick={() => setStep(1)}>上一步</button>
               <button type="button" className="mc-button" data-variant="primary" disabled={running} onClick={runInstall}>
                 {running ? '正在配置…' : '一键安装并配置'}
               </button>
               {running ? (
-                <button type="button" className="mc-button" onClick={() => { setBackground(true); setStep(3) }}>后台完成</button>
+                <>
+                  <button type="button" className="mc-button" onClick={() => { setBackground(true); setStep(3) }}>后台完成</button>
+                  <button type="button" className="mc-button" onClick={async () => {
+                    try { await startSetup('cancel') } catch {}
+                    setRunning(false)
+                    setDetail('已取消安装')
+                  }}>取消安装</button>
+                </>
               ) : null}
               {error ? <button type="button" className="mc-button" disabled={running} onClick={runInstall}>重新尝试</button> : null}
             </div>
-            <FeishuSetupSection feishu={feishu} />
           </div>
         ) : null}
 
@@ -531,7 +628,7 @@ export function SetupWizard({ status, onComplete }) {
                 <div className="mc-setup-progress-head"><span className="mc-setup-spinner" /><strong>{detail || '正在配置…'}</strong></div>
                 {log ? <pre className="mc-log">{log}</pre> : null}
               </div>
-              <button type="button" className="mc-button mc-setup-primary" data-variant="primary" disabled={!envReady} onClick={finish}>进入主界面</button>
+              <button type="button" className="mc-button mc-setup-primary" data-variant="primary" disabled={!envReady} onClick={() => finish()}>进入主界面</button>
               {!envReady ? <p className="mc-setup-fine">运行环境完成后即可进入。</p> : null}
               <WorkspaceNote info={workspaceInfo} error={workspaceError} />
             </div>
@@ -542,7 +639,7 @@ export function SetupWizard({ status, onComplete }) {
               <p>{error}</p>
               <div className="mc-actions">
                 <button type="button" className="mc-button" onClick={() => { setBackground(false); setStep(2) }}>返回安装</button>
-                <button type="button" className="mc-button mc-setup-primary" data-variant="primary" onClick={finish}>进入主界面</button>
+                <button type="button" className="mc-button mc-setup-primary" data-variant="primary" onClick={() => finish()}>进入主界面</button>
               </div>
               <WorkspaceNote info={workspaceInfo} error={workspaceError} />
             </div>
@@ -550,15 +647,65 @@ export function SetupWizard({ status, onComplete }) {
             <div className="mc-setup-done">
               <div className="mc-setup-done-icon">✓</div>
               <h3>{issues.length ? '已可进入会摘' : '环境已就绪'}</h3>
-              <p>{issues.length ? '未完成项会在首页提示。' : '可以开始采集了。'}</p>
+              <p>{issues.length ? '下面标出的项可以现在补，也可以进入后再补。' : '可以开始采集了。'}</p>
+
+              <div className="mc-setup-checklist">
+                <div data-ok={envReady ? 'true' : 'false'}><strong>运行环境</strong><span>{envReady ? '已就绪' : '未就绪'}</span></div>
+                <div data-ok={issues.some((row) => row.id === 'capture-deps') ? 'false' : 'true'}><strong>采集组件</strong><span>{issues.some((row) => row.id === 'capture-deps') ? '需要安装' : '已安装'}</span></div>
+                <div data-ok={issues.some((row) => row.id.includes('asr') || row.id.includes('model')) ? 'false' : 'true'}><strong>云端转写</strong><span>{issues.some((row) => row.id.includes('asr') || row.id.includes('model')) ? '需要配置' : '已配置'}</span></div>
+                <div data-ok={status?.locations?.dataDirWritable === false ? 'false' : 'true'}><strong>存储位置</strong><span>{status?.locations?.dataDirWritable === false ? '不可写' : '可写'}</span></div>
+              </div>
+
               {issues.length ? (
                 <div className="mc-setup-issues">
-                  {issues.map((issue) => <div key={issue.id}><strong>{issue.title}</strong><span>{issue.detail}</span></div>)}
+                  {issues.map((issue) => (
+                    <div key={issue.id}>
+                      <strong>{issue.title}</strong>
+                      <span>{issue.detail}</span>
+                      {issue.id === 'capture-deps' ? (
+                        <button type="button" className="mc-button mc-button-small" onClick={() => { setBackground(true); runInstall() }}>重新安装采集组件</button>
+                      ) : null}
+                      {issue.id !== 'capture-deps' && issue.id !== 'home' ? (
+                        <button type="button" className="mc-button mc-button-small" onClick={() => setStep(1)}>返回第 1 步修改</button>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               ) : null}
+
               <WorkspaceNote info={workspaceInfo} error={workspaceError} />
-              <FeishuSetupSection feishu={feishu} />
-              <button type="button" className="mc-button mc-setup-primary" data-variant="primary" onClick={finish}>进入主界面</button>
+              {workspaceError ? (
+                <div className="mc-actions">
+                  <button type="button" className="mc-button mc-button-small" onClick={retryWorkspace}>重试添加工作区</button>
+                </div>
+              ) : null}
+
+              <div className="mc-setup-start">
+                <strong>现在试一次</strong>
+                <div className="mc-setup-start-grid">
+                  {[['launch', '发布会直播'], ['video', '视频链接'], ['meeting', '会议录音'], ['doc', '飞书文档']].map(([kind, label]) => (
+                    <button key={kind} type="button" onClick={() => finish(kind)}>
+                      <strong>{label}</strong>
+                      <span>进入后直接打开</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <details className="mc-setup-accounts" open={false}>
+                <summary>连接账号（可选）</summary>
+                <p className="mc-setup-fine">
+                  B站登录后可录原画/会员视频；抖音多数视频需要登录；飞书用于文档卡片与 Agent 读写。
+                </p>
+                <BilibiliLoginCard compact />
+                <DouyinLoginCard compact />
+                <FeishuSetupSection feishu={feishu} />
+              </details>
+
+              <div className="mc-actions">
+                <button type="button" className="mc-button" onClick={() => setStep(2)}>返回安装</button>
+                <button type="button" className="mc-button mc-setup-primary" data-variant="primary" onClick={() => finish()}>进入主界面</button>
+              </div>
             </div>
           )
         ) : null}
@@ -586,7 +733,8 @@ function FeishuSetupSection({ feishu }) {
   // 否则一点就抛「尚未配置飞书 MCP 包」这种看不懂的错误。
   const canInstall = Boolean(status) && Boolean(status.runtime?.npxOk)
     && !status.dsh?.conflict && Boolean(status.package?.configured)
-  const stateText = !status ? '读取中…' : installed ? (loggedIn ? '已配置并登录' : '已配置，未登录') : '未配置'
+  const summary = feishuSummary(status)
+  const stateText = !status ? '读取中…' : `${summary.text}${installed ? '' : ' · 未配置'}`
 
   return (
     <div className="mc-setup-feishu">
@@ -599,6 +747,7 @@ function FeishuSetupSection({ feishu }) {
         <code className="mc-mono">mcp__feishu__</code> 开头；不装也不影响采集、转写与纪要。
       </p>
       <FeishuStatusRows status={status} compact />
+      {installed && loggedIn ? <FeishuDocProbe compact onLogin={() => feishu.actions.login('auto')} /> : null}
       <div className="mc-actions">
         {!installed ? (
           <button type="button" className="mc-button" disabled={busy || !canInstall} onClick={feishu.actions.install}>
@@ -625,6 +774,6 @@ function FeishuSetupSection({ feishu }) {
 
 function WorkspaceNote({ info, error }) {
   if (info) return <p className="mc-setup-fine">已添加 DSH 工作区：{info.title}；在那个工作区输入 @ 可选会摘卡片</p>
-  if (error) return <p className="mc-setup-fine">工作区未添加：{error}（稍后可在 设置 → 采集 里重试）</p>
+  if (error) return <p className="mc-setup-fine">工作区未添加：{error}（稍后可在会摘面板右上角「设置 → 采集」里重试）</p>
   return null
 }

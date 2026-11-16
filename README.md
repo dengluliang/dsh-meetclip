@@ -47,7 +47,7 @@
 ### 命令行
 
 ```bash
-dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.5.tgz"
+dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-<版本>.tgz"
 ```
 
 网页版把 `desktop` 换成 `web`，然后重启 DSH。更细的步骤、飞书配置和常见问题见 [INSTALL.md](INSTALL.md)。
@@ -70,10 +70,12 @@ dsh plugin --profile desktop add "file:/absolute/path/to/dsh-meetclip-0.9.5.tgz"
 
 1. 打开侧栏「会摘」→ 按引导准备 Python 环境。
 2. **首次引导第 1 步**：填入服务地址（Base URL）与 API Key（部署配了 `aiBaseUrl` 时地址会自动带出）。拉取清单后引导会各发一次最小请求，把能调通的语音与文字模型验证好再保存；之后想换到 **设置 → 会摘 → 模型**。
-3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频），或直接粘贴链接让 Agent 处理。
+3. 首页「＋」选择发布会直播 / 视频链接 / 会议录音（支持多选音视频）/ 飞书文档；首页对话框仍用于问 Agent，贴链接也会交给 Agent。
 4. 采集完成后在记录页看转写、打点、写笔记、生成 AI 纪要。
+5. 账号统一在**会摘面板右上角「设置 → 账号」**：B 站扫码登录、抖音三步登录、飞书安装/登录/试读；模型、采集、存储与更新也都在同一设置弹层。
+6. 首次引导装到一半刷新会接回进度；完成页可一键去试第一条，也可以随时在顶栏「？」打开使用指南。
 
-飞书是可选项：**设置 → 会摘 → 飞书**（或首次引导第 2 步）点「安装飞书 MCP」并登录后，Agent 才能读写飞书文档、多维表格与 Wiki。包名与 npm 源自带默认值；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）。
+飞书是可选项：**会摘面板右上角「设置 → 飞书」**（或首次引导第 3 步的「连接账号」）点「安装飞书 MCP」并登录后，Agent 才能读写飞书文档、多维表格与 Wiki。包名与 npm 源自带默认值；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage`、`feishuRegistry`（或环境变量 `MEETCLIP_FEISHU_PACKAGE`、`MEETCLIP_FEISHU_REGISTRY`）。
 
 模型服务同理：插件不内置任何网关地址，但部署方可以在同一处 meetclip config 里写 `aiBaseUrl`，首次引导与设置页会直接带出该地址；没有配置时保持每次手填。
 

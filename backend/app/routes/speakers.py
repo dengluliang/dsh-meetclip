@@ -78,7 +78,7 @@ def speakers_guess(sid: str, req: GuessReq | None = None):
     if not speaker_labels.qualifying_numbers(rows):
         return {**_payload(sid), "skipped": "至少要有两个说话人各自说满 5 句，才需要辨认"}
     if not ai_client.has_key():
-        raise HTTPException(400, "请先在 设置 → 会摘 → 模型 配置 AI Key")
+        raise HTTPException(400, "请先在会摘面板右上角「设置 → 模型」配置 AI Key")
     content = speaker_labels.guess_content(rows)
     if not content:
         raise HTTPException(400, "转写内容还不够，暂时无法辨认说话人")

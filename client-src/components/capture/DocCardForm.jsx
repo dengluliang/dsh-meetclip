@@ -1,5 +1,6 @@
-import { addFeishuDocCard, feishuStatus, previewFeishuDoc } from '../../lib/api.js'
-import { feishuSummary } from '../../lib/feishu.js'
+import { addFeishuDocCard, previewFeishuDoc } from '../../lib/api.js'
+import { feishuSummary, useFeishu } from '../../lib/feishu.js'
+import { FeishuJobPanel } from '../feishu/FeishuParts.jsx'
 
 const DOC_PATH = /^\/(docx|wiki|sheets|base|docs)\/[A-Za-z0-9_-]+/
 const DOC_HOST = /(^|\.)(feishu\.cn|larksuite\.com)$/i
@@ -33,7 +34,6 @@ export function DocCardForm({ t, onClose, onCreated }) {
   const [busy, setBusy] = React.useState('')
   const [error, setError] = React.useState('')
   const [hint, setHint] = React.useState('')
-  const [status, setStatus] = React.useState(null)
   const [preview, setPreview] = React.useState(null)
   const [previewing, setPreviewing] = React.useState(false)
   const [previewError, setPreviewError] = React.useState('')
@@ -42,14 +42,21 @@ export function DocCardForm({ t, onClose, onCreated }) {
   const mounted = React.useRef(true)
   const sequence = React.useRef(0)
   const titleTouched = React.useRef(false)
+  const retriedAfterLogin = React.useRef(false)
+  const feishu = useFeishu()
 
   React.useEffect(() => {
     mounted.current = true
-    feishuStatus()
-      .then((value) => { if (mounted.current) setStatus(value) })
-      .catch(() => {})
     return () => { mounted.current = false }
   }, [])
+
+  const summary = feishuSummary(feishu.status)
+  const installed = Boolean(feishu.status?.dsh?.entryPresent)
+  const loggedIn = Boolean(feishu.status?.auth?.loggedIn)
+  const accessExpired = Boolean(feishu.status?.auth?.accessExpired)
+  const canRead = installed && loggedIn && !accessExpired
+  const jobRunning = feishu.status?.job?.state === 'running'
+  const pending = busy === 'read' || busy === 'link' || jobRunning
 
   // 粘贴/修改链接后自动预读标题；650ms 防抖，旧请求用 sequence 丢弃。
   React.useEffect(() => {
@@ -72,6 +79,7 @@ export function DocCardForm({ t, onClose, onCreated }) {
         if (!mounted.current || current !== sequence.current) return
         setPreview(result)
         if (!titleTouched.current && result?.title) setTitle(result.title)
+        feishu.load()
       } catch (failure) {
         if (failure?.name === 'AbortError' || !mounted.current || current !== sequence.current) return
         setPreview(null)
@@ -87,12 +95,15 @@ export function DocCardForm({ t, onClose, onCreated }) {
     }
   }, [url, previewNonce])
 
-  const summary = feishuSummary(status)
-  const ready = summary.tone === 'ok'
-  const pending = busy === 'read' || busy === 'link'
-  const label = preview ? DOC_LABELS[preview.doc_type] || t('home.docs.title') : ''
+  // 登录成功后自动重试一次，避免用户手动再点；只重试一次。
+  React.useEffect(() => {
+    if (!canRead || !previewError || retriedAfterLogin.current) return
+    retriedAfterLogin.current = true
+    setPreviewNonce((value) => value + 1)
+  }, [canRead, previewError])
 
   function changeUrl(value) {
+    retriedAfterLogin.current = false
     setUrl(value)
     if (!titleTouched.current) setTitle('')
     setPreview(null)
@@ -133,6 +144,8 @@ export function DocCardForm({ t, onClose, onCreated }) {
       if (mounted.current) setBusy('')
     }
   }
+
+  const label = preview ? DOC_LABELS[preview.doc_type] || t('home.docs.title') : ''
 
   return (
     <div className="mc-new-form">
@@ -179,11 +192,40 @@ export function DocCardForm({ t, onClose, onCreated }) {
           placeholder={preview ? t('home.doc.titleAutoPlaceholder') : t('home.doc.titlePlaceholder')} spellCheck={false} />
       </label>
 
-      {status && !ready ? (
-        <div className="mc-notice" data-tone="warn">
-          {t('home.doc.notReady')}（{summary.text}）
+      {!canRead ? (
+        <div className="mc-feishu-issue" data-tone={summary.tone}>
+          <div>
+            <strong>{summary.text}</strong>
+            <span>{summary.detail || '登录后读到的文档才能进入卡片正文；也可以先只登记链接。'}</span>
+          </div>
+          <div className="mc-actions">
+            {!installed ? (
+              <button type="button" className="mc-button mc-button-small" disabled={pending}
+                onClick={() => feishu.actions.install()}>安装并连接飞书</button>
+            ) : null}
+            {installed && (!loggedIn || accessExpired) ? (
+              <>
+                <button type="button" className="mc-button mc-button-small" data-variant="primary"
+                  disabled={pending} onClick={() => feishu.actions.login('auto')}>
+                  {feishu.busy === 'login' ? '等待授权…' : accessExpired ? '刷新飞书登录' : '登录飞书'}
+                </button>
+                <button type="button" className="mc-button mc-button-small" disabled={pending}
+                  onClick={() => feishu.actions.login('device')}>设备码登录</button>
+              </>
+            ) : null}
+            {installed ? (
+              <button type="button" className="mc-button mc-button-small" disabled={pending}
+                onClick={feishu.actions.probe}>检测连接</button>
+            ) : null}
+            <button type="button" className="mc-button mc-button-small" disabled={pending}
+              onClick={() => submit(true)}>仅登记链接</button>
+          </div>
         </div>
-      ) : null}
+      ) : (
+        <p className="mc-foot-meta">已登录；读到正文会一起存进卡片，读不到时下方仍可「仅登记链接」。</p>
+      )}
+
+      <FeishuJobPanel job={feishu.status?.job} actions={feishu.actions} />
 
       {pending ? <div className="mc-inline-note" role="status">{busy === 'link' ? t('home.doc.linking') : t('home.doc.reading')}</div> : null}
       {error ? <div className="mc-error-text" role="alert">{error}{hint ? `：${hint}` : ''}</div> : null}

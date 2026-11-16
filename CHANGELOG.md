@@ -7,6 +7,21 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.15 配置与登录旅程：模型不再死锁，账号集中到面板设置
+
+发布日期：2026-11-16。
+
+- **模型配置死锁**：设置 → 模型原先「API Key 在最上面、地址在下面」；全新环境拉清单要求先保存地址，保存地址又要求先有模型 ID，而模型下拉依赖地址和 Key。现在三处（设置页、首页配置进度、首次引导）统一为「地址 + Key → 连接并获取模型 → 选语音/文字 → 一次保存并测试」，保存时同时写入地址、模型和 Key，不再有先后依赖；自定义 API 仍收在高级里。
+- **设置入口与账号中心**：顶栏新增「设置」和「？」。设置以覆盖层打开，底层采集表单不卸载；新增「账号」页，B 站扫码、抖音三步登录、飞书状态集中一处。直播/视频设置页只保留画质、灵敏度和通用 Cookie 开关。
+- **登录闭环**：B 站扫码得到的 Cookie 现在也进入视频链接的 yt-dlp 尝试链（匿名 → B 站 Cookie → 浏览器登录态），只对 bilibili 生效；视频失败时就地展开二维码/抖音登录卡，登录完成自动重试。
+- **错误可执行**：链接预览和任务失败返回 `status/code/message/action/detail`；B 站会员/风控、抖音 Cookie、浏览器权限、链接无效和网络问题都有中文建议，原始错误折叠到「技术详情」。`link_jobs.error_code` 新增 `login_required`，记录详情也能直接登录后重试。
+- **飞书说真话**：区分「登录会话有效」与「access token 当前可用」；access 过期且 MCP 未载入时显示「登录待刷新」。新增「验证读取一篇文档」；账号卡和 DocCardForm 登录成功后自动重试一次。Host 在成功读文档后记录 `lastDocReadAt`；`feishu_token_expired` 不再误报「未登录」。Agent 的 `meetclip_capture` 新增 `add_doc`，首页对话框保持现状也能把飞书链接登记成卡片。
+- **首次引导**：装到一半刷新会接回后台任务；第 2 步可返回/取消安装，存储不可写可一键打开完全磁盘访问；完成页列四项就绪状态和修复入口、可选账号、四条「现在试一次」。
+- **权限与恢复**：新增 macOS 完全磁盘访问跳转；设置 → 关于（仅面板内设置）可重新运行配置向导。
+- **修复**：`CaptureInline` 在展开时按「面板顶端 → 首页底部（再避开底部工具条）」实测可用高度并写进 `maxHeight`（200–660px，`transform` 缩放会换算回 CSS 像素），面板内部照旧滚动，操作行恒在可视区内；`resize` 与 `ResizeObserver` 重算，窄屏贴底浮层不受影响。信息流模式同样受益——面板不再压到底部工具条上。
+- **不只是续加**：已经有一张正在下载的批次卡时，在同一个面板里直接新开一批同样会卡在「加入队列」（新链接进不了等待队列），同一处裁切导致的；修复后两轮都能提交，新批次照旧排队、正在下载的那张不受影响。
+- **验证**：前端单测 282/282；后端 30 个测试文件全部 PASS（含新增 `test_platform_errors`）；`interaction-smoke`、重写的 `setup-smoke`/`feishu-smoke`、新增 `config-journey-smoke` 全 PASS。新增 `build/journey-preview.*` 与 `build/journey-shots.mjs`，输出 17 组前后对比图到 `build/journey-shots/`。内联面板裁切另加 `build/capture-clip-preview.*`（真实首页 + `elementFromPoint` 命中判定，`?old=1` 可复现修复前）：无头 Chrome 6 种窗口 × 散落/信息流全部 `reachable=true`，对比图 `build/capture-clip-before.png` / `capture-clip-after.png`。
+
 ## 0.9.14 检查更新只查版本，状态行改问「是否升级最新的 vX」
 
 发布日期：2026-11-11。

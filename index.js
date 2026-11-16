@@ -39,6 +39,7 @@ export function apply(ctx, rawConfig) {
       text: [
         'MeetClip is the user\'s local library of captured live streams, video links and meeting recordings, with timestamped transcripts, screenshots, marks, notes and calendar links.',
         'Use the meetclip_* tools to search it, read bounded transcript pages and perform the requested work.',
+        'When the user pastes a Feishu document link or asks to capture one, call meetclip_capture action=add_doc. If it reports Feishu login/MCP problems, relay the exact next step (MeetClip panel → Settings → Feishu to log in, or link_only) instead of claiming the document was read. When link_only or warning is set, say clearly that only the link was registered and no body text was read.',
         'A queued task is not a finished record: report progress and identifiers, and read the record before claiming completion.',
         'Read notes before replacing them, because note writes need the current version. Destructive or cost-incurring actions require explicit user intent.',
         'AI minutes carry user interactions: a to-do with done=true was checked off by the user, and user_interactions lists the to-dos they completed plus the exact text they highlighted (with section/topic and time). Treat these as explicit user feedback: do not silently undo them, and prefer the user-highlighted passages when answering.',

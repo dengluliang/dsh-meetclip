@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>会摘 0.9.15 前后对比</title>
+<style>
+  body{margin:0;padding:28px;background:#f4f3ef;color:#1d1d1f;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+  h1{font-size:22px;margin:0 0 6px}
+  p{color:#6b6b70;margin:0 0 24px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 26px;padding:16px;border:1px solid #dedcd5;border-radius:14px;background:#fff}
+  .row h2{grid-column:1/-1;font-size:14px;margin:0}
+  figure{margin:0}
+  figcaption{font-size:12px;color:#6b6b70;margin-bottom:6px}
+  img{display:block;width:100%;height:auto;border:1px solid #e7e5df;border-radius:8px}
+  @media(max-width:900px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>会摘 0.9.15 · 配置与登录界面前后对比</h1>
+<p>左：0.9.14（git HEAD）　右：0.9.15。首页 Hero 对话框未改；新增界面在左图显示最接近的旧界面。</p>
+<div id="app"></div>
+<script>
+const rows = [
+ ['01 首页顶栏','01-home-topbar','新增设置/帮助入口'],
+ ['02 设置 → 模型','02-settings-models','解除地址/Key/模型死锁'],
+ ['03 设置 → 账号','03-settings-account','新增账号页（左图为旧模型页）'],
+ ['04 设置 → 采集','04-settings-capture','登录移到账号页，加权限按钮'],
+ ['05 设置 → 飞书','05-settings-feishu','登录态说真话、设备码、验证读取'],
+ ['06 设置弹层','06-settings-dialog','新增覆盖层（左图为首页）'],
+ ['07 引导第 1 步','07-setup-step1','跳过始终可用'],
+ ['08 引导第 2 步','08-setup-step2','上一步/取消/权限/耗时'],
+ ['09 引导第 3 步','09-setup-step3','清单/修复/账号/四条开始'],
+ ['10 首页配置进度','10-progress-card','复用同一连接向导'],
+ ['11 视频表单：B 站登录','11-video-bili','就地扫码与重试'],
+ ['12 视频表单：抖音登录','12-video-douyin','三步登录卡入口'],
+ ['13 直播表单：风控','13-launch-error','中文原因与登录入口'],
+ ['14 飞书文档表单','14-doc-login','实时状态、登录、仅登记链接'],
+ ['15 使用指南','15-help','新增（左图为首页）'],
+ ['16 记录详情：登录失败','16-record-login','登录卡 + 重试 + 技术详情'],
+ ['17 设置 → 关于','17-settings-about','新增「重新运行配置向导」']
+]
+document.getElementById('app').innerHTML = rows.map(([title,file,note])=>`
+<section class="row">
+  <h2>${title} · ${note}</h2>
+  <figure><figcaption>Before · 0.9.14</figcaption><img src="before/${file}.png" alt="before ${title}"></figure>
+  <figure><figcaption>After · 0.9.15</figcaption><img src="after/${file}.png" alt="after ${title}"></figure>
+</section>`).join('')
+</script>
+</body>
+</html>

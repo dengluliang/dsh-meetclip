@@ -25,6 +25,7 @@ data/
 # Generated preview bundles and screenshots
 build/*-preview.js
 build/*.png
+build/**/*.png
 client.js.bak-*
 *.tmp
 

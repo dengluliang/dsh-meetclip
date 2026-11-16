@@ -48,9 +48,9 @@ class Failure(Exception):
 def _guard(config) -> None:
     """地址与模型都由用户填写：缺项时给一句能照做的话，而不是抛 URL 解析错误。"""
     if not config.base:
-        raise Failure("config", "请先在 设置 → 模型 填写服务地址（Base URL）")
+        raise Failure("config", "请先在会摘面板右上角「设置 → 模型」填写服务地址（Base URL）")
     if not config.model:
-        raise Failure("config", "请先在 设置 → 模型 选择或填写模型 ID")
+        raise Failure("config", "请先在会摘面板右上角「设置 → 模型」选择或填写模型 ID")
 
 
 def has_key(provider: str | None = None) -> bool:

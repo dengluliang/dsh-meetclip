@@ -493,6 +493,7 @@ def get_session(sid: str):
     link_task = link_video.manager.task(sid)
     job = db.get_link_job(sid) if sess.get("kind") == "link_video" else None
     sess["link_job"] = job
+    sess["link_error"] = (sess.get("meta") or {}).get("link_error") or None
     sess["recording"] = bool(task and task.capturing)
     sess.update(scheduler.info(sid))
     sess["processing"] = bool(sess["queued"] or (task and not task.capturing) or link_task or
@@ -708,7 +709,7 @@ def retranscribe(sid: str, req: RetranscribeReq | None = None):
         except ValueError as exc:
             raise HTTPException(400, str(exc))
     if not asr_engines.ready(config):
-        raise HTTPException(400, "所选转录引擎未就绪，请检查 设置 → 会摘 → 模型")
+        raise HTTPException(400, "所选转录引擎未就绪，请检查会摘面板右上角「设置 → 模型」")
     params = meeting.transcription_params(sess)
     db.update_meta(sid, asr_engine=config)
     if req and not req.resume:
