@@ -265,6 +265,16 @@ globalThis.fetch = async (url, options = {}) => {
       }, false, 400)
     }
     const seed = linkBatchBodies.length
+    // 队列满：只加第一条，其余回带 queue_full 的逐行结果。
+    if (urls.some((value) => value.includes('queuefull'))) {
+      return json({
+        ok: true,
+        results: urls.map((value, index) => (index === 0
+          ? { ok: true, id: `lbf-${seed}-0`, title: '排队成功的视频', url: value }
+          : { ok: false, queue_full: true, url: value, message: '队列已满（上限 50 条），这条先没加入；等前面的处理完再贴一次' })),
+        batch: { id: `batch-full-${seed}`, title: '批量视频 · 队列满', created_at: 1793000400, total: 1 }
+      })
+    }
     const results = urls.map((value, index) => ({
       ok: true, id: `lb${seed}-${index}`, title: `批量视频 ${seed}-${index + 1}`, url: value
     }))
@@ -1596,6 +1606,21 @@ try {
   if (!JSON.stringify(renderer.toJSON()).includes('已加入 2 条')) throw new Error('Forced duplicate batch was not added')
   const finishAgain = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '完成')
   await act(async () => { finishAgain.props.onClick() })
+  await flush(400)
+
+  // 队列满：能加的照常进等待队列，剩下的按行说明并留在输入框里（不再整批退回 409）。
+  await openVideoCapture()
+  await fillVideoLinks('https://www.bilibili.com/video/BVqueueok\nhttps://www.bilibili.com/video/BVqueuefull')
+  await act(async () => { addQueueButton().props.onClick() })
+  await flush(600)
+  text = JSON.stringify(renderer.toJSON())
+  if (!text.includes('已加入 1 条')) throw new Error('Queue-full batch did not add the links that fit')
+  if (!text.includes('队列已满')) throw new Error('Queue-full reason was not shown per row')
+  if (!text.includes('队列已满的链接留在输入框里')) throw new Error('Queue-full hint missing')
+  const leftover = renderer.root.findAllByType('textarea')[0]
+  if (!leftover || !String(leftover.props.value).includes('BVqueuefull')) throw new Error('Queue-full link did not stay in the box')
+  const finishFull = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '完成')
+  await act(async () => { finishFull.props.onClick() })
   await flush(400)
 
   // 批次浮层里追加新链接：请求带上 batch_id，提交后仍停在这个表单，完成回到成员列表。

@@ -885,6 +885,52 @@ class LinkVideoTests(unittest.TestCase):
         self.assertEqual(single.status_code, 200, single.text)
         self.assertNotIn("batch", single.json())
 
+    def test_over_capacity_batch_queues_what_fits_and_reports_the_rest(self):
+        # 队列上限压到 3 条：先排满 2 条，再贴 2 条——只有 1 条能进等待队列，
+        # 另一条逐条说明原因，不再把整批都退回 409。
+        first_urls = ["https://www.bilibili.com/video/cap-a/", "https://www.bilibili.com/video/cap-b/"]
+        with patch.object(self.link, "MAX_QUEUE", 3), patch.object(self.link.manager, "add"):
+            first = self.client.post("/api/link-videos/batch", json={"items": [{"url": u} for u in first_urls]})
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertTrue(all(row["ok"] for row in first.json()["results"]))
+
+        more = ["https://www.bilibili.com/video/cap-c/", "https://www.bilibili.com/video/cap-d/"]
+        with patch.object(self.link, "MAX_QUEUE", 3), patch.object(self.link.manager, "add") as add:
+            second = self.client.post("/api/link-videos/batch", json={"items": [{"url": u} for u in more]})
+        self.assertEqual(second.status_code, 200, second.text)
+        payload = second.json()
+        rows = payload["results"]
+        self.assertEqual([row["ok"] for row in rows], [True, False])
+        self.assertEqual(rows[0]["url"], more[0])
+        self.assertTrue(rows[1]["queue_full"])
+        self.assertIn("队列已满", rows[1]["message"])
+        self.assertEqual(rows[1]["url"], more[1])
+        self.assertEqual(add.call_count, 1)
+        # 能加的照常聚成批次卡，加不下的不会留下会话。
+        self.assertEqual(payload["batch"]["total"], 1)
+        self.assertEqual(len(self.db.list_sessions()), 3)
+        self.assertEqual(len([row for row in self.db.list_sessions() if row["title"] == more[1]]), 0)
+
+    def test_full_queue_returns_per_row_reasons_without_creating_sessions(self):
+        urls = [f"https://www.bilibili.com/video/full-{index}/" for index in range(3)]
+        with patch.object(self.link, "MAX_QUEUE", 3), patch.object(self.link.manager, "add"):
+            full = self.client.post("/api/link-videos/batch", json={"items": [{"url": u} for u in urls]})
+        self.assertEqual(full.status_code, 200, full.text)
+        self.assertEqual(len(self.db.list_sessions()), 3)
+
+        before = len(self.db.list_sessions())
+        with patch.object(self.link, "MAX_QUEUE", 3), patch.object(self.link.manager, "add") as add:
+            extra = self.client.post("/api/link-videos/batch", json={
+                "items": [{"url": "https://www.bilibili.com/video/full-extra/"}]
+            })
+        self.assertEqual(extra.status_code, 400, extra.text)
+        payload = extra.json()
+        self.assertFalse(payload["ok"])
+        self.assertTrue(payload["results"][0]["queue_full"])
+        self.assertIn("队列已满", payload["results"][0]["message"])
+        self.assertEqual(add.call_count, 0)
+        self.assertEqual(len(self.db.list_sessions()), before)
+
     def test_append_links_to_existing_batch_continues_indices_and_total(self):
         first_urls = ["https://www.bilibili.com/video/append-a/", "https://www.bilibili.com/video/append-b/"]
         with patch.object(self.link.manager, "add"):

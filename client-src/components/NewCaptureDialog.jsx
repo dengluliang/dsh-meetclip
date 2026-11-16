@@ -367,7 +367,8 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
       const summary = {
         added: created.length,
         duplicates: rows.filter((row) => row.duplicate).length,
-        failed: rows.filter((row) => !row.ok && !row.duplicate).length
+        failed: rows.filter((row) => !row.ok && !row.duplicate).length,
+        queueFull: rows.filter((row) => row.queue_full).length
       }
       const stayOpen = Boolean(response?.batch) || multiRound
       setResult({ ok: response?.ok, rows, summary, stayOpen })
@@ -395,7 +396,8 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
           summary: {
             added: 0,
             duplicates: rows.filter((row) => row.duplicate).length,
-            failed: rows.filter((row) => !row.ok && !row.duplicate).length
+            failed: rows.filter((row) => !row.ok && !row.duplicate).length,
+            queueFull: rows.filter((row) => row.queue_full).length
           },
           stayOpen: false
         })
@@ -468,6 +470,7 @@ export function VideoForm({ t, options, initialUrl = '', batch = null, onClose, 
               <span>
                 {summaryParts.join(' · ')}
                 {result.stayOpen && result.summary?.added ? ` · ${t('new.continueHint')}` : ''}
+                {result.summary?.queueFull ? ` · ${t('new.queueFullHint')}` : ''}
                 {!result.summary?.added && result.summary?.duplicates ? ` · ${t('new.forceHint')}` : ''}
               </span>
               {duplicateUrls.length ? (

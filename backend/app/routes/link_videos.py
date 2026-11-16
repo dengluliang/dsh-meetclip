@@ -99,9 +99,13 @@ def link_batch(req: LinkBatchReq):
     created = []
     with db.transaction():
         remaining = link_video.MAX_QUEUE - db.count_active_link_jobs()
-        if len(prepared) > remaining:
-            raise HTTPException(409, f"队列还可添加 {remaining} 条链接")
         for index, item, normalized, platform, info, summary in prepared:
+            # 队列满时逐条说明，别把整批都退回去：能加的先排进等待队列，加不下的留在输入框里等下次。
+            if remaining <= 0:
+                results.append((index, {"ok": False, "queue_full": True, "url": item.url,
+                                        "message": f"队列已满（上限 {link_video.MAX_QUEUE} 条），"
+                                                   "这条先没加入；等前面的处理完再贴一次"}))
+                continue
             duplicate = db.one(
                 "SELECT id,title,status FROM sessions WHERE kind='link_video' AND normalized_url=? "
                 "ORDER BY created_at DESC LIMIT 1", (normalized,)
@@ -130,6 +134,7 @@ def link_batch(req: LinkBatchReq):
                 subtitle_status=summary.get("subtitle_status", "unknown"))
             db.create_link_job(sid, db.next_link_queue_order())
             created.append(sid)
+            remaining -= 1
             results.append((index, {"ok": True, "id": sid, "title": title, "url": item.url}))
     results = [result for _, result in sorted(results, key=lambda pair: pair[0])]
     batch = None

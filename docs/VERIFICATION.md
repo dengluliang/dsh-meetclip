@@ -1,3 +1,25 @@
+## 0.9.16 队列满时不再整批退回（2026-11-16）
+
+### 现象与根因
+
+- 同事截图：已经有一批链接在下载（截图里 18 条在跑）时，再在视频面板里贴一批新链接点「加入队列」，底部只出现一行灰色「队列还可添加 32 条链接」，一条都没进等待队列；重复点击还是同一句，看起来像按钮点不动。
+- 根因：`backend/app/routes/link_videos.py` 的 `POST /api/link-videos/batch` 在写库前先算 `remaining = MAX_QUEUE(50) − count_active_link_jobs()`，只要这一批比剩余名额多就整批 `raise HTTPException(409, "队列还可添加 N 条链接")`，事务回滚、一条不建；前端把 409 当普通错误渲染（`.mc-error-text` 是次级灰，不是红色），所以看起来既不像报错也没说清原因。
+
+### 改动
+
+- 后端：容量判断从「整批拦截」改成「逐条让位」——`remaining <= 0` 的行返回 `{ok:false, queue_full:true, message:"队列已满（上限 50 条），这条先没加入；等前面的处理完再贴一次"}`，其余照常建记录、`next_link_queue_order()` 排进等待队列并聚成批次卡；每成功一条 `remaining -= 1`。整批都加不下时仍返回 400 + `results`（前端已有的逐行渲染路径）。
+- 前端：`client-src/components/NewCaptureDialog.jsx` 的 `VideoForm` 在 `summary` 里带上 `queueFull`，汇总行新增「队列已满的链接留在输入框里，等前面的处理完再提交一次」（`new.queueFullHint`，中英双语）；失败链接沿用原有「留在输入框」逻辑。
+
+### 自动化验证
+
+- 后端新增两条用例：`test_over_capacity_batch_queues_what_fits_and_reports_the_rest`（`MAX_QUEUE` 压到 3：先排 2 条，再贴 2 条 → 1 条入队 + 1 条 `queue_full`，`manager.add` 只调 1 次，错误行不建会话、批次卡 `total=1`）与 `test_full_queue_returns_per_row_reasons_without_creating_sessions`（队列全满 → 400 + 逐行 `queue_full`、`manager.add` 0 次、会话数不变）。`python -m tests.test_link_video` **53/53**；`backend/tests/run-all.sh` **30 个文件全 PASS**。
+- `build/interaction-smoke.mjs` 新增「队列满：1 条成功 + 1 条失败」断言——汇总出现「已加入 1 条」、逐行出现「队列已满」、汇总出现「队列已满的链接留在输入框里」、失败链接仍在输入框；`node --test tests/*.test.mjs` **282/282**、`render-smoke`、`interaction-smoke` 全 PASS。
+
+### 说明
+
+- `MAX_QUEUE` 仍是 50，没有放宽上限；改的是「超了以后怎么办」：能排的先排队，排不下的留给你，而不是整批退回。
+- 两个入口一起受益：顶部「＋ → 视频链接」的模态面板和首页 Hero 的内联面板共用同一个 `VideoForm`。
+
 ## 内联采集面板底部操作行被裁掉（2026-11-16）
 
 - 用户反馈：批量加入视频时，再进一次同一张卡、再点批量增加，预读完成后「加入队列」亮了却点不了。

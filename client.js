@@ -46278,7 +46278,8 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
       const summary = {
         added: created.length,
         duplicates: rows.filter((row) => row.duplicate).length,
-        failed: rows.filter((row) => !row.ok && !row.duplicate).length
+        failed: rows.filter((row) => !row.ok && !row.duplicate).length,
+        queueFull: rows.filter((row) => row.queue_full).length
       };
       const stayOpen = Boolean(response?.batch) || multiRound;
       setResult({ ok: response?.ok, rows, summary, stayOpen });
@@ -46302,7 +46303,8 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
           summary: {
             added: 0,
             duplicates: rows.filter((row) => row.duplicate).length,
-            failed: rows.filter((row) => !row.ok && !row.duplicate).length
+            failed: rows.filter((row) => !row.ok && !row.duplicate).length,
+            queueFull: rows.filter((row) => row.queue_full).length
           },
           stayOpen: false
         });
@@ -46351,7 +46353,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
       onChangeMode: (mode) => setEntries((current) => current.map((item, i) => i === index ? { ...item, mode } : item)),
       onPreview: () => previewEntry(index)
     }
-  )), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error) : null, result ? /* @__PURE__ */ React.createElement("div", { className: "mc-result-list" }, summaryParts.length || duplicateUrls.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-result-summary" }, /* @__PURE__ */ React.createElement("span", null, summaryParts.join(" \xB7 "), result.stayOpen && result.summary?.added ? ` \xB7 ${t("new.continueHint")}` : "", !result.summary?.added && result.summary?.duplicates ? ` \xB7 ${t("new.forceHint")}` : ""), duplicateUrls.length ? /* @__PURE__ */ React.createElement(
+  )), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error) : null, result ? /* @__PURE__ */ React.createElement("div", { className: "mc-result-list" }, summaryParts.length || duplicateUrls.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-result-summary" }, /* @__PURE__ */ React.createElement("span", null, summaryParts.join(" \xB7 "), result.stayOpen && result.summary?.added ? ` \xB7 ${t("new.continueHint")}` : "", result.summary?.queueFull ? ` \xB7 ${t("new.queueFullHint")}` : "", !result.summary?.added && result.summary?.duplicates ? ` \xB7 ${t("new.forceHint")}` : ""), duplicateUrls.length ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -50193,6 +50195,7 @@ var zh = {
   "new.failedCount": "{n} \u6761\u5931\u8D25",
   "new.continueHint": "\u7EE7\u7EED\u7C98\u8D34\u94FE\u63A5\u53EF\u518D\u52A0\u5165\u4E00\u6279",
   "new.forceHint": "\u8FD9\u4E9B\u94FE\u63A5\u5DF2\u5728\u961F\u5217\u4E2D\uFF0C\u786E\u5B9E\u8981\u518D\u91C7\u96C6\u4E00\u6B21\u53EF\u70B9\u53F3\u4FA7\u6309\u94AE",
+  "new.queueFullHint": "\u961F\u5217\u5DF2\u6EE1\u7684\u94FE\u63A5\u7559\u5728\u8F93\u5165\u6846\u91CC\uFF0C\u7B49\u524D\u9762\u7684\u5904\u7406\u5B8C\u518D\u63D0\u4EA4\u4E00\u6B21",
   "new.forceDuplicates": "\u4ECD\u7136\u52A0\u5165\u91CD\u590D\u94FE\u63A5",
   "new.finish": "\u5B8C\u6210",
   "new.batchAdd": "\u52A0\u5165\u672C\u6279\u6B21",
@@ -50653,6 +50656,7 @@ var en = {
   "new.failedCount": "{n} failed",
   "new.continueHint": "Paste more links to add another round",
   "new.forceHint": "These links are already queued; use the button to add them again",
+  "new.queueFullHint": "Links that did not fit stay in the box; submit them again once the queue drains",
   "new.forceDuplicates": "Add duplicates anyway",
   "new.finish": "Done",
   "new.batchAdd": "Add to this batch",
