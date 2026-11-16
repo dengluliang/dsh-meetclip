@@ -17,7 +17,8 @@
 
 ### 部署
 
-- 发布资产：`node build/release.mjs --dry-run` 生成 `dist/release/0.9.16/dsh-meetclip-0.9.16.tgz`（sha256 `41b70a4b…f841`）、`latest.json`、`SHA256SUMS.txt`；`git commit ece80c4` + tag `v0.9.16` 已推送到 GitHub（Release 资产需要 `GITHUB_TOKEN` 才能上传，本机没有该变量，未上传）。
+- 发布资产：`node build/release.mjs --upload` 已建 Release <https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.16> 并上传 `dsh-meetclip-0.9.16.tgz`（sha256 `41b70a4b…f841`）、`latest.json`、`SHA256SUMS.txt`（release id 446552058）。`GITHUB_TOKEN` 取自本机 git 凭据存储（`printf "protocol=https\nhost=github.com\n" | git credential fill`，`gho_` OAuth，scope `gist, read:org, repo`），只在环境变量里用，未落盘、未回显。
+- 发布后核对：`https://github.com/dengluliang/dsh-meetclip/releases/latest/download/latest.json` 返回 `version 0.9.16`、`asset.size 805132`、`sha256 41b70a4b…f841`；下载该资产 HTTP 200、805132 bytes，`shasum -a 256` 与本地 `dist/release/0.9.16/dsh-meetclip-0.9.16.tgz` 完全一致。Releases 列表里 v0.9.16 是 `published`（含三个资产），v0.9.15 只有 tag、没有 Release（内容已全部包含在 0.9.16 里）。
 - 安装副本：`~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip` 用 tarball 同步，先备份为 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.16-<时间戳>.tgz`；`diff -r` 与 tarball 逐文件一致，`package.json` 已是 0.9.16。
 - **坑**：`npm pack` 会把包内文件的 mtime 归一到 1985-10-26，两个版本号字符串又等长（0.9.15 / 0.9.16 都是 1571 字节），所以第一次 `rsync -a` 按 size+mtime 快速判断把 `package.json` 跳过了，装完仍显示 0.9.15；改用 `rsync -a --delete --checksum` 后一致。以后同步安装副本都用 `--checksum`。
 - 引擎重启：kill 旧 pid（16727）后由 Host 自动拉起新进程（pid 18463），`/api/health` 200、同一 dataDir；Host 启动时读的插件版本仍是 0.9.14，重启 DSH 前界面里的版本号会停在旧值，刷新页面加载的是新 `client.js`。
