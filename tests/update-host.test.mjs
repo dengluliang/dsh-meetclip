@@ -81,6 +81,13 @@ async function cleanupTarget(target) {
   await fsp.rm(target, { recursive: true, force: true })
 }
 
+function markSourceCheckout(dir) {
+  // 源码工作区的标志：client-src / build / .git，发布包里都没有。
+  fs.mkdirSync(path.join(dir, 'client-src'), { recursive: true })
+  fs.writeFileSync(path.join(dir, 'client-src', 'index.jsx'), '// dev only\n')
+  return dir
+}
+
 function writeTarget(version = '0.9.0') {
   const dir = tempDir('mc-update-target-')
   fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ name: PACKAGE_NAME, version }))
@@ -409,7 +416,7 @@ test('an interrupted swap is recovered from the updater backup on startup', asyn
 })
 
 test('source checkouts are not overwritten by the automatic installer', async () => {
-  const target = writeTarget('0.9.0')
+  const target = markSourceCheckout(writeTarget('0.9.0'))
   const tgz = makeTarGz(packageEntries('0.9.1'))
   const server = await startServer({
     tgz,
@@ -639,8 +646,50 @@ test('rollback rejects an unknown version and lists what is available', async ()
   await fsp.rm(stateDir, { recursive: true, force: true })
 })
 
+test('a package unpacked outside node_modules is still an install target', async () => {
+  // 用户把 dsh-meetclip-x.y.z.tgz 解压到任意目录（例如 ~/Downloads/package）再指给 DSH：
+  // 目录里只有发布包内容，没有 client-src / build / .git，应当按安装副本对待，而不是「源码运行」。
+  const parent = tempDir('mc-unpacked-')
+  const target = writePackage(path.join(parent, 'package'), '0.9.14')
+  const stateDir = tempDir('mc-state-')
+  const manager = new UpdateManager(
+    { packageRoot: target, stateDir },
+    { targetDir: target, stateDir, currentVersion: '0.9.14' }
+  )
+  const status = manager.status()
+  assert.equal(status.target.kind, 'installed')
+  assert.equal(status.target.writable, true)
+
+  // 有了上一版备份就能回退（以前 source 判定会直接拒掉）。
+  writePackage(path.join(parent, 'package.update-bak-0.9.13-20261110-135408-1'), '0.9.13')
+  const withBackup = manager.status()
+  assert.equal(withBackup.rollback.available.length, 1)
+  assert.equal(withBackup.rollback.canRollback, true)
+
+  // 也能装：走真实下载 + 校验 + 替换，不需要 allowSourceTarget 兜底。
+  const tgz = makeTarGz(packageEntries('0.9.15'))
+  const server = await startServer({
+    tgz,
+    feed: (port) => ({ version: '0.9.15', tag: 'v0.9.15', asset: { name: 'dsh-meetclip-0.9.15.tgz', url: `http://127.0.0.1:${port}/pkg.tgz`, sha256: sha256(tgz), size: tgz.length } })
+  })
+  const feedManager = new UpdateManager(
+    { packageRoot: target, stateDir, updateFeed: `http://127.0.0.1:${server.port}/latest.json` },
+    { targetDir: target, stateDir, currentVersion: '0.9.14', feedUrl: `http://127.0.0.1:${server.port}/latest.json` }
+  )
+  feedManager.startCheck({ autoInstall: true })
+  const job = await waitForIdle(feedManager)
+  assert.equal(job.state, 'done')
+  assert.equal(JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8')).version, '0.9.15')
+  const backups = fs.readdirSync(parent).filter((name) => name.startsWith('package.update-bak-'))
+  assert.ok(backups.some((name) => /0\.9\.14/.test(name)))
+  await server.close()
+  await fsp.rm(parent, { recursive: true, force: true })
+  await fsp.rm(stateDir, { recursive: true, force: true })
+})
+
 test('a source checkout refuses to roll back the installed copy', async () => {
   const { parent, target } = rollbackTarget('0.9.1')
+  markSourceCheckout(target)
   backupDir(parent, '0.9.0')
   const stateDir = tempDir('mc-state-')
   const manager = new UpdateManager(

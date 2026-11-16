@@ -24,6 +24,9 @@ const ALLOWED_HOSTS = [
   'codeload.github.com'
 ]
 const REQUIRED_FILES = ['index.js', 'client.js', 'src/host/routes.js', 'backend/app/main.py', 'package.json']
+// 源码仓库才有、发布包里没有的目录：用来区分「git 工作区」和「解压出来的安装包」。
+// 只看 client-src / build / .git 这三个，发布包（package.json 的 files）里都没有。
+const SOURCE_MARKERS = ['client-src', 'build', '.git']
 
 export class UpdateError extends Error {
   constructor(message, code = 'update-failed', status = 500) {
@@ -336,10 +339,20 @@ export class UpdateManager {
     }
   }
 
+  /**
+   * 只有「真的是源码工作区」才禁用自动更新。以前只认 `node_modules/@meetclip/dsh-meetclip`
+   * 这一种安装位置，于是把发布包解压到任意目录（例如 `~/Downloads/package`）再让 DSH 指过去
+   * 的装法会被当成源码运行——查得到新版本却没有「点击升级」按钮。现在改成看目录形状：
+   * 带 client-src / build / .git 的才算源码，其余能写就按安装副本处理。
+   */
   targetInfo() {
     const normalized = this.targetDir.split(path.sep).join('/')
     const marker = `/node_modules/${UPDATE_PACKAGE_NAME}`
-    const kind = normalized.endsWith(marker) ? 'installed' : 'source'
+    let kind = 'installed'
+    if (!normalized.endsWith(marker)) {
+      const isCheckout = SOURCE_MARKERS.some((name) => exists(path.join(this.targetDir, name)))
+      if (isCheckout) kind = 'source'
+    }
     return {
       path: this.targetDir,
       kind,

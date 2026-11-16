@@ -1,3 +1,27 @@
+## 0.9.17 解压安装的副本也能在应用内升级（2026-11-16）
+
+### 现象与根因
+
+- 同事截图：检查更新能查到 v0.9.16，但主按钮还是「检查更新」，下面是「当前从源码目录运行，自动更新已停用；请用 git pull 更新后重启」，可回退版本写着「源码运行时没有升级备份」。他的「安装位置」是 `/Users/kael/Downloads/package`——发布包解压到任意目录再让 DSH 指过去。
+- 根因：`src/host/update.js` 的 `targetInfo()` 只有路径以 `/node_modules/@meetclip/dsh-meetclip` 结尾才算 `installed`，其余一律 `source`。于是解压安装被当成 git 工作区：`updatePrimary()` 不出现「点击升级」、`performInstall()`/`startRollback()` 直接 409 `target-source`、`canRollback` 为 false。
+
+### 改动
+
+- `targetInfo()` 改成看目录形状：仍是 node_modules 安装路径则直接 `installed`；否则目录里出现 `client-src/`、`build/`、`.git/` 之一才判 `source`（这三样都不在发布包 `files` 里），其余按 `installed`，可写性照旧单独判断。
+- 没有放宽任何保护：真源码工作区（本仓库、`pnpm dev` 现场）仍有 `client-src`/`build`/`.git`，仍然只能 `git pull`；不可写目录仍报 `target-unwritable`。
+- 升级与回退的落盘逻辑没动：解压安装的副本升级前会把旧目录改名成 `<目录名>.update-bak-<版本>-<时间戳>-<序号>` 放在旁边，回退列表按这个前缀扫描，因此「可回退版本」对解压安装同样有效。
+
+### 自动化验证
+
+- `tests/update-host.test.mjs`：新增 `a package unpacked outside node_modules is still an install target`——`kind=installed`、`writable=true`；放一份 `package.update-bak-0.9.13-…` 后 `rollback.canRollback=true`；再走**不带** `allowSourceTarget` 的真实下载 + sha256 校验 + 替换，把 0.9.14 换成 0.9.15，并断言留下 `package.update-bak-0.9.14` 备份。两条源码用例（回退被拒、安装被拒）改成带 `client-src/` 的真实工作区形状，用 `markSourceCheckout()` 标注。**23/23 通过**。
+- 全套：`node --test tests/*.test.mjs` 283/283、`node build/render-smoke.mjs`、`node build/interaction-smoke.mjs` 通过；后端未改。
+
+### 升级路径说明
+
+- 已经在 `node_modules/@meetclip/dsh-meetclip` 的安装：这次修复后才会有「点击升级」，装完重启 DSH 生效。
+- 解压安装（如 `~/Downloads/package`）：**需要先手工把 0.9.17 的文件替换进那个目录一次**，重启 DSH；从此以后该目录也能在应用内升级/回退（因为旧版本的 Host 里还是老判定，它自己升不动自己）。
+- 真源码工作区：不变，仍提示 `git pull`。
+
 ## 0.9.16 队列满时不再整批退回（2026-11-16）
 
 ### 现象与根因

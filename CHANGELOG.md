@@ -7,6 +7,16 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.17 解压安装的副本也能在应用内升级
+
+发布日期：2026-11-16。
+
+- **现象**（同事截图）：检查更新能查到 v0.9.16，但主按钮仍然是「检查更新」，右下角只有一行「当前从源码目录运行，自动更新已停用；请用 git pull 更新后重启」，`可回退版本`也写着「源码运行时没有升级备份」。他的安装位置是 `/Users/kael/Downloads/package`——把发布包解压到任意目录再指给 DSH 的那种装法。
+- **根因**：`UpdateManager.targetInfo()` 只把路径以 `/node_modules/@meetclip/dsh-meetclip` 结尾的目录当成「安装副本」，其余一律当「源码运行」，于是解压安装的副本被当成 git 工作区：不显示「点击升级」、`startInstall` 直接 409 `target-source`、回退也被拒。
+- **修复**：改成看目录形状——除 node_modules 安装路径外，目录里带 `client-src/`、`build/`、`.git/` 之一才算源码工作区（这三样都不在发布包的 `files` 里），其余只要能写就按安装副本处理。解压安装的副本因此重新拿到「点击升级」、能回退，升级时照旧把旧目录改名成 `package.update-bak-<版本>-<时间戳>-<序号>` 留在原地。
+- **升级路径**：真正的源码工作区行为不变（仍然提示 `git pull`，不覆盖工作区）；`~/.dsh/profiles/.../node_modules/@meetclip/dsh-meetclip` 照旧。
+- **验证**：`tests/update-host.test.mjs` 新增「解压安装目录是安装目标」用例（`kind=installed`、可回退、走真实下载+校验+替换把 0.9.14 换成 0.9.15 并留下 `package.update-bak-0.9.14`），并把两条源码用例改成带 `client-src/` 的真实工作区形状；`tests/update-host.test.mjs` **23/23**、前端 `node --test tests/*.test.mjs` **283/283**、`render-smoke`/`interaction-smoke` 通过。
+
 ## 0.9.16 队列满时先把能加的加进去，其余留在输入框
 
 发布日期：2026-11-16。
