@@ -16,6 +16,12 @@
 - `tests/update-host.test.mjs`：新增 `a package unpacked outside node_modules is still an install target`——`kind=installed`、`writable=true`；放一份 `package.update-bak-0.9.13-…` 后 `rollback.canRollback=true`；再走**不带** `allowSourceTarget` 的真实下载 + sha256 校验 + 替换，把 0.9.14 换成 0.9.15，并断言留下 `package.update-bak-0.9.14` 备份。两条源码用例（回退被拒、安装被拒）改成带 `client-src/` 的真实工作区形状，用 `markSourceCheckout()` 标注。**23/23 通过**。
 - 全套：`node --test tests/*.test.mjs` 283/283、`node build/render-smoke.mjs`、`node build/interaction-smoke.mjs` 通过；后端未改。
 
+### 发布与真机端到端
+
+- Release <https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.17>（release id 446560028）：`dsh-meetclip-0.9.17.tgz`（sha256 `fc4c8ba9…bab0`、805647 bytes）、`latest.json`、`SHA256SUMS.txt` 已上传；`releases/latest/download/latest.json` 返回 `version 0.9.17`。
+- 真机端到端（真 GitHub feed + 真发布包）：把 `dsh-meetclip-0.9.16.tgz` 解压到 `~/Downloads/package` 这种非 node_modules 目录，用新 `UpdateManager` 走真实流程 → `target.kind=installed`、`writable=true` → 检查到 v0.9.17 → `startInstall()` 下载并校验后完成替换 → 目录版本变 0.9.17，旁边留 `package.update-bak-0.9.16-20261116-110128-88938`，`restartRequired=true`。旧版本（0.9.14/0.9.16）的 Host 里还是老判定，所以这次升级需要手工替换一次。
+- 本机安装副本已同步 0.9.17（`rsync --checksum` + `diff -r` 一致），备份 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.17-*.tgz`；`src/host/update.js` 跑在 DSH 进程里，需重启 DSH 生效（后端未改，引擎不用重启）。
+
 ### 升级路径说明
 
 - 已经在 `node_modules/@meetclip/dsh-meetclip` 的安装：这次修复后才会有「点击升级」，装完重启 DSH 生效。
