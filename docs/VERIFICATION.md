@@ -15,6 +15,13 @@
 - 后端新增两条用例：`test_over_capacity_batch_queues_what_fits_and_reports_the_rest`（`MAX_QUEUE` 压到 3：先排 2 条，再贴 2 条 → 1 条入队 + 1 条 `queue_full`，`manager.add` 只调 1 次，错误行不建会话、批次卡 `total=1`）与 `test_full_queue_returns_per_row_reasons_without_creating_sessions`（队列全满 → 400 + 逐行 `queue_full`、`manager.add` 0 次、会话数不变）。`python -m tests.test_link_video` **53/53**；`backend/tests/run-all.sh` **30 个文件全 PASS**。
 - `build/interaction-smoke.mjs` 新增「队列满：1 条成功 + 1 条失败」断言——汇总出现「已加入 1 条」、逐行出现「队列已满」、汇总出现「队列已满的链接留在输入框里」、失败链接仍在输入框；`node --test tests/*.test.mjs` **282/282**、`render-smoke`、`interaction-smoke` 全 PASS。
 
+### 部署
+
+- 发布资产：`node build/release.mjs --dry-run` 生成 `dist/release/0.9.16/dsh-meetclip-0.9.16.tgz`（sha256 `41b70a4b…f841`）、`latest.json`、`SHA256SUMS.txt`；`git commit ece80c4` + tag `v0.9.16` 已推送到 GitHub（Release 资产需要 `GITHUB_TOKEN` 才能上传，本机没有该变量，未上传）。
+- 安装副本：`~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip` 用 tarball 同步，先备份为 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.16-<时间戳>.tgz`；`diff -r` 与 tarball 逐文件一致，`package.json` 已是 0.9.16。
+- **坑**：`npm pack` 会把包内文件的 mtime 归一到 1985-10-26，两个版本号字符串又等长（0.9.15 / 0.9.16 都是 1571 字节），所以第一次 `rsync -a` 按 size+mtime 快速判断把 `package.json` 跳过了，装完仍显示 0.9.15；改用 `rsync -a --delete --checksum` 后一致。以后同步安装副本都用 `--checksum`。
+- 引擎重启：kill 旧 pid（16727）后由 Host 自动拉起新进程（pid 18463），`/api/health` 200、同一 dataDir；Host 启动时读的插件版本仍是 0.9.14，重启 DSH 前界面里的版本号会停在旧值，刷新页面加载的是新 `client.js`。
+
 ### 说明
 
 - `MAX_QUEUE` 仍是 50，没有放宽上限；改的是「超了以后怎么办」：能排的先排队，排不下的留给你，而不是整批退回。
