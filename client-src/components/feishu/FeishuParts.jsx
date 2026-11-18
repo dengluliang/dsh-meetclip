@@ -9,11 +9,18 @@ export function FeishuStatusRows({ status, compact = false }) {
   let runtimeText = '读取中…'
   let runtimeTone = ''
   if (status) {
-    if (!runtime.npx) {
-      runtimeText = '没有找到 npx：先装 Node.js 20+（或 nvm）'
-      runtimeTone = 'error'
-    } else if (!runtime.node) {
-      runtimeText = '没有找到 node：先装 Node.js 20+（或 nvm）'
+    const runtimeReady = runtime.ready === undefined ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready)
+    if (runtime.mode === 'local' && runtimeReady) {
+      const local = runtime.local || {}
+      runtimeText = [
+        `内置运行时 ${runtime.nodeVersion || ''}`.trim(),
+        local.installed ? `本地副本 v${local.version}` : '尚未本地安装',
+        '不需要 npx'
+      ].join(' · ')
+    } else if (!runtime.npx || !runtime.node) {
+      runtimeText = runtime.mode === 'local'
+        ? '找不到可用的 node 运行时（DSH 自带运行时异常）'
+        : '没有找到 npx：先装 Node.js 20+（或 nvm）'
       runtimeTone = 'error'
     } else if (!runtime.nodeOk) {
       runtimeText = `Node ${runtime.nodeVersion || '?'}，飞书 MCP 需要 20 以上`

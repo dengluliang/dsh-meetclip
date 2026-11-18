@@ -4,6 +4,7 @@ import css from './styles.css'
 import libraryCss from './libraries.css'
 import settingsSpacingCss from './settings-spacing.css'
 import updateCss from './update.css'
+import backupCss from './backup.css'
 import { MeetClipIcon } from './components/Icon.jsx'
 import { Panel } from './components/Panel.jsx'
 import { Settings } from './components/Settings.jsx'
@@ -49,7 +50,7 @@ export function apply(ctx) {
   // dynamic client halves, so inject the package stylesheet explicitly.
   // 资料空间相关的样式单独一份文件：样式主表被多处并发改动，这里不再往里加。
   // 资料空间与设置页节奏各一份独立文件：主样式表被多处并发改动，这里不再往里加。
-  ctx.effect(() => installStyles(css + libraryCss + settingsSpacingCss + updateCss))
+  ctx.effect(() => installStyles(css + libraryCss + settingsSpacingCss + updateCss + backupCss))
 
   function withLocale(Component) {
     return function MeetClipLocalizedView(props) {

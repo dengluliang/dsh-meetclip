@@ -478,7 +478,7 @@ export function SetupWizard({ status, onComplete }) {
           <div>
             <p className="mc-setup-eyebrow">首次使用 · {step} / 3</p>
             <h2>{step === 1 ? '连接模型服务' : step === 2 ? '安装环境' : '准备进入会摘'}</h2>
-            <p>{step === 1 ? '填写 OpenAI 兼容服务地址与 API Key，自动获取可用模型。' : step === 2 ? '安装 Python 环境与采集组件；账号可以在下一步再连。' : '检查就绪项，按需登录账号，然后直接试一条。'}</p>
+            <p>{step === 1 ? '填写 OpenAI 兼容服务地址与 API Key，自动获取可用模型。' : step === 2 ? '自动下载运行环境与采集组件（不需要预装 Python、Homebrew）；账号可以在下一步再连。' : '检查就绪项，按需登录账号，然后直接试一条。'}</p>
           </div>
         </div>
 
@@ -590,8 +590,8 @@ export function SetupWizard({ status, onComplete }) {
                 onClick={() => openFullDiskAccess().catch(() => {})}>打开完全磁盘访问设置</button>
             </div>
             <p className="mc-setup-fine">
-              安装只做一次，通常 3–10 分钟：创建独立 Python 环境 → 启动本地引擎 → 安装 yt-dlp 与 ffmpeg。
-              可以点「后台完成」先去主界面。
+              安装只做一次，通常 3–10 分钟：自动下载独立 Python 环境 → 启动本地引擎 → 下载 yt-dlp 与 ffmpeg。
+              两者都走国内镜像（清华 PyPI / npmmirror），不用先装 Homebrew。可以点「后台完成」先去主界面。
             </p>
             <div className="mc-setup-progress">
               <div className="mc-setup-progress-head"><span className={running ? 'mc-setup-spinner' : ''} /><strong>{detail || (running ? '准备安装' : '点击下方按钮开始')}</strong></div>
@@ -731,7 +731,9 @@ function FeishuSetupSection({ feishu }) {
   const busy = Boolean(feishu.busy) || running
   // 与设置页保持同一套判断：源没配好时不要给出可点的安装按钮，
   // 否则一点就抛「尚未配置飞书 MCP 包」这种看不懂的错误。
-  const canInstall = Boolean(status) && Boolean(status.runtime?.npxOk)
+  const canInstall = Boolean(status) && (status.runtime?.ready === undefined
+    ? Boolean(status.runtime?.npxOk && status.runtime?.nodeOk)
+    : Boolean(status.runtime.ready))
     && !status.dsh?.conflict && Boolean(status.package?.configured)
   const summary = feishuSummary(status)
   const stateText = !status ? '读取中…' : `${summary.text}${installed ? '' : ' · 未配置'}`

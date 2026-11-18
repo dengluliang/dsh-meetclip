@@ -1,4 +1,4 @@
-# 会摘 MeetClip · 安装说明（当前源码 0.9.17；安装包以 Release 实际版本为准）
+# 会摘 MeetClip · 安装说明（当前源码 0.9.19；安装包以 Release 实际版本为准）
 
 会摘是一个 **DeepSeek Harness 插件**：在本机采集 B 站直播、导入视频与会议录音，做云端转写、边看边打点、写 Markdown 笔记，并用 `meetclip_*` 工具让 Agent 检索和整理你的资料库。0.4.0 起还能把转写整理成 **AI 纪要**，并导出 SRT / VTT / Word；0.5.0 起转写改为纯云端时间戳，脚本不再下载时间戳/说话人模型；0.9.0 起可以在「设置 → 关于」里检查并自动更新。
 
@@ -33,7 +33,39 @@
 
 - **DeepSeek Harness** 0.2.x（桌面版或网页版）
 - **macOS**（当前主要在 macOS 上验证；Windows/Linux 的理论路径已处理，但未实测）
-- 首次安装运行环境需要网络
+- 首次安装需要网络（**不需要**预装 Python、Homebrew，也**不需要**能访问 GitHub）
+- 一个 **OpenAI 兼容的模型服务**：Base URL、模型 ID 与 API Key（云识别与 AI 纪要默认沿用同一把 key，也可以各自指向不同服务）
+
+### 运行环境怎么自举（0.9.20 起）
+
+点「一键安装并配置」后，环境由插件自己去下载，全程不需要用户打开终端：
+
+| 步骤 | 下载内容 | 默认来源 | 大小 |
+|---|---|---|---|
+| 1 | `uv`（wheel 里自带的二进制） | 清华 PyPI → 阿里云 → 官方 PyPI | ~17 MB |
+| 2 | 独立 CPython 3.12（`python-build-standalone`） | npmmirror → 官方 | ~16 MB |
+| 3 | 后端依赖 wheel | 清华 PyPI → 阿里云 → 官方 PyPI | ~60 MB |
+| 4 | `yt-dlp` | 直接复用第 3 步装进独立环境的脚本，不联网 | 0 |
+| 5 | `ffmpeg` / `ffprobe`（静态构建） | osxexperts → GitHub 代理 → imageio-ffmpeg wheel | ~50 MB |
+
+- 1、2 两步中任何一步失败都会自动换下一条链路：机器上已经有 ≥3.10 的 Python 就直接用，没有 uv 也能用独立 CPython 建 venv。
+- 采集组件装到 `~/.dsh/meetclip/bin/`（后端启动时该目录在 `PATH` 第一位，也是 `ZHIBO_BIN_DIR`），不写系统目录、不需要管理员密码。
+- 只有在机器上**已经**装过 Homebrew 时才会用 `brew install` 兜底；不再弹终端替用户装 Homebrew。
+- 内网/自建镜像可以写在部署配置里（推荐，DSH 从 Finder 启动时也能生效）：
+
+```yaml
+# ~/.dsh/cordis.patch.yml 里那段 - id: meetclip
+- id: meetclip
+  config:
+    pypiMirror: https://mirror.internal/pypi/simple
+    pythonMirror: https://mirror.internal/python-build-standalone
+    ffmpegMirror: https://mirror.internal/ffmpeg.zip,https://mirror.internal/ffmpeg-darwin-arm64.gz
+```
+
+  等价的进程环境变量：`MEETCLIP_PYPI_MIRROR` / `MEETCLIP_PYTHON_MIRROR` / `MEETCLIP_FFMPEG_MIRROR`（逗号分隔多个，
+  配置优先）。主机侧自举与后端安装读的是同一份设置。
+
+- 安装日志在 `~/.dsh/meetclip/setup.log`（运行环境）与面板「配置进度」里的实时日志（采集组件）。
 - 一个 **OpenAI 兼容的模型服务**：Base URL、模型 ID 与 API Key（云识别与 AI 纪要默认沿用同一把 key，也可以各自指向不同服务）
 
 ## 二、安装
@@ -43,7 +75,7 @@
 1. 打开 <https://github.com/dengluliang/dsh-meetclip/releases/latest>，下载 `dsh-meetclip-<版本>.tgz`，放到一个**不会被清理的固定目录**（例如 `~/Documents/MeetClip/`）。
 2. 打开 DeepSeek Harness：**设置 → 插件 → 添加插件**。
 3. 填这个 tgz 的**绝对路径**，例如 `/Users/me/Documents/MeetClip/dsh-meetclip-<版本>.tgz`。
-4. 安装完成后启用「会摘」；首次打开按引导准备 Python 运行环境。
+4. 安装完成后启用「会摘」；首次打开按引导「一键安装并配置」，运行环境与采集组件由插件自动下载（无需预装 Python / Homebrew）。
 5. 如果提示 `already installed`，先在插件列表卸载旧「会摘」，再安装；资料库目录不会被删除。
 
 > 只填 `.tgz` 文件本身或解压后含 `package.json` 的目录。不要填 zip、不要填 `dist/` 这样的父目录，也不要直接把仓库根目录当安装包（仓库根目录没有构建好的 client 时无法加载）。
@@ -104,7 +136,7 @@ shasum -a 256 -c SHA256SUMS.txt
    也可以直接把插件自带那段 `- id: meetclip` 的 `config: {}` 改成 `config: { aiBaseUrl: … }`；改完重启 DSH 生效。
 
    > **模型名要不要带供应商前缀**：不少兼容层网关调用时要求写 `供应商/模型名`，而它自己的 `/models` 只返回裸 id，直接拿裸 id 调用会得到 `401 该模型未指定供应商`。插件会按目录里的 `owned_by` 自动补成可直接调用的名字再保存；网关不返回 `owned_by` 时，用环境变量 `MEETCLIP_AI_MODEL_PREFIX=<供应商>` 兜底。语音转写与 AI 纪要走同一套规则。
-2. **选存储位置 + 一键安装并配置** → 先在「存储位置」确认资料保存的文件夹（默认建议 `~/Documents/会摘资料`，可点「选择…」换任意可写目录），再自动安装 Python 环境、启动本地引擎、装 `yt-dlp` / `ffmpeg`。
+2. **选存储位置 + 一键安装并配置** → 先在「存储位置」确认资料保存的文件夹（默认建议 `~/Documents/会摘资料`，可点「选择…」换任意可写目录），再自动下载运行环境（uv + CPython 3.12）、启动本地引擎、下载 `yt-dlp` / `ffmpeg`。整条链路走国内镜像，不需要预装 Python 或 Homebrew，平台见上一节的来源表。
    不想等安装完成可以点「后台完成」，先进入主界面，剩余安装在后台继续。
    安装过程中可以点「后台完成」；刷新/重开面板会接回正在进行的安装，不会回到第 1 步。存储位置不可写时，页面上有「打开完全磁盘访问设置」。
 3. **完成 + 可选账号** → 完成页先列运行环境、采集组件、云端转写、存储位置四项状态，缺哪项旁边就有修复入口；下方「连接账号（可选）」可按需登录 B 站、抖音、飞书。再往下是四个「现在试一次」：发布会直播 / 视频链接 / 会议录音 / 飞书文档，点哪个就直接进入对应采集。未完成的项仍会变成首页进度卡片。
@@ -131,10 +163,11 @@ shasum -a 256 -c SHA256SUMS.txt
 - **只加一段，不动别的**：写入前会备份原文件（`cordis.patch.yml.meetclip-bak-<时间戳>`），重复点不会产生第二段；本来就有的 `serverName: feishu` 会被认成冲突并提示，不会覆盖。
 - **登录**：点「登录飞书」走飞书官方浏览器授权；浏览器不在本机时点「用设备码登录」，把界面给出的链接在任意设备打开即可。令牌只存在 `~/.feishu-mcp-pro/auth.json`，会摘界面只显示 open_id 与到期时间，不会把令牌读进对话。
 - **更新**：设置里的「检查更新」会重新解析最新版本并改写同一段配置；入口默认固定到安装时解析到的版本，启动更快、断网也能连。
-- **界面**：会摘面板右上角「设置 → 飞书」默认只有一行——状态（可以使用 / 未登录 / 未安装 / 需要 Node.js 20+）、账号与到期日、以及「重新登录」「更多」。检查更新、检测连接、重新安装、用设备码登录、退出登录、官方文档、移除 DSH 配置都收在「更多」里；运行条件、补丁路径、版本号不再展示，只在出问题时给一句原因（缺 Node、配置冲突、等待载入）。
+- **界面**：会摘面板右上角「设置 → 飞书」默认只有一行——状态（可以使用 / 未登录 / 未安装 / 运行环境不可用）、账号与到期日、以及「重新登录」「更多」。检查更新、检测连接、重新安装、用设备码登录、退出登录、官方文档、移除 DSH 配置都收在「更多」里；运行条件、补丁路径、版本号不再展示，只在出问题时给一句原因（运行环境、配置冲突、等待载入）。
 - **移除**：会摘面板右上角「设置 → 飞书」→ 更多 →「移除 DSH 配置」，只删这一段，不动登录状态。
 - **跳过**：不装不影响采集、转写、AI 纪要；以后随时可以补。
-- **前提**：Node.js 20+（终端里 `node -v` 能看到）、能访问 npm 源。包名与源自带默认值，装好 Node 就能一键安装；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）。Finder 启动的 DSH 可能看不到 Homebrew/nvm 的 PATH；提示找不到 npx 时，在同一处 config 里加 `feishuNpx` / `feishuNode` 的绝对路径，或从终端启动 DSH。
+- **装法（0.9.21 起默认本地安装，不需要 npx）**：用 DSH 自带的 node 运行时（`ELECTRON_RUN_AS_NODE`）与自带 pnpm，把 `<feishuPackage>@<版本>` 连同依赖装进 `~/.dsh/meetclip/feishu-mcp/`，再生成 `run.sh` 并把它写成 MCP 的 `command`——过程里不调用 npx、不要求机器上有 Node.js，也不需要 `~/.npmrc`。想回到旧行为（`npx -y <包>@<版本>`），在 meetclip config 里设 `feishuMode: npx`；本地安装失败时也会自动退回 npx（如果机器上有）。包管理器可用 `feishuPnpm` 指定自己的 pnpm。
+- **前提**：能访问 `feishuRegistry` 指定的 npm 源（内置默认指向组织私有源，在家通常要连 VPN）。包名与源自带默认值；要换成自己的镜像，在 `cordis.patch.yml` 的 meetclip config 里填 `feishuPackage` 与 `feishuRegistry`（或设环境变量 `MEETCLIP_FEISHU_PACKAGE` / `MEETCLIP_FEISHU_REGISTRY`）。
 - **其他编辑器**：官方 `setup`（会写 `~/.npmrc` 并把 Cursor / VS Code / Claude Code 等编辑器的 MCP 配置也改成飞书 MCP）DSH 用不到，设置里不再提供；要给其他编辑器配，按官方文档在终端跑 `npx -y --registry=<你的 npm 源> <你的飞书 MCP 包名>@latest setup`。
 - 官方文档：<https://open.feishu.cn/document/home/index>
 
@@ -198,6 +231,8 @@ dsh plugin --profile desktop remove @meetclip/dsh-meetclip
 |---|---|
 | `command not found: dsh` | 桌面版菜单 →「管理 dsh 命令」，或改用插件管理器安装 tgz |
 | 首次引导第二步提示「存储位置不可写 / 完全磁盘访问权限」 | 0.8.4 起检查的是你选择的目录。若确实被 macOS 拦住：到 系统设置 → 隐私与安全性 → 完全磁盘访问权限 勾选 DeepSeek Harness，**完全退出（⌘Q）并重新打开**后再试；也可以点「选择…」换到「文稿」以外的目录（例如 `~/会摘资料`） |
+| 首次安装报「未找到 Python 3.10+，也没有 uv」 | 0.9.19 及更早版本要求机器上自备 Python；0.9.20 起插件自己下载 uv 与 CPython，正常情况下不会再出现。若仍出现，看日志里哪条镜像失败，用 `MEETCLIP_PYPI_MIRROR` / `MEETCLIP_PYTHON_MIRROR` 指到能通的内网镜像后重试 |
+| 装 Homebrew 一直失败（GitHub 连不上 / HTTP2 framing layer / 提示 macOS 版本不受支持） | 0.9.20 起采集组件不再依赖 Homebrew，直接从镜像下静态 `ffmpeg`/`ffprobe` 到 `~/.dsh/meetclip/bin/`。已装过 brew 的机器才会用 `brew install` 兜底 |
 | 面板显示「本地引擎」未连接 | 在插件管理里禁用再启用「会摘」，或重启 DeepSeek Harness；首次装环境要等安装完成 |
 | 转写报「请先配置云端语音 API Key」 | 首次引导第一步没完成，或 key 无效；到会摘面板右上角「设置 → 模型」重填并测试 |
 | 纪要页签提示「尚未配置 AI Key」 | 填了云识别 key 一般就够；若换了独立服务，到会摘面板右上角「设置 → 模型 → 文字总结」填自定义 API |
@@ -209,7 +244,9 @@ dsh plugin --profile desktop remove @meetclip/dsh-meetclip
 | 换机器后插件不见了 | 把 tgz 一起带过去，在新机器上重新执行安装命令 |
 | 读取 Cookie 报 could not find chrome cookies database | macOS 没有给 DeepSeek Harness 完全磁盘访问权限。到 系统设置 → 隐私与安全性 → 完全磁盘访问权限 勾选 DeepSeek Harness，重启本地引擎/应用后再读取 |
 | 抖音链接报 Cookie / Fresh cookies | 会摘面板右上角「设置 → 账号 → 抖音」，按三步登录并读取登录状态；抖音有风控，「测试连接」失败时以平台限制为准 |
-| 飞书 MCP 提示找不到 npx | DSH 从 Finder 启动时 PATH 比终端短。在 `~/.dsh/cordis.patch.yml` 里给 meetclip 加上 `feishuNpx: /opt/homebrew/bin/npx`（以及 `feishuNode`），或从终端启动 DSH 后重试 |
+| 飞书 MCP 提示找不到 npx | 0.9.21 起默认「本地安装」，不需要 npx；看到这句说明配置里设了 `feishuMode: npx`。删掉这一项（回到默认）后点「重新安装」即可，或按提示补 `feishuNpx` / `feishuNode` 绝对路径 |
+| 飞书安装很快失败、提示本地安装失败 | 看面板「更多 → 安装日志」里的 pnpm 输出：多为 `feishuRegistry` 连不上（EAI_AGAIN / ETIMEDOUT）或私有源要登录。本地副本在 `~/.dsh/meetclip/feishu-mcp/`，可整目录删掉重装 |
+| 飞书配置写了却连不上（Agent 里没有 `mcp__feishu__*`） | 先点「检测连接」：本地模式会直接跑 `~/.dsh/meetclip/feishu-mcp/run.sh`，能用就说明配置没问题、等 DSH 载入；不能用看日志里 node 路径是否还在（DSH 升级换了 App 位置时点「重新安装」会重写启动器） |
 | 飞书 MCP 解析版本失败（EAI_AGAIN / ETIMEDOUT） | `feishuRegistry` 指定的 npm 源连不上；确认网络 / 代理可达后点「检查更新」重试 |
 | 飞书登录完了但工具没出现 | 确认 `~/.dsh/cordis.patch.yml` 里有 `mcp-feishu-pro` 那段；工具列表在会话开始时加载，新开一个会话即可。仍不行点设置里的「检测连接」看具体错误 |
 | 提示 serverName「feishu」被占用 | 已有另一条 MCP 配置用了 `serverName: feishu`，先改名或删掉那一条，再点「重新安装并检测」 |

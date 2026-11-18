@@ -5485,6 +5485,9 @@ var settings_spacing_default = "/* \u8BBE\u7F6E\u9875\u7EDF\u4E00\u8282\u594F\u3
 // client-src/update.css
 var update_default = "/* \u8BBE\u7F6E \u2192 \u5173\u4E8E\uFF1A\u7248\u672C\u4FE1\u606F\u3001\u66F4\u65B0\u8FDB\u5EA6\u548C\u53D1\u5E03\u8BF4\u660E\u3002\n   \u4F7F\u7528\u4E0E\u8BBE\u7F6E\u9875\u4E00\u81F4\u7684\u5361\u7247\u8282\u594F\uFF1B\u8FDB\u5EA6\u6761\u590D\u7528 .mc-progress \u7684\u89C6\u89C9\u8BED\u8A00\u3002 */\n\n.mc-about-head {\n  display: flex;\n  align-items: flex-start;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.mc-about-head .mc-card-title { margin-bottom: 4px; }\n\n.mc-about-version {\n  flex: 0 0 auto;\n  padding: 5px 10px;\n  border: .5px solid var(--mc-line);\n  border-radius: 999px;\n  background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  line-height: 1.2;\n}\n\n.mc-about-meta {\n  margin-left: 8px;\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  font-style: normal;\n}\n\n.mc-about-path {\n  display: inline-block;\n  max-width: min(420px, 100%);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  vertical-align: bottom;\n  white-space: nowrap;\n}\n\n.mc-about-rollback-select {\n  min-width: 0;\n  max-width: 100%;\n}\n\n.mc-rollback-confirm {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.mc-rollback-confirm .mc-actions { margin-top: 0; }\n\n.mc-rollback-confirm .mc-about-warning strong {\n  font-family: var(--mc-mono, ui-monospace, SFMono-Regular, Menlo, monospace);\n  font-variant-numeric: tabular-nums;\n  font-weight: 550;\n}\n\n.mc-link-button {\n  padding: 0;\n  border: 0;\n  background: none;\n  color: var(--dsw-alias-brand-primary);\n  cursor: pointer;\n  font: inherit;\n  text-align: left;\n}\n\n.mc-link-button:hover { text-decoration: underline; }\n.mc-link-button:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 2px; }\n\n.mc-update-summary {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 8px;\n  padding: 10px 12px;\n  border: .5px solid var(--mc-line);\n  border-radius: 12px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 72%, transparent);\n}\n\n.mc-update-summary strong { font-size: 13px; font-weight: 550; }\n.mc-update-summary .mc-foot-meta { margin: 0; font-size: 12px; }\n.mc-update-summary[data-tone='warn'] { border-color: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 32%, transparent); }\n.mc-update-summary[data-tone='error'] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 32%, transparent); }\n\n.mc-about-warning {\n  margin: 0;\n  padding: 9px 12px;\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-state-warn-primary) 8%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 12px;\n  line-height: 1.6;\n}\n\n.mc-update-card { gap: 10px; }\n\n.mc-update-head {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 13px;\n}\n\n.mc-update-head strong { font-weight: 550; }\n\n.mc-update-percent {\n  margin-left: auto;\n  color: var(--dsw-alias-label-secondary);\n  font-variant-numeric: tabular-nums;\n  font-size: 12px;\n}\n\n.mc-update-bar {\n  flex: 1 1 auto !important;\n  width: 100%;\n  height: 7px !important;\n}\n\n.mc-update-bar span {\n  transition: width .25s ease;\n}\n\n.mc-update-bar span.is-indeterminate {\n  width: 35%;\n  animation: mc-update-sweep 1.15s ease-in-out infinite;\n}\n\n@keyframes mc-update-sweep {\n  0% { transform: translateX(-110%); }\n  100% { transform: translateX(320%); }\n}\n\n/* \u66F4\u65B0\u5185\u5BB9\u662F\u53EA\u8BFB\u7684 Markdown \u9884\u89C8\uFF1A\u4E0D\u53EF\u9009\u4E2D\u3001\u4E0D\u53EF\u590D\u5236/\u62D6\u52A8\u3002 */\n.mc-update-notes-card .mc-update-notes {\n  max-height: 260px;\n  margin: 0;\n  padding: 10px 12px;\n  overflow: auto;\n  border: .5px solid var(--mc-line);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 80%, transparent);\n  color: var(--dsw-alias-label-secondary);\n  font-family: inherit;\n  font-size: 12px;\n  line-height: 1.65;\n  word-break: break-word;\n  cursor: default;\n  user-select: none;\n  -webkit-user-select: none;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md {\n  font-size: 12px;\n  line-height: 1.65;\n  color: var(--dsw-alias-label-secondary);\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-h1,\n.mc-update-notes-card .mc-update-notes .mc-md-h2,\n.mc-update-notes-card .mc-update-notes .mc-md-h3,\n.mc-update-notes-card .mc-update-notes .mc-md-h4,\n.mc-update-notes-card .mc-update-notes .mc-md-h5,\n.mc-update-notes-card .mc-update-notes .mc-md-h6 {\n  margin: 8px 0 4px;\n  font-size: 13px;\n  color: var(--dsw-alias-label-primary);\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-p,\n.mc-update-notes-card .mc-update-notes .mc-md-list,\n.mc-update-notes-card .mc-update-notes .mc-md-quote,\n.mc-update-notes-card .mc-update-notes .mc-md-code,\n.mc-update-notes-card .mc-update-notes .mc-md-table {\n  margin: 0 0 6px;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-list {\n  padding-left: 18px;\n}\n\n.mc-update-notes-card .mc-update-notes .mc-md-inline-code {\n  font-size: 11px;\n}\n\n@media (max-width: 640px) {\n  .mc-about-head { gap: 10px; }\n  .mc-about-version { font-size: 11px; }\n  .mc-about-path { max-width: 100%; }\n}\n";
 
+// client-src/backup.css
+var backup_default = '/* \u8BBE\u7F6E \u2192 \u5907\u4EFD\uFF1A\u9009\u62E9\u6E05\u5355\u3001\u8FDB\u5EA6\u6761\u4E0E\u7ED3\u679C\u3002\u4E0E\u8BBE\u7F6E\u9875\u5176\u4ED6\u5C0F\u8282\u4FDD\u6301\u540C\u4E00\u5957\u8282\u594F\u3002 */\n.mc-backup-panel { gap: 12px; }\n.mc-backup-card { display: flex; flex-direction: column; gap: 12px; }\n.mc-backup-card .mc-section-title { margin: 0; }\n\n.mc-backup-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }\n.mc-backup-search {\n  flex: 1 1 220px;\n  min-width: 0;\n  height: 30px;\n  padding: 0 10px;\n  border: .5px solid var(--dsw-alias-border-l2);\n  border-radius: 9px;\n  background: var(--dsw-alias-bg-layer-1);\n  color: var(--dsw-alias-label-primary);\n  font-size: 12px;\n  outline: none;\n}\n.mc-backup-search:focus { border-color: var(--dsw-alias-border-l4); }\n.mc-backup-search::placeholder { color: var(--dsw-alias-label-tertiary); }\n\n.mc-backup-summary {\n  margin: 0;\n  display: flex;\n  align-items: baseline;\n  gap: 8px;\n  flex-wrap: wrap;\n  font-size: 12px;\n  color: var(--dsw-alias-label-secondary);\n}\n.mc-backup-estimate { color: var(--dsw-alias-label-tertiary); font-size: 11.5px; }\n\n.mc-backup-groups {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  border: .5px solid var(--dsw-alias-border-l1);\n  border-radius: 12px;\n  padding: 4px 10px 8px;\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 55%, transparent);\n  max-height: 420px;\n  overflow: auto;\n}\n.mc-backup-group { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }\n.mc-backup-group + .mc-backup-group { border-top: .5px dashed var(--dsw-alias-border-l1); }\n.mc-backup-group-head { display: flex; align-items: center; gap: 8px; min-height: 28px; }\n.mc-backup-group-head .mc-backup-check {\n  display: flex;\n  align-items: center;\n  gap: 7px;\n  font-size: 12px;\n  font-weight: 600;\n  color: var(--dsw-alias-label-primary);\n  cursor: pointer;\n}\n.mc-backup-count { flex: 1 1 auto; font-size: 11px; color: var(--dsw-alias-label-tertiary); }\n.mc-backup-link {\n  border: 0;\n  background: transparent;\n  color: var(--dsw-alias-label-secondary);\n  font-size: 11px;\n  cursor: pointer;\n  padding: 2px 4px;\n  border-radius: 6px;\n}\n.mc-backup-link:hover { background: var(--dsw-alias-interactive-bg-hover); }\n\n.mc-backup-rows { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 2px 2px; }\n.mc-backup-row {\n  display: flex;\n  align-items: flex-start;\n  gap: 8px;\n  padding: 5px 6px;\n  border-radius: 8px;\n  cursor: pointer;\n  font-size: 12px;\n}\n.mc-backup-row:hover { background: var(--dsw-alias-interactive-bg-hover); }\n.mc-backup-row input { margin: 2px 0 0; flex: 0 0 auto; accent-color: var(--dsw-alias-brand-primary); }\n.mc-backup-row-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 auto; }\n.mc-backup-row-title {\n  color: var(--dsw-alias-label-primary);\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.mc-backup-row-meta {\n  color: var(--dsw-alias-label-tertiary);\n  font-size: 11px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.mc-backup-row[data-active="true"] .mc-backup-row-title { color: var(--dsw-alias-state-success-primary); }\n.mc-backup-badge {\n  flex: 0 0 auto;\n  margin-top: 1px;\n  padding: 1px 6px;\n  border-radius: 99px;\n  border: .5px solid var(--dsw-alias-border-l2);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 10px;\n  white-space: nowrap;\n}\n.mc-backup-package { display: flex; flex-direction: column; gap: 2px; padding: 2px 0; }\n.mc-backup-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 6px 4px 24px; }\n.mc-backup-chip {\n  max-width: 220px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  padding: 1px 6px;\n  border-radius: 99px;\n  background: var(--dsw-alias-bg-layer-2);\n  color: var(--dsw-alias-label-secondary);\n  font-size: 10.5px;\n}\n.mc-backup-more {\n  align-self: flex-start;\n  margin: 2px 0 2px 24px;\n  border: 0;\n  background: transparent;\n  color: var(--dsw-alias-brand-primary);\n  font-size: 11px;\n  cursor: pointer;\n  padding: 2px 4px;\n  border-radius: 6px;\n}\n.mc-backup-more:hover { background: var(--dsw-alias-interactive-bg-hover); }\n\n.mc-backup-option {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-primary);\n  cursor: pointer;\n}\n.mc-backup-option input { accent-color: var(--dsw-alias-brand-primary); }\n.mc-backup-option[data-disabled="true"] { cursor: default; color: var(--dsw-alias-label-tertiary); }\n.mc-backup-option-hint { margin-left: auto; font-size: 11px; color: var(--dsw-alias-label-tertiary); }\n\n.mc-backup-dest {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  padding: 7px 9px;\n  border: .5px solid var(--dsw-alias-border-l1);\n  border-radius: 10px;\n  background: var(--dsw-alias-bg-layer-1);\n  font-size: 11.5px;\n}\n.mc-backup-dest-label { color: var(--dsw-alias-label-secondary); flex: 0 0 auto; }\n.mc-backup-dest-path {\n  flex: 1 1 auto;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  color: var(--dsw-alias-label-primary);\n  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;\n  font-size: 11px;\n}\n\n.mc-backup-job {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  padding: 9px 10px;\n  border-radius: 10px;\n  border: .5px solid var(--dsw-alias-border-l1);\n  background: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 70%, transparent);\n}\n.mc-backup-job[data-tone="error"] { border-color: color-mix(in srgb, var(--dsw-alias-state-error-primary) 45%, transparent); }\n.mc-backup-job-head {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  gap: 10px;\n  font-size: 12px;\n  color: var(--dsw-alias-label-primary);\n}\n.mc-backup-job-bytes { font-size: 11px; color: var(--dsw-alias-label-tertiary); font-variant-numeric: tabular-nums; }\n.mc-backup-job .mc-progress { width: 100%; flex: 0 0 auto; height: 5px; }\n.mc-backup-bar { width: 100%; }\n.mc-backup-job .mc-actions { margin-top: 2px; }\n.mc-backup-job .mc-foot-meta { margin: 0; }\n\n.mc-backup-result {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  padding: 9px 10px;\n  border-radius: 10px;\n  border: .5px solid var(--dsw-alias-border-l1);\n  background: color-mix(in srgb, var(--dsw-alias-state-success-primary) 7%, transparent);\n}\n.mc-backup-result-line { margin: 0; font-size: 12px; color: var(--dsw-alias-label-primary); word-break: break-all; }\n.mc-backup-result code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }\n.mc-backup-result .mc-actions { margin-top: 2px; }\n.mc-backup-warnings {\n  margin: 0;\n  padding-left: 16px;\n  font-size: 11px;\n  line-height: 1.55;\n  color: var(--dsw-alias-label-secondary);\n}\n.mc-backup-warnings li { margin: 1px 0; }\n\n.mc-backup-path { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }\n.mc-backup-path .mc-backup-search { flex: 1 1 320px; }\n\n.mc-backup-inspect {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 10px 11px;\n  border-radius: 10px;\n  border: .5px solid var(--dsw-alias-border-l1);\n  background: var(--dsw-alias-bg-layer-1);\n}\n.mc-backup-inspect-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12px; }\n.mc-backup-inspect-head .mc-foot-meta { margin: 0; }\n.mc-backup-inspect-list { margin: 0; padding-left: 16px; font-size: 11.5px; line-height: 1.6; color: var(--dsw-alias-label-secondary); }\n.mc-backup-inspect-list li { margin: 1px 0; }\n.mc-backup-inspect-list .mc-backup-exists { color: var(--dsw-alias-label-tertiary); list-style: none; margin-left: -16px; }\n.mc-backup-inspect .mc-actions { margin-top: 0; }\n';
+
 // client-src/components/Icon.jsx
 init_react_shim();
 function MeetClipIcon({ size = 20, active: active2 = false }) {
@@ -5667,8 +5670,8 @@ function precheckLive(url) {
 function previewLink(url) {
   return api("/link-videos/preview", { method: "POST", body: JSON.stringify({ url }) });
 }
-function addLinks(items, { batchId = "" } = {}) {
-  const body = { items };
+function addLinks(items2, { batchId = "" } = {}) {
+  const body = { items: items2 };
   if (batchId) body.batch_id = batchId;
   return api("/link-videos/batch", {
     method: "POST",
@@ -5821,6 +5824,27 @@ function revealRecord(id) {
 }
 function revealPath(target = "data") {
   return app("/open", { method: "POST", body: JSON.stringify({ target }) });
+}
+function revealFilePath(path) {
+  return app("/open", { method: "POST", body: JSON.stringify({ target: "path", path }) });
+}
+function backupCatalog() {
+  return api("/backup/catalog");
+}
+function backupExport(body) {
+  return api("/backup/export", { method: "POST", body: JSON.stringify(body) });
+}
+function backupInspect(path) {
+  return api("/backup/inspect", { method: "POST", body: JSON.stringify({ path }) });
+}
+function backupImport(body) {
+  return api("/backup/import", { method: "POST", body: JSON.stringify(body) });
+}
+function backupJob() {
+  return api("/backup/job");
+}
+function backupCancel() {
+  return api("/backup/cancel", { method: "POST" });
 }
 function updateSpeakers(id, names = {}, merge = {}) {
   return api(`/sessions/${encodeURIComponent(id)}/speakers`, {
@@ -6121,6 +6145,9 @@ function beginEngineRestart() {
 }
 function endEngineRestart() {
   publish({ restarting: false, revision: state.revision + 1 });
+}
+function bumpRevision() {
+  publish({ ...state, revision: state.revision + 1 });
 }
 function getLibraryHint() {
   return libraryHint;
@@ -6836,14 +6863,14 @@ var PlaylistLevelType = {
 };
 var EWMA = class {
   //  About half of the estimated value will be from the last |halfLife| samples by weight.
-  constructor(halfLife, estimate = 0, weight = 0) {
+  constructor(halfLife, estimate2 = 0, weight = 0) {
     this.halfLife = void 0;
     this.alpha_ = void 0;
     this.estimate_ = void 0;
     this.totalWeight_ = void 0;
     this.halfLife = halfLife;
     this.alpha_ = halfLife ? Math.exp(Math.log(0.5) / halfLife) : 0;
-    this.estimate_ = estimate;
+    this.estimate_ = estimate2;
     this.totalWeight_ = weight;
   }
   sample(weight, value) {
@@ -28568,8 +28595,8 @@ var InterstitialsSchedule = class extends Logger {
     return 0;
   }
   get duration() {
-    const items = this.items;
-    return items ? items[items.length - 1].end : 0;
+    const items2 = this.items;
+    return items2 ? items2[items2.length - 1].end : 0;
   }
   get length() {
     return this.items ? this.items.length : 0;
@@ -28590,15 +28617,15 @@ var InterstitialsSchedule = class extends Logger {
     } else if (item.previousEvent) {
       index = this.findEventIndex(item.previousEvent.identifier) + 1;
     }
-    const items = this.items;
-    if (items) {
-      if (!items[index]) {
+    const items2 = this.items;
+    if (items2) {
+      if (!items2[index]) {
         if (time === void 0) {
           time = item.start;
         }
         index = this.findItemIndexAtTime(time);
       }
-      while (index >= 0 && (_items$index = items[index]) != null && _items$index.event) {
+      while (index >= 0 && (_items$index = items2[index]) != null && _items$index.event) {
         var _items$index;
         index--;
       }
@@ -28606,10 +28633,10 @@ var InterstitialsSchedule = class extends Logger {
     return index;
   }
   findItemIndexAtTime(timelinePos, timelineType) {
-    const items = this.items;
-    if (items) {
-      for (let i = 0; i < items.length; i++) {
-        let timeRange = items[i];
+    const items2 = this.items;
+    if (items2) {
+      for (let i = 0; i < items2.length; i++) {
+        let timeRange = items2[i];
         if (timelineType && timelineType !== "primary") {
           timeRange = timeRange[timelineType];
         }
@@ -28621,13 +28648,13 @@ var InterstitialsSchedule = class extends Logger {
     return -1;
   }
   findJumpRestrictedIndex(startIndex, endIndex) {
-    const items = this.items;
-    if (items) {
+    const items2 = this.items;
+    if (items2) {
       for (let i = startIndex; i <= endIndex; i++) {
-        if (!items[i]) {
+        if (!items2[i]) {
           break;
         }
-        const event = items[i].event;
+        const event = items2[i].event;
         if (event != null && event.restrictions.jump && !event.appendInPlace) {
           return i;
         }
@@ -28636,11 +28663,11 @@ var InterstitialsSchedule = class extends Logger {
     return -1;
   }
   findEventIndex(identifier) {
-    const items = this.items;
-    if (items) {
-      for (let i = items.length; i--; ) {
+    const items2 = this.items;
+    if (items2) {
+      for (let i = items2.length; i--; ) {
         var _items$i$event;
-        if (((_items$i$event = items[i].event) == null ? void 0 : _items$i$event.identifier) === identifier) {
+        if (((_items$i$event = items2[i].event) == null ? void 0 : _items$i$event.identifier) === identifier) {
           return i;
         }
       }
@@ -29734,11 +29761,11 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
   get playingLastItem() {
     var _this$schedule;
     const playingItem = this.playingItem;
-    const items = (_this$schedule = this.schedule) == null ? void 0 : _this$schedule.items;
-    if (!this.playbackStarted || !playingItem || !items) {
+    const items2 = (_this$schedule = this.schedule) == null ? void 0 : _this$schedule.items;
+    if (!this.playbackStarted || !playingItem || !items2) {
       return false;
     }
-    return this.findItemIndex(playingItem) === items.length - 1;
+    return this.findItemIndex(playingItem) === items2.length - 1;
   }
   get playbackStarted() {
     return this.effectivePlayingItem !== null;
@@ -30326,10 +30353,10 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
   }
   updateItem(previousItem, time) {
     var _this$schedule6;
-    const items = (_this$schedule6 = this.schedule) == null ? void 0 : _this$schedule6.items;
-    if (previousItem && items) {
+    const items2 = (_this$schedule6 = this.schedule) == null ? void 0 : _this$schedule6.items;
+    if (previousItem && items2) {
       const index = this.findItemIndex(previousItem, time);
-      return items[index] || null;
+      return items2[index] || null;
     }
     return null;
   }
@@ -30371,8 +30398,8 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
   // Schedule buffer control
   checkBuffer(starved) {
     var _this$schedule8;
-    const items = (_this$schedule8 = this.schedule) == null ? void 0 : _this$schedule8.items;
-    if (!items) {
+    const items2 = (_this$schedule8 = this.schedule) == null ? void 0 : _this$schedule8.items;
+    if (!items2) {
       return;
     }
     const bufferInfo = BufferHelper.bufferInfo(this.primaryMedia, this.timelinePos, 0);
@@ -30380,15 +30407,15 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
       this.bufferedPos = this.timelinePos;
     }
     starved || (starved = bufferInfo.len < 1);
-    this.updateBufferedPos(bufferInfo.end, items, starved);
+    this.updateBufferedPos(bufferInfo.end, items2, starved);
   }
-  updateBufferedPos(bufferEnd, items, bufferIsEmpty) {
+  updateBufferedPos(bufferEnd, items2, bufferIsEmpty) {
     const schedule = this.schedule;
     const bufferingItem = this.bufferingItem;
     if (this.bufferedPos > bufferEnd || !schedule) {
       return;
     }
-    if (items.length === 1 && this.itemsMatch(items[0], bufferingItem)) {
+    if (items2.length === 1 && this.itemsMatch(items2[0], bufferingItem)) {
       this.bufferedPos = bufferEnd;
       return;
     }
@@ -30398,8 +30425,8 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
     if (this.bufferedPos < bufferEnd) {
       var _nextItemToBuffer$eve;
       const bufferingIndex = this.findItemIndex(bufferingItem);
-      const nextToBufferIndex = Math.min(bufferingIndex + 1, items.length - 1);
-      const nextItemToBuffer = items[nextToBufferIndex];
+      const nextToBufferIndex = Math.min(bufferingIndex + 1, items2.length - 1);
+      const nextItemToBuffer = items2[nextToBufferIndex];
       if (bufferEndIndex === -1 && bufferingItem && bufferEnd >= bufferingItem.end || (_nextItemToBuffer$eve = nextItemToBuffer.event) != null && _nextItemToBuffer$eve.appendInPlace && bufferEnd + 0.01 >= nextItemToBuffer.start) {
         bufferEndIndex = nextToBufferIndex;
       }
@@ -30425,7 +30452,7 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
       if (bufferEndIndex === playingIndex) {
         this.bufferedToItem(playingItem);
       } else if (bufferEndIndex === playingIndex + 1) {
-        this.bufferedToItem(items[bufferEndIndex]);
+        this.bufferedToItem(items2[bufferEndIndex]);
       }
     }
   }
@@ -30444,10 +30471,10 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
     const schedule = this.schedule;
     if (!this.itemsMatch(item, bufferingLast) && schedule) {
       const {
-        items,
+        items: items2,
         events
       } = schedule;
-      if (!items || !events) {
+      if (!items2 || !events) {
         return bufferingLast;
       }
       const isInterstitial = this.isInterstitial(item);
@@ -30475,7 +30502,7 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
       }
       this.hls.trigger(Events.INTERSTITIALS_BUFFERED_TO_BOUNDARY, {
         events: events.slice(0),
-        schedule: items.slice(0),
+        schedule: items2.slice(0),
         bufferingIndex: this.findItemIndex(item),
         playingIndex: this.findItemIndex(this.playingItem)
       });
@@ -30951,14 +30978,14 @@ Schedule: ${scheduleItems.map((seg) => segmentToString(seg))} pos: ${this.timeli
     const assetId = (assetItem == null ? void 0 : assetItem.identifier) || "";
     const playerIndex = this.getAssetPlayerQueueIndex(assetId);
     const player = this.playerQueue[playerIndex] || null;
-    const items = this.schedule.items;
+    const items2 = this.schedule.items;
     const interstitialAssetError = _extends({}, data, {
       fatal: false,
       errorAction: createDoNothingErrorAction(true),
       asset: assetItem,
       assetListIndex,
       event: interstitial,
-      schedule: items,
+      schedule: items2,
       scheduleIndex,
       player
     });
@@ -40244,12 +40271,24 @@ function LoginRequiredNotice({ failure, platform = "", onRetry, onOpenSettings }
 
 // client-src/components/RetranscribeDialog.jsx
 init_react_shim();
+
+// client-src/lib/language.js
+init_react_shim();
+var LANGUAGE_FALLBACK = "Chinese";
+function defaultLanguage(options) {
+  return options?.default_language || LANGUAGE_FALLBACK;
+}
+function initialLanguage(hint, options) {
+  return hint || defaultLanguage(options);
+}
+
+// client-src/components/RetranscribeDialog.jsx
 function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
   const meta = detail?.meta || {};
   const [options, setOptions] = React.useState(null);
   const initialProvider = meta.asr_engine?.provider === "mimo" ? "mimo" : "default";
   const [provider, setProvider] = React.useState(initialProvider);
-  const [language, setLanguage] = React.useState(meta.language_hint || "");
+  const [language, setLanguage] = React.useState(() => initialLanguage(meta.language_hint, null));
   const [hotwords, setHotwords] = React.useState(meta.hotwords || "");
   const [busy, setBusy] = React.useState("");
   const [error, setError] = React.useState("");
@@ -40257,7 +40296,10 @@ function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
   const legacySpeakers = Boolean(detail?.speakers && Object.keys(detail.speakers).length);
   const restartRequired = provider !== initialProvider || (language || "") !== (meta.language_hint || "");
   React.useEffect(() => {
-    meetingOptions().then(setOptions).catch((failure) => setError(failure?.message || String(failure)));
+    meetingOptions().then((value) => {
+      setOptions(value);
+      if (!meta.language_hint && value?.default_language) setLanguage(value.default_language);
+    }).catch((failure) => setError(failure?.message || String(failure)));
   }, []);
   const hotwordSupported = options?.hotwords_supported !== false;
   const languages = options?.languages || [];
@@ -40282,7 +40324,7 @@ function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
       setBusy("");
     }
   }
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-event-editor" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u8F6C\u5199\u9009\u9879"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u4FEE\u6539\u540E\u53EF\u6CBF\u7528\u5230\u4E0B\u6B21\u8F6C\u5F55\uFF1B\u5DF2\u5B8C\u6210\u7684\u7247\u6BB5\u4E0D\u4F1A\u91CD\u590D\u8BC6\u522B\uFF0C\u65E7\u6587\u5B57\u4F1A\u4FDD\u7559\u5230\u65B0\u7ED3\u679C\u6210\u529F\u3002", missing > 0 ? ` \u5F53\u524D\u6709 ${missing} \u4E2A\u7247\u6BB5\u6CA1\u5B8C\u6210\uFF0C\u4E0D\u6539\u5F15\u64CE/\u8BED\u79CD\u65F6\u53EA\u8865\u8FD9\u4E9B\u7247\u6BB5\u3002` : "", restartRequired ? " \u5F15\u64CE\u6216\u8BED\u79CD\u5DF2\u6539\u53D8\uFF0C\u4FDD\u5B58\u540E\u4F1A\u4ECE\u5934\u8F6C\u5F55\u3002" : ""), legacySpeakers ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u6761\u8BB0\u5F55\u5DF2\u6709\u53D1\u8A00\u4EBA\u6807\u7B7E\uFF1B\u91CD\u65B0\u8F6C\u5199\u4F1A\u6E05\u9664\u5B83\u4EEC\uFF0C\u4E14\u4E0D\u4F1A\u518D\u751F\u6210\u65B0\u7684\u53D1\u8A00\u4EBA\u3002") : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5F15\u64CE"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: provider, onChange: (event) => setProvider(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "default" }, "\u8DDF\u968F\u9ED8\u8BA4\u8BBE\u7F6E"), /* @__PURE__ */ React.createElement("option", { value: "mimo" }, "\u4E91\u7AEF\u8BC6\u522B"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u79CD"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, "\u81EA\u52A8"), languages.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name)))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u70ED\u8BCD"), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal mc-event-editor" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u8F6C\u5199\u9009\u9879"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: onClose }, "\xD7")), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u4FEE\u6539\u540E\u53EF\u6CBF\u7528\u5230\u4E0B\u6B21\u8F6C\u5F55\uFF1B\u5DF2\u5B8C\u6210\u7684\u7247\u6BB5\u4E0D\u4F1A\u91CD\u590D\u8BC6\u522B\uFF0C\u65E7\u6587\u5B57\u4F1A\u4FDD\u7559\u5230\u65B0\u7ED3\u679C\u6210\u529F\u3002", missing > 0 ? ` \u5F53\u524D\u6709 ${missing} \u4E2A\u7247\u6BB5\u6CA1\u5B8C\u6210\uFF0C\u4E0D\u6539\u5F15\u64CE/\u8BED\u79CD\u65F6\u53EA\u8865\u8FD9\u4E9B\u7247\u6BB5\u3002` : "", restartRequired ? " \u5F15\u64CE\u6216\u8BED\u79CD\u5DF2\u6539\u53D8\uFF0C\u4FDD\u5B58\u540E\u4F1A\u4ECE\u5934\u8F6C\u5F55\u3002" : ""), legacySpeakers ? /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "\u8FD9\u6761\u8BB0\u5F55\u5DF2\u6709\u53D1\u8A00\u4EBA\u6807\u7B7E\uFF1B\u91CD\u65B0\u8F6C\u5199\u4F1A\u6E05\u9664\u5B83\u4EEC\uFF0C\u4E14\u4E0D\u4F1A\u518D\u751F\u6210\u65B0\u7684\u53D1\u8A00\u4EBA\u3002") : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u5F15\u64CE"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: provider, onChange: (event) => setProvider(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "default" }, "\u8DDF\u968F\u9ED8\u8BA4\u8BBE\u7F6E"), /* @__PURE__ */ React.createElement("option", { value: "mimo" }, "\u4E91\u7AEF\u8BC6\u522B"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u8BED\u79CD"), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, languages.length ? languages.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name)) : /* @__PURE__ */ React.createElement("option", { value: "auto" }, "\u81EA\u52A8\u8BC6\u522B"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u70ED\u8BCD"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -40353,16 +40395,16 @@ function parseBlocks(source) {
     }
     if (/^\s*[-*+]\s+/.test(line) || /^\s*\d+\.\s+/.test(line)) {
       const ordered = /^\s*\d+\.\s+/.test(line);
-      const items = [];
+      const items2 = [];
       const sameKind = (value) => ordered ? /^\s*\d+\.\s+/.test(value) : /^\s*[-*+]\s+/.test(value);
       while (i < lines.length && sameKind(lines[i])) {
         const body = lines[i].replace(/^\s*(?:[-*+]|\d+\.)\s+/, "");
         const task = ordered ? null : body.match(/^\[([ xX])\]\s+(.*)$/);
-        if (task) items.push({ checked: task[1].toLowerCase() === "x", text: task[2] });
-        else items.push({ text: body });
+        if (task) items2.push({ checked: task[1].toLowerCase() === "x", text: task[2] });
+        else items2.push({ text: body });
         i += 1;
       }
-      blocks.push({ type: "list", ordered, items });
+      blocks.push({ type: "list", ordered, items: items2 });
       continue;
     }
     if (line.includes("|") && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i + 1])) {
@@ -40514,11 +40556,11 @@ function renderLink(label, href, key, onQuote, onSeek) {
 init_react_shim();
 function useContextMenu() {
   const [menu, setMenu] = React.useState(null);
-  const open = React.useCallback((event, items) => {
-    if (!event || !Array.isArray(items) || items.length === 0) return;
+  const open = React.useCallback((event, items2) => {
+    if (!event || !Array.isArray(items2) || items2.length === 0) return;
     event.preventDefault();
     event.stopPropagation();
-    setMenu({ x: event.clientX, y: event.clientY, items });
+    setMenu({ x: event.clientX, y: event.clientY, items: items2 });
   }, []);
   const close = React.useCallback(() => setMenu(null), []);
   return { menu, open, close };
@@ -41021,8 +41063,8 @@ function TopicList({ topics, labels, t, onSeek, highlights, onMark }) {
     );
   });
 }
-function Conclusions({ items, t, onSeek, highlights, onMark }) {
-  return /* @__PURE__ */ React.createElement("ol", { className: "mc-minutes-list mc-minutes-conclusions" }, (items || []).map((item, index) => /* @__PURE__ */ React.createElement(
+function Conclusions({ items: items2, t, onSeek, highlights, onMark }) {
+  return /* @__PURE__ */ React.createElement("ol", { className: "mc-minutes-list mc-minutes-conclusions" }, (items2 || []).map((item, index) => /* @__PURE__ */ React.createElement(
     "li",
     {
       key: index,
@@ -41035,9 +41077,9 @@ function Conclusions({ items, t, onSeek, highlights, onMark }) {
     /* @__PURE__ */ React.createElement(TimeAnchor, { seconds: item?.t, onSeek })
   )));
 }
-function Todos({ items, t, interactions, onToggle, highlights, onMark }) {
+function Todos({ items: items2, t, interactions, onToggle, highlights, onMark }) {
   const interactive = typeof onToggle === "function";
-  return /* @__PURE__ */ React.createElement("ul", { className: "mc-minutes-list mc-minutes-todos" }, (items || []).map((item, index) => {
+  return /* @__PURE__ */ React.createElement("ul", { className: "mc-minutes-list mc-minutes-todos" }, (items2 || []).map((item, index) => {
     const done = todoDone(interactions, item?.text);
     const content = /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("span", { className: "mc-minutes-text" }, /* @__PURE__ */ React.createElement(Text, { text: item?.text, highlights, onMark }), item?.owner ? `\uFF08${item.owner}\uFF09` : ""), /* @__PURE__ */ React.createElement(WeakTag, { support: item?.support, t }));
     return /* @__PURE__ */ React.createElement(
@@ -41063,8 +41105,8 @@ function Todos({ items, t, interactions, onToggle, highlights, onMark }) {
     );
   }));
 }
-function Terms({ items, labels, highlights, onMark }) {
-  return /* @__PURE__ */ React.createElement("ul", { className: "mc-minutes-terms" }, (items || []).map((term, index) => {
+function Terms({ items: items2, labels, highlights, onMark }) {
+  return /* @__PURE__ */ React.createElement("ul", { className: "mc-minutes-terms" }, (items2 || []).map((term, index) => {
     const heard = (term?.heard || []).filter(Boolean);
     return /* @__PURE__ */ React.createElement("li", { key: index }, /* @__PURE__ */ React.createElement("strong", null, /* @__PURE__ */ React.createElement(Text, { text: term?.name, highlights, onMark })), term?.note ? /* @__PURE__ */ React.createElement("span", { className: "mc-minutes-term-note" }, /* @__PURE__ */ React.createElement(Text, { text: term.note, highlights, onMark })) : null, heard.length ? /* @__PURE__ */ React.createElement("span", { className: "mc-minutes-heard" }, "\uFF08", labels.heard || "\u542C\u4F5C", "\uFF1A", heard.join("\u3001"), "\uFF09") : null);
   }));
@@ -41262,7 +41304,7 @@ function MinutesNotesPanel({
       return "";
     }
   });
-  const [selectionText, setSelectionText] = React.useState("");
+  const [selectionText2, setSelectionText] = React.useState("");
   const [interactions, setInteractions] = React.useState(() => ({ todos: {}, highlights: [] }));
   const { menu, open: openMenu, close: closeMenu } = useContextMenu();
   const docRef = React.useRef(null);
@@ -41559,9 +41601,9 @@ function MinutesNotesPanel({
   function openSelectionMenu(event) {
     const mark = event.target?.closest?.("mark.mc-hl");
     const picked = selectionHighlight(docRef.current);
-    const items = [];
+    const items2 = [];
     if (picked) {
-      items.push({
+      items2.push({
         id: "highlight",
         label: t("minutes.highlightSelection") || "\u9AD8\u4EAE\u6240\u9009",
         onSelect: () => addHighlight(picked)
@@ -41569,12 +41611,12 @@ function MinutesNotesPanel({
     }
     if (mark) {
       const id = mark.getAttribute("data-highlight-id");
-      items.push({
+      items2.push({
         id: "copyHighlight",
         label: t("minutes.copyHighlight") || "\u590D\u5236\u9AD8\u4EAE\u6587\u5B57",
         onSelect: () => copyPlain(mark.textContent || "", t("minutes.highlight") || "\u9AD8\u4EAE")
       });
-      items.push({
+      items2.push({
         id: "removeHighlight",
         label: t("minutes.removeHighlight") || "\u53D6\u6D88\u9AD8\u4EAE",
         danger: true,
@@ -41582,15 +41624,15 @@ function MinutesNotesPanel({
       });
     }
     if (picked) {
-      if (items.length) items.push({ separator: true });
-      items.push({
+      if (items2.length) items2.push({ separator: true });
+      items2.push({
         id: "copySelection",
         label: t("minutes.copySelection") || "\u590D\u5236\u9009\u4E2D",
         onSelect: copySelection
       });
     }
-    if (!items.length) return;
-    openMenu(event, items);
+    if (!items2.length) return;
+    openMenu(event, items2);
   }
   React.useEffect(() => {
     if (pending || noModel || syncBusyRef.current) return;
@@ -41794,22 +41836,22 @@ function MinutesNotesPanel({
     }
     return list;
   }
-  function jumpTo(index, matches = findMatches) {
-    if (!matches.length) return;
-    const next = (index + matches.length) % matches.length;
+  function jumpTo(index, matches2 = findMatches) {
+    if (!matches2.length) return;
+    const next = (index + matches2.length) % matches2.length;
     setFindIndex(next);
     const area = textareaRef.current;
-    const match = matches[next];
+    const match = matches2[next];
     if (area && match) {
       area.focus();
       area.setSelectionRange(match.start, match.end);
     }
   }
   React.useEffect(() => {
-    const matches = computeMatches(findQuery);
-    setFindMatches(matches);
+    const matches2 = computeMatches(findQuery);
+    setFindMatches(matches2);
     setFindIndex(0);
-    if (matches.length) jumpTo(0, matches);
+    if (matches2.length) jumpTo(0, matches2);
   }, [findQuery, text]);
   const statusText2 = {
     idle: "",
@@ -41864,7 +41906,7 @@ function MinutesNotesPanel({
     onToast?.(label ? `${t("minutes.copiedSection") || "\u5DF2\u590D\u5236"} \xB7 ${label}` : t("minutes.copied") || "\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F");
   }
   function copySelection() {
-    let value = selectionText;
+    let value = selectionText2;
     if (!value) {
       try {
         value = String(window.getSelection?.()?.toString?.() || "").trim();
@@ -41946,7 +41988,7 @@ function MinutesNotesPanel({
       className: "mc-button mc-button-small",
       onMouseDown: (event) => event.preventDefault(),
       onClick: highlightCurrentSelection,
-      disabled: !selectionText,
+      disabled: !selectionText2,
       title: t("minutes.highlightHint") || "\u9009\u4E2D\u6587\u5B57\u540E\u52A0\u9AD8\u4EAE"
     },
     t("minutes.highlightSelection") || "\u9AD8\u4EAE\u6240\u9009"
@@ -41957,7 +41999,7 @@ function MinutesNotesPanel({
       className: "mc-button mc-button-small",
       onMouseDown: (event) => event.preventDefault(),
       onClick: copySelection,
-      disabled: !selectionText
+      disabled: !selectionText2
     },
     t("minutes.copySelection") || "\u590D\u5236\u9009\u4E2D"
   ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: actionBusy === "copy", onClick: copyAll }, actionBusy === "copy" ? t("minutes.copying") || "\u590D\u5236\u4E2D\u2026" : t("minutes.copyAll") || "\u590D\u5236\u5168\u90E8"))), /* @__PURE__ */ React.createElement(
@@ -42337,7 +42379,7 @@ function mergeMissingRanges(rows) {
   }
   return ranges;
 }
-function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh, focus, onChanged, onDeleted, onCreated }) {
+function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBackendRefresh, focus, onChanged, onDeleted, onCreated }) {
   const [detail, setDetail] = React.useState(null);
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(true);
@@ -42746,7 +42788,7 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
-  const view2 = detail || summary || {};
+  const view2 = detail || summary2 || {};
   const kind = view2.kind || "live";
   const speakerTab = (kind === "meeting" || kind === "link_video") && Object.keys(detail?.speakers || {}).length > 0;
   const info = kindInfo(kind);
@@ -43581,7 +43623,7 @@ function SessionDetail({ sessionId, summary, t, backendStopped, onBackendRefresh
         MediaPane,
         {
           detail,
-          summary,
+          summary: summary2,
           sessionId,
           t,
           mediaRef,
@@ -44258,7 +44300,7 @@ function PlayerBar({
   const spanStart = live ? state2.seekStart : 0;
   const timed = state2.duration > 0;
   const volume = Math.max(0, Math.min(1, Number(state2.volume) || 0));
-  function toggle() {
+  function toggle2() {
     const media = mediaRef.current;
     if (!media) return;
     if (typeof onToggle === "function") {
@@ -44307,7 +44349,7 @@ function PlayerBar({
     {
       type: "button",
       className: "mc-player-play",
-      onClick: toggle,
+      onClick: toggle2,
       "aria-label": state2.paused ? "\u64AD\u653E" : "\u6682\u505C",
       title: state2.paused ? "\u64AD\u653E" : "\u6682\u505C"
     },
@@ -44380,7 +44422,7 @@ function PlayerBar({
 }
 function MediaPane({
   detail,
-  summary,
+  summary: summary2,
   sessionId,
   t,
   mediaRef,
@@ -44421,7 +44463,7 @@ function MediaPane({
   const [paused, setPaused] = React.useState(true);
   const [buffering, setBuffering] = React.useState(false);
   const userPausedRef = React.useRef(false);
-  const view2 = detail || summary || {};
+  const view2 = detail || summary2 || {};
   const live = Boolean(detail?.recording);
   const hls = detail?.live_hls_path;
   const mediaPath = detail?.media_path;
@@ -45033,35 +45075,35 @@ function RecordsBrowser({ t, statusData, onStatusRefresh, focus, onFocusConsumed
     const rows = selectedIds.has(session.id) && chosen.length > 0 ? chosen : [session];
     const single = rows.length === 1;
     const active2 = rows.some(isActive);
-    const items = [];
+    const items2 = [];
     if (single) {
-      items.push({ id: "rename", label: "\u91CD\u547D\u540D", hint: "\u21B5", onSelect: () => startRename(session) });
-      items.push({
+      items2.push({ id: "rename", label: "\u91CD\u547D\u540D", hint: "\u21B5", onSelect: () => startRename(session) });
+      items2.push({
         id: "duplicate",
         label: "\u521B\u5EFA\u526F\u672C",
         disabled: active2 || (session.kind || "live") === "link_video",
         onSelect: () => duplicate(session)
       });
-      items.push({ separator: true });
+      items2.push({ separator: true });
     }
-    items.push({
+    items2.push({
       id: "copy",
       label: single ? "\u590D\u5236\u6807\u9898\u4E0E\u94FE\u63A5" : `\u590D\u5236 ${rows.length} \u6761\u4FE1\u606F`,
       hint: "\u2318C",
       onSelect: () => copyInfo(rows)
     });
     if (single && session.source_url) {
-      items.push({ id: "copyLink", label: "\u590D\u5236\u76F4\u64AD\u94FE\u63A5", onSelect: () => copyLink(session) });
+      items2.push({ id: "copyLink", label: "\u590D\u5236\u76F4\u64AD\u94FE\u63A5", onSelect: () => copyLink(session) });
     }
-    items.push({ id: "reveal", label: "\u5728 Finder \u4E2D\u663E\u793A", onSelect: () => reveal(rows) });
-    items.push({ separator: true });
-    items.push({
+    items2.push({ id: "reveal", label: "\u5728 Finder \u4E2D\u663E\u793A", onSelect: () => reveal(rows) });
+    items2.push({ separator: true });
+    items2.push({
       id: "delete",
       label: single ? "\u5220\u9664\u2026" : `\u5220\u9664 ${rows.length} \u9879\u2026`,
       danger: true,
       onSelect: () => askDelete(rows)
     });
-    return items;
+    return items2;
   }
   React.useEffect(() => {
     function onKey(event) {
@@ -45389,13 +45431,10 @@ function feishuSummary(status3) {
   if (dsh.conflict) {
     return { tone: "error", text: "\u914D\u7F6E\u51B2\u7A81", detail: `serverName\u300C${dsh.serverName}\u300D\u5DF2\u6709\u5176\u4ED6\u6761\u76EE\u5728\u7528` };
   }
-  if (!runtime.npxOk) return { tone: "error", text: "\u9700\u8981 Node.js 20+", detail: "\u6CA1\u6709\u627E\u5230 npx\uFF0C\u88C5\u597D Node.js \u540E\u91CD\u8BD5" };
-  if (!runtime.nodeOk) {
-    return {
-      tone: "error",
-      text: "\u9700\u8981 Node.js 20+",
-      detail: runtime.node ? `\u5F53\u524D Node ${runtime.nodeVersion}\uFF0C\u9700\u8981 20 \u4EE5\u4E0A` : "\u88C5\u597D Node.js \u540E\u91CD\u8BD5"
-    };
+  const runtimeReady = runtime.ready === void 0 ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready);
+  if (!runtimeReady) {
+    const detail = runtime.mode === "npx" ? runtime.npx ? `\u5F53\u524D Node ${runtime.nodeVersion || "?"}\uFF0C\u9700\u8981 20 \u4EE5\u4E0A` : "\u6CA1\u6709\u627E\u5230 npx\uFF1A\u88C5 Node.js 20+\uFF0C\u6216\u5728 meetclip config \u91CC\u628A feishuMode \u8BBE\u4E3A local" : "\u627E\u4E0D\u5230\u53EF\u7528\u7684 node \u8FD0\u884C\u65F6\uFF08DSH \u81EA\u5E26\u8FD0\u884C\u65F6\u5F02\u5E38\uFF09\uFF0C\u53EF\u5728 meetclip config \u91CC\u628A feishuMode \u8BBE\u4E3A npx";
+    return { tone: "error", text: "\u8FD0\u884C\u73AF\u5883\u4E0D\u53EF\u7528", detail };
   }
   if (!dsh.entryPresent) return { tone: "pending", text: "\u672A\u5B89\u88C5" };
   if (!auth.loggedIn) {
@@ -45428,11 +45467,16 @@ function FeishuStatusRows({ status: status3, compact = false }) {
   let runtimeText = "\u8BFB\u53D6\u4E2D\u2026";
   let runtimeTone = "";
   if (status3) {
-    if (!runtime.npx) {
-      runtimeText = "\u6CA1\u6709\u627E\u5230 npx\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
-      runtimeTone = "error";
-    } else if (!runtime.node) {
-      runtimeText = "\u6CA1\u6709\u627E\u5230 node\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
+    const runtimeReady = runtime.ready === void 0 ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready);
+    if (runtime.mode === "local" && runtimeReady) {
+      const local = runtime.local || {};
+      runtimeText = [
+        `\u5185\u7F6E\u8FD0\u884C\u65F6 ${runtime.nodeVersion || ""}`.trim(),
+        local.installed ? `\u672C\u5730\u526F\u672C v${local.version}` : "\u5C1A\u672A\u672C\u5730\u5B89\u88C5",
+        "\u4E0D\u9700\u8981 npx"
+      ].join(" \xB7 ");
+    } else if (!runtime.npx || !runtime.node) {
+      runtimeText = runtime.mode === "local" ? "\u627E\u4E0D\u5230\u53EF\u7528\u7684 node \u8FD0\u884C\u65F6\uFF08DSH \u81EA\u5E26\u8FD0\u884C\u65F6\u5F02\u5E38\uFF09" : "\u6CA1\u6709\u627E\u5230 npx\uFF1A\u5148\u88C5 Node.js 20+\uFF08\u6216 nvm\uFF09";
       runtimeTone = "error";
     } else if (!runtime.nodeOk) {
       runtimeText = `Node ${runtime.nodeVersion || "?"}\uFF0C\u98DE\u4E66 MCP \u9700\u8981 20 \u4EE5\u4E0A`;
@@ -45537,7 +45581,7 @@ function DocCardForm({ t, onClose, onCreated }) {
       mounted.current = false;
     };
   }, []);
-  const summary = feishuSummary(feishu.status);
+  const summary2 = feishuSummary(feishu.status);
   const installed = Boolean(feishu.status?.dsh?.entryPresent);
   const loggedIn = Boolean(feishu.status?.auth?.loggedIn);
   const accessExpired = Boolean(feishu.status?.auth?.accessExpired);
@@ -45648,7 +45692,7 @@ function DocCardForm({ t, onClose, onCreated }) {
       placeholder: preview ? t("home.doc.titleAutoPlaceholder") : t("home.doc.titlePlaceholder"),
       spellCheck: false
     }
-  )), !canRead ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-issue", "data-tone": summary.tone }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, summary.text), /* @__PURE__ */ React.createElement("span", null, summary.detail || "\u767B\u5F55\u540E\u8BFB\u5230\u7684\u6587\u6863\u624D\u80FD\u8FDB\u5165\u5361\u7247\u6B63\u6587\uFF1B\u4E5F\u53EF\u4EE5\u5148\u53EA\u767B\u8BB0\u94FE\u63A5\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement(
+  )), !canRead ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-issue", "data-tone": summary2.tone }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, summary2.text), /* @__PURE__ */ React.createElement("span", null, summary2.detail || "\u767B\u5F55\u540E\u8BFB\u5230\u7684\u6587\u6863\u624D\u80FD\u8FDB\u5165\u5361\u7247\u6B63\u6587\uFF1B\u4E5F\u53EF\u4EE5\u5148\u53EA\u767B\u8BB0\u94FE\u63A5\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -46177,7 +46221,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
   const textareaRef = React.useRef(null);
   const autoPreviewRef = React.useRef("");
   const parsed = React.useMemo(() => parseLinks(text), [text]);
-  const skippedText = skipSummary(parsed.skipped);
+  const skippedText2 = skipSummary(parsed.skipped);
   const appendBatch = Boolean(batch?.id);
   const batchTotal = Number(batch?.total) || (batch?.members || []).length;
   React.useEffect(() => {
@@ -46262,7 +46306,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
     setSubmitting(true);
     setError("");
     try {
-      const items = source.filter((entry) => entry.url).map((entry) => ({
+      const items2 = source.filter((entry) => entry.url).map((entry) => ({
         url: entry.url,
         title: entry.preview?.title || "",
         thumbnail: entry.preview?.thumbnail || "",
@@ -46270,29 +46314,29 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
         subtitle_track_id: entry.trackId || null,
         allow_duplicate: Boolean(allowDuplicate)
       }));
-      if (items.length === 0) throw new Error(t("new.maxLinks"));
+      if (items2.length === 0) throw new Error(t("new.maxLinks"));
       const multiRound = appendBatch || Boolean(lastCreated);
-      const response = await addLinks(items, { batchId: batch?.id });
+      const response = await addLinks(items2, { batchId: batch?.id });
       const rows = response?.results || [];
       const created = rows.filter((row) => row.ok && row.id);
-      const summary = {
+      const summary2 = {
         added: created.length,
         duplicates: rows.filter((row) => row.duplicate).length,
         failed: rows.filter((row) => !row.ok && !row.duplicate).length,
         queueFull: rows.filter((row) => row.queue_full).length
       };
       const stayOpen = Boolean(response?.batch) || multiRound;
-      setResult({ ok: response?.ok, rows, summary, stayOpen });
+      setResult({ ok: response?.ok, rows, summary: summary2, stayOpen });
       if (!created.length) return;
       const keep = new Set(rows.filter((row) => !row.ok).map((row) => row.url));
       setText(entries.filter((entry) => keep.has(entry.url)).map((entry) => entry.url).join("\n"));
       if (stayOpen) {
-        const payload = response.batch ? { batch: response.batch, summary, appended: appendBatch } : { id: created[0].id, summary };
+        const payload = response.batch ? { batch: response.batch, summary: summary2, appended: appendBatch } : { id: created[0].id, summary: summary2 };
         setLastCreated(payload);
         onSubmitted?.(payload);
         return;
       }
-      onCreated?.({ id: created[0].id, summary });
+      onCreated?.({ id: created[0].id, summary: summary2 });
       onClose?.();
     } catch (failure) {
       const rows = failure?.data?.results;
@@ -46340,7 +46384,7 @@ function VideoForm({ t, options, initialUrl = "", batch = null, onClose, onCreat
       spellCheck: false,
       rows: 4
     }
-  ), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: addLink, disabled: entries.length >= MAX_BATCH_LINKS }, "\u589E\u52A0\u94FE\u63A5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: previewAll, disabled: entries.length === 0 || previewingAll }, previewingAll ? t("new.checking") : t("new.previewAll")), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, entries.length, " / ", MAX_BATCH_LINKS)), parsed.total ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, "\u5DF2\u8BC6\u522B ", entries.length, " \u6761\u89C6\u9891\u94FE\u63A5", skippedText ? ` \xB7 \u81EA\u52A8\u8DF3\u8FC7\uFF1A${skippedText}` : "", entries.length >= MAX_BATCH_LINKS && parsed.skipped.overflow ? ` \xB7 \u5355\u6B21\u6700\u591A ${MAX_BATCH_LINKS} \u6761` : "") : null, entries.some((entry) => entry.platform === "douyin") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u6296\u97F3\u89C6\u9891\u901A\u5E38\u9700\u8981\u767B\u5F55\uFF1A\u9884\u8BFB\u5931\u8D25\u65F6\u4E0B\u65B9\u4F1A\u76F4\u63A5\u51FA\u73B0\u300C\u767B\u5F55\u6296\u97F3\u300D\uFF0C\u6309\u4E09\u6B65\u5B8C\u6210\u540E\u91CD\u8BD5\u5373\u53EF\u3002") : null, entries.map((entry, index) => /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: addLink, disabled: entries.length >= MAX_BATCH_LINKS }, "\u589E\u52A0\u94FE\u63A5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: previewAll, disabled: entries.length === 0 || previewingAll }, previewingAll ? t("new.checking") : t("new.previewAll")), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, entries.length, " / ", MAX_BATCH_LINKS)), parsed.total ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta", role: "status" }, "\u5DF2\u8BC6\u522B ", entries.length, " \u6761\u89C6\u9891\u94FE\u63A5", skippedText2 ? ` \xB7 \u81EA\u52A8\u8DF3\u8FC7\uFF1A${skippedText2}` : "", entries.length >= MAX_BATCH_LINKS && parsed.skipped.overflow ? ` \xB7 \u5355\u6B21\u6700\u591A ${MAX_BATCH_LINKS} \u6761` : "") : null, entries.some((entry) => entry.platform === "douyin") ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, "\u6296\u97F3\u89C6\u9891\u901A\u5E38\u9700\u8981\u767B\u5F55\uFF1A\u9884\u8BFB\u5931\u8D25\u65F6\u4E0B\u65B9\u4F1A\u76F4\u63A5\u51FA\u73B0\u300C\u767B\u5F55\u6296\u97F3\u300D\uFF0C\u6309\u4E09\u6B65\u5B8C\u6210\u540E\u91CD\u8BD5\u5373\u53EF\u3002") : null, entries.map((entry, index) => /* @__PURE__ */ React.createElement(
     VideoEntry,
     {
       key: `${entry.url}-${index}`,
@@ -46399,7 +46443,8 @@ function MeetingForm({ t, options, optionsError, initialFile = null, initialFile
     return initial.length === 1 ? titleFromName(initial[0].name) : "";
   });
   const [packTitle, setPackTitle] = React.useState("");
-  const [language, setLanguage] = React.useState("");
+  const [language, setLanguage] = React.useState(() => initialLanguage("", options));
+  const languageTouched = React.useRef(false);
   const [dragging, setDragging] = React.useState(false);
   const [notice, setNotice] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
@@ -46410,6 +46455,10 @@ function MeetingForm({ t, options, optionsError, initialFile = null, initialFile
   const multi = files.length > 1;
   const ready = files.length > 0 && files.every((file) => file.status === "ready" && file.path);
   const canSubmit = ready && !busyUploading && !submitting && asrReady;
+  React.useEffect(() => {
+    if (languageTouched.current || !options?.default_language) return;
+    setLanguage(options.default_language);
+  }, [options?.default_language]);
   function patchFile(key, patch) {
     setFiles((current) => current.map((file) => file.key === key ? { ...file, ...patch } : file));
   }
@@ -46500,7 +46549,18 @@ function MeetingForm({ t, options, optionsError, initialFile = null, initialFile
     setFiles((current) => current.filter((file) => file.key !== key));
   }
   function languageField() {
-    return /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-lang" }, /* @__PURE__ */ React.createElement("span", null, t("new.language")), /* @__PURE__ */ React.createElement("select", { className: "mc-input mc-select", value: language, onChange: (event) => setLanguage(event.target.value) }, /* @__PURE__ */ React.createElement("option", { value: "" }, t("new.auto")), (options?.languages || []).map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name))));
+    return /* @__PURE__ */ React.createElement("label", { className: "mc-field mc-field-lang" }, /* @__PURE__ */ React.createElement("span", null, t("new.language")), /* @__PURE__ */ React.createElement(
+      "select",
+      {
+        className: "mc-input mc-select",
+        value: language,
+        onChange: (event) => {
+          languageTouched.current = true;
+          setLanguage(event.target.value);
+        }
+      },
+      (options?.languages || []).length ? (options.languages || []).map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name)) : /* @__PURE__ */ React.createElement("option", { value: "auto" }, t("new.auto"))
+    ));
   }
   async function submit() {
     setSubmitting(true);
@@ -47058,7 +47118,7 @@ function stickyFromClipboard(raw) {
   const source = String(raw ?? "").replace(/\r\n?/g, "\n").replace(/\u00a0/g, " ");
   if (!source.trim()) return null;
   const lines = [];
-  let items = 0;
+  let items2 = 0;
   for (const line of source.split("\n")) {
     const body = stripListMarker(line);
     if (body === null) {
@@ -47067,13 +47127,13 @@ function stickyFromClipboard(raw) {
     }
     if (!body.trim()) continue;
     lines.push(`- ${body.trim()}`);
-    items += 1;
+    items2 += 1;
   }
   const text = tidyLines(lines).join("\n").trim();
   if (!text) return null;
   const truncated = text.length > STICKY_TEXT_MAX;
   const clipped = truncated ? text.slice(0, STICKY_TEXT_MAX).replace(/\s+$/, "") : text;
-  return { text: clipped, kind: items > 0 ? "todo" : "note", truncated };
+  return { text: clipped, kind: items2 > 0 ? "todo" : "note", truncated };
 }
 function isBoardImage(type, name = "") {
   const mime = String(type || "").toLowerCase();
@@ -47096,9 +47156,9 @@ function imageFilesFromClipboard(clipboard) {
   };
   const files = clipboard?.files;
   if (files) for (const file of Array.from(files)) push2(file);
-  const items = clipboard?.items;
-  if (items) {
-    for (const item of Array.from(items)) {
+  const items2 = clipboard?.items;
+  if (items2) {
+    for (const item of Array.from(items2)) {
       if (item?.kind !== "file") continue;
       try {
         push2(typeof item.getAsFile === "function" ? item.getAsFile() : null);
@@ -47227,15 +47287,15 @@ function nudgeOutOf(node, obstacles, gap = SCATTER_GAP, maxSteps = 48) {
   }
   return next;
 }
-function stillOverlapping(items, hero, gap) {
-  for (const node of items) {
+function stillOverlapping(items2, hero, gap) {
+  for (const node of items2) {
     if (node.fixed) continue;
     if (rectOverlap(node, hero, gap)) return true;
   }
-  for (let i = 0; i < items.length; i += 1) {
-    for (let j = i + 1; j < items.length; j += 1) {
-      const a = items[i];
-      const b = items[j];
+  for (let i = 0; i < items2.length; i += 1) {
+    for (let j = i + 1; j < items2.length; j += 1) {
+      const a = items2[i];
+      const b = items2[j];
       if (a.fixed && b.fixed) continue;
       if (rectOverlap(a, b, gap)) return true;
     }
@@ -47268,22 +47328,22 @@ function findSpot(node, obstacles, gap, maxRadius = 2e3, step = 48) {
   }
   return null;
 }
-function firstBlockedAuto(items, hero, gap) {
-  for (const node of items) {
+function firstBlockedAuto(items2, hero, gap) {
+  for (const node of items2) {
     if (!node.fixed && rectOverlap(node, hero, gap)) return node;
   }
-  for (let i = 0; i < items.length; i += 1) {
-    for (let j = i + 1; j < items.length; j += 1) {
-      const a = items[i];
-      const b = items[j];
+  for (let i = 0; i < items2.length; i += 1) {
+    for (let j = i + 1; j < items2.length; j += 1) {
+      const a = items2[i];
+      const b = items2[j];
       if (a.fixed && b.fixed) continue;
       if (rectOverlap(a, b, gap)) return a.fixed ? b : b.fixed ? a : b;
     }
   }
   return null;
 }
-function rescue(items, hero, gap) {
-  const all = items;
+function rescue(items2, hero, gap) {
+  const all = items2;
   for (let guard = 0; guard < all.length * 3; guard += 1) {
     const blocked = firstBlockedAuto(all, hero, gap);
     if (!blocked) return true;
@@ -47295,10 +47355,10 @@ function rescue(items, hero, gap) {
   }
   return !stillOverlapping(all, hero, gap);
 }
-function relaxRounded(items, hero, gap, passes = 96) {
+function relaxRounded(items2, hero, gap, passes = 96) {
   for (let pass = 0; pass < passes; pass += 1) {
     let moved = false;
-    for (const node of items) {
+    for (const node of items2) {
       if (node.fixed) continue;
       const ox = overlapX(node, hero, gap);
       const oy = overlapY(node, hero, gap);
@@ -47308,10 +47368,10 @@ function relaxRounded(items, hero, gap, passes = 96) {
         else node.y += (Math.sign(node.y) || 1) * Math.ceil(oy);
       }
     }
-    for (let i = 0; i < items.length; i += 1) {
-      const a = items[i];
-      for (let j = i + 1; j < items.length; j += 1) {
-        const b = items[j];
+    for (let i = 0; i < items2.length; i += 1) {
+      const a = items2[i];
+      for (let j = i + 1; j < items2.length; j += 1) {
+        const b = items2[j];
         if (a.fixed && b.fixed) continue;
         const ox = overlapX(a, b, gap);
         const oy = overlapY(a, b, gap);
@@ -47325,7 +47385,7 @@ function relaxRounded(items, hero, gap, passes = 96) {
     }
     if (!moved) break;
   }
-  return !stillOverlapping(items, hero, gap);
+  return !stillOverlapping(items2, hero, gap);
 }
 function separate(nodes, gap, passes) {
   const hero = nodes.hero;
@@ -49503,8 +49563,8 @@ function sortModels(list = [], current = "") {
 }
 function modelOptions(list = [], current = "") {
   const cur = String(current || "").trim();
-  const items = cur && !list.includes(cur) ? [cur, ...list] : list;
-  return sortModels(items, cur).map((id) => ({
+  const items2 = cur && !list.includes(cur) ? [cur, ...list] : list;
+  return sortModels(items2, cur).map((id) => ({
     value: id,
     label: id === cur ? `${id}\uFF08\u5F53\u524D\uFF09` : id
   }));
@@ -49514,30 +49574,30 @@ function candidateOrder(list = [], { current = "", vendor = "" } = {}) {
   const own = String(vendor || "").trim();
   const vendorOf2 = (id) => String(id || "").includes("/") ? String(id).split("/")[0] : "";
   const seen = /* @__PURE__ */ new Set();
-  const items = (Array.isArray(list) ? list : []).map((id) => String(id || "").trim()).filter((id) => id && !seen.has(id) && seen.add(id));
+  const items2 = (Array.isArray(list) ? list : []).map((id) => String(id || "").trim()).filter((id) => id && !seen.has(id) && seen.add(id));
   const rank = (id) => id === cur ? 0 : own && vendorOf2(id) === own ? 1 : 2;
-  return items.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
+  return items2.map((id, index) => ({ id, index, rank: rank(id) })).sort((a, b) => a.rank - b.rank || a.index - b.index).map((item) => item.id);
 }
 var PREFERRED_SPEECH_MODEL = "mimo-v2.5-asr";
 var PREFERRED_TEXT_MODEL = "mimo-v2.6-flash";
 function preferModel(list = [], wanted = "") {
   const want = String(wanted || "").trim();
-  const items = Array.isArray(list) ? list : [];
+  const items2 = Array.isArray(list) ? list : [];
   if (!want) return "";
-  return items.find((id) => id === want) || items.find((id) => String(id || "").endsWith("/" + want)) || "";
+  return items2.find((id) => id === want) || items2.find((id) => String(id || "").endsWith("/" + want)) || "";
 }
 function vendorOf(model) {
   const value = String(model || "").trim();
   return value.includes("/") ? value.split("/")[0] : "";
 }
 function withoutHidden(list = [], hidden = []) {
-  const items = Array.isArray(list) ? list : [];
+  const items2 = Array.isArray(list) ? list : [];
   const blocked = new Set(
     (Array.isArray(hidden) ? hidden : []).map((row) => typeof row === "string" ? row : row?.model).filter(Boolean)
   );
-  if (!blocked.size) return items;
-  const kept = items.filter((id) => !blocked.has(id));
-  return kept.length ? kept : items;
+  if (!blocked.size) return items2;
+  const kept = items2.filter((id) => !blocked.has(id));
+  return kept.length ? kept : items2;
 }
 
 // client-src/components/settings/ModelConnection.jsx
@@ -49790,7 +49850,7 @@ function SetupProgressCards({ revision = 0, variant = "feed" }) {
     cards.push({
       id: "capture",
       title: "\u91C7\u96C6\u7EC4\u4EF6\u7F3A\u5931",
-      detail: "\u5B89\u88C5 yt-dlp \u4E0E ffmpeg \u540E\u53EF\u91C7\u96C6\u76F4\u64AD\u548C\u94FE\u63A5\u89C6\u9891\u3002",
+      detail: "\u4E00\u952E\u4E0B\u8F7D yt-dlp \u4E0E ffmpeg\uFF08\u56FD\u5185\u955C\u50CF\uFF0C\u65E0\u9700 Homebrew\uFF09\u540E\u53EF\u91C7\u96C6\u76F4\u64AD\u548C\u94FE\u63A5\u89C6\u9891\u3002",
       action: /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: busy === "capture", onClick: installCapture }, busy === "capture" ? "\u5B89\u88C5\u4E2D\u2026" : "\u5B89\u88C5")
     });
   }
@@ -49882,6 +49942,7 @@ var zh = {
   "settings.tab.models": "\u6A21\u578B",
   "settings.tab.account": "\u8D26\u53F7",
   "settings.tab.libraries": "\u8D44\u6599\u7A7A\u95F4",
+  "settings.tab.backup": "\u5907\u4EFD",
   "settings.tab.capture": "\u91C7\u96C6",
   "settings.tab.feishu": "\u98DE\u4E66",
   "settings.tab.about": "\u5173\u4E8E",
@@ -50343,6 +50404,7 @@ var en = {
   "settings.tab.models": "Models",
   "settings.tab.account": "Account",
   "settings.tab.libraries": "Libraries",
+  "settings.tab.backup": "Backup",
   "settings.tab.capture": "Capture",
   "settings.tab.feishu": "Feishu",
   "settings.tab.about": "About",
@@ -51340,7 +51402,7 @@ function HighlightCard({ item, onOpen, onMenu }) {
     /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, item.session_title), /* @__PURE__ */ React.createElement("span", null, clock(item.ts)), /* @__PURE__ */ React.createElement("span", null, dateTime(item.created_at)))
   );
 }
-function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, onCaptureSubmitted, library = null, dataDir = "" }) {
+function Hero({ stats, items: items2 = [], t, onFilter, onOpenRecord, onCaptureCreated, onCaptureSubmitted, library = null, dataDir = "" }) {
   const [text, setText] = React.useState("");
   const [hint, setHint] = React.useState("");
   const [capture, setCapture] = React.useState(null);
@@ -51351,7 +51413,7 @@ function Hero({ stats, items = [], t, onFilter, onOpenRecord, onCaptureCreated, 
   const now2 = /* @__PURE__ */ new Date();
   const weekdays = "\u65E5\u4E00\u4E8C\u4E09\u56DB\u4E94\u516D";
   const hours = stats?.duration ? (stats.duration / 3600).toFixed(1) : "0";
-  const activeItems = items.filter(isActiveTask);
+  const activeItems = items2.filter(isActiveTask);
   const activeCount = Number(stats?.active) || activeItems.length;
   const activeTarget = pickActiveTask(activeItems);
   React.useEffect(() => {
@@ -51590,7 +51652,7 @@ function HomePage({
   dataDir = ""
 }) {
   const [data, setData] = React.useState(null);
-  const [items, setItems] = React.useState([]);
+  const [items2, setItems] = React.useState([]);
   const [highlights, setHighlights] = React.useState([]);
   const [batches, setBatches] = React.useState([]);
   const [openBatchId, setOpenBatchId] = React.useState("");
@@ -51630,8 +51692,8 @@ function HomePage({
   const [sort, setSort] = React.useState("recent");
   const [localRevision, setLocalRevision] = React.useState(0);
   const sentinel = React.useRef(null);
-  const itemsRef = React.useRef(items);
-  itemsRef.current = items;
+  const itemsRef = React.useRef(items2);
+  itemsRef.current = items2;
   const homeRef = React.useRef(null);
   const pastePointRef = React.useRef(null);
   const pasteSeqRef = React.useRef(0);
@@ -51782,7 +51844,7 @@ function HomePage({
     }, { rootMargin: "400px" });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [mode, items.length, more, feedDone, moreError]);
+  }, [mode, items2.length, more, feedDone, moreError]);
   const batchMemberIds = React.useMemo(() => {
     const ids = /* @__PURE__ */ new Set();
     for (const batch of batches) for (const member of batch.members || []) ids.add(member.id);
@@ -51793,13 +51855,13 @@ function HomePage({
     [batches]
   );
   const rawEntries = React.useMemo(() => [
-    ...items.filter((item) => !batchMemberIds.has(item.id)).map((item) => ({ type: "session", at: item.started_at || item.created_at || 0, item })),
+    ...items2.filter((item) => !batchMemberIds.has(item.id)).map((item) => ({ type: "session", at: item.started_at || item.created_at || 0, item })),
     ...batchEntries,
     ...highlights.map((item) => ({ type: "highlight", at: item.created_at || 0, item })),
     ...notes.map((item) => ({ type: "note", at: item.created_at || 0, item })),
     ...images.map((item) => ({ type: "image", at: item.created_at || 0, item })),
     ...(data?.documents || []).map((item) => ({ type: "doc", at: item.updated_at || 0, item }))
-  ], [items, batchMemberIds, batchEntries, highlights, notes, images, data]);
+  ], [items2, batchMemberIds, batchEntries, highlights, notes, images, data]);
   const rawEntryByKey = React.useMemo(
     () => new Map(rawEntries.map((entry) => [entryKey(entry), entry])),
     [rawEntries]
@@ -52373,7 +52435,7 @@ function HomePage({
   );
   const count = kind === "mark" ? highlights.length : entries.length;
   const dockCounts = {
-    active: data?.stats?.active ?? items.filter(isActiveTask).length,
+    active: data?.stats?.active ?? items2.filter(isActiveTask).length,
     live: data?.stats?.live || 0,
     link_video: data?.stats?.link_video || 0,
     meeting: data?.stats?.meeting || 0,
@@ -52390,7 +52452,7 @@ function HomePage({
       body: "\u5A92\u4F53\u3001\u622A\u56FE\u3001\u8F6C\u5199\u4E0E\u6807\u8BB0\u4F1A\u79FB\u5230\u5E9F\u7EB8\u7BD3\uFF0C\u6E05\u7A7A\u5E9F\u7EB8\u7BD3\u524D\u53EF\u627E\u56DE\u3002",
       label: "\u79FB\u5230\u5E9F\u7EB8\u7BD3",
       run: async () => {
-        const previous = items;
+        const previous = items2;
         setItems((current) => current.filter((row) => row.id !== item.id));
         try {
           await deleteSession(item.id);
@@ -52450,7 +52512,7 @@ function HomePage({
       label: "\u5168\u90E8\u5220\u9664",
       run: async () => {
         const previousBatches = batches;
-        const previousItems = items;
+        const previousItems = items2;
         setBatches((current) => current.filter((row) => row.id !== batch.id));
         setItems((current) => current.filter((row) => !ids.includes(row.id)));
         onToast?.(active2 ? "\u6B63\u5728\u53D6\u6D88\u5E76\u5220\u9664\u2026" : "\u6B63\u5728\u79FB\u5230\u5E9F\u7EB8\u7BD3\u2026");
@@ -52548,7 +52610,7 @@ function HomePage({
     Hero,
     {
       stats: data?.stats,
-      items,
+      items: items2,
       t,
       onFilter: setKind,
       onOpenRecord,
@@ -52684,7 +52746,7 @@ function HomePage({
       pinned ? /* @__PURE__ */ React.createElement(PinMark, null) : null,
       renderEntry(entry)
     );
-  })) : null, items.length >= FEED_PAGE_SIZE ? /* @__PURE__ */ React.createElement("div", { ref: sentinel, className: "mc-home-more", "data-state": moreError ? "error" : more ? "loading" : feedDone ? "done" : "idle" }, moreError ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-ghost", onClick: retryMore }, "\u52A0\u8F7D\u5931\u8D25\uFF0C\u70B9\u51FB\u91CD\u8BD5") : more ? "\u6B63\u5728\u52A0\u8F7D\u2026" : feedDone ? "\u6CA1\u6709\u66F4\u591A\u4E86" : "\u7EE7\u7EED\u4E0B\u6ED1") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-home-dock", role: "toolbar", "aria-label": "\u6458\u5F55\u5899\u89C6\u56FE" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-seg", role: "tablist", "aria-label": "\u5C55\u793A\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "feed", "data-active": mode === "feed", onClick: () => setMode("feed") }, "\u4FE1\u606F\u6D41"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "scatter", "data-active": mode === "scatter", onClick: () => setMode("scatter") }, "\u6563\u843D")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-sep" }), /* @__PURE__ */ React.createElement("div", { className: "mc-home-chips", role: "tablist", "aria-label": "\u7B5B\u9009" }, FILTERS2.map((filter) => /* @__PURE__ */ React.createElement(
+  })) : null, items2.length >= FEED_PAGE_SIZE ? /* @__PURE__ */ React.createElement("div", { ref: sentinel, className: "mc-home-more", "data-state": moreError ? "error" : more ? "loading" : feedDone ? "done" : "idle" }, moreError ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-home-ghost", onClick: retryMore }, "\u52A0\u8F7D\u5931\u8D25\uFF0C\u70B9\u51FB\u91CD\u8BD5") : more ? "\u6B63\u5728\u52A0\u8F7D\u2026" : feedDone ? "\u6CA1\u6709\u66F4\u591A\u4E86" : "\u7EE7\u7EED\u4E0B\u6ED1") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-home-dock", role: "toolbar", "aria-label": "\u6458\u5F55\u5899\u89C6\u56FE" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-seg", role: "tablist", "aria-label": "\u5C55\u793A\u65B9\u5F0F" }, /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "feed", "data-active": mode === "feed", onClick: () => setMode("feed") }, "\u4FE1\u606F\u6D41"), /* @__PURE__ */ React.createElement("button", { type: "button", role: "tab", "aria-selected": mode === "scatter", "data-active": mode === "scatter", onClick: () => setMode("scatter") }, "\u6563\u843D")), /* @__PURE__ */ React.createElement("span", { className: "mc-home-dock-sep" }), /* @__PURE__ */ React.createElement("div", { className: "mc-home-chips", role: "tablist", "aria-label": "\u7B5B\u9009" }, FILTERS2.map((filter) => /* @__PURE__ */ React.createElement(
     "button",
     {
       key: filter.id,
@@ -53209,7 +53271,7 @@ function SetupWizard({ status: status3, onComplete }) {
   const visibleText = showHidden ? catalog?.text || [] : withoutHidden(catalog?.text || [], hidden);
   const asrOptions = modelOptions(catalog?.asr || [], asrModel);
   const textOptions = modelOptions(visibleText, textModel);
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u5B89\u88C5 Python \u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF1B\u8D26\u53F7\u53EF\u4EE5\u5728\u4E0B\u4E00\u6B65\u518D\u8FDE\u3002" : "\u68C0\u67E5\u5C31\u7EEA\u9879\uFF0C\u6309\u9700\u767B\u5F55\u8D26\u53F7\uFF0C\u7136\u540E\u76F4\u63A5\u8BD5\u4E00\u6761\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-setup" }, /* @__PURE__ */ React.createElement("section", { className: "mc-setup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-hero" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-mark" }, "\u4F1A\u6458"), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("p", { className: "mc-setup-eyebrow" }, "\u9996\u6B21\u4F7F\u7528 \xB7 ", step, " / 3"), /* @__PURE__ */ React.createElement("h2", null, step === 1 ? "\u8FDE\u63A5\u6A21\u578B\u670D\u52A1" : step === 2 ? "\u5B89\u88C5\u73AF\u5883" : "\u51C6\u5907\u8FDB\u5165\u4F1A\u6458"), /* @__PURE__ */ React.createElement("p", null, step === 1 ? "\u586B\u5199 OpenAI \u517C\u5BB9\u670D\u52A1\u5730\u5740\u4E0E API Key\uFF0C\u81EA\u52A8\u83B7\u53D6\u53EF\u7528\u6A21\u578B\u3002" : step === 2 ? "\u81EA\u52A8\u4E0B\u8F7D\u8FD0\u884C\u73AF\u5883\u4E0E\u91C7\u96C6\u7EC4\u4EF6\uFF08\u4E0D\u9700\u8981\u9884\u88C5 Python\u3001Homebrew\uFF09\uFF1B\u8D26\u53F7\u53EF\u4EE5\u5728\u4E0B\u4E00\u6B65\u518D\u8FDE\u3002" : "\u68C0\u67E5\u5C31\u7EEA\u9879\uFF0C\u6309\u9700\u767B\u5F55\u8D26\u53F7\uFF0C\u7136\u540E\u76F4\u63A5\u8BD5\u4E00\u6761\u3002"))), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-steps" }, ["\u4E91\u7AEF\u6A21\u578B", "\u5B89\u88C5\u73AF\u5883", "\u5B8C\u6210"].map((label, index) => /* @__PURE__ */ React.createElement("div", { key: label, className: "mc-setup-step", "data-state": step > index + 1 ? "done" : step === index + 1 ? "active" : "pending" }, /* @__PURE__ */ React.createElement("span", { className: "mc-setup-step-index" }, String(index + 1).padStart(2, "0")), /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("i", null)))), step === 1 ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -53268,7 +53330,7 @@ function SetupWizard({ status: status3, onComplete }) {
       })
     },
     "\u6253\u5F00\u5B8C\u5168\u78C1\u76D8\u8BBF\u95EE\u8BBE\u7F6E"
-  )), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5B89\u88C5\u53EA\u505A\u4E00\u6B21\uFF0C\u901A\u5E38 3\u201310 \u5206\u949F\uFF1A\u521B\u5EFA\u72EC\u7ACB Python \u73AF\u5883 \u2192 \u542F\u52A8\u672C\u5730\u5F15\u64CE \u2192 \u5B89\u88C5 yt-dlp \u4E0E ffmpeg\u3002 \u53EF\u4EE5\u70B9\u300C\u540E\u53F0\u5B8C\u6210\u300D\u5148\u53BB\u4E3B\u754C\u9762\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: running ? "mc-setup-spinner" : "" }), /* @__PURE__ */ React.createElement("strong", null, detail || (running ? "\u51C6\u5907\u5B89\u88C5" : "\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u5F00\u59CB"))), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error", role: "alert" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: running, onClick: () => setStep(1) }, "\u4E0A\u4E00\u6B65"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: running, onClick: runInstall }, running ? "\u6B63\u5728\u914D\u7F6E\u2026" : "\u4E00\u952E\u5B89\u88C5\u5E76\u914D\u7F6E"), running ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
+  )), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u5B89\u88C5\u53EA\u505A\u4E00\u6B21\uFF0C\u901A\u5E38 3\u201310 \u5206\u949F\uFF1A\u81EA\u52A8\u4E0B\u8F7D\u72EC\u7ACB Python \u73AF\u5883 \u2192 \u542F\u52A8\u672C\u5730\u5F15\u64CE \u2192 \u4E0B\u8F7D yt-dlp \u4E0E ffmpeg\u3002 \u4E24\u8005\u90FD\u8D70\u56FD\u5185\u955C\u50CF\uFF08\u6E05\u534E PyPI / npmmirror\uFF09\uFF0C\u4E0D\u7528\u5148\u88C5 Homebrew\u3002\u53EF\u4EE5\u70B9\u300C\u540E\u53F0\u5B8C\u6210\u300D\u5148\u53BB\u4E3B\u754C\u9762\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-progress-head" }, /* @__PURE__ */ React.createElement("span", { className: running ? "mc-setup-spinner" : "" }), /* @__PURE__ */ React.createElement("strong", null, detail || (running ? "\u51C6\u5907\u5B89\u88C5" : "\u70B9\u51FB\u4E0B\u65B9\u6309\u94AE\u5F00\u59CB"))), log ? /* @__PURE__ */ React.createElement("pre", { className: "mc-log" }, log) : null), error ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-error", role: "alert" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B89\u88C5\u6CA1\u6709\u5B8C\u6210"), /* @__PURE__ */ React.createElement("p", null, error)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: running, onClick: () => setStep(1) }, "\u4E0A\u4E00\u6B65"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": "primary", disabled: running, onClick: runInstall }, running ? "\u6B63\u5728\u914D\u7F6E\u2026" : "\u4E00\u952E\u5B89\u88C5\u5E76\u914D\u7F6E"), running ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => {
     setBackground(true);
     setStep(3);
   } }, "\u540E\u53F0\u5B8C\u6210"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: async () => {
@@ -53296,9 +53358,9 @@ function FeishuSetupSection({ feishu }) {
   const installed = Boolean(status3?.dsh?.entryPresent);
   const loggedIn = Boolean(status3?.auth?.loggedIn);
   const busy = Boolean(feishu.busy) || running;
-  const canInstall = Boolean(status3) && Boolean(status3.runtime?.npxOk) && !status3.dsh?.conflict && Boolean(status3.package?.configured);
-  const summary = feishuSummary(status3);
-  const stateText = !status3 ? "\u8BFB\u53D6\u4E2D\u2026" : `${summary.text}${installed ? "" : " \xB7 \u672A\u914D\u7F6E"}`;
+  const canInstall = Boolean(status3) && (status3.runtime?.ready === void 0 ? Boolean(status3.runtime?.npxOk && status3.runtime?.nodeOk) : Boolean(status3.runtime.ready)) && !status3.dsh?.conflict && Boolean(status3.package?.configured);
+  const summary2 = feishuSummary(status3);
+  const stateText = !status3 ? "\u8BFB\u53D6\u4E2D\u2026" : `${summary2.text}${installed ? "" : " \xB7 \u672A\u914D\u7F6E"}`;
   return /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-feishu-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66 MCP\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("span", { "data-tone": installed && loggedIn ? "ok" : void 0 }, stateText)), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "\u8BA9 Agent \u76F4\u63A5\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF0C\u5DE5\u5177\u540D\u4EE5", /* @__PURE__ */ React.createElement("code", { className: "mc-mono" }, "mcp__feishu__"), " \u5F00\u5934\uFF1B\u4E0D\u88C5\u4E5F\u4E0D\u5F71\u54CD\u91C7\u96C6\u3001\u8F6C\u5199\u4E0E\u7EAA\u8981\u3002"), /* @__PURE__ */ React.createElement(FeishuStatusRows, { status: status3, compact: true }), installed && loggedIn ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => feishu.actions.login("auto") }) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy || !canInstall, onClick: feishu.actions.install }, running && status3?.job?.action === "install" ? "\u6B63\u5728\u5B89\u88C5\u2026" : "\u5B89\u88C5\u98DE\u4E66 MCP") : null, installed && !loggedIn ? /* @__PURE__ */ React.createElement(FeishuLoginActions, { status: status3, actions: feishu.actions, busy: feishu.busy, running }) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.probe }, running && status3?.job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5") : null, installed && loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: busy, onClick: feishu.actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), feishu.error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, feishu.error) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: status3?.job, actions: feishu.actions }));
 }
 function WorkspaceNote({ info, error }) {
@@ -53551,7 +53613,7 @@ function SettingsAbout({ t, onRestartSetup = null }) {
   };
   const job = status3?.job || null;
   const latest = status3?.latest || null;
-  const summary = updateSummary(status3);
+  const summary2 = updateSummary(status3);
   const running = Boolean(job && ["checking", "downloading", "verifying", "installing"].includes(job.state));
   const percent = progressPercent(job);
   const isSource = status3?.target?.kind === "source";
@@ -53602,7 +53664,7 @@ function SettingsAbout({ t, onRestartSetup = null }) {
     },
     "github.com/",
     repo
-  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.lastCheck", "\u4E0A\u6B21\u68C0\u67E5")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, formatDate2(status3?.lastCheckAt) || tr("about.never", "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7"))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.installPath", "\u5B89\u88C5\u4F4D\u7F6E")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono mc-about-path", title: status3?.target?.path || "" }, status3?.target?.path || "\u2014"))), /* @__PURE__ */ React.createElement("div", { className: "mc-update-summary", "data-tone": summary.tone }, /* @__PURE__ */ React.createElement("span", { className: "mc-dot", "data-state": dotTone(summary.tone) }), /* @__PURE__ */ React.createElement("strong", null, summary.text), summary.detail ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, summary.detail) : null), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+  ))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.lastCheck", "\u4E0A\u6B21\u68C0\u67E5")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value" }, formatDate2(status3?.lastCheckAt) || tr("about.never", "\u8FD8\u6CA1\u6709\u68C0\u67E5\u8FC7"))), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, tr("about.installPath", "\u5B89\u88C5\u4F4D\u7F6E")), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono mc-about-path", title: status3?.target?.path || "" }, status3?.target?.path || "\u2014"))), /* @__PURE__ */ React.createElement("div", { className: "mc-update-summary", "data-tone": summary2.tone }, /* @__PURE__ */ React.createElement("span", { className: "mc-dot", "data-state": dotTone(summary2.tone) }), /* @__PURE__ */ React.createElement("strong", null, summary2.text), summary2.detail ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, summary2.detail) : null), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -53685,6 +53747,867 @@ function SettingsAbout({ t, onRestartSetup = null }) {
   )) : null);
 }
 
+// client-src/components/SettingsBackup.jsx
+init_react_shim();
+
+// client-src/lib/backup.js
+init_react_shim();
+var SELECTABLE_TYPES = ["pack", "session", "note", "highlight", "image", "doc", "batch"];
+var TYPE_LABEL = {
+  pack: "\u5361\u5305",
+  session: "\u8BB0\u5F55",
+  note: "\u4FBF\u5229\u7B7E",
+  highlight: "\u6807\u8BB0",
+  image: "\u56FE\u7247",
+  doc: "\u98DE\u4E66\u6587\u6863",
+  batch: "\u6279\u6B21"
+};
+function typeLabel(type) {
+  return TYPE_LABEL[type] || "\u5361\u7247";
+}
+function keyOf(type, id) {
+  return `${type}:${id}`;
+}
+function parseKey2(key) {
+  const text = String(key || "");
+  const index = text.indexOf(":");
+  if (index <= 0) return null;
+  return { type: text.slice(0, index), id: text.slice(index + 1) };
+}
+function isSelected(selection, type, id) {
+  return selection instanceof Set && selection.has(keyOf(type, id));
+}
+function toggle(selection, type, id) {
+  const next = new Set(selection);
+  const key = keyOf(type, id);
+  if (next.has(key)) next.delete(key);
+  else next.add(key);
+  return next;
+}
+function setGroup(selection, type, ids, checked) {
+  const next = new Set(selection);
+  for (const id of ids || []) {
+    const key = keyOf(type, id);
+    if (checked) next.add(key);
+    else next.delete(key);
+  }
+  return next;
+}
+function emptySelection() {
+  return /* @__PURE__ */ new Set();
+}
+function items(catalog) {
+  const value = catalog?.items || {};
+  return {
+    packs: Array.isArray(value.packs) ? value.packs : [],
+    records: Array.isArray(value.records) ? value.records : [],
+    notes: Array.isArray(value.notes) ? value.notes : [],
+    highlights: Array.isArray(value.highlights) ? value.highlights : [],
+    images: Array.isArray(value.images) ? value.images : [],
+    docs: Array.isArray(value.docs) ? value.docs : [],
+    batches: Array.isArray(value.batches) ? value.batches : []
+  };
+}
+function indexCatalog(catalog) {
+  const rows = items(catalog);
+  const index = {
+    records: /* @__PURE__ */ new Map(),
+    packs: /* @__PURE__ */ new Map(),
+    notes: /* @__PURE__ */ new Map(),
+    highlights: /* @__PURE__ */ new Map(),
+    images: /* @__PURE__ */ new Map(),
+    docs: /* @__PURE__ */ new Map(),
+    batches: /* @__PURE__ */ new Map(),
+    rows
+  };
+  for (const row of rows.records) index.records.set(String(row.id), row);
+  for (const row of rows.packs) index.packs.set(String(row.id), row);
+  for (const row of rows.notes) index.notes.set(String(row.id), row);
+  for (const row of rows.highlights) index.highlights.set(String(row.id), row);
+  for (const row of rows.images) index.images.set(String(row.id), row);
+  for (const row of rows.docs) index.docs.set(String(row.key), row);
+  for (const row of rows.batches) index.batches.set(String(row.id), row);
+  return index;
+}
+function docMemberId(value) {
+  const text = String(value || "");
+  return text.startsWith("doc:") ? text.slice(4) : text;
+}
+function resolveSelection(selection, index) {
+  const records = /* @__PURE__ */ new Set();
+  const notes = /* @__PURE__ */ new Set();
+  const images = /* @__PURE__ */ new Set();
+  const docs = /* @__PURE__ */ new Set();
+  const highlights = /* @__PURE__ */ new Set();
+  const batches = /* @__PURE__ */ new Set();
+  const packs = /* @__PURE__ */ new Set();
+  const sessionsFromHighlight = /* @__PURE__ */ new Set();
+  const addMember = (type, id) => {
+    if (type === "session") records.add(String(id));
+    else if (type === "note") notes.add(String(id));
+    else if (type === "image") images.add(String(id));
+    else if (type === "doc") docs.add(docMemberId(id));
+    else if (type === "batch") batches.add(String(id));
+    else if (type === "highlight") highlights.add(String(id));
+  };
+  for (const key of selection) {
+    const parsed = parseKey2(key);
+    if (!parsed) continue;
+    if (parsed.type === "session") records.add(parsed.id);
+    else if (parsed.type === "note") notes.add(parsed.id);
+    else if (parsed.type === "image") images.add(parsed.id);
+    else if (parsed.type === "doc") docs.add(docMemberId(parsed.id));
+    else if (parsed.type === "batch") batches.add(parsed.id);
+    else if (parsed.type === "highlight") highlights.add(parsed.id);
+    else if (parsed.type === "pack") packs.add(parsed.id);
+  }
+  for (const packId of packs) {
+    const pack = index.packs.get(packId);
+    for (const member of pack?.members || []) addMember(member.type, member.id);
+  }
+  for (const batchId of batches) {
+    const batch = index.batches.get(batchId);
+    for (const id of batch?.member_ids || []) records.add(String(id));
+  }
+  for (const markId of highlights) {
+    const mark = index.highlights.get(markId);
+    if (mark?.session_id) sessionsFromHighlight.add(String(mark.session_id));
+  }
+  for (const id of sessionsFromHighlight) records.add(id);
+  return { records, notes, images, docs, highlights, batches, packs };
+}
+function summary(selection, index) {
+  const resolved = resolveSelection(selection, index);
+  return {
+    packs: resolved.packs.size,
+    records: resolved.records.size,
+    notes: resolved.notes.size,
+    images: resolved.images.size,
+    docs: resolved.docs.size,
+    batches: resolved.batches.size,
+    highlights: resolved.highlights.size,
+    selected: selection.size
+  };
+}
+function estimate(selection, index, includeMedia) {
+  const resolved = resolveSelection(selection, index);
+  let base = 0;
+  let media = 0;
+  for (const id of resolved.records) {
+    const row = index.records.get(id);
+    if (!row) continue;
+    base += Number(row.base_bytes) || 0;
+    media += Number(row.media_bytes) || 0;
+  }
+  for (const id of resolved.notes) base += Number(index.notes.get(id)?.base_bytes) || 0;
+  for (const id of resolved.images) base += Number(index.images.get(id)?.base_bytes) || 0;
+  for (const key of resolved.docs) base += Number(index.docs.get(key)?.base_bytes) || 0;
+  return { base, media, includeMedia: Boolean(includeMedia), total: base + (includeMedia ? media : 0) };
+}
+function hasAnyMedia(selection, index) {
+  const resolved = resolveSelection(selection, index);
+  for (const id of resolved.records) {
+    if (Number(index.records.get(id)?.media_bytes) > 0) return true;
+  }
+  return false;
+}
+function itemsForApi(selection) {
+  const out = [];
+  for (const key of selection) {
+    const parsed = parseKey2(key);
+    if (parsed && SELECTABLE_TYPES.includes(parsed.type)) out.push(parsed);
+  }
+  return out;
+}
+function selectAllCards(catalog) {
+  const selection = /* @__PURE__ */ new Set();
+  const rows = items(catalog);
+  for (const row of rows.records) selection.add(keyOf("session", row.id));
+  for (const row of rows.packs) selection.add(keyOf("pack", row.id));
+  for (const row of rows.notes) selection.add(keyOf("note", row.id));
+  for (const row of rows.highlights) selection.add(keyOf("highlight", row.id));
+  for (const row of rows.images) selection.add(keyOf("image", row.id));
+  for (const row of rows.docs) selection.add(keyOf("doc", row.key));
+  for (const row of rows.batches) selection.add(keyOf("batch", row.id));
+  return selection;
+}
+function selectionText(counts) {
+  const parts = [];
+  if (counts.packs) parts.push(`${counts.packs} \u4E2A\u5361\u5305`);
+  if (counts.records) parts.push(`${counts.records} \u6761\u8BB0\u5F55`);
+  if (counts.batches) parts.push(`${counts.batches} \u4E2A\u6279\u6B21`);
+  if (counts.notes) parts.push(`${counts.notes} \u5F20\u4FBF\u5229\u7B7E`);
+  if (counts.highlights) parts.push(`${counts.highlights} \u6761\u6807\u8BB0`);
+  if (counts.images) parts.push(`${counts.images} \u5F20\u56FE\u7247`);
+  if (counts.docs) parts.push(`${counts.docs} \u7BC7\u6587\u6863`);
+  return parts.length ? parts.join("\u3001") : "\u8FD8\u6CA1\u6709\u9009\u62E9\u5361\u7247";
+}
+function estimateText(value) {
+  const total = Math.max(0, Number(value?.total) || 0);
+  const media = Math.max(0, Number(value?.media) || 0);
+  if (!total && !media) return "\u2014";
+  return value?.includeMedia && media > 0 ? `\u7EA6 ${bytes(total)}\uFF08\u542B\u5A92\u4F53 ${bytes(media)}\uFF09` : `\u7EA6 ${bytes(total)}`;
+}
+function jobPercent(job) {
+  if (!job) return null;
+  if (job.state === "done") return 100;
+  const value = Number(job.percent);
+  return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
+}
+function jobBytesText(job) {
+  const done = Number(job?.bytes_done) || 0;
+  const total = Number(job?.bytes_total) || 0;
+  if (!total) return "";
+  return `${bytes(done)} / ${bytes(total)}`;
+}
+function jobProgressText(job) {
+  if (!job) return "";
+  if (job.state === "error") return job.error || "\u5907\u4EFD\u5931\u8D25";
+  if (job.state === "cancelled") return job.error || "\u5DF2\u53D6\u6D88";
+  const percent = jobPercent(job);
+  const phase = job.phase || (job.action === "import" ? "\u6B63\u5728\u5BFC\u5165" : "\u6B63\u5728\u5BFC\u51FA");
+  if (job.state === "done") return "\u5DF2\u5B8C\u6210";
+  return `${phase}${percent === null || percent >= 100 ? "" : ` ${Math.floor(percent)}%`}`;
+}
+function exportCountsText(counts) {
+  if (!counts) return "";
+  const parts = [];
+  if (counts.records) parts.push(`${counts.records} \u6761\u8BB0\u5F55`);
+  if (counts.packs) parts.push(`${counts.packs} \u4E2A\u5361\u5305`);
+  if (counts.batches) parts.push(`${counts.batches} \u4E2A\u6279\u6B21`);
+  if (counts.notes) parts.push(`${counts.notes} \u5F20\u4FBF\u5229\u7B7E`);
+  if (counts.images) parts.push(`${counts.images} \u5F20\u56FE\u7247`);
+  if (counts.docs) parts.push(`${counts.docs} \u7BC7\u6587\u6863`);
+  if (counts.transcripts) parts.push(`${counts.transcripts} \u884C\u8F6C\u5199`);
+  return parts.length ? parts.join("\u3001") : "\u6CA1\u6709\u5185\u5BB9";
+}
+function importCountsText(result) {
+  return exportCountsText(result?.counts);
+}
+function skippedText(skipped) {
+  if (!skipped) return "";
+  const parts = [];
+  if (skipped.records) parts.push(`${skipped.records} \u6761\u8BB0\u5F55`);
+  if (skipped.packs) parts.push(`${skipped.packs} \u4E2A\u5361\u5305`);
+  if (skipped.notes) parts.push(`${skipped.notes} \u5F20\u4FBF\u5229\u7B7E`);
+  if (skipped.images) parts.push(`${skipped.images} \u5F20\u56FE\u7247`);
+  if (skipped.docs) parts.push(`${skipped.docs} \u7BC7\u6587\u6863`);
+  return parts.join("\u3001");
+}
+function inspectSummary(inspect) {
+  if (!inspect) return { rows: [], mediaBytes: 0, counts: {} };
+  const counts = inspect.counts || {};
+  const rows = [];
+  if (counts.records) rows.push(`${counts.records} \u6761\u8BB0\u5F55\uFF08${counts.transcripts || 0} \u884C\u8F6C\u5199\uFF09`);
+  if (counts.packs) rows.push(`${counts.packs} \u4E2A\u5361\u5305`);
+  if (counts.batches) rows.push(`${counts.batches} \u4E2A\u6279\u6B21`);
+  if (counts.notes) rows.push(`${counts.notes} \u5F20\u4FBF\u5229\u7B7E`);
+  if (counts.highlights) rows.push(`${counts.highlights} \u6761\u6807\u8BB0`);
+  if (counts.images) rows.push(`${counts.images} \u5F20\u56FE\u7247`);
+  if (counts.docs) rows.push(`${counts.docs} \u7BC7\u6587\u6863`);
+  return { rows, mediaBytes: Number(inspect.media_bytes) || 0, counts };
+}
+
+// client-src/components/backup/ExportPanel.jsx
+init_react_shim();
+
+// client-src/components/backup/parts.jsx
+init_react_shim();
+function JobProgress({ job, onCancel }) {
+  if (!job) return null;
+  const percent = jobPercent(job);
+  const running = job.state === "running";
+  const failed = job.state === "error";
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-backup-job", "data-tone": failed ? "error" : job.state }, /* @__PURE__ */ React.createElement("div", { className: "mc-backup-job-head" }, /* @__PURE__ */ React.createElement("span", null, jobProgressText(job)), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-job-bytes" }, jobBytesText(job))), /* @__PURE__ */ React.createElement(
+    "div",
+    {
+      className: "mc-progress mc-backup-bar",
+      role: "progressbar",
+      "aria-valuemin": 0,
+      "aria-valuemax": 100,
+      "aria-valuenow": percent === null ? void 0 : Math.round(percent)
+    },
+    /* @__PURE__ */ React.createElement("span", { style: { width: `${percent === null ? 15 : percent}%` } })
+  ), job.message && running ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, job.message) : null, failed ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, job.error || "\u5907\u4EFD\u5931\u8D25") : null, running ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onCancel }, "\u53D6\u6D88")) : null);
+}
+function GroupSection({
+  label,
+  count,
+  open,
+  onToggleOpen,
+  checked,
+  partial,
+  onGroupChange,
+  children
+}) {
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (ref.current) ref.current.indeterminate = Boolean(partial) && !checked;
+  }, [partial, checked]);
+  return /* @__PURE__ */ React.createElement("section", { className: "mc-backup-group" }, /* @__PURE__ */ React.createElement("header", { className: "mc-backup-group-head" }, /* @__PURE__ */ React.createElement("label", { className: "mc-backup-check" }, /* @__PURE__ */ React.createElement("input", { ref, type: "checkbox", checked: Boolean(checked), onChange: (event) => onGroupChange?.(event.target.checked) }), /* @__PURE__ */ React.createElement("span", null, label)), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-count" }, count), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-backup-link", onClick: onToggleOpen }, open ? "\u6536\u8D77" : "\u5C55\u5F00")), open ? /* @__PURE__ */ React.createElement("div", { className: "mc-backup-rows" }, children) : null);
+}
+function CardRow({ checked, title, meta, badge, active: active2, onChange, indent = false }) {
+  return /* @__PURE__ */ React.createElement("label", { className: "mc-backup-row", "data-active": active2 ? "true" : void 0, "data-indent": indent ? "true" : void 0 }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", checked: Boolean(checked), onChange: (event) => onChange?.(event.target.checked) }), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-row-main" }, /* @__PURE__ */ React.createElement("span", { className: "mc-backup-row-title" }, title), meta ? /* @__PURE__ */ React.createElement("span", { className: "mc-backup-row-meta" }, meta) : null), badge ? /* @__PURE__ */ React.createElement("span", { className: "mc-backup-badge" }, badge) : null);
+}
+function recordMeta(row) {
+  const bits = [kindInfo(row.kind).label];
+  const stamp = Number(row.created_at) || 0;
+  if (row.active) bits.push("\u8FDB\u884C\u4E2D");
+  if (stamp) bits.push(dateTime(stamp));
+  if (row.transcripts) bits.push(`${row.transcripts} \u884C\u8F6C\u5199`);
+  if (row.marks) bits.push(`${row.marks} \u6761\u6807\u8BB0`);
+  if (row.has_minutes) bits.push("\u6709\u7EAA\u8981");
+  if (row.has_notes) bits.push("\u6709\u7B14\u8BB0");
+  if (row.media_bytes) bits.push(`\u5A92\u4F53 ${bytes(row.media_bytes)}`);
+  return bits.join(" \xB7 ");
+}
+function highlightMeta(row) {
+  const bits = [];
+  if (row.session_title) bits.push(row.session_title);
+  if (Number(row.ts) >= 0) bits.push(clock(row.ts));
+  const stamp = Number(row.created_at) || 0;
+  if (stamp) bits.push(dateTime(stamp));
+  return bits.join(" \xB7 ");
+}
+function docMeta(row) {
+  return [typeLabel("doc"), row.doc_type ? `${row.doc_type}` : "", row.has_content ? "\u6709\u6B63\u6587\u5FEB\u7167" : "\u4EC5\u94FE\u63A5"].filter(Boolean).join(" \xB7 ");
+}
+function noteMeta(row) {
+  return [row.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E", Number(row.created_at) ? dateTime(row.created_at) : ""].filter(Boolean).join(" \xB7 ");
+}
+function imageMeta(row) {
+  const size = row.width && row.height ? `${row.width}\xD7${row.height}` : "";
+  return [size, Number(row.created_at) ? dateTime(row.created_at) : ""].filter(Boolean).join(" \xB7 ");
+}
+function packMeta(row) {
+  return [`${Number(row.count) || 0} \u5F20\u5361\u7247`, Number(row.created_at) ? dateTime(row.created_at) : ""].filter(Boolean).join(" \xB7 ");
+}
+function batchMeta(row) {
+  return [`${Number(row.count) || 0} \u6761\u89C6\u9891`, Number(row.created_at) ? dateTime(row.created_at) : ""].filter(Boolean).join(" \xB7 ");
+}
+function packMembers(row) {
+  return (row.members || []).map((member) => member.title || member.id).filter(Boolean);
+}
+
+// client-src/components/backup/ExportPanel.jsx
+var VISIBLE_ROWS = 50;
+function matches(row, query) {
+  if (!query) return true;
+  const hay = [
+    row.title,
+    row.note,
+    row.text,
+    row.session_title,
+    row.kind,
+    row.doc_type,
+    ...(row.members || []).map((member) => member.title)
+  ].filter(Boolean).join(" ").toLowerCase();
+  return hay.includes(query.toLowerCase());
+}
+function groupIds(rows, key = "id") {
+  return rows.map((row) => String(row[key]));
+}
+function ExportPanel({
+  catalog,
+  index,
+  selection,
+  summary: summary2,
+  estimate: estimate2,
+  query,
+  onQuery,
+  includeMedia,
+  onIncludeMedia,
+  mediaAvailable,
+  dest,
+  onChangeDest,
+  onSelectAll,
+  onClear,
+  onToggle,
+  onGroupChange,
+  onExport,
+  job,
+  onCancel,
+  onReveal
+}) {
+  const [open, setOpen] = React.useState({ pack: true, session: true, note: false, highlight: false, image: false, doc: false, batch: false });
+  const [expanded, setExpanded] = React.useState({});
+  const rows = index?.rows || { packs: [], records: [], notes: [], highlights: [], images: [], docs: [], batches: [] };
+  const running = job?.action === "export" && job.state === "running";
+  const disabled = Boolean(job?.state === "running");
+  function visible(type, list) {
+    const filtered = list.filter((row) => matches(row, query));
+    const shown = query || expanded[type] ? filtered : filtered.slice(0, VISIBLE_ROWS);
+    return { filtered, shown };
+  }
+  function group(type, list, label, key, renderRow) {
+    const { filtered, shown } = visible(type, list);
+    if (!filtered.length) return null;
+    const ids = groupIds(filtered, key);
+    const selected = ids.filter((id) => selection.has(`${type}:${id}`)).length;
+    return /* @__PURE__ */ React.createElement(
+      GroupSection,
+      {
+        key: type,
+        label,
+        count: `${filtered.length}${selected ? ` \xB7 \u5DF2\u9009 ${selected}` : ""}`,
+        open: Boolean(open[type]),
+        onToggleOpen: () => setOpen((current) => ({ ...current, [type]: !current[type] })),
+        checked: ids.length > 0 && selected === ids.length,
+        partial: selected > 0 && selected < ids.length,
+        onGroupChange: (checked) => onGroupChange(type, ids, checked)
+      },
+      shown.map((row) => renderRow(row)),
+      shown.length < filtered.length ? /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          type: "button",
+          className: "mc-backup-more",
+          onClick: () => setExpanded((current) => ({ ...current, [type]: true }))
+        },
+        "\u8FD8\u6709 ",
+        filtered.length - shown.length,
+        " \u6761\uFF0C\u663E\u793A\u5168\u90E8"
+      ) : null
+    );
+  }
+  function packRow(row) {
+    const id = String(row.id);
+    const checked = isSelected(selection, "pack", id);
+    return /* @__PURE__ */ React.createElement("div", { key: id, className: "mc-backup-package" }, /* @__PURE__ */ React.createElement(
+      CardRow,
+      {
+        checked,
+        title: row.title,
+        meta: packMeta(row),
+        badge: `${Number(row.count) || 0} \u5F20`,
+        onChange: () => onToggle("pack", id)
+      }
+    ), open.packs ? /* @__PURE__ */ React.createElement("div", { className: "mc-backup-chips" }, packMembers(row).slice(0, 12).map((name, index2) => /* @__PURE__ */ React.createElement("span", { key: `${id}-${index2}`, className: "mc-backup-chip" }, name)), packMembers(row).length > 12 ? /* @__PURE__ */ React.createElement("span", { className: "mc-backup-chip" }, "\u2026") : null) : null);
+  }
+  return /* @__PURE__ */ React.createElement("section", { className: "mc-card mc-backup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u5BFC\u51FA\u5907\u4EFD"), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u628A\u9009\u4E2D\u7684\u5361\u7247\u6253\u5305\u6210\u4E00\u4E2A\u5907\u4EFD\u6587\u4EF6\u3002\u8F6C\u5199\u3001AI \u7EAA\u8981\u3001\u7B14\u8BB0\u3001\u6807\u8BB0\u548C\u622A\u56FE\u90FD\u4F1A\u8DDF\u7740\u8D70\uFF1B \u89C6\u9891/\u97F3\u9891\u9ED8\u8BA4\u4E0D\u5E26\uFF08\u4F53\u79EF\u5F88\u5927\uFF09\uFF0C\u9700\u8981\u8FDE\u5A92\u4F53\u4E00\u8D77\u5E26\u8D70\u65F6\u5728\u4E0B\u9762\u52FE\u9009\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-backup-toolbar" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-backup-search",
+      type: "search",
+      value: query,
+      placeholder: "\u6309\u6807\u9898\u641C\u7D22\u5361\u7247",
+      "aria-label": "\u641C\u7D22\u5361\u7247",
+      onChange: (event) => onQuery(event.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onSelectAll }, "\u5168\u9009"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClear }, "\u6E05\u7A7A")), /* @__PURE__ */ React.createElement("p", { className: "mc-backup-summary" }, "\u5DF2\u9009\uFF1A", selectionText(summary2), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-estimate" }, estimateText(estimate2))), /* @__PURE__ */ React.createElement("div", { className: "mc-backup-groups" }, group("pack", rows.packs, "\u5361\u5305", "id", packRow), group("session", rows.records, "\u8BB0\u5F55", "id", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.id,
+      checked: isSelected(selection, "session", row.id),
+      title: row.title,
+      meta: recordMeta(row),
+      active: row.active,
+      badge: row.active ? "\u8FDB\u884C\u4E2D" : "",
+      onChange: () => onToggle("session", String(row.id))
+    }
+  )), group("note", rows.notes, "\u4FBF\u5229\u7B7E", "id", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.id,
+      checked: isSelected(selection, "note", row.id),
+      title: row.title,
+      meta: noteMeta(row),
+      onChange: () => onToggle("note", String(row.id))
+    }
+  )), group("highlight", rows.highlights, "\u6807\u8BB0", "id", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.id,
+      checked: isSelected(selection, "highlight", row.id),
+      title: row.note || "\u6807\u8BB0",
+      meta: highlightMeta(row),
+      badge: "\u5E26\u6240\u5C5E\u8BB0\u5F55",
+      onChange: () => onToggle("highlight", String(row.id))
+    }
+  )), group("image", rows.images, "\u56FE\u7247", "id", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.id,
+      checked: isSelected(selection, "image", row.id),
+      title: row.title,
+      meta: imageMeta(row),
+      onChange: () => onToggle("image", String(row.id))
+    }
+  )), group("doc", rows.docs, "\u98DE\u4E66\u6587\u6863", "key", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.key,
+      checked: isSelected(selection, "doc", row.key),
+      title: row.title,
+      meta: docMeta(row),
+      onChange: () => onToggle("doc", String(row.key))
+    }
+  )), group("batch", rows.batches, "\u6279\u6B21\u89C6\u9891", "id", (row) => /* @__PURE__ */ React.createElement(
+    CardRow,
+    {
+      key: row.id,
+      checked: isSelected(selection, "batch", row.id),
+      title: row.title,
+      meta: batchMeta(row),
+      onChange: () => onToggle("batch", String(row.id))
+    }
+  ))), /* @__PURE__ */ React.createElement("label", { className: "mc-backup-option", "data-disabled": !mediaAvailable ? "true" : void 0 }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "checkbox",
+      checked: Boolean(includeMedia) && mediaAvailable,
+      disabled: !mediaAvailable || disabled,
+      onChange: (event) => onIncludeMedia(event.target.checked)
+    }
+  ), /* @__PURE__ */ React.createElement("span", null, "\u5305\u542B\u89C6\u9891/\u97F3\u9891\u6587\u4EF6"), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-option-hint" }, mediaAvailable ? Number(estimate2?.media) ? `+${bytes(estimate2.media)}` : "\u9009\u4E2D\u9879\u6CA1\u6709\u5A92\u4F53" : "\u672A\u9009\u4E2D\u6709\u5A92\u4F53\u7684\u8BB0\u5F55")), /* @__PURE__ */ React.createElement("div", { className: "mc-backup-dest" }, /* @__PURE__ */ React.createElement("span", { className: "mc-backup-dest-label" }, "\u5BFC\u51FA\u5230"), /* @__PURE__ */ React.createElement("code", { className: "mc-backup-dest-path", title: dest }, dest || "\uFF08\u9ED8\u8BA4\uFF1A\u8D44\u6599\u5E93/\u5907\u4EFD\uFF09"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: onChangeDest }, "\u66F4\u6539\u2026")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": "primary",
+      disabled: disabled || !summary2.selected,
+      onClick: onExport
+    },
+    running ? "\u6B63\u5728\u5BFC\u51FA\u2026" : "\u5BFC\u51FA\u5907\u4EFD"
+  ), summary2.selected ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: onClear }, "\u53D6\u6D88\u9009\u62E9") : null), job?.action === "export" ? /* @__PURE__ */ React.createElement(JobProgress, { job, onCancel }) : null, job?.action === "export" && job.state === "done" && job.result?.path ? /* @__PURE__ */ React.createElement("div", { className: "mc-backup-result" }, /* @__PURE__ */ React.createElement("p", { className: "mc-backup-result-line" }, "\u5DF2\u5BFC\u51FA ", bytes(job.result.bytes), " \u5230 ", /* @__PURE__ */ React.createElement("code", null, job.result.path)), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u542B\uFF1A", selectionText({
+    packs: job.result.counts?.packs,
+    records: job.result.counts?.records,
+    batches: job.result.counts?.batches,
+    notes: job.result.counts?.notes,
+    highlights: job.result.counts?.highlights,
+    images: job.result.counts?.images,
+    docs: job.result.counts?.docs
+  }), job.result.sha256 ? ` \xB7 SHA-256 ${job.result.sha256.slice(0, 16)}\u2026` : ""), job.result.warnings?.length ? /* @__PURE__ */ React.createElement("ul", { className: "mc-backup-warnings" }, job.result.warnings.map((item, index2) => /* @__PURE__ */ React.createElement("li", { key: index2 }, item))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => onReveal(job.result.path) }, "\u5728 Finder \u4E2D\u663E\u793A"))) : null);
+}
+
+// client-src/components/backup/ImportPanel.jsx
+init_react_shim();
+function ImportPanel({
+  libraryName,
+  path,
+  onPath,
+  onPick,
+  onInspect,
+  inspecting,
+  inspect,
+  error,
+  includeMedia,
+  onIncludeMedia,
+  skipExisting,
+  onSkipExisting,
+  onStart,
+  onReset,
+  job,
+  onCancel,
+  onClose,
+  busy
+}) {
+  const summary2 = inspectSummary(inspect);
+  const running = job?.action === "import" && job.state === "running";
+  const done = job?.action === "import" && job.state === "done";
+  const disabled = Boolean(running) || Boolean(busy);
+  const source = inspect?.source?.library ? `\u6765\u81EA\u300C${inspect.source.library}\u300D` : "\u522B\u4EBA\u53D1\u6765\u7684\u5907\u4EFD";
+  const already = inspect?.already_imported || {};
+  const alreadyTotal = Object.values(already).reduce((total, value) => total + (Number(value) || 0), 0);
+  const hasMedia = Boolean(inspect?.media_included) && Number(summary2.mediaBytes) > 0;
+  const stale = Boolean(inspect && inspect.path && path && inspect.path !== path);
+  return /* @__PURE__ */ React.createElement("section", { className: "mc-card mc-backup-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u5BFC\u5165\u5907\u4EFD"), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u628A", source, "\u7684\u5907\u4EFD\u5BFC\u5165\u5230\u5F53\u524D\u8D44\u6599\u7A7A\u95F4\u300C", libraryName || "\u5F53\u524D\u8D44\u6599\u7A7A\u95F4", "\u300D\u3002 \u5BFC\u5165\u4F1A\u5206\u914D\u65B0\u7684\u5361\u7247\u6807\u8BC6\uFF0C\u4E0D\u4F1A\u8986\u76D6\u5DF2\u6709\u5185\u5BB9\uFF1B\u5907\u4EFD\u91CC\u6CA1\u6709\u8D26\u53F7 Cookie\u3001\u6A21\u578B Key \u548C\u672C\u673A\u8BBE\u7F6E\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-backup-path" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      className: "mc-backup-search",
+      type: "text",
+      value: path,
+      placeholder: "\u5907\u4EFD\u6587\u4EF6\u8DEF\u5F84\uFF08\u4F8B\u5982 ~/Downloads/MeetClip\u5907\u4EFD-20261116-1102.zip\uFF09",
+      "aria-label": "\u5907\u4EFD\u6587\u4EF6\u8DEF\u5F84",
+      disabled,
+      onChange: (event) => onPath(event.target.value)
+    }
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: onPick }, "\u9009\u62E9\u6587\u4EF6\u2026"), /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      disabled: disabled || !path.trim() || inspecting,
+      onClick: onInspect
+    },
+    inspecting ? "\u8BFB\u53D6\u4E2D\u2026" : "\u8BFB\u53D6"
+  )), error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, inspect ? /* @__PURE__ */ React.createElement("div", { className: "mc-backup-inspect" }, /* @__PURE__ */ React.createElement("div", { className: "mc-backup-inspect-head" }, /* @__PURE__ */ React.createElement("strong", null, source), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, inspect.created_at ? dateTime(inspect.created_at) : "", inspect.app_version ? ` \xB7 \u4F1A\u6458 v${inspect.app_version}` : "", ` \xB7 ${bytes(inspect.archive_bytes)}`)), /* @__PURE__ */ React.createElement("ul", { className: "mc-backup-inspect-list" }, summary2.rows.map((row) => /* @__PURE__ */ React.createElement("li", { key: row }, row)), hasMedia ? /* @__PURE__ */ React.createElement("li", null, "\u89C6\u9891/\u97F3\u9891 ", bytes(summary2.mediaBytes)) : null, alreadyTotal ? /* @__PURE__ */ React.createElement("li", { className: "mc-backup-exists" }, "\u8FD9\u4E2A\u5907\u4EFD\u91CC\u5DF2\u6709 ", alreadyTotal, " \u5F20\u5361\u7247\u5BFC\u5165\u8FC7\uFF08\u9ED8\u8BA4\u8DF3\u8FC7\uFF1B\u9700\u8981\u518D\u5B58\u4E00\u4EFD\u65F6\u53D6\u6D88\u52FE\u9009\u4E0B\u9762\u7684\u9009\u9879\uFF09") : null), inspect.warnings?.length ? /* @__PURE__ */ React.createElement("ul", { className: "mc-backup-warnings" }, inspect.warnings.map((item, index) => /* @__PURE__ */ React.createElement("li", { key: index }, item))) : null, /* @__PURE__ */ React.createElement("label", { className: "mc-backup-option", "data-disabled": !hasMedia ? "true" : void 0 }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "checkbox",
+      checked: Boolean(includeMedia) && hasMedia,
+      disabled: !hasMedia || disabled,
+      onChange: (event) => onIncludeMedia(event.target.checked)
+    }
+  ), /* @__PURE__ */ React.createElement("span", null, "\u5BFC\u5165\u89C6\u9891/\u97F3\u9891"), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-option-hint" }, hasMedia ? `\u591A\u5360 ${bytes(summary2.mediaBytes)}` : "\u8FD9\u4E2A\u5907\u4EFD\u4E0D\u542B\u89C6\u9891/\u97F3\u9891")), /* @__PURE__ */ React.createElement("label", { className: "mc-backup-option" }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "checkbox",
+      checked: Boolean(skipExisting),
+      disabled,
+      onChange: (event) => onSkipExisting(event.target.checked)
+    }
+  ), /* @__PURE__ */ React.createElement("span", null, "\u8DF3\u8FC7\u5DF2\u5BFC\u5165\u7684\u5361\u7247"), /* @__PURE__ */ React.createElement("span", { className: "mc-backup-option-hint" }, "\u540C\u4E00\u4EFD\u5907\u4EFD\u91CD\u590D\u5BFC\u5165\u65F6\u4E0D\u4F1A\u51FA\u73B0\u91CD\u590D\u5361\u7247")), stale ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u8DEF\u5F84\u5DF2\u4FEE\u6539\uFF0C\u5148\u70B9\u300C\u8BFB\u53D6\u300D\u786E\u8BA4\u65B0\u6587\u4EF6\u3002") : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button",
+      "data-variant": "primary",
+      disabled: disabled || stale,
+      onClick: onStart
+    },
+    running ? "\u6B63\u5728\u5BFC\u5165\u2026" : "\u5F00\u59CB\u5BFC\u5165"
+  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: onReset }, "\u53D6\u6D88"))) : null, !inspect && !done ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5148\u9009\u62E9\u5907\u4EFD\u6587\u4EF6\uFF1B\u5BFC\u5165\u524D\u4F1A\u5148\u8BFB\u51FA\u91CC\u9762\u6709\u4EC0\u4E48\uFF0C\u4E0D\u4F1A\u7ACB\u523B\u5199\u8D44\u6599\u5E93\u3002") : null, job?.action === "import" ? /* @__PURE__ */ React.createElement(JobProgress, { job, onCancel }) : null, done ? /* @__PURE__ */ React.createElement("div", { className: "mc-backup-result" }, /* @__PURE__ */ React.createElement("p", { className: "mc-backup-result-line" }, "\u5BFC\u5165\u5B8C\u6210", job.result?.archive?.source?.library ? `\uFF08\u6765\u81EA\u300C${job.result.archive.source.library}\u300D\uFF09` : "", "\uFF1A", importCountsText(job.result)), skippedText(job.result?.skipped) ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5DF2\u8DF3\u8FC7\uFF1A", skippedText(job.result.skipped)) : null, job.result?.warnings?.length ? /* @__PURE__ */ React.createElement("ul", { className: "mc-backup-warnings" }, job.result.warnings.map((item, index) => /* @__PURE__ */ React.createElement("li", { key: index }, item))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onClose }, "\u53BB\u9996\u9875\u770B\u770B"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: onReset }, "\u518D\u5BFC\u5165\u4E00\u4E2A"))) : null);
+}
+
+// client-src/components/SettingsBackup.jsx
+function SettingsBackup({ t, onClose = null }) {
+  const [catalog, setCatalog] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState("");
+  const [selection, setSelection] = React.useState(() => emptySelection());
+  const [query, setQuery] = React.useState("");
+  const [includeMedia, setIncludeMedia] = React.useState(false);
+  const [dest, setDest] = React.useState("");
+  const [job, setJob] = React.useState(null);
+  const [notice, setNotice] = React.useState("");
+  const [importPath, setImportPath] = React.useState("");
+  const [inspect, setInspect] = React.useState(null);
+  const [inspectError, setInspectError] = React.useState("");
+  const [inspecting, setInspecting] = React.useState(false);
+  const [includeMediaImport, setIncludeMediaImport] = React.useState(true);
+  const [skipExisting, setSkipExisting] = React.useState(true);
+  const [picking, setPicking] = React.useState("");
+  const handledJob = React.useRef("");
+  const index = React.useMemo(() => indexCatalog(catalog || {}), [catalog]);
+  const summary2 = React.useMemo(() => summary(selection, index), [selection, index]);
+  const estimate2 = React.useMemo(
+    () => estimate(selection, index, includeMedia),
+    [selection, index, includeMedia]
+  );
+  const mediaAvailable = React.useMemo(
+    () => hasAnyMedia(selection, index),
+    [selection, index]
+  );
+  const libraryName = catalog?.library?.name || "";
+  const loadCatalog = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await backupCatalog();
+      setCatalog(data);
+      setDest((current) => current || data?.default_dest || "");
+      setLoadError("");
+    } catch (failure) {
+      setLoadError(failure?.message || String(failure));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  React.useEffect(() => {
+    loadCatalog();
+    backupJob().then((data) => {
+      const next = data?.job;
+      if (next && next.state === "running") setJob(next);
+    }).catch(() => {
+    });
+  }, [loadCatalog]);
+  React.useEffect(() => {
+    if (job?.state !== "running") return void 0;
+    let stopped = false;
+    const timer = setInterval(async () => {
+      try {
+        const data = await backupJob();
+        if (stopped) return;
+        if (data?.job) setJob(data.job);
+      } catch {
+      }
+    }, 600);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [job?.id, job?.state]);
+  React.useEffect(() => {
+    if (!job || job.state !== "done" || handledJob.current === job.id) return;
+    handledJob.current = job.id;
+    if (job.action === "import") {
+      bumpRevision();
+      setInspect(null);
+      setImportPath("");
+      loadCatalog();
+    }
+  }, [job, loadCatalog]);
+  async function pickDest() {
+    setPicking("dest");
+    setNotice("");
+    try {
+      const result = await pickFile("directory");
+      if (result?.ok && result.path) setDest(result.path);
+      else if (!result?.cancelled) setNotice(result?.error || "\u9009\u62E9\u6587\u4EF6\u5939\u5931\u8D25");
+    } catch (failure) {
+      setNotice(failure?.message || String(failure));
+    } finally {
+      setPicking("");
+    }
+  }
+  async function runInspect(nextPath) {
+    const text = String(nextPath || importPath || "").trim();
+    if (!text) return;
+    setInspecting(true);
+    setInspectError("");
+    try {
+      const data = await backupInspect(text);
+      setInspect(data);
+      setImportPath(data?.path || text);
+      setIncludeMediaImport(Boolean(data?.media_included));
+      setSkipExisting(true);
+    } catch (failure) {
+      setInspect(null);
+      setInspectError(failure?.message || String(failure));
+    } finally {
+      setInspecting(false);
+    }
+  }
+  async function pickBackup() {
+    setPicking("backup");
+    setInspectError("");
+    setNotice("");
+    try {
+      const result = await pickFile("backup");
+      if (result?.ok && result.path) {
+        await runInspect(result.path);
+      } else if (!result?.cancelled) {
+        setInspectError(result?.error || "\u9009\u62E9\u5907\u4EFD\u6587\u4EF6\u5931\u8D25");
+      }
+    } catch (failure) {
+      setInspectError(failure?.message || String(failure));
+    } finally {
+      setPicking("");
+    }
+  }
+  async function startExport() {
+    if (!summary2.selected) return;
+    setNotice("");
+    try {
+      const data = await backupExport({
+        dest,
+        include_media: Boolean(includeMedia) && mediaAvailable,
+        items: itemsForApi(selection)
+      });
+      if (data?.job) setJob(data.job);
+    } catch (failure) {
+      setNotice(failure?.message || String(failure));
+    }
+  }
+  async function startImport() {
+    if (!inspect) return;
+    setInspectError("");
+    try {
+      const mediaBytes = Number(inspect?.media_bytes) || 0;
+      const data = await backupImport({
+        path: importPath,
+        include_media: Boolean(includeMediaImport) && mediaBytes > 0,
+        skip_existing: Boolean(skipExisting)
+      });
+      if (data?.job) setJob(data.job);
+    } catch (failure) {
+      setInspectError(failure?.message || String(failure));
+    }
+  }
+  async function cancel() {
+    try {
+      const data = await backupCancel();
+      if (data?.job) setJob(data.job);
+    } catch (failure) {
+      setNotice(failure?.message || String(failure));
+    }
+  }
+  async function reveal(path) {
+    try {
+      const result = await revealFilePath(path);
+      if (result && result.ok === false) setNotice(result.error || "\u65E0\u6CD5\u6253\u5F00 Finder");
+    } catch (failure) {
+      setNotice(failure?.message || String(failure));
+    }
+  }
+  function selectAll() {
+    if (catalog) setSelection(selectAllCards(catalog));
+  }
+  function clear() {
+    setSelection(emptySelection());
+  }
+  function onToggle(type, id) {
+    setSelection((current) => toggle(current, type, id));
+  }
+  function onGroupChange(type, ids, checked) {
+    setSelection((current) => setGroup(current, type, ids, checked));
+  }
+  function resetImport() {
+    setInspect(null);
+    setInspectError("");
+    setImportPath("");
+    if (job?.action === "import" && job.state !== "running") setJob(null);
+  }
+  function closeAndRefresh() {
+    bumpRevision();
+    onClose?.();
+  }
+  const busy = Boolean(picking) || job?.state === "running";
+  if (loading && !catalog) {
+    return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u6B63\u5728\u8BFB\u53D6\u53EF\u5907\u4EFD\u7684\u5361\u7247\u2026"));
+  }
+  if (!catalog) {
+    return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u5907\u4EFD"), /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, loadError || "\u8BFB\u53D6\u8D44\u6599\u5E93\u5931\u8D25"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: loadCatalog }, "\u91CD\u8BD5"))));
+  }
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel mc-backup-panel" }, /* @__PURE__ */ React.createElement(
+    ExportPanel,
+    {
+      catalog,
+      index,
+      selection,
+      summary: summary2,
+      estimate: estimate2,
+      query,
+      onQuery: setQuery,
+      includeMedia,
+      onIncludeMedia: setIncludeMedia,
+      mediaAvailable,
+      dest,
+      onChangeDest: pickDest,
+      onSelectAll: selectAll,
+      onClear: clear,
+      onToggle,
+      onGroupChange,
+      onExport: startExport,
+      job,
+      onCancel: cancel,
+      onReveal: reveal
+    }
+  ), /* @__PURE__ */ React.createElement(
+    ImportPanel,
+    {
+      libraryName,
+      path: importPath,
+      onPath: setImportPath,
+      onPick: pickBackup,
+      onInspect: () => runInspect(),
+      inspecting,
+      inspect,
+      error: inspectError,
+      includeMedia: includeMediaImport,
+      onIncludeMedia: setIncludeMediaImport,
+      skipExisting,
+      onSkipExisting: setSkipExisting,
+      onStart: startImport,
+      onReset: resetImport,
+      job,
+      onCancel: cancel,
+      onClose: closeAndRefresh,
+      busy: busy || Boolean(picking)
+    }
+  ), /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5907\u4EFD\u662F\u666E\u901A zip \u6587\u4EF6\uFF0C\u53EA\u5305\u542B\u9009\u4E2D\u7684\u5361\u7247\u5185\u5BB9\uFF1B\u4E0D\u542B\u8D26\u53F7 Cookie\u3001\u6A21\u578B Key\u3001\u63D2\u4EF6\u8BBE\u7F6E\u4E0E\u672C\u673A\u8DEF\u5F84\u3002 \u5BFC\u5165\u53EA\u4F1A\u5199\u5230\u5F53\u524D\u8D44\u6599\u7A7A\u95F4\uFF0C\u4E0D\u4F1A\u5408\u5E76\u6216\u8986\u76D6\u53E6\u4E00\u4E2A\u7A7A\u95F4\u3002"), notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, notice) : null);
+}
+
 // client-src/components/SettingsAccount.jsx
 init_react_shim();
 
@@ -53692,7 +54615,7 @@ init_react_shim();
 init_react_shim();
 function FeishuAccountCard({ compact = false }) {
   const { status: status3, error, busy, actions } = useFeishu();
-  const summary = feishuSummary(status3);
+  const summary2 = feishuSummary(status3);
   const runtime = status3?.runtime || {};
   const dsh = status3?.dsh || {};
   const auth = status3?.auth || {};
@@ -53701,13 +54624,14 @@ function FeishuAccountCard({ compact = false }) {
   const job = status3?.job || null;
   const running = job?.state === "running";
   const pkg = status3?.package || {};
-  const canInstall = Boolean(status3) && runtime.npxOk && !dsh.conflict && pkg.configured;
+  const runtimeReady = runtime.ready === void 0 ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready);
+  const canInstall = Boolean(status3) && runtimeReady && !dsh.conflict && pkg.configured;
   const disabled = Boolean(busy) || running;
   const expiry = auth.refreshExpiresAt ? new Date(auth.refreshExpiresAt * 1e3).toLocaleDateString("zh-CN") : "";
   const lastRead = status3?.lastDocReadAt ? new Date(status3.lastDocReadAt).toLocaleString("zh-CN", { hour12: false }) : "";
   const primary = !status3 ? null : !installed ? { label: running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u5B89\u88C5\u5E76\u8FDE\u63A5", run: actions.install, disabled: disabled || !canInstall, variant: "primary" } : !loggedIn || auth.accessExpired ? { label: busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.accessExpired ? "\u5237\u65B0\u98DE\u4E66\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66", run: () => actions.login("auto"), disabled, variant: "primary" } : { label: running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5", run: actions.probe, disabled };
-  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card mc-feishu-login${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": summary.tone === "ok" ? "true" : "false" }, summary.text)), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E Agent \u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF1B\u9996\u9875\u300C\uFF0B \u2192 \u98DE\u4E66\u6587\u6863\u300D\u4E5F\u80FD\u8BFB\u53D6\u6B63\u6587\u3002"), summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": summary.tone }, summary.detail) : null, loggedIn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, expiry ? `\u767B\u5F55\u6709\u6548\u671F\u81F3 ${expiry}` : "\u5DF2\u767B\u5F55", lastRead ? ` \xB7 \u4E0A\u6B21\u6210\u529F\u8BFB\u6587\u6863\uFF1A${lastRead}` : " \xB7 \u8FD8\u6CA1\u6709\u9A8C\u8BC1\u8FC7\u8BFB\u6587\u6863") : null, !runtime.npxOk || !runtime.nodeOk ? /* @__PURE__ */ React.createElement("div", { className: "mc-form-note", "data-tone": "error" }, "\u98DE\u4E66 MCP \u9700\u8981 Node.js 20+\u3002\u88C5\u597D\u540E\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u3002", /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
-  }) }, "\u5B89\u88C5 Node.js"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B"))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, primary ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": primary.variant, disabled: primary.disabled, onClick: primary.run }, primary.label) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55") : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.probe }, "\u68C0\u6D4B\u8FDE\u63A5") : null, loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), loggedIn && summary.tone !== "pending" ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => actions.login("auto") }) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card mc-feishu-login${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": summary2.tone === "ok" ? "true" : "false" }, summary2.text)), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E Agent \u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF1B\u9996\u9875\u300C\uFF0B \u2192 \u98DE\u4E66\u6587\u6863\u300D\u4E5F\u80FD\u8BFB\u53D6\u6B63\u6587\u3002"), summary2.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": summary2.tone }, summary2.detail) : null, loggedIn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, expiry ? `\u767B\u5F55\u6709\u6548\u671F\u81F3 ${expiry}` : "\u5DF2\u767B\u5F55", lastRead ? ` \xB7 \u4E0A\u6B21\u6210\u529F\u8BFB\u6587\u6863\uFF1A${lastRead}` : " \xB7 \u8FD8\u6CA1\u6709\u9A8C\u8BC1\u8FC7\u8BFB\u6587\u6863") : null, !runtimeReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-form-note", "data-tone": "error" }, runtime.mode === "npx" ? "\u98DE\u4E66 MCP \u9700\u8981 Node.js 20+\u3002\u88C5\u597D\u540E\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u3002" : "\u627E\u4E0D\u5230\u53EF\u7528\u7684 node \u8FD0\u884C\u65F6\uFF08DSH \u81EA\u5E26\u8FD0\u884C\u65F6\u5F02\u5E38\uFF09\u3002\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u518D\u8BD5\u3002", /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, runtime.mode === "npx" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
+  }) }, "\u5B89\u88C5 Node.js") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B"))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, primary ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": primary.variant, disabled: primary.disabled, onClick: primary.run }, primary.label) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55") : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.probe }, "\u68C0\u6D4B\u8FDE\u63A5") : null, loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), loggedIn && summary2.tone !== "pending" ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => actions.login("auto") }) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
 }
 
 // client-src/components/SettingsAccount.jsx
@@ -53916,7 +54840,7 @@ function SettingsFeishu() {
   const [confirmRemove, setConfirmRemove] = React.useState(false);
   const job = status3?.job || null;
   const running = job?.state === "running";
-  const summary = feishuSummary(status3);
+  const summary2 = feishuSummary(status3);
   const runtime = status3?.runtime || {};
   const dsh = status3?.dsh || {};
   const auth = status3?.auth || {};
@@ -53925,7 +54849,8 @@ function SettingsFeishu() {
   const pkg = status3?.package || {};
   const pkgReady = Boolean(pkg.configured);
   const disabled = Boolean(busy) || running;
-  const canInstall = Boolean(status3) && runtime.npxOk && !dsh.conflict && pkgReady;
+  const runtimeReady = runtime.ready === void 0 ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready);
+  const canInstall = Boolean(status3) && runtimeReady && !dsh.conflict && pkgReady;
   let primary = null;
   if (status3 && !installed) {
     primary = {
@@ -53945,7 +54870,7 @@ function SettingsFeishu() {
     setConfirmRemove(false);
   }
   const account = signedIn ? [auth.openId, auth.refreshExpiresAt ? `${dayLabel(auth.refreshExpiresAt)} \u5230\u671F` : ""].filter(Boolean).join(" \xB7 ") : "";
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-feishu-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-dot", "data-state": DOT_TONES[summary.tone] }), /* @__PURE__ */ React.createElement("span", { className: "mc-feishu-state", "data-tone": summary.tone }, summary.text), account ? /* @__PURE__ */ React.createElement("span", { className: "mc-feishu-meta", title: account }, account) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-tools" }, primary ? /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement("div", { className: "mc-card mc-feishu-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-dot", "data-state": DOT_TONES[summary2.tone] }), /* @__PURE__ */ React.createElement("span", { className: "mc-feishu-state", "data-tone": summary2.tone }, summary2.text), account ? /* @__PURE__ */ React.createElement("span", { className: "mc-feishu-meta", title: account }, account) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-tools" }, primary ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -53955,7 +54880,7 @@ function SettingsFeishu() {
       onClick: primary.run
     },
     primary.label
-  ) : signedIn && summary.tone === "ok" ? /* @__PURE__ */ React.createElement(
+  ) : signedIn && summary2.tone === "ok" ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -53982,7 +54907,7 @@ function SettingsFeishu() {
       onClick: toggleMore
     },
     more ? "\u6536\u8D77" : "\u66F4\u591A"
-  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, status3 && !pkgReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": "warn" }, "\u672C\u63D2\u4EF6\u4E0D\u5185\u7F6E\u98DE\u4E66 MCP \u5305\uFF1A\u8BF7\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B", " ", /* @__PURE__ */ React.createElement("code", null, "feishuPackage"), " \u4E0E ", /* @__PURE__ */ React.createElement("code", null, "feishuRegistry"), "\uFF0C\u6216\u8BBE\u7F6E\u73AF\u5883\u53D8\u91CF", " ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_PACKAGE"), " / ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_REGISTRY"), "\u3002") : null, summary.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary.tone }, summary.detail) : null, (!runtime.npxOk || !runtime.nodeOk) && installed ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+  ))), status3 && !installed && canInstall ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note" }, "\u5B89\u88C5\u540E Agent \u5C31\u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\u3002") : null, status3 && !pkgReady ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": "warn" }, "\u672C\u63D2\u4EF6\u4E0D\u5185\u7F6E\u98DE\u4E66 MCP \u5305\uFF1A\u8BF7\u5728 cordis.patch.yml \u7684 meetclip config \u91CC\u586B", " ", /* @__PURE__ */ React.createElement("code", null, "feishuPackage"), " \u4E0E ", /* @__PURE__ */ React.createElement("code", null, "feishuRegistry"), "\uFF0C\u6216\u8BBE\u7F6E\u73AF\u5883\u53D8\u91CF", " ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_PACKAGE"), " / ", /* @__PURE__ */ React.createElement("code", null, "MEETCLIP_FEISHU_REGISTRY"), "\u3002") : null, summary2.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", "data-tone": summary2.tone }, summary2.detail) : null, !runtimeReady && installed ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, runtime.mode === "npx" ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -53991,7 +54916,7 @@ function SettingsFeishu() {
       })
     },
     "\u5B89\u88C5 Node.js"
-  ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, signedIn ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { onLogin: () => actions.login("auto") }) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
+  ) : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B")) : null, notice ? /* @__PURE__ */ React.createElement("p", { className: "mc-feishu-note", role: "status" }, notice) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null, signedIn ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { onLogin: () => actions.login("auto") }) : null, /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), more ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-more" }, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.update }, running && job?.action === "update" ? "\u66F4\u65B0\u4E2D\u2026" : "\u68C0\u67E5\u66F4\u65B0"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !installed, onClick: actions.probe }, running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5"), installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: disabled || !canInstall, onClick: actions.install }, running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u91CD\u65B0\u5B89\u88C5") : null, signedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: actions.openDoc }, "\u5B98\u65B9\u6587\u6863")), /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-remove" }, /* @__PURE__ */ React.createElement("span", null, "\u79FB\u9664\u540E Agent \u5C06\u4E0D\u80FD\u8BBF\u95EE\u98DE\u4E66\uFF0C\u767B\u5F55\u72B6\u6001\u4FDD\u7559\u3002"), confirmRemove ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -54198,10 +55123,19 @@ function SettingsModels({ t }) {
   const [notice, setNotice] = React.useState("");
   const [asrProbe, setAsrProbe] = React.useState(null);
   const [textProbe, setTextProbe] = React.useState(null);
+  const [asrLanguage, setAsrLanguage] = React.useState("");
+  const [languages, setLanguages] = React.useState([]);
   const load = React.useCallback(async () => {
-    const [nextAsr, nextAi] = await Promise.all([asrEngines(), aiStatus()]);
+    const [nextAsr, nextAi, prefs, options] = await Promise.all([
+      asrEngines(),
+      aiStatus(),
+      appSettings(),
+      meetingOptions().catch(() => null)
+    ]);
     setAsr(nextAsr);
     setAi(nextAi);
+    setLanguages(options?.languages || []);
+    setAsrLanguage(prefs?.asr_language || options?.default_language || "Chinese");
     setAsrCustom({
       base_url: nextAsr?.custom?.base_url || "",
       model: nextAsr?.custom?.model || "",
@@ -54228,6 +55162,20 @@ function SettingsModels({ t }) {
       return null;
     } finally {
       setBusy("");
+    }
+  }
+  async function changeAsrLanguage(value) {
+    setAsrLanguage(value);
+    setError("");
+    setNotice("");
+    try {
+      const next = await saveAppSettings({ asr_language: value });
+      setAsrLanguage(next?.asr_language || value);
+      setNotice("\u9ED8\u8BA4\u8F6C\u5199\u8BED\u79CD\u5DF2\u4FDD\u5B58\uFF0C\u65B0\u4EFB\u52A1\u7ACB\u5373\u751F\u6548");
+    } catch (failure) {
+      setError(failure?.message || String(failure));
+      await load().catch(() => {
+      });
     }
   }
   async function probeAsrModel() {
@@ -54351,7 +55299,16 @@ function SettingsModels({ t }) {
       hasSavedKey: Boolean(asr?.default_has_key ?? asr?.has_api_key),
       onSaved: load
     }
-  ), asrCustomOn || aiCustomOn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": "warn" }, "\u5F53\u524D\u6709\u670D\u52A1\u5728\u4F7F\u7528\u300C\u81EA\u5B9A\u4E49 API\u300D\u3002\u4E0A\u9762\u7684\u9ED8\u8BA4\u8FDE\u63A5\u4E0D\u4F1A\u8986\u76D6\u5B83\uFF1B\u8981\u56DE\u5230\u9ED8\u8BA4\u7F51\u5173\uFF0C\u8BF7\u5728\u5BF9\u5E94\u5C0F\u8282\u70B9\u300C\u6062\u590D\u9ED8\u8BA4\u300D\u3002") : null)), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5F53\u524D\u6A21\u578B"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, savedAsr || "\u672A\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", title: asr?.base_url || "" }, asr?.base_url || "\u672A\u914D\u7F6E"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeAsrModel }, asrProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5")), asrProbe && asrProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error", role: "status" }, asrProbe.text) : null, asrProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, asrProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: asrCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API\uFF08\u9AD8\u7EA7\uFF09"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
+  ), asrCustomOn || aiCustomOn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": "warn" }, "\u5F53\u524D\u6709\u670D\u52A1\u5728\u4F7F\u7528\u300C\u81EA\u5B9A\u4E49 API\u300D\u3002\u4E0A\u9762\u7684\u9ED8\u8BA4\u8FDE\u63A5\u4E0D\u4F1A\u8986\u76D6\u5B83\uFF1B\u8981\u56DE\u5230\u9ED8\u8BA4\u7F51\u5173\uFF0C\u8BF7\u5728\u5BF9\u5E94\u5C0F\u8282\u70B9\u300C\u6062\u590D\u9ED8\u8BA4\u300D\u3002") : null)), /* @__PURE__ */ React.createElement("section", { className: "mc-section" }, /* @__PURE__ */ React.createElement("div", { className: "mc-section-title" }, "\u8BED\u97F3\u8F6C\u6587\u5B57"), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-rows" }, /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u5F53\u524D\u6A21\u578B"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono" }, savedAsr || "\u672A\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { className: "mc-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-row-key" }, "\u670D\u52A1\u5730\u5740"), /* @__PURE__ */ React.createElement("span", { className: "mc-row-value mc-mono", title: asr?.base_url || "" }, asr?.base_url || "\u672A\u914D\u7F6E"))), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u9ED8\u8BA4\u8BED\u79CD"), /* @__PURE__ */ React.createElement(
+    "select",
+    {
+      className: "mc-input mc-select",
+      value: asrLanguage,
+      disabled: !languages.length || Boolean(busy),
+      onChange: (event) => changeAsrLanguage(event.target.value)
+    },
+    languages.map((item) => /* @__PURE__ */ React.createElement("option", { key: item.id, value: item.id }, item.name))
+  )), /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, "\u94FE\u63A5\u89C6\u9891\u3001\u6279\u91CF\u5BFC\u5165\u548C\u76F4\u64AD\u6CA1\u6709\u5355\u72EC\u7684\u8BED\u79CD\u9009\u62E9\uFF0C\u6309\u8FD9\u91CC\u8F6C\u5199\uFF1B\u4F1A\u8BAE\u548C\u300C\u8F6C\u5199\u9009\u9879\u300D\u91CC\u4ECD\u53EF\u5355\u6761\u4FEE\u6539\u3002\u9ED8\u8BA4\u4E2D\u6587\u53EF\u4EE5\u907F\u5F00\u81EA\u52A8\u8BC6\u522B\u628A\u4E2D\u6587\u542C\u6210\u5916\u6587\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: Boolean(busy), onClick: probeAsrModel }, asrProbe?.state === "busy" ? "\u6D4B\u8BD5\u4E2D\u2026" : "\u6D4B\u8BD5\u8FDE\u63A5")), asrProbe && asrProbe.state !== "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": asrProbe.ok ? void 0 : "error", role: "status" }, asrProbe.text) : null, asrProbe?.state === "busy" ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, asrProbe.text) : null, /* @__PURE__ */ React.createElement("details", { className: "mc-settings-details", open: asrCustomOn }, /* @__PURE__ */ React.createElement("summary", null, "\u81EA\u5B9A\u4E49 API\uFF08\u9AD8\u7EA7\uFF09"), /* @__PURE__ */ React.createElement("div", { className: "mc-form" }, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "Base URL"), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -54475,10 +55432,11 @@ var TABS = [
   ["capture", "settings.tab.capture", "\u91C7\u96C6"],
   ["feishu", "settings.tab.feishu", "\u98DE\u4E66"],
   ["libraries", "settings.tab.libraries", "\u8D44\u6599\u7A7A\u95F4"],
+  ["backup", "settings.tab.backup", "\u5907\u4EFD"],
   ["about", "settings.tab.about", "\u5173\u4E8E"]
 ];
 var VALID = new Set(TABS.map(([id]) => id));
-function Settings2({ t, initialTab = "", focusAnchor = "", focusNonce = 0, onRestartSetup = null }) {
+function Settings2({ t, initialTab = "", focusAnchor = "", focusNonce = 0, onRestartSetup = null, onClose = null }) {
   const [tab, setTab] = React.useState(() => {
     if (VALID.has(initialTab)) return initialTab;
     const saved = localStorage.getItem("meetclip.settingsTab");
@@ -54516,7 +55474,7 @@ function Settings2({ t, initialTab = "", focusAnchor = "", focusNonce = 0, onRes
       onClick: () => selectTab(id)
     },
     label(key, fallback)
-  ))), tab === "models" ? /* @__PURE__ */ React.createElement(SettingsModels, { t }) : null, tab === "account" ? /* @__PURE__ */ React.createElement(SettingsAccount, null) : null, tab === "libraries" ? /* @__PURE__ */ React.createElement(SettingsLibraries, { t }) : null, tab === "capture" ? /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement(SettingsCapture, { t }), /* @__PURE__ */ React.createElement(SettingsLive, { t }), /* @__PURE__ */ React.createElement(SettingsVideo, { t })) : null, tab === "feishu" ? /* @__PURE__ */ React.createElement(SettingsFeishu, null) : null, tab === "about" ? /* @__PURE__ */ React.createElement(SettingsAbout, { t, onRestartSetup }) : null);
+  ))), tab === "models" ? /* @__PURE__ */ React.createElement(SettingsModels, { t }) : null, tab === "account" ? /* @__PURE__ */ React.createElement(SettingsAccount, null) : null, tab === "libraries" ? /* @__PURE__ */ React.createElement(SettingsLibraries, { t }) : null, tab === "capture" ? /* @__PURE__ */ React.createElement("div", { className: "mc-settings-panel" }, /* @__PURE__ */ React.createElement(SettingsCapture, { t }), /* @__PURE__ */ React.createElement(SettingsLive, { t }), /* @__PURE__ */ React.createElement(SettingsVideo, { t })) : null, tab === "backup" ? /* @__PURE__ */ React.createElement(SettingsBackup, { t, onClose }) : null, tab === "feishu" ? /* @__PURE__ */ React.createElement(SettingsFeishu, null) : null, tab === "about" ? /* @__PURE__ */ React.createElement(SettingsAbout, { t, onRestartSetup }) : null);
 }
 
 // client-src/components/SettingsDialog.jsx
@@ -54549,7 +55507,8 @@ function SettingsDialog({ t, request: request3, onClose, onRestartSetup }) {
         initialTab: request3?.tab || "",
         focusAnchor: request3?.anchor || "",
         focusNonce: request3?.nonce || 0,
-        onRestartSetup
+        onRestartSetup,
+        onClose
       }
     )))
   );
@@ -54751,25 +55710,25 @@ function Panel({ t }) {
     if (payload && typeof payload === "object" && payload.batch) {
       setView("home");
       setBatchFocus({ id: payload.batch.id, nonce: Date.now() });
-      const summary2 = payload.summary || {};
-      if (summary2.added || summary2.duplicates || summary2.failed) {
-        const parts = [`\u5DF2\u52A0\u5165 ${summary2.added || 0} \u6761`];
-        if (summary2.duplicates) parts.push(`${summary2.duplicates} \u6761\u91CD\u590D`);
-        if (summary2.failed) parts.push(`${summary2.failed} \u6761\u5931\u8D25`);
+      const summary3 = payload.summary || {};
+      if (summary3.added || summary3.duplicates || summary3.failed) {
+        const parts = [`\u5DF2\u52A0\u5165 ${summary3.added || 0} \u6761`];
+        if (summary3.duplicates) parts.push(`${summary3.duplicates} \u6761\u91CD\u590D`);
+        if (summary3.failed) parts.push(`${summary3.failed} \u6761\u5931\u8D25`);
         setNotice(parts.join("\uFF0C"));
       }
       return;
     }
     if (payload && typeof payload === "object" && Array.isArray(payload.ids)) {
       setView("home");
-      const summary2 = payload.summary || {};
+      const summary3 = payload.summary || {};
       const parts = [`\u5DF2\u5BFC\u5165 ${payload.ids.length} \u4E2A\u6587\u4EF6`];
       if (payload.pack?.title) parts.push(`\u5DF2\u6536\u8FDB\u300C${payload.pack.title}\u300D`);
       if (payload.pack_error) parts.push(`\u5361\u5305\u521B\u5EFA\u5931\u8D25\uFF1A${payload.pack_error}`);
       const failedNames = (Array.isArray(payload.results) ? payload.results : []).filter((row) => !row.ok).map((row) => row.name || row.title).filter(Boolean);
-      if (summary2.failed) {
+      if (summary3.failed) {
         const shown = failedNames.slice(0, 2).join("\u3001");
-        parts.push(`${summary2.failed} \u4E2A\u5931\u8D25${shown ? `\uFF1A${shown}${failedNames.length > 2 ? " \u7B49" : ""}` : ""}`);
+        parts.push(`${summary3.failed} \u4E2A\u5931\u8D25${shown ? `\uFF1A${shown}${failedNames.length > 2 ? " \u7B49" : ""}` : ""}`);
       }
       setNotice(parts.join("\uFF0C"));
       if (payload.pack?.id) setPackFocus({ id: payload.pack.id, nonce: Date.now() });
@@ -54777,11 +55736,11 @@ function Panel({ t }) {
     }
     const id = payload && typeof payload === "object" ? payload.id : payload;
     if (!id) return;
-    const summary = payload && typeof payload === "object" ? payload.summary : null;
-    if (summary?.duplicates || summary?.failed) {
+    const summary2 = payload && typeof payload === "object" ? payload.summary : null;
+    if (summary2?.duplicates || summary2?.failed) {
       setNotice([
-        summary.duplicates ? `${summary.duplicates} \u6761\u91CD\u590D` : "",
-        summary.failed ? `${summary.failed} \u6761\u5931\u8D25` : ""
+        summary2.duplicates ? `${summary2.duplicates} \u6761\u91CD\u590D` : "",
+        summary2.failed ? `${summary2.failed} \u6761\u5931\u8D25` : ""
       ].filter(Boolean).join("\uFF0C"));
     }
     openRecord({ id, title: "\u6B63\u5728\u5904\u7406\u2026" });
@@ -55035,7 +55994,7 @@ function apply(ctx) {
       }
     };
   });
-  ctx.effect(() => installStyles(styles_default + libraries_default + settings_spacing_default + update_default));
+  ctx.effect(() => installStyles(styles_default + libraries_default + settings_spacing_default + update_default + backup_default));
   function withLocale(Component) {
     return function MeetClipLocalizedView(props) {
       useLocaleTick(locale);

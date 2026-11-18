@@ -153,7 +153,7 @@ class Capabilities:
     timestamps: bool = False
     speakers: bool = False
     hotwords: bool = False
-    languages: tuple = ("", "Chinese", "English")
+    languages: tuple = ("auto", "Chinese", "English")
 
 
 @dataclass
@@ -328,7 +328,7 @@ def split_upload(audio):
 
 class LocalProvider:
     capabilities = Capabilities(timestamps=True, speakers=True, hotwords=True,
-                                languages=("", "Chinese", "English", "Cantonese", "Japanese", "Korean",
+                                languages=("auto", "Chinese", "English", "Cantonese", "Japanese", "Korean",
                                            "French", "German", "Spanish", "Russian"))
     def __init__(self, config):
         self.config = config
@@ -344,7 +344,9 @@ class LocalProvider:
 
     def recognize(self, audio, *, language="", cancel=None, on_partial=None):
         check_cancel(cancel)
-        text = asr.manager.transcribe(audio)
+        # 本地模型只认具体语种；自动识别/空值交给模型自己判断。
+        lang = None if language in ("", "auto") else language
+        text = asr.manager.transcribe(audio, language=lang)
         check_cancel(cancel)
         return Recognition(text)
 

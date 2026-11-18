@@ -39,6 +39,11 @@ export function endEngineRestart() {
   publish({ restarting: false, revision: state.revision + 1 })
 }
 
+/** 内容变了（例如导入备份）但引擎没重启：让面板与首页立即重新拉数据。 */
+export function bumpRevision() {
+  publish({ ...state, revision: state.revision + 1 })
+}
+
 export function getLibraryHint() {
   return libraryHint
 }

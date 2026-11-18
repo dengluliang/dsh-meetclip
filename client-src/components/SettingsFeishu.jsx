@@ -32,7 +32,8 @@ export function SettingsFeishu() {
   const pkg = status?.package || {}
   const pkgReady = Boolean(pkg.configured)
   const disabled = Boolean(busy) || running
-  const canInstall = Boolean(status) && runtime.npxOk && !dsh.conflict && pkgReady
+  const runtimeReady = runtime.ready === undefined ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready)
+  const canInstall = Boolean(status) && runtimeReady && !dsh.conflict && pkgReady
 
   let primary = null
   if (status && !installed) {
@@ -93,10 +94,12 @@ export function SettingsFeishu() {
           </p>
         ) : null}
         {summary.detail ? <p className="mc-feishu-note" data-tone={summary.tone}>{summary.detail}</p> : null}
-        {(!runtime.npxOk || !runtime.nodeOk) && installed ? (
+        {!runtimeReady && installed ? (
           <div className="mc-actions">
-            <button type="button" className="mc-button mc-button-small"
-              onClick={() => openExternal('url', 'https://nodejs.org/zh-cn').catch(() => {})}>安装 Node.js</button>
+            {runtime.mode === 'npx' ? (
+              <button type="button" className="mc-button mc-button-small"
+                onClick={() => openExternal('url', 'https://nodejs.org/zh-cn').catch(() => {})}>安装 Node.js</button>
+            ) : null}
             <button type="button" className="mc-button mc-button-small" onClick={actions.status}>重新检测</button>
           </div>
         ) : null}

@@ -42,6 +42,12 @@ export function normalizeConfig(raw) {
       : path.join(dshHome(), 'meetclip'),
     backendMode: ['auto', 'managed', 'external'].includes(config.backendMode) ? config.backendMode : 'auto',
     python: typeof config.python === 'string' && config.python.trim() ? path.resolve(config.python.trim()) : null,
+    // 飞书 MCP 的装法：local（默认，用 DSH 自带的 node + pnpm 装到 ~/.dsh/meetclip/feishu-mcp）
+    // 或 npx（旧行为，要求机器上有 Node/npx）。feishuPnpm 可指定 pnpm.cjs 的绝对路径。
+    feishuMode: config.feishuMode === 'npx' ? 'npx' : 'local',
+    feishuPnpm: typeof config.feishuPnpm === 'string' && config.feishuPnpm.trim()
+      ? path.resolve(config.feishuPnpm.trim())
+      : null,
     // Feishu MCP is spawned through npx; a Finder-launched Electron app often has a
     // shorter PATH than the login shell, so both binaries can be pinned explicitly.
     feishuNode: typeof config.feishuNode === 'string' && config.feishuNode.trim() ? path.resolve(config.feishuNode.trim()) : null,
@@ -54,6 +60,11 @@ export function normalizeConfig(raw) {
     // Left empty in the public package; the first-run wizard only pre-fills it,
     // so a user can always type their own address.
     aiBaseUrl: typeof config.aiBaseUrl === 'string' ? config.aiBaseUrl.trim().replace(/\/+$/, '') : '',
+    // 运行环境自举用的镜像（留空 = 用插件内置的国内镜像链路）。
+    // 内网/离线部署在这里指定，主机侧（uv/wheel）与后端（依赖/采集组件）都读同一份。
+    pypiMirror: typeof config.pypiMirror === 'string' ? config.pypiMirror.trim() : '',
+    pythonMirror: typeof config.pythonMirror === 'string' ? config.pythonMirror.trim() : '',
+    ffmpegMirror: typeof config.ffmpegMirror === 'string' ? config.ffmpegMirror.trim() : '',
     // Update feed is intentionally opt-in: the public default points at the
     // upstream GitHub Releases, and forks can override it without editing code.
     updateRepo: typeof config.updateRepo === 'string' && config.updateRepo.trim() ? config.updateRepo.trim() : '',

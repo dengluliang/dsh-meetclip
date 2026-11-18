@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { parsePickedPaths, pickerScript } from '../src/host/files.js'
+import { parsePickedPaths, pickerScript, revealPath } from '../src/host/files.js'
 
 test('媒体单选不再按 UTI 过滤视频容器', () => {
   const script = pickerScript('media', false)
@@ -40,4 +40,20 @@ test('解析多选路径：空格、中文、逗号都保留，空项跳过', ()
   ])
   assert.deepEqual(parsePickedPaths('\n\u001f\n'), [])
   assert.deepEqual(parsePickedPaths(''), [])
+})
+
+test('备份文件选择框不过滤 UTI，也不允许多选', () => {
+  const script = pickerScript('backup', false)
+  assert.match(script, /choose file/)
+  assert.match(script, /选择会摘备份文件/)
+  assert.doesNotMatch(script, /of type/)
+  assert.doesNotMatch(script, /multiple selections allowed/)
+})
+
+test('revealPath 只接受绝对且存在的路径', async () => {
+  assert.equal((await revealPath('')).ok, false)
+  assert.equal((await revealPath('relative/path.zip')).ok, false)
+  const missing = await revealPath('/tmp/meetclip-no-such-backup-file.zip')
+  assert.equal(missing.ok, false)
+  assert.match(missing.error, /不存在/)
 })

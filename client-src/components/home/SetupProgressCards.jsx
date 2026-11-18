@@ -63,7 +63,7 @@ export function SetupProgressCards({ revision = 0, variant = 'feed' }) {
     cards.push({
       id: 'capture',
       title: '采集组件缺失',
-      detail: '安装 yt-dlp 与 ffmpeg 后可采集直播和链接视频。',
+      detail: '一键下载 yt-dlp 与 ffmpeg（国内镜像，无需 Homebrew）后可采集直播和链接视频。',
       action: <button type="button" className="mc-button mc-button-small" disabled={busy === 'capture'} onClick={installCapture}>{busy === 'capture' ? '安装中…' : '安装'}</button>
     })
   }

@@ -16,7 +16,8 @@ export function FeishuAccountCard({ compact = false }) {
   const job = status?.job || null
   const running = job?.state === 'running'
   const pkg = status?.package || {}
-  const canInstall = Boolean(status) && runtime.npxOk && !dsh.conflict && pkg.configured
+  const runtimeReady = runtime.ready === undefined ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready)
+  const canInstall = Boolean(status) && runtimeReady && !dsh.conflict && pkg.configured
   const disabled = Boolean(busy) || running
   const expiry = auth.refreshExpiresAt
     ? new Date(auth.refreshExpiresAt * 1000).toLocaleDateString('zh-CN')
@@ -48,11 +49,15 @@ export function FeishuAccountCard({ compact = false }) {
           {lastRead ? ` · 上次成功读文档：${lastRead}` : ' · 还没有验证过读文档'}
         </p>
       ) : null}
-      {!runtime.npxOk || !runtime.nodeOk ? (
+      {!runtimeReady ? (
         <div className="mc-form-note" data-tone="error">
-          飞书 MCP 需要 Node.js 20+。装好后点「重新检测」。
+          {runtime.mode === 'npx'
+            ? '飞书 MCP 需要 Node.js 20+。装好后点「重新检测」。'
+            : '找不到可用的 node 运行时（DSH 自带运行时异常）。点「重新检测」再试。'}
           <div className="mc-actions">
-            <button type="button" className="mc-button mc-button-small" onClick={() => openExternal('url', 'https://nodejs.org/zh-cn').catch(() => {})}>安装 Node.js</button>
+            {runtime.mode === 'npx' ? (
+              <button type="button" className="mc-button mc-button-small" onClick={() => openExternal('url', 'https://nodejs.org/zh-cn').catch(() => {})}>安装 Node.js</button>
+            ) : null}
             <button type="button" className="mc-button mc-button-small" onClick={actions.status}>重新检测</button>
           </div>
         </div>

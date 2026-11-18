@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { jsonResponse, readJsonBody, requireBrowser } from './http.js'
 import { readLogTail } from './config.js'
-import { openFullDiskAccess, openTarget, openUrl, pickFile, receiveUpload, revealSession } from './files.js'
+import { openFullDiskAccess, openTarget, openUrl, pickFile, receiveUpload, revealPath, revealSession } from './files.js'
 import { receiveFallbackUpload } from './fallback.js'
 import { FEISHU_DOC_URL, validOpenUrl } from './feishu.js'
 import { createFeishuDocCard, previewFeishuDoc } from './doc-cards.js'
@@ -296,7 +296,7 @@ export function registerAppRoutes(ctx, runtime) {
 
   async function handlePickFile(req, res) {
     const body = await readJsonBody(req)
-    const kind = body.kind === 'directory' ? 'directory' : 'media'
+    const kind = body.kind === 'directory' ? 'directory' : body.kind === 'backup' ? 'backup' : 'media'
     const result = await pickFile(kind, { multiple: kind === 'media' && body.multiple === true })
     jsonResponse(res, 200, result)
   }
@@ -472,6 +472,11 @@ export function registerAppRoutes(ctx, runtime) {
         return
       }
       const result = await openUrl(url)
+      jsonResponse(res, result.ok ? 200 : 400, result)
+      return
+    }
+    if (target === 'path') {
+      const result = await revealPath(body.path)
       jsonResponse(res, result.ok ? 200 : 400, result)
       return
     }

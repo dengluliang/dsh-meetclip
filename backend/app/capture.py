@@ -21,6 +21,7 @@ import numpy as np
 
 import asr
 import asr_engines
+import asr_languages
 import cloud_transcription
 import bilibili
 import minutes
@@ -278,6 +279,9 @@ class CaptureTask:
         self._full_cv = threading.Condition()
         self._staged = None
         self.engine_config = asr_engines.session_config(db.get_session(sid) or {})
+        # 直播没有单独的语种选择：跟随设置里的默认语种（默认中文），显式 auto 才自动识别。
+        session_meta = (db.get_session(sid) or {}).get("meta") or {}
+        self.language = asr_languages.resolve(session_meta.get("language_hint"))
         self._cloud_run = None
         self._asr_error = None
         self._cloud_abort = threading.Event()
@@ -1147,7 +1151,8 @@ class CaptureTask:
         self._warned.discard("silence")
         if self.engine_config["provider"] != "local":
             if self._cloud_run is None:
-                self._cloud_run = cloud_transcription.begin(self.sid, self.engine_config)
+                self._cloud_run = cloud_transcription.begin(self.sid, self.engine_config,
+                                                            {"language": self.language})
             row = cloud_transcription.save_chunk(self.sid, self._cloud_run, start, audio.astype(np.float32) / 32768)
             self._asr_q.put(row["chunk_id"])
         else:
@@ -1169,7 +1174,7 @@ class CaptureTask:
                     continue
                 try:
                     text = cloud_transcription.recognize(self.sid, self._cloud_run, row, provider,
-                                                         cloud_cancel, self.emit)
+                                                         cloud_cancel, self.emit, self.language)
                 except asr_engines.Cancelled:
                     return
                 except asr_engines.ProviderError as exc:
@@ -1223,7 +1228,8 @@ class CaptureTask:
                 return
             start, end, audio = item
             try:
-                text = provider.recognize(audio.astype(np.float32) / 32768.0, cancel=self.cancel_flag).text
+                text = provider.recognize(audio.astype(np.float32) / 32768.0, language=self.language,
+                                          cancel=self.cancel_flag).text
             except Exception as e:
                 self.warn_once("asrerr", f"部分音频转写失败：{e}")
                 continue

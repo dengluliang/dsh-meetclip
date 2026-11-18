@@ -180,6 +180,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_pack_member_unique
     ON card_pack_members(member_type, member_id);
 CREATE INDEX IF NOT EXISTS idx_pack_member_pack
     ON card_pack_members(pack_id, joined_at);
+CREATE TABLE IF NOT EXISTS backup_import_items (
+    archive_id TEXT NOT NULL,          -- 备份文件的 archive_id（manifest 里的 uuid）
+    item_type TEXT NOT NULL,           -- session / mark / note / image / doc / pack / batch
+    item_id TEXT NOT NULL,             -- 源资料库里的标识
+    target_type TEXT NOT NULL,
+    target_id TEXT NOT NULL,           -- 导入到这里之后的新标识
+    imported_at REAL NOT NULL,
+    PRIMARY KEY (archive_id, item_type, item_id)
+);
 """
 
 

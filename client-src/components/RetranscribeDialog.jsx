@@ -1,11 +1,12 @@
 import { meetingOptions, retranscribeSession, updateOptions as patchOptions } from '../lib/api.js'
+import { initialLanguage } from '../lib/language.js'
 
 export function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
   const meta = detail?.meta || {}
   const [options, setOptions] = React.useState(null)
   const initialProvider = meta.asr_engine?.provider === 'mimo' ? 'mimo' : 'default'
   const [provider, setProvider] = React.useState(initialProvider)
-  const [language, setLanguage] = React.useState(meta.language_hint || '')
+  const [language, setLanguage] = React.useState(() => initialLanguage(meta.language_hint, null))
   const [hotwords, setHotwords] = React.useState(meta.hotwords || '')
   const [busy, setBusy] = React.useState('')
   const [error, setError] = React.useState('')
@@ -14,7 +15,11 @@ export function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
   const restartRequired = provider !== initialProvider || (language || '') !== (meta.language_hint || '')
 
   React.useEffect(() => {
-    meetingOptions().then(setOptions).catch((failure) => setError(failure?.message || String(failure)))
+    meetingOptions().then((value) => {
+      setOptions(value)
+      // 旧记录的 language_hint 为空：显示设置里的默认语种，而不是空白的「自动」。
+      if (!meta.language_hint && value?.default_language) setLanguage(value.default_language)
+    }).catch((failure) => setError(failure?.message || String(failure)))
   }, [])
 
   const hotwordSupported = options?.hotwords_supported !== false
@@ -65,8 +70,9 @@ export function RetranscribeDialog({ t, sessionId, detail, onClose, onDone }) {
         <label className="mc-form-row">
           <span>语种</span>
           <select className="mc-input mc-select" value={language} onChange={(event) => setLanguage(event.target.value)}>
-            <option value="">自动</option>
-            {languages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            {languages.length
+              ? languages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)
+              : <option value="auto">自动识别</option>}
           </select>
         </label>
         <label className="mc-form-row">

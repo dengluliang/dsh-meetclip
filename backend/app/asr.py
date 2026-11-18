@@ -306,14 +306,14 @@ class ModelManager:
                     with self._lock:
                         self._active_inferences = max(0, self._active_inferences - 1)
 
-    def transcribe(self, audio: np.ndarray) -> str:
+    def transcribe(self, audio: np.ndarray, language=None) -> str:
         with self._infer_lock:
                 with self._lock:
                     if self._deleting or self._session is None:
                         raise RuntimeError("ASR 模型未就绪")
                     self._active_inferences += 1
                 try:
-                    r = self._session.transcribe(audio.astype(np.float32))
+                    r = self._session.transcribe(audio.astype(np.float32), language=language or None)
                 finally:
                     with self._lock:
                         self._active_inferences = max(0, self._active_inferences - 1)

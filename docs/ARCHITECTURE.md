@@ -86,6 +86,32 @@ GET /api/home  ──→ documents[]：首页文档墙/散落卡与「文档」�
 - 文件名分配与记录卡共用一套规则：`sync_cards` 先占住现存文档卡文件名；文档卡改名时只在确认旧文件不属于记录卡时删除。`sync_cards` 不清理 `doc_cards`。
 - 支持范围：docx 与解析到 docx 的 wiki 读正文；sheets/base/旧 docs 只登记链接。没有 AI 摘要、没有定时同步，也不在 `/jianbao` 后自动登记。
 
+## 备份与迁移
+
+```
+设置 → 备份（client-src/components/SettingsBackup.jsx）
+ ├─ GET  /api/backup/catalog          → 可备份卡片清单 + 体积 + 默认导出目录
+ ├─ POST /api/backup/export           → 后台线程：选卡展开 → 读库 → 流式写 zip
+ ├─ POST /api/backup/inspect          → 只读清单：数量/媒体/已导入/警告（不写文件）
+ ├─ POST /api/backup/import           → 后台线程：解包 → 落文件 → 单事务写库 → 卡片同步
+ ├─ GET  /api/backup/job              → 任务进度（页面重开可接回）
+ └─ POST /api/backup/cancel           → 取消；提交后的导入不回滚
+        ↓
+backend/app/backup.py
+ ├─ 选择展开：pack / batch / highlight → 记录与依赖卡片
+ ├─ 导出：records/<sid>/record.json + shots/media/cover + notes/images/docs/packs + manifest.json
+ ├─ 导入：新 id + mark 旧→新映射；批次 id、卡包成员、文档 key 同步重映射
+ ├─ 去重：backup_import_items(archive_id,item_type,item_id) → target_id
+ └─ 收尾：cards.sync_cards()（幂等重建 @ 卡片）
+        ↑ Host 保护：runtime.runningWork() 把备份任务列为工作项，切库前先取消
+```
+
+- 备份是**内容快照**而不是数据库文件：不复制 Cookie、模型 Key、settings.json 和本机路径；
+  `asr_chunks/`、`source/`、`export/` 等中间产物也不进包。
+- 导出时媒体是可选文件，读取端只按数据库派生的安全文件名取文件，不把 zip 条目名拼到磁盘路径上。
+- 导入先复制文件、再单事务写库；失败/取消清理新建目录，启动时清理上次中断留下的导入目录。
+- 导入后通过 `status-bus` 的 `bumpRevision()` 让首页立即刷新，不必等 30 秒轮询。
+
 ## 多资料空间
 
 一份资料空间 = 一个数据目录（自己的 `zhibo.db`、记录目录、`会摘卡片/`、`.api-token`、`.trash`）。

@@ -7,6 +7,8 @@ import math
 import re
 import urllib.parse
 
+import asr_languages
+
 FORMATS = ("vtt", "srt", "json3", "json")
 EXCLUDED = {"danmaku", "live_chat", "comments", "chat"}
 ROLLING_GAP = 0.05
@@ -105,6 +107,17 @@ def summary(info: dict) -> dict:
     chosen = next((t for t in options if t["is_original"]), None)
     if chosen is None and len(options) == 1:
         chosen = options[0]
+    if chosen is None and not original and len(options) > 1:
+        # B 站把中文 AI 字幕和它的机器翻译（ai-en / ai-ar …）都塞进 subtitles，
+        # 平台却没告诉我们哪条是原声；按字母序会先落到 ar。默认语种优先，
+        # 默认是「自动识别」时也先试中文，仍然没有就交回界面让用户选。
+        preferred = asr_languages.default()
+        prefixes = asr_languages.code_prefixes(preferred)
+        if prefixes:
+            chosen = next((t for t in options
+                           if any(t["language"].startswith(code) for code in prefixes)), None)
+        if chosen is None:
+            chosen = next((t for t in options if t["language"].startswith("zh")), None)
     result = {"subtitle_tracks": options, "original_language": original or None,
               "default_subtitle_track_id": chosen["id"] if chosen else None,
               "subtitle_selection_required": bool(options and not chosen)}

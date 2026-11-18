@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 import auth
+import backup
 import capture
 import cloud_transcription
 import link_video
@@ -17,9 +18,9 @@ import scheduler
 import settings
 from database import DATA_DIR
 from export_md import export_markdown  # noqa: F401  测试与脚本沿用 main.export_markdown
-from routes import (asr_engines, calendar, cards as card_routes, link_videos, meetings,
-                    minutes as minutes_routes, models, packs as pack_routes, search, sessions,
-                    speakers, system)
+from routes import (asr_engines, backup as backup_routes, calendar, cards as card_routes,
+                    link_videos, meetings, minutes as minutes_routes, models,
+                    packs as pack_routes, search, sessions, speakers, system)
 
 PORT = int(os.environ.get("MEETCLIP_PORT") or 8321)
 ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
@@ -35,8 +36,10 @@ async def lifespan(_app: FastAPI):
     link_video.start()
     scheduler.start()
     minutes.start()
+    backup.recover_stale()
     yield
     # App 退出：停止正在进行的采集，保存已写入的媒体（TS→MP4），未完成的转写下次可补
+    backup.shutdown()
     minutes.shutdown()
     scheduler.shutdown()
     link_video.shutdown(timeout=8)
@@ -72,7 +75,7 @@ def health():
 
 
 for module in (system, models, sessions, meetings, link_videos, asr_engines, calendar, search,
-               minutes_routes, speakers, card_routes, pack_routes):
+               minutes_routes, speakers, card_routes, pack_routes, backup_routes):
     app.include_router(module.router)
 
 

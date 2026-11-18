@@ -1,7 +1,8 @@
 import fs from 'node:fs'
-import os from 'node:os'
-import path from 'node:path'
 import { spawn, execFile } from 'node:child_process'
+import {
+  findExecutable, installRequirements, prepareEnvironment, pythonVersion
+} from './bootstrap.js'
 import { ensureDir, readLogTail } from './config.js'
 
 const LOG_LIMIT = 96 * 1024
@@ -11,6 +12,7 @@ export class EnvironmentManager {
     this.settings = settings
     this.job = null
     this.child = null
+    this.cancelToken = null
     this.cache = { at: 0, value: null }
   }
 
@@ -81,6 +83,7 @@ export class EnvironmentManager {
       startedAt: Date.now(),
       finishedAt: null
     }
+    this.cancelToken = { aborted: false }
     this.appendLog(`\n=== ${new Date().toISOString()} ${action} ===`)
     this.run(action).catch((error) => {
       this.job.state = 'error'
@@ -94,6 +97,7 @@ export class EnvironmentManager {
 
   cancel() {
     if (!this.job || this.job.state !== 'running') return false
+    if (this.cancelToken) this.cancelToken.aborted = true
     try { this.child?.kill('SIGTERM') } catch {}
     this.job.state = 'cancelled'
     this.job.done = true
@@ -119,34 +123,41 @@ export class EnvironmentManager {
       this.step('完成')
       return
     }
-    const uv = findExecutable('uv')
-    let base = this.settings.python || this.settings.venvPython
-    if (!fs.existsSync(this.settings.venvPython)) {
-      if (uv) {
-        this.step('创建独立 venv（uv）')
-        await this.exec(uv, ['venv', this.settings.venvDir, '--python', '3.12'], '创建独立 venv')
-      } else {
-        const python = await this.findBasePython()
-        if (!python) {
-          throw new Error('未找到 Python 3.10+，也没有 uv。请安装 uv 或 Homebrew python@3.12 后重试')
-        }
-        this.step('创建独立 venv')
-        await this.exec(python, ['-m', 'venv', this.settings.venvDir], '创建独立 venv')
-        this.step('升级 pip')
-        await this.exec(this.settings.venvPython, ['-m', 'pip', 'install', '-U', 'pip'], '升级 pip')
-      }
+
+    const settings = this.settings
+    const cancel = this.cancelToken
+    // 部署配置里指定的镜像同时作用于主机侧自举（bootstrap 读环境变量）。
+    for (const [key, value] of [
+      ['MEETCLIP_PYPI_MIRROR', settings.pypiMirror],
+      ['MEETCLIP_PYTHON_MIRROR', settings.pythonMirror],
+      ['MEETCLIP_FFMPEG_MIRROR', settings.ffmpegMirror]
+    ]) {
+      if (value && !process.env[key]) process.env[key] = value
     }
-    if (!fs.existsSync(this.settings.requirementsPath)) {
-      throw new Error(`缺少依赖清单：${this.settings.requirementsPath}`)
-    }
+    const onChild = (child) => { this.child = child }
+    const log = (line) => this.appendLog(line)
+
+    // 新机器上既可能没有 Python，也可能没有 uv / Homebrew，更可能连不上 GitHub：
+    // prepareEnvironment 会按「系统 uv → 现下 uv → 现下独立 CPython」的顺序自举，
+    // 全部走 PyPI 镜像 / npmmirror，用户只需要点一次按钮。
+    this.step('准备运行环境')
+    const runtime = await prepareEnvironment({
+      settings, step: (text) => this.step(text), log, onChild, cancel
+    })
+
     this.step('安装后端依赖')
-    if (uv) {
-      await this.exec(uv, ['pip', 'install', '--python', this.settings.venvPython, '-r', this.settings.requirementsPath], '安装依赖')
-    } else {
-      await this.exec(this.settings.venvPython, ['-m', 'pip', 'install', '-r', this.settings.requirementsPath], '安装依赖')
-    }
+    await installRequirements({
+      uvPath: runtime.uv,
+      venvPython: settings.venvPython,
+      requirementsPath: settings.requirementsPath,
+      stateDir: settings.stateDir,
+      log,
+      onChild,
+      cancel
+    })
+
     this.step('校验运行环境')
-    const imports = await probeImports(this.settings.venvPython, 60_000)
+    const imports = await probeImports(settings.venvPython, 60_000)
     if (!imports.fastapi) {
       throw new Error(`依赖安装完成，但导入 fastapi/uvicorn 失败：${imports.detail || '未知错误'}`)
     }
@@ -177,7 +188,7 @@ export class EnvironmentManager {
       this.appendLog(`$ ${command} ${args.join(' ')}`)
       const env = {
         ...process.env,
-        UV_CACHE_DIR: path.join(this.settings.stateDir, 'uv-cache'),
+        UV_CACHE_DIR: `${this.settings.stateDir}/uv-cache`,
         PYTHONDONTWRITEBYTECODE: '1'
       }
       const child = spawn(command, args, {
@@ -212,62 +223,10 @@ export class EnvironmentManager {
     })
   }
 
-  async findBasePython() {
-    const candidates = [
-      this.settings.python,
-      this.settings.venvPython,
-      '/opt/homebrew/bin/python3.13',
-      '/opt/homebrew/bin/python3.12',
-      '/opt/homebrew/bin/python3.11',
-      '/opt/homebrew/bin/python3.10',
-      '/usr/local/bin/python3.12',
-      '/usr/local/bin/python3.11',
-      '/usr/local/bin/python3.10',
-      findExecutable('python3.13'),
-      findExecutable('python3.12'),
-      findExecutable('python3.11'),
-      findExecutable('python3.10'),
-      findExecutable('python3')
-    ].filter(Boolean)
-    for (const candidate of candidates) {
-      if (!fs.existsSync(candidate)) continue
-      const version = await pythonVersion(candidate)
-      const [major, minor] = version.split('.').map(Number)
-      if (major > 3 || (major === 3 && minor >= 10)) return candidate
-    }
-    return null
-  }
-
-  tail(lines = 120) {
+  async tail(lines = 120) {
     const inMemory = this.job?.log || ''
     return inMemory ? inMemory.split('\n').slice(-lines).join('\n') : readLogTail(this.settings.setupLogPath, lines)
   }
-}
-
-export function findExecutable(name) {
-  const paths = [
-    process.env.PATH || '',
-    path.join(os.homedir(), 'bin'),
-    path.join(os.homedir(), '.local/bin'),
-    '/opt/homebrew/bin',
-    '/usr/local/bin'
-  ].join(':').split(':').filter(Boolean)
-  for (const dir of paths) {
-    const candidate = path.join(dir, name)
-    try {
-      if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate
-    } catch {}
-  }
-  return null
-}
-
-export function pythonVersion(python) {
-  return new Promise((resolve) => {
-    execFile(python, ['-c', 'import sys; print("%d.%d" % sys.version_info[:2])'], { timeout: 10_000 }, (error, stdout) => {
-      if (error) resolve('')
-      else resolve(String(stdout).trim())
-    })
-  })
 }
 
 export function probeImports(python, timeout = 30_000) {

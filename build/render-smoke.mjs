@@ -50,6 +50,9 @@ for (const [name, entry] of Object.entries(slots)) {
   if (name === 'settings.section' && !html.includes('飞书')) {
     throw new Error('settings section must expose the Feishu MCP tab')
   }
+  if (name === 'settings.section' && !html.includes('备份')) {
+    throw new Error('settings section must expose the backup tab')
+  }
   console.log(`${name}: ${html.length} bytes html`)
 }
 

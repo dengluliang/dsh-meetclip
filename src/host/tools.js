@@ -100,7 +100,7 @@ function buildDefinitions(runtime, ctx) {
         path: stringField('Local audio/video path for import_meeting; must be inside MeetClip data or uploads.'),
         title: stringField('Optional title for start_live, import_meeting or add_doc.'),
         link_only: booleanField('For add_doc: register the link without reading the document body.'),
-        language: stringField('Meeting language id, for example zh or en; empty means automatic.'),
+        language: stringField('Meeting language id, for example zh or en; auto means detect, empty uses the default transcription language (Chinese unless changed in settings).'),
         hotwords: stringField('Meeting hotwords separated by commas.'),
         transcription_mode: enumField('Video transcription preference.', ['auto', 'asr']),
         subtitle_track_id: stringField('Explicit subtitle track id when multiple tracks exist.')

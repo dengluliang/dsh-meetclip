@@ -16,6 +16,8 @@ DEFAULTS = {
     # 语音转文字的自定义 API（留空表示使用上方默认网关）
     "asr_custom_base": "",
     "asr_custom_model": "",
+    # 没有单独选语种时（链接视频、批量导入、直播）转写用的语种；auto 表示自动识别。
+    "asr_language": "Chinese",
     "shot_sensitivity": 0.6,
     # 链接视频默认只访问公开内容；用户在设置中明确开启后才读取浏览器 Cookie。
     "link_browser_cookies": False,

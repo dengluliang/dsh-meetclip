@@ -23,7 +23,7 @@ export function SettingsDialog({ t, request, onClose, onRestartSetup }) {
         </div>
         <div className="mc-settings-dialog-body">
           <Settings t={t} initialTab={request?.tab || ''} focusAnchor={request?.anchor || ''}
-            focusNonce={request?.nonce || 0} onRestartSetup={onRestartSetup} />
+            focusNonce={request?.nonce || 0} onRestartSetup={onRestartSetup} onClose={onClose} />
         </div>
       </div>
     </div>

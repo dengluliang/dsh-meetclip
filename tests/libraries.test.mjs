@@ -503,3 +503,51 @@ test('资料空间路由暴露列表、预检与创建', async () => {
 
   for (const dir of [stateDir, root]) fs.rmSync(dir, { recursive: true, force: true })
 })
+
+test('备份任务在跑时切库要确认，确认后先取消备份', async () => {
+  const stateDir = tempDir()
+  const root = tempDir()
+  const work = seedLibrary(path.join(root, 'work'))
+  const life = seedLibrary(path.join(root, 'life'))
+  const runtime = new MeetClipRuntime({ stateDir, dataDir: work })
+  runtime.createLibrarySync({ name: '工作', dataDir: work, activate: true })
+  const lifeLib = runtime.createLibrarySync({ name: '生活', dataDir: life })
+
+  let backup = { state: 'running', action: 'import', percent: 40 }
+  const backend = fakeBackend({ sessions: () => [] })
+  const baseJson = backend.json.bind(backend)
+  backend.json = async (pathname, init) => {
+    if (pathname === '/api/backup/job') {
+      backend.calls.push(pathname)
+      return { ok: true, job: backup }
+    }
+    if (pathname === '/api/backup/cancel') {
+      backend.calls.push(pathname)
+      backup = { state: 'cancelled', action: 'import', percent: 0 }
+      return { ok: true, job: backup }
+    }
+    return baseJson(pathname, init)
+  }
+  runtime.backend = backend
+  runtime.cards.sync = async () => ({ ok: true })
+
+  await assert.rejects(
+    () => runtime.activateLibrary({ id: lifeLib.library.id }),
+    (error) => {
+      assert.equal(error.code, 'library_busy')
+      assert.equal(error.detail.work.length, 1)
+      assert.equal(error.detail.work[0].kind, 'backup')
+      assert.equal(error.detail.work[0].title, '正在导入备份')
+      return true
+    }
+  )
+  assert.equal(backend.calls.includes('/api/backup/cancel'), false, '没有确认时不能取消备份')
+  assert.equal(path.resolve(runtime.settings.dataDir), path.resolve(work))
+
+  const switched = await runtime.activateLibrary({ id: lifeLib.library.id, interrupt: true })
+  assert.equal(switched.switched, true)
+  assert.equal(backend.calls.includes('/api/backup/cancel'), true)
+  assert.equal(path.resolve(runtime.settings.dataDir), path.resolve(life))
+
+  for (const dir of [stateDir, root]) fs.rmSync(dir, { recursive: true, force: true })
+})

@@ -1,6 +1,6 @@
 import {
-  aiStatus, asrEngines, checkAI, removeAIKey, saveAIConfig, saveAIKey, saveAsrEngine,
-  testAIModel, testAsrEngine
+  aiStatus, appSettings, asrEngines, checkAI, meetingOptions, removeAIKey, saveAIConfig, saveAIKey,
+  saveAppSettings, saveAsrEngine, testAIModel, testAsrEngine
 } from '../lib/api.js'
 import { ModelConnection } from './settings/ModelConnection.jsx'
 
@@ -22,11 +22,17 @@ export function SettingsModels({ t }) {
   const [notice, setNotice] = React.useState('')
   const [asrProbe, setAsrProbe] = React.useState(null)
   const [textProbe, setTextProbe] = React.useState(null)
+  const [asrLanguage, setAsrLanguage] = React.useState('')
+  const [languages, setLanguages] = React.useState([])
 
   const load = React.useCallback(async () => {
-    const [nextAsr, nextAi] = await Promise.all([asrEngines(), aiStatus()])
+    const [nextAsr, nextAi, prefs, options] = await Promise.all([
+      asrEngines(), aiStatus(), appSettings(), meetingOptions().catch(() => null)
+    ])
     setAsr(nextAsr)
     setAi(nextAi)
+    setLanguages(options?.languages || [])
+    setAsrLanguage(prefs?.asr_language || options?.default_language || 'Chinese')
     setAsrCustom({
       base_url: nextAsr?.custom?.base_url || '',
       model: nextAsr?.custom?.model || '',
@@ -55,6 +61,20 @@ export function SettingsModels({ t }) {
       return null
     } finally {
       setBusy('')
+    }
+  }
+
+  async function changeAsrLanguage(value) {
+    setAsrLanguage(value)
+    setError('')
+    setNotice('')
+    try {
+      const next = await saveAppSettings({ asr_language: value })
+      setAsrLanguage(next?.asr_language || value)
+      setNotice('默认转写语种已保存，新任务立即生效')
+    } catch (failure) {
+      setError(failure?.message || String(failure))
+      await load().catch(() => {})
     }
   }
 
@@ -174,6 +194,16 @@ export function SettingsModels({ t }) {
             <div className="mc-row"><span className="mc-row-key">当前模型</span><span className="mc-row-value mc-mono">{savedAsr || '未配置'}</span></div>
             <div className="mc-row"><span className="mc-row-key">服务地址</span><span className="mc-row-value mc-mono" title={asr?.base_url || ''}>{asr?.base_url || '未配置'}</span></div>
           </div>
+          <label className="mc-form-row">
+            <span>默认语种</span>
+            <select className="mc-input mc-select" value={asrLanguage} disabled={!languages.length || Boolean(busy)}
+              onChange={(event) => changeAsrLanguage(event.target.value)}>
+              {languages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+          <p className="mc-form-note">
+            链接视频、批量导入和直播没有单独的语种选择，按这里转写；会议和「转写选项」里仍可单条修改。默认中文可以避开自动识别把中文听成外文。
+          </p>
           <div className="mc-actions">
             <button type="button" className="mc-button" disabled={Boolean(busy)} onClick={probeAsrModel}>
               {asrProbe?.state === 'busy' ? '测试中…' : '测试连接'}

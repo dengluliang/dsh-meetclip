@@ -14,27 +14,27 @@ import numpy as np
 
 import asr
 import asr_engines
+import asr_languages
 import cloud_transcription
 import minutes
 import scheduler
-import settings
 from capture import DEPS, CaptureTask, probe_streams
 from hints import HINT_ASR, HINT_FFMPEG
 from database import db, session_dir
 from transcript_segments import SENTENCE_END, merge_paragraphs
 
-LANGUAGES = [
-    ("", "自动识别"), ("Chinese", "中文"), ("English", "英文"), ("Cantonese", "粤语"),
-    ("Japanese", "日语"), ("Korean", "韩语"), ("French", "法语"), ("German", "德语"),
-    ("Spanish", "西班牙语"), ("Russian", "俄语"),
-]
 PHASES = ("extract", "transcribe", "done")
 
 
 def transcription_params(sess: dict) -> dict:
-    """会议与链接视频沿用同一组持久化转写选项。"""
+    """会议与链接视频沿用同一组持久化转写选项。
+
+    没有记录过语种的旧记录跟随设置里的默认语种（默认中文），只有显式选过
+    「自动识别」的记录才把 auto 交给引擎。
+    """
     meta = sess.get("meta") or {}
-    return {"language": meta.get("language_hint") or "", "hotwords": meta.get("hotwords") or ""}
+    return {"language": asr_languages.resolve(meta.get("language_hint")),
+            "hotwords": meta.get("hotwords") or ""}
 
 
 class _Cancelled(Exception):
@@ -239,6 +239,10 @@ class MeetingTask(CaptureTask):
             if not asr_engines.ready(self.engine_config):
                 raise RuntimeError("所选转录引擎未就绪，请检查会摘面板右上角「设置 → 模型」")
             p = self.params
+            # 没有单独选语种的记录跟随设置里的默认语种；auto 才交给引擎自动识别。
+            language = asr_languages.resolve(p.get("language"))
+            automatic = asr_languages.is_auto(language)
+            p["language"] = language
             sess = db.get_session(sid) or {}
             self._set_phase("extract", "正在读取音视频…", None)
             if self.import_file:
@@ -273,7 +277,11 @@ class MeetingTask(CaptureTask):
                 if p.get("hotwords"):
                     self.warn_once("cloud-hotwords", "云端识别当前暂无已确认的热词接口；热词保留供其他引擎使用")
                 cloud_transcription.transcribe_file(self, wav, self.engine_config)
-                self._meta(transcription_source="asr", subtitle_language=None, subtitle_kind=None)
+                # 自动识别不写死语种；指定语种时必须覆盖旧字幕留下的 language，
+                # 否则详情里的「语种」会一直显示上一轨字幕的语言。
+                self._meta(transcription_source="asr", subtitle_language=None, subtitle_kind=None,
+                           subtitle_source_language=None, subtitle_track_id=None,
+                           language=None if automatic else language)
                 db.update_session(sid, status="done", ended_at=time.time(), error=None)
                 self._set_phase("done", "转录完成", 1.0)
                 self.emit("done", text="处理完成")
@@ -291,8 +299,8 @@ class MeetingTask(CaptureTask):
             audio_np = _load_wav(wav)
             self._audio_total = len(audio_np) / asr.SAMPLE_RATE
             local_provider = asr_engines.resolve(self.engine_config)
-            language = p.get("language") or None
-            if not language and context:
+            language = None if automatic else language
+            if language is None and context:
                 self._set_phase("transcribe", "正在检测语种…", 0.0)
                 language = local_provider.detect_language(audio_np)
             result = local_provider.transcribe_long(
@@ -310,9 +318,10 @@ class MeetingTask(CaptureTask):
                 self._meta(cloud_run=None, asr_failures=[], timing_precision=None,
                            asr_status="done" if rows else "empty", speakers={},
                            diarize_error="",
-                           language=language or getattr(result, "language", "") or "",
+                           language=language or getattr(result, "language", "") or None,
                            **({"transcription_source": "asr", "subtitle_language": None,
-                               "subtitle_kind": None} if sess.get("kind") == "link_video" else {}))
+                               "subtitle_kind": None, "subtitle_source_language": None,
+                               "subtitle_track_id": None} if sess.get("kind") == "link_video" else {}))
                 db.update_session(sid, status="done", ended_at=time.time())
             self._set_phase("done", "转写完成", 1.0)
             self.emit("done", text="处理完成")

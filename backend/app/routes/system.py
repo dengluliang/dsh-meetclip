@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+import asr_languages
 import bilibili
 import capture
 import deps
@@ -115,6 +116,7 @@ def douyin_test(req: DouyinTestReq):
 
 # ---------------- 应用设置（截图灵敏度） ----------------
 class SettingsReq(BaseModel):
+    asr_language: str | None = None
     shot_sensitivity: float | None = None
     link_browser_cookies: bool | None = None
     link_cookie_browser: str | None = None
@@ -131,6 +133,11 @@ def settings_get():
 @router.post("/api/settings")
 def settings_set(req: SettingsReq):
     changes = {}
+    if req.asr_language is not None:
+        language = asr_languages.normalize(req.asr_language)
+        if language not in asr_languages.CHOICES:
+            raise HTTPException(400, "不支持的转写语种，可选：" + "、".join(asr_languages.CHOICES))
+        changes["asr_language"] = language
     if req.shot_sensitivity is not None:
         changes["shot_sensitivity"] = min(1.0, max(0.0, req.shot_sensitivity))
     if req.link_browser_cookies is not None:

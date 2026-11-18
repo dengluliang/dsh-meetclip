@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 import asr
 import asr_engines
+import asr_languages
 import capture
 import packs
 import scheduler
@@ -122,7 +123,7 @@ def meeting_import(req: MeetingImportReq):
         raise HTTPException(400, IMPORT_HINT)
     check_import_size(p)
     config = _import_engine(req.asr_provider)
-    sid, queued = _queue_import(p, req.title, config, req.language, req.hotwords,
+    sid, queued = _queue_import(p, req.title, config, asr_languages.resolve(req.language), req.hotwords,
                                 req.calendar_event_id)
     return {"id": sid, **queued}
 
@@ -168,7 +169,7 @@ def meeting_import_batch(req: MeetingBatchImportReq):
     for index, item, p in prepared:
         title = item.title.strip() or p.stem
         try:
-            sid, queued = _queue_import(p, title, config, req.language, req.hotwords,
+            sid, queued = _queue_import(p, title, config, asr_languages.resolve(req.language), req.hotwords,
                                         req.calendar_event_id)
         except Exception as exc:
             logger.warning("会议批量导入失败：%s", exc)
@@ -216,7 +217,7 @@ def update_meeting_options(sid: str, req: MeetingOptionsReq):
     if req.hotwords is not None:
         changes["hotwords"] = req.hotwords.strip()
     if req.language is not None:
-        changes["language_hint"] = req.language
+        changes["language_hint"] = asr_languages.resolve(req.language)
     if changes:
         db.update_meta(sid, **changes)
     return {"ok": True}

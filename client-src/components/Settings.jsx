@@ -1,4 +1,5 @@
 import { SettingsAbout } from './SettingsAbout.jsx'
+import { SettingsBackup } from './SettingsBackup.jsx'
 import { SettingsAccount } from './SettingsAccount.jsx'
 import { SettingsCapture } from './SettingsCapture.jsx'
 import { SettingsFeishu } from './SettingsFeishu.jsx'
@@ -13,12 +14,13 @@ const TABS = [
   ['capture', 'settings.tab.capture', '采集'],
   ['feishu', 'settings.tab.feishu', '飞书'],
   ['libraries', 'settings.tab.libraries', '资料空间'],
+  ['backup', 'settings.tab.backup', '备份'],
   ['about', 'settings.tab.about', '关于']
 ]
 
 const VALID = new Set(TABS.map(([id]) => id))
 
-export function Settings({ t, initialTab = '', focusAnchor = '', focusNonce = 0, onRestartSetup = null }) {
+export function Settings({ t, initialTab = '', focusAnchor = '', focusNonce = 0, onRestartSetup = null, onClose = null }) {
   const [tab, setTab] = React.useState(() => {
     if (VALID.has(initialTab)) return initialTab
     const saved = localStorage.getItem('meetclip.settingsTab')
@@ -75,6 +77,7 @@ export function Settings({ t, initialTab = '', focusAnchor = '', focusNonce = 0,
           <SettingsVideo t={t} />
         </div>
       ) : null}
+      {tab === 'backup' ? <SettingsBackup t={t} onClose={onClose} /> : null}
       {tab === 'feishu' ? <SettingsFeishu /> : null}
       {tab === 'about' ? <SettingsAbout t={t} onRestartSetup={onRestartSetup} /> : null}
     </div>

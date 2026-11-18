@@ -2,6 +2,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { execFile, spawn } from 'node:child_process'
+import {
+  fetchLatestVersion, findInstaller, findNodeRuntime, installLocalPackage, localStatus, resolveStrategy
+} from './feishu-local.js'
 
 /**
  * Feishu MCP Pro onboarding.
@@ -282,7 +285,7 @@ function yamlString(value) {
   return `'${String(value).replace(/'/g, "''")}'`
 }
 
-export function renderEntryBlock({ command, args = [], envPath = '', npmCache = '', version = '' }) {
+export function renderEntryBlock({ command, args = [], envPath = '', npmCache = '', version = '', local = false }) {
   const lines = [
     FEISHU_MARKER,
     '- insert:',
@@ -299,15 +302,15 @@ export function renderEntryBlock({ command, args = [], envPath = '', npmCache = 
   } else {
     lines.push('        args: []')
   }
-  if (envPath || npmCache) {
+  if (envPath || (npmCache && !local)) {
     lines.push('        env:')
     if (envPath) lines.push(`          PATH: ${yamlString(envPath)}`)
     // npm's default cache can be owned by another user (sudo npm), which makes
     // every npx run fail with EPERM; a plugin-owned cache keeps this working.
-    if (npmCache) lines.push(`          npm_config_cache: ${yamlString(npmCache)}`)
+    if (npmCache && !local) lines.push(`          npm_config_cache: ${yamlString(npmCache)}`)
   }
   lines.push('        failOnStartupError: false')
-  if (version) lines.push(`        # pinned ${version}`)
+  if (version) lines.push(`        # ${local ? 'local' : 'pinned'} ${version}`)
   return `${lines.join('\n')}\n`
 }
 
@@ -498,11 +501,13 @@ export class FeishuManager {
     this.child = null
     this.latest = { at: 0, version: '' }
     this.nodeCache = { at: 0, value: '' }
+    this.strategyCache = { at: 0, value: null }
   }
 
   refresh(settings) {
     this.settings = settings
     this.nodeCache = { at: 0, value: '' }
+    this.strategyCache = { at: 0, value: null }
   }
 
   // Package name / npm registry come from the plugin config first, then the env
@@ -602,13 +607,37 @@ export class FeishuManager {
     })
   }
 
+  /**
+   * 本地模式 vs npx 模式。默认本地：全新 Mac 上没有 node/npx，但 DSH 自带
+   * Electron（可当 node 用）与 pnpm，因此本地模式永远成立。
+   */
+  strategy() {
+    if (this.strategyCache.value && Date.now() - this.strategyCache.at < STATUS_CACHE_MS) {
+      return this.strategyCache.value
+    }
+    const value = resolveStrategy({ settings: this.settings || {}, binaries: this.binaries() })
+    this.strategyCache = { at: Date.now(), value }
+    return value
+  }
+
+  /** 让 DSH 自带的 Electron 以 node 方式执行；对真正的 node 无副作用。 */
+  nodeEnv() {
+    return { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+  }
+
+  localStatus(name = this.packageName()) {
+    return localStatus({ settings: this.settings || {}, name })
+  }
+
   async nodeVersion(node) {
     if (!node) return ''
-    if (this.nodeCache.value && Date.now() - this.nodeCache.at < STATUS_CACHE_MS) return this.nodeCache.value
+    if (this.nodeCache.value && this.nodeCache.path === node && Date.now() - this.nodeCache.at < STATUS_CACHE_MS) {
+      return this.nodeCache.value
+    }
     try {
-      const result = await runCommand(node, ['-v'], { timeoutMs: 10_000, env: process.env })
+      const result = await runCommand(node, ['-v'], { timeoutMs: 10_000, env: this.nodeEnv() })
       const version = parseVersion(result.stdout)
-      this.nodeCache = { at: Date.now(), value: version }
+      this.nodeCache = { at: Date.now(), value: version, path: node }
       return version
     } catch {
       this.nodeCache = { at: Date.now(), value: '' }
@@ -631,8 +660,17 @@ export class FeishuManager {
 
   async status() {
     const bins = this.binaries()
-    const nodeVersion = await this.nodeVersion(bins.node)
+    const strategy = this.strategy()
+    // 本地模式用的是 DSH 自带的 Electron（或配置里指定的 node），npx 模式才是 PATH 上的 node。
+    const runtimeNode = strategy.node?.exec || bins.node || null
+    const nodeVersion = await this.nodeVersion(runtimeNode)
     const major = versionMajor(nodeVersion)
+    const local = this.localStatus()
+    const installer = strategy.installer || null
+    // 「能不能装」的单一判定：本地模式只要有运行时+包管理器，npx 模式才要求 npx。
+    const ready = strategy.mode === 'local'
+      ? Boolean(strategy.node && installer && major >= FEISHU_MIN_NODE_MAJOR)
+      : Boolean(bins.npx && bins.node && major >= FEISHU_MIN_NODE_MAJOR)
     const layers = this.layerStates()
     const presentLayer = layers.find((layer) => layer.present)
     const conflictLayer = layers.find((layer) => layer.conflict)
@@ -649,12 +687,23 @@ export class FeishuManager {
         minNodeMajor: FEISHU_MIN_NODE_MAJOR
       },
       runtime: {
-        node: bins.node,
+        mode: strategy.mode,
+        modeReason: strategy.reason || '',
+        ready,
+        node: runtimeNode,
+        nodeSource: strategy.node?.source || (bins.node ? 'system' : ''),
         nodeVersion,
         nodeMajor: major,
-        nodeOk: Boolean(bins.node) && major >= FEISHU_MIN_NODE_MAJOR,
+        nodeOk: Boolean(runtimeNode) && major >= FEISHU_MIN_NODE_MAJOR,
+        installer: installer ? { kind: installer.kind, path: installer.path, source: installer.source } : null,
         npx: bins.npx,
         npxOk: Boolean(bins.npx),
+        local: {
+          installed: local.installed,
+          version: local.version,
+          launcher: local.launcher,
+          root: local.root
+        },
         path: bins.envPath
       },
       dsh: {
@@ -782,6 +831,26 @@ export class FeishuManager {
 
   async resolveLatest({ fallback = '' } = {}) {
     if (this.latest.version && Date.now() - this.latest.at < LATEST_CACHE_MS) return this.latest.version
+    const { name: targetName, registry: targetRegistry } = this.packageTarget()
+    // 本地模式不需要 npx 也能问版本：直接读 registry 的 packument。
+    if (this.strategy().mode === 'local') {
+      this.step('解析飞书 MCP 最新版本')
+      try {
+        const version = await fetchLatestVersion({ registry: targetRegistry, name: targetName })
+        this.latest = { at: Date.now(), version }
+        this.appendLog(`✔ 最新版本 ${version}（直读 registry）`)
+        return version
+      } catch (failure) {
+        const detail = String(failure?.message || failure)
+        this.appendLog(`… 直读 registry 失败：${detail}`)
+        if (!this.binaries().npx) {
+          const error = new Error(`无法解析飞书 MCP 版本：${detail}。需要能访问 feishuRegistry 指定的 npm 源（见 INSTALL.md）`)
+          error.code = 'resolve_failed'
+          throw error
+        }
+        this.appendLog('… 改用 npx 解析版本')
+      }
+    }
     const bins = this.requireBinaries()
     const major = versionMajor(await this.nodeVersion(bins.node))
     if (major && major < FEISHU_MIN_NODE_MAJOR) {
@@ -820,7 +889,7 @@ export class FeishuManager {
     return version
   }
 
-  writeEntry(version) {
+  writeEntry(version, local = null) {
     const bins = this.binaries()
     const layers = this.layerStates()
     const presentLayer = layers.find((layer) => layer.present)
@@ -838,13 +907,15 @@ export class FeishuManager {
       throw error
     }
     const { name, registry } = this.packageTarget()
-    const block = renderEntryBlock({
-      command: bins.npx,
-      args: ['-y', `--registry=${registry}`, `${name}@${version}`],
-      envPath: bins.envPath,
-      npmCache: this.npmCacheDir(),
-      version
-    })
+    const block = local
+      ? renderEntryBlock({ command: local.launcher, args: [], envPath: bins.envPath, version, local: true })
+      : renderEntryBlock({
+          command: bins.npx,
+          args: ['-y', `--registry=${registry}`, `${name}@${version}`],
+          envPath: bins.envPath,
+          npmCache: this.npmCacheDir(),
+          version
+        })
     const next = insertEntry(home.text, block)
     if (!next.changed) return { changed: false, path: home.path }
     const written = writePatchText(home.path, next.text)
@@ -852,7 +923,7 @@ export class FeishuManager {
   }
 
   /** Replace our row in one atomic write (used by "检查更新"). */
-  rewriteEntry(version) {
+  rewriteEntry(version, local = null) {
     const bins = this.binaries()
     const home = this.layerStates().find((layer) => layer.scope === 'home')
     if (!home.appendable) {
@@ -868,13 +939,15 @@ export class FeishuManager {
       throw error
     }
     const { name, registry } = this.packageTarget()
-    const block = renderEntryBlock({
-      command: bins.npx,
-      args: ['-y', `--registry=${registry}`, `${name}@${version}`],
-      envPath: bins.envPath,
-      npmCache: this.npmCacheDir(),
-      version
-    })
+    const block = local
+      ? renderEntryBlock({ command: local.launcher, args: [], envPath: bins.envPath, version, local: true })
+      : renderEntryBlock({
+          command: bins.npx,
+          args: ['-y', `--registry=${registry}`, `${name}@${version}`],
+          envPath: bins.envPath,
+          npmCache: this.npmCacheDir(),
+          version
+        })
     const next = insertEntry(stripped.text, block)
     if (!next.changed) {
       const error = new Error('改写飞书 MCP 配置失败')
@@ -908,8 +981,57 @@ export class FeishuManager {
     return false
   }
 
-  async probeVersion(version) {
+  /**
+   * 跑 CLI 子命令（login / logout / setup）时的命令形式：本地模式用 node + 入口，
+   * 没装就先装一份；npx 模式仍旧走 npx -y pkg@version。
+   */
+  async cliPlan({ version = '' } = {}) {
+    const strategy = this.strategy()
+    if (strategy.mode === 'local') {
+      let state = this.localStatus()
+      if (!state.installed) {
+        const { name, registry } = this.packageTarget()
+        const pinned = version || this.readState().version || await this.resolveLatest()
+        this.step('准备本地副本')
+        const installed = await installLocalPackage({
+          settings: this.settings,
+          name,
+          version: pinned,
+          registry,
+          node: strategy.node,
+          installer: strategy.installer,
+          log: (line) => this.appendLog(line),
+          runCommand
+        })
+        state = { installed: true, entry: installed.install.entry, version: installed.install.version }
+      }
+      return {
+        mode: 'local',
+        command: strategy.node.exec,
+        args: [state.entry],
+        env: { ...this.spawnEnv(this.binaries()), ...strategy.node.env }
+      }
+    }
+    const bins = this.requireBinaries()
+    const { name, registry } = this.packageTarget()
+    const pinned = version || this.readState().version || await this.resolveLatest()
+    return {
+      mode: 'npx',
+      command: bins.npx,
+      args: ['-y', `--registry=${registry}`, `${name}@${pinned}`],
+      env: this.spawnEnv(bins)
+    }
+  }
+
+  async probeVersion(version, local = null) {
     const bins = this.binaries()
+    if (local) {
+      return probeMcpServer({
+        command: local.launcher,
+        args: [],
+        env: { ...this.spawnEnv(bins), ELECTRON_RUN_AS_NODE: '1' }
+      })
+    }
     const { name, registry } = this.packageTarget()
     const result = await probeMcpServer({
       command: bins.npx,
@@ -919,34 +1041,95 @@ export class FeishuManager {
     return result
   }
 
+  /**
+   * 安装/更新。默认走「本地安装」：用 DSH 自带的 pnpm 把包和依赖装进
+   * ~/.dsh/meetclip/feishu-mcp/，再生成一个 run.sh 当 MCP 的 command——
+   * 全新 Mac 上没有 node/npx 也能一次成功。本地装失败且机器上有 npx 时自动退回 npx 模式。
+   */
   async runInstall({ update }) {
-    const bins = this.requireBinaries()
-    this.step('检查 Node 与 npx')
-    const nodeVersion = await this.nodeVersion(bins.node)
-    this.appendLog(`node: ${bins.node} ${nodeVersion || ''}`.trim())
-    this.appendLog(`npx:  ${bins.npx}`)
-    if (!nodeVersion) {
-      const error = new Error('无法执行 node -v，请确认 Node 安装完整')
-      error.code = 'node_broken'
-      throw error
-    }
-    if (versionMajor(nodeVersion) < FEISHU_MIN_NODE_MAJOR) {
-      const error = new Error(`Node 版本过低（${nodeVersion}），飞书 MCP 需要 ${FEISHU_MIN_NODE_MAJOR} 以上`)
-      error.code = 'node_too_old'
-      throw error
+    const strategy = this.strategy()
+    const bins = this.binaries()
+    const { name, registry } = this.packageTarget()
+    let version = this.readState().version || ''
+    let local = null
+    let mode = strategy.mode
+
+    if (mode === 'local') {
+      this.step('检查本地运行时')
+      const nodeVersion = await this.nodeVersion(strategy.node.exec)
+      this.appendLog(`运行时：${strategy.node.exec}（${strategy.node.source === 'dsh' ? 'DSH 自带' : '系统 node'}）${nodeVersion || ''}`)
+      this.appendLog(`包管理器：${strategy.installer.kind}（${strategy.installer.path}）`)
+      if (!nodeVersion) {
+        const error = new Error('无法执行 node -v：DSH 自带的 node 运行时不可用，请检查应用安装是否完整')
+        error.code = 'node_broken'
+        throw error
+      }
+      if (versionMajor(nodeVersion) < FEISHU_MIN_NODE_MAJOR) {
+        const error = new Error(`Node 版本过低（${nodeVersion}），飞书 MCP 需要 ${FEISHU_MIN_NODE_MAJOR} 以上`)
+        error.code = 'node_too_old'
+        throw error
+      }
+      const pinned = version
+      const target = update || !pinned ? await this.resolveLatest() : pinned
+      if (!update && pinned && target !== pinned) this.appendLog(`✔ 已固定版本 ${target}`)
+      this.step(update ? `本地更新到 v${target}` : `本地安装 v${target}（不依赖 npx）`)
+      try {
+        local = await installLocalPackage({
+          settings: this.settings,
+          name,
+          version: target,
+          registry,
+          node: strategy.node,
+          installer: strategy.installer,
+          log: (line) => this.appendLog(line),
+          runCommand
+        })
+        version = local.install.version || target
+        this.appendLog(`✔ 已安装到 ${local.install.root}`)
+        this.appendLog(`✔ 启动器：${local.install.launcher}`)
+      } catch (failure) {
+        const detail = String(failure?.message || failure)
+        this.appendLog(`⚠ 本地安装失败：${detail}`)
+        if (bins.npx && bins.node) {
+          this.appendLog('… 改为 npx 方式（机器上已有 npx）')
+          mode = 'npx'
+        } else {
+          const error = new Error(`本地安装失败：${detail}`)
+          error.code = 'local_install_failed'
+          throw error
+        }
+      }
     }
 
-    const pinned = this.readState().version || ''
-    const version = update || !pinned ? await this.resolveLatest({ fallback: pinned }) : pinned
-    if (!update && pinned && version !== pinned) this.appendLog(`✔ 已固定版本 ${version}`)
+    if (mode === 'npx') {
+      const npxBins = this.requireBinaries()
+      const nodeVersion = await this.nodeVersion(npxBins.node)
+      this.appendLog(`node: ${npxBins.node} ${nodeVersion || ''}`.trim())
+      this.appendLog(`npx:  ${npxBins.npx}`)
+      if (!nodeVersion) {
+        const error = new Error('无法执行 node -v，请确认 Node 安装完整')
+        error.code = 'node_broken'
+        throw error
+      }
+      if (versionMajor(nodeVersion) < FEISHU_MIN_NODE_MAJOR) {
+        const error = new Error(`Node 版本过低（${nodeVersion}），飞书 MCP 需要 ${FEISHU_MIN_NODE_MAJOR} 以上`)
+        error.code = 'node_too_old'
+        throw error
+      }
+      const pinned = this.readState().version || ''
+      const target = update || !pinned || !local ? await this.resolveLatest() : pinned
+      if (!update && pinned && target !== pinned) this.appendLog(`✔ 已固定版本 ${target}`)
+      version = target
+    }
 
     this.step(update ? `更新 DSH 配置到 v${version}` : `写入 DSH 配置（v${version}）`)
-    const write = update ? this.rewriteEntry(version) : this.writeEntry(version)
+    const write = update ? this.rewriteEntry(version, local?.install || null) : this.writeEntry(version, local?.install || null)
     if (write.changed) this.appendLog(`✔ 已写入 ${write.path}`)
     else if (write.scope === 'profile') this.appendLog(`… 配置已在 profile 补丁里（${write.path}），未改写；需要换版本请手动编辑`)
     else this.appendLog(`✔ 配置已存在，跳过写入（${write.path}）`)
     if (write.backup) this.appendLog(`  备份：${write.backup}`)
-    this.writeState({ version, installedAt: Date.now(), patchPath: this.patchPath() })
+    this.writeState({ version, installedAt: Date.now(), patchPath: this.patchPath(), mode: local ? 'local' : 'npx' })
+    this.strategyCache = { at: 0, value: null }
 
     this.step('等待 DeepSeek Harness 载入配置')
     const live = await this.waitLive(update ? 25_000 : 20_000)
@@ -955,7 +1138,7 @@ export class FeishuManager {
     else this.appendLog('… 当前部署无法查询加载状态，重启 DeepSeek Harness 后生效')
 
     this.step('验证 MCP 连接')
-    const probe = await this.probeVersion(version)
+    const probe = await this.probeVersion(version, local?.install || null)
     if (probe.ok) {
       this.appendLog(`✔ 已连接，公开 ${probe.toolCount} 个工具`)
       this.writeState({ lastProbe: { ok: true, toolCount: probe.toolCount, at: Date.now() } })
@@ -980,15 +1163,14 @@ export class FeishuManager {
       this.finishJob()
       return
     }
-    const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     const mode = this.job.mode === 'device' ? 'device' : 'auto'
-    const { name, registry } = this.packageTarget()
-    const args = ['-y', `--registry=${registry}`, `${name}@${version}`, 'login']
+    const plan = await this.cliPlan({ version })
+    const args = [...plan.args, 'login']
     if (mode === 'device') args.push('--device')
     this.step(mode === 'device' ? '等待设备码授权' : '等待浏览器授权')
-    this.appendLog(`$ npx ${args.join(' ')}`)
-    await this.execStream(bins, args, { timeoutMs: DEFAULT_TIMEOUT_MS, watchAuth: true })
+    this.appendLog(`$ ${plan.mode === 'local' ? 'node' : 'npx'} ${plan.mode === 'local' ? 'login' : args.slice(plan.args.length - 1).join(' ')}`)
+    await this.execStream(plan.command, args, { env: plan.env, timeoutMs: DEFAULT_TIMEOUT_MS, watchAuth: true })
     const after = readAuthState(os.homedir())
     if (!after.loggedIn) {
       const error = new Error('授权流程结束了，但没有读到有效登录状态；请重试，或改用设备码登录')
@@ -1001,13 +1183,12 @@ export class FeishuManager {
   }
 
   async runLogout() {
-    const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     this.step('退出登录')
-    const { name, registry } = this.packageTarget()
-    this.appendLog(`$ npx ${name}@${version} logout`)
+    const plan = await this.cliPlan({ version })
+    this.appendLog(`$ ${plan.mode === 'local' ? 'node' : 'npx'} logout`)
     try {
-      await this.execStream(bins, ['-y', `--registry=${registry}`, `${name}@${version}`, 'logout'], { timeoutMs: 120_000 })
+      await this.execStream(plan.command, [...plan.args, 'logout'], { env: plan.env, timeoutMs: 120_000 })
     } catch (failure) {
       if (failure?.code === 'cancelled') throw failure
       // The token file is the source of truth; a missing token makes the CLI exit non-zero.
@@ -1019,25 +1200,34 @@ export class FeishuManager {
   }
 
   async runOfficialSetup() {
-    const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     this.step('运行官方 setup')
     this.appendLog('说明：会写入 ~/.npmrc 的包 scope registry，并改写本机其他编辑器的 MCP 配置。')
-    const { name, registry } = this.packageTarget()
-    await this.execStream(
-      bins,
-      ['-y', `--registry=${registry}`, `${name}@${version}`, 'setup'],
-      { timeoutMs: DEFAULT_TIMEOUT_MS }
-    )
+    const plan = await this.cliPlan({ version })
+    await this.execStream(plan.command, [...plan.args, 'setup'], {
+      env: plan.env,
+      timeoutMs: DEFAULT_TIMEOUT_MS
+    })
     this.appendLog('✔ 官方 setup 已结束（DSH 部分不需要它，重复运行不会重复写入同一份配置）')
     this.finishJob()
   }
 
   async runProbe() {
-    const bins = this.requireBinaries()
     const version = this.readState().version || await this.resolveLatest()
     this.step('验证 MCP 连接')
-    const probe = await this.probeVersion(version)
+    const strategy = this.strategy()
+    let probe
+    if (strategy.mode === 'local') {
+      const installed = this.localStatus()
+      if (installed.installed) {
+        probe = await this.probeVersion(version, { launcher: installed.launcher })
+      } else {
+        const plan = await this.cliPlan({ version })
+        probe = await probeMcpServer({ command: plan.command, args: plan.args, env: plan.env })
+      }
+    } else {
+      probe = await this.probeVersion(version)
+    }
     if (!probe.ok) {
       const error = new Error(probe.error || '连接测试未通过')
       error.code = 'probe_failed'
@@ -1056,9 +1246,12 @@ export class FeishuManager {
     this.step('完成')
   }
 
-  async execStream(bins, args, { timeoutMs = DEFAULT_TIMEOUT_MS, watchAuth = false } = {}) {
+  async execStream(command, args, { env, timeoutMs = DEFAULT_TIMEOUT_MS, watchAuth = false } = {}) {
     return new Promise((resolve, reject) => {
-      const child = spawn(bins.npx, args, { env: this.spawnEnv(bins), stdio: ['ignore', 'pipe', 'pipe'] })
+      const child = spawn(command, args, {
+        env: env || { ...process.env, ELECTRON_RUN_AS_NODE: '1' },
+        stdio: ['ignore', 'pipe', 'pipe']
+      })
       this.child = child
       let settled = false
       let authWatcher = null

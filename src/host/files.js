@@ -21,6 +21,8 @@ const PICKER_SEPARATOR = '\u001f'
  */
 export function pickerScript(kind, multiple = false) {
   if (kind === 'directory') return 'POSIX path of (choose folder with prompt "选择会摘存储位置")'
+  // 备份文件是普通 zip；不写 UTI 过滤，避免 .zip 在某些系统语言下被置灰。
+  if (kind === 'backup') return 'POSIX path of (choose file with prompt "选择会摘备份文件")'
   if (!multiple) return 'POSIX path of (choose file with prompt "选择音视频文件")'
   return [
     'set picked to choose file with prompt "选择音视频文件（可多选）" with multiple selections allowed',
@@ -156,6 +158,30 @@ export function revealSession(settings, sessionId) {
   }
   return new Promise((resolve) => {
     execFile('/usr/bin/open', ['-R', dir], (error) => {
+      if (error) resolve({ ok: false, error: String(error.message || error) })
+      else resolve({ ok: true })
+    })
+  })
+}
+
+/**
+ * 在 Finder 里显示一个刚导出的备份文件（或打开备份文件夹）。
+ * 只接受绝对路径且必须存在；不做别的动作，避免被当成任意文件打开入口。
+ */
+export function revealPath(raw) {
+  const text = String(raw || '').trim()
+  if (!text || !path.isAbsolute(text) || /[\u0000-\u001f\u007f-\u009f]/.test(text)) {
+    return Promise.resolve({ ok: false, error: '路径无效' })
+  }
+  const target = path.resolve(text)
+  let stat = null
+  try {
+    stat = fs.statSync(target)
+  } catch {}
+  if (!stat) return Promise.resolve({ ok: false, error: '这个文件或文件夹不存在' })
+  const args = stat.isDirectory() ? [target] : ['-R', target]
+  return new Promise((resolve) => {
+    execFile('/usr/bin/open', args, (error) => {
       if (error) resolve({ ok: false, error: String(error.message || error) })
       else resolve({ ok: true })
     })

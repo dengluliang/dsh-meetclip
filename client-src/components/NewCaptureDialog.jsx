@@ -5,6 +5,7 @@ import {
 import { bytes, clock, dateTime, duration } from '../lib/format.js'
 import { DocCardForm } from './capture/DocCardForm.jsx'
 import { LoginRequiredNotice } from './login/LoginRequiredNotice.jsx'
+import { initialLanguage } from '../lib/language.js'
 import { openSettings } from '../lib/settings-bus.js'
 import { MAX_BATCH_LINKS, parseLinks, platformLabel, skipSummary } from '../lib/links.js'
 import {
@@ -562,7 +563,8 @@ export function MeetingForm({ t, options, optionsError, initialFile = null, init
     return initial.length === 1 ? titleFromName(initial[0].name) : ''
   })
   const [packTitle, setPackTitle] = React.useState('')
-  const [language, setLanguage] = React.useState('')
+  const [language, setLanguage] = React.useState(() => initialLanguage('', options))
+  const languageTouched = React.useRef(false)
   const [dragging, setDragging] = React.useState(false)
   const [notice, setNotice] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
@@ -574,6 +576,12 @@ export function MeetingForm({ t, options, optionsError, initialFile = null, init
   const multi = files.length > 1
   const ready = files.length > 0 && files.every((file) => file.status === 'ready' && file.path)
   const canSubmit = ready && !busyUploading && !submitting && asrReady
+
+  // 设置里的默认语种可能比这个表单晚到；用户自己选过之后就不再覆盖。
+  React.useEffect(() => {
+    if (languageTouched.current || !options?.default_language) return
+    setLanguage(options.default_language)
+  }, [options?.default_language])
 
   function patchFile(key, patch) {
     setFiles((current) => current.map((file) => (file.key === key ? { ...file, ...patch } : file)))
@@ -677,9 +685,11 @@ export function MeetingForm({ t, options, optionsError, initialFile = null, init
     return (
       <label className="mc-field mc-field-lang">
         <span>{t('new.language')}</span>
-        <select className="mc-input mc-select" value={language} onChange={(event) => setLanguage(event.target.value)}>
-          <option value="">{t('new.auto')}</option>
-          {(options?.languages || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+        <select className="mc-input mc-select" value={language}
+          onChange={(event) => { languageTouched.current = true; setLanguage(event.target.value) }}>
+          {(options?.languages || []).length
+            ? (options.languages || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)
+            : <option value="auto">{t('new.auto')}</option>}
         </select>
       </label>
     )

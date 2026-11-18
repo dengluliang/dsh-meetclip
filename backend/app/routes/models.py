@@ -12,7 +12,7 @@ from pydantic import BaseModel, SecretStr
 
 import asr
 import asr_engines
-import meeting
+import asr_languages
 import model_catalog
 from database import DATA_DIR
 
@@ -89,7 +89,8 @@ def meeting_options(asr_provider: str | None = None):
         raise HTTPException(400, str(exc))
     languages = asr_engines.resolve(config).capabilities.languages
     return {
-        "languages": [{"id": k, "name": v} for k, v in meeting.LANGUAGES if k in languages],
+        "languages": [{"id": k, "name": v} for k, v in asr_languages.LANGUAGES if k in languages],
+        "default_language": asr_languages.default(),
         "asr_ready": asr_engines.ready(config),
         "asr_provider": config["provider"],
         "hotwords_supported": config["provider"] == "local",

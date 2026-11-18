@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import capture
 import link_video
 import asr_engines
+import asr_languages
 import scheduler
 from database import db, session_dir
 from routes.common import require_session
@@ -129,6 +130,7 @@ def link_batch(req: LinkBatchReq):
                 "extractor": info.get("extractor_key") or info.get("extractor") or "", "retrieved_at": time.time(),
             }, has_video=True, has_audio=True, asr_status="queued",
                 transcription_mode=item.transcription_mode,
+                language_hint=asr_languages.default(),
                 subtitle_track_id=(item.subtitle_track_id or summary.get("default_subtitle_track_id"))
                     if item.transcription_mode == "auto" else None,
                 subtitle_status=summary.get("subtitle_status", "unknown"))

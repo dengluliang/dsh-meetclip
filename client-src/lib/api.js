@@ -355,6 +355,37 @@ export function revealPath(target = 'data') {
   return app('/open', { method: 'POST', body: JSON.stringify({ target }) })
 }
 
+/** 在 Finder 里显示一个刚导出的备份文件，或打开备份文件夹。 */
+export function revealFilePath(path) {
+  return app('/open', { method: 'POST', body: JSON.stringify({ target: 'path', path }) })
+}
+
+// ------------------------------------------------------------------ 备份
+
+export function backupCatalog() {
+  return api('/backup/catalog')
+}
+
+export function backupExport(body) {
+  return api('/backup/export', { method: 'POST', body: JSON.stringify(body) })
+}
+
+export function backupInspect(path) {
+  return api('/backup/inspect', { method: 'POST', body: JSON.stringify({ path }) })
+}
+
+export function backupImport(body) {
+  return api('/backup/import', { method: 'POST', body: JSON.stringify(body) })
+}
+
+export function backupJob() {
+  return api('/backup/job')
+}
+
+export function backupCancel() {
+  return api('/backup/cancel', { method: 'POST' })
+}
+
 export function updateSpeakers(id, names = {}, merge = {}) {
   return api(`/sessions/${encodeURIComponent(id)}/speakers`, {
     method: 'PATCH', body: JSON.stringify({ names, merge })

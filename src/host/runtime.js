@@ -393,7 +393,7 @@ export class MeetClipRuntime {
       return []
     }
     if (!Array.isArray(rows)) return []
-    return rows
+    const work = rows
       .filter((row) => ACTIVE_STATUSES.has(row.status) || row.queue_position !== null && row.queue_position !== undefined)
       .map((row) => ({
         id: row.id,
@@ -402,6 +402,43 @@ export class MeetClipRuntime {
         status: row.status,
         queue_position: row.queue_position ?? null
       }))
+    // 备份任务不能在切库时被直接杀掉：导入写一半会留下孤儿目录，所以像采集一样
+    // 先让用户确认，确认后取消任务再切。
+    const backup = await this.backupJob()
+    if (backup) {
+      work.unshift({
+        id: 'backup',
+        title: backup.action === 'import' ? '正在导入备份' : '正在导出备份',
+        kind: 'backup',
+        status: 'backup',
+        queue_position: null
+      })
+    }
+    return work
+  }
+
+  /** 当前备份任务；老后端没有 /api/backup/job 时静默当作没有。 */
+  async backupJob() {
+    try {
+      const data = await this.backend.json('/api/backup/job')
+      const job = data?.job
+      return job && job.state === 'running' ? job : null
+    } catch {
+      return null
+    }
+  }
+
+  /** 取消备份并等它退出（最多 5 秒），给切库让路。 */
+  async cancelBackup() {
+    try {
+      await this.backend.json('/api/backup/cancel', { method: 'POST' })
+    } catch {}
+    const deadline = Date.now() + 5000
+    while (Date.now() < deadline) {
+      if (!(await this.backupJob())) return true
+      await new Promise((resolve) => setTimeout(resolve, 150))
+    }
+    return false
   }
 
   /**
@@ -412,6 +449,10 @@ export class MeetClipRuntime {
     if (!interrupt || !work.length) return { stopped: [], interrupted: false }
     const stopped = []
     for (const item of work) {
+      if (item.kind === 'backup') {
+        await this.cancelBackup()
+        continue
+      }
       if (item.status !== 'recording') continue
       try {
         await this.backend.json(`/api/sessions/${encodeURIComponent(item.id)}/stop`, {

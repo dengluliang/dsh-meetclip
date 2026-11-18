@@ -142,13 +142,14 @@ export function feishuSummary(status) {
   if (dsh.conflict) {
     return { tone: 'error', text: '配置冲突', detail: `serverName「${dsh.serverName}」已有其他条目在用` }
   }
-  if (!runtime.npxOk) return { tone: 'error', text: '需要 Node.js 20+', detail: '没有找到 npx，装好 Node.js 后重试' }
-  if (!runtime.nodeOk) {
-    return {
-      tone: 'error',
-      text: '需要 Node.js 20+',
-      detail: runtime.node ? `当前 Node ${runtime.nodeVersion}，需要 20 以上` : '装好 Node.js 后重试'
-    }
+  // 0.9.21 起默认「本地安装」：用 DSH 自带的 node + pnpm，不需要 npx。
+  // 只有 runtime.ready 为假才真的没法装；旧版本没这个字段时按 npx 判定。
+  const runtimeReady = runtime.ready === undefined ? Boolean(runtime.npxOk && runtime.nodeOk) : Boolean(runtime.ready)
+  if (!runtimeReady) {
+    const detail = runtime.mode === 'npx'
+      ? (runtime.npx ? `当前 Node ${runtime.nodeVersion || '?'}，需要 20 以上` : '没有找到 npx：装 Node.js 20+，或在 meetclip config 里把 feishuMode 设为 local')
+      : '找不到可用的 node 运行时（DSH 自带运行时异常），可在 meetclip config 里把 feishuMode 设为 npx'
+    return { tone: 'error', text: '运行环境不可用', detail }
   }
   if (!dsh.entryPresent) return { tone: 'pending', text: '未安装' }
   if (!auth.loggedIn) {

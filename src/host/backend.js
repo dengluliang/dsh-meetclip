@@ -437,6 +437,16 @@ export class BackendManager {
       env.MEETCLIP_AI_BASE_URL = this.settings.aiBaseUrl
       env.MEETCLIP_ASR_BASE_URL = this.settings.aiBaseUrl
     }
+    // 自举镜像：后端（pip 依赖 / ffmpeg 静态包）与主机侧用同一组变量名，
+    // 部署配置优先，其次才是启动进程的环境变量。
+    const mirrors = {
+      MEETCLIP_PYPI_MIRROR: this.settings.pypiMirror || process.env.MEETCLIP_PYPI_MIRROR || '',
+      MEETCLIP_PYTHON_MIRROR: this.settings.pythonMirror || process.env.MEETCLIP_PYTHON_MIRROR || '',
+      MEETCLIP_FFMPEG_MIRROR: this.settings.ffmpegMirror || process.env.MEETCLIP_FFMPEG_MIRROR || ''
+    }
+    for (const [key, value] of Object.entries(mirrors)) {
+      if (String(value || '').trim()) env[key] = String(value).trim()
+    }
     if (fs.existsSync('/etc/ssl/cert.pem')) env.SSL_CERT_FILE = '/etc/ssl/cert.pem'
     return env
   }

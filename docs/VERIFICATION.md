@@ -1,3 +1,183 @@
+## 0.9.21 飞书 MCP 本地安装（2026-11-18）
+
+### 现象与根因
+
+- 全新 Mac 上「安装并连接」失败，界面要求 Node.js 20+：`install` / `resolveLatest` / `login` 全部拼 `npx -y --registry=… <pkg>@<ver>`。
+- DSH 自带 node 运行时（`ELECTRON_RUN_AS_NODE` 的 Electron 24）与自带 pnpm 11.28.5 没被使用。
+
+### 改动
+
+- 新增 `src/host/feishu-local.js`：`findNodeRuntime`（系统 node → DSH Electron）、`findInstaller`（config `feishuPnpm` → DSH pnpm → PATH pnpm/npm）、`fetchLatestVersion`（registry packument，不经过 npx）、`pickBinEntry`、`launcherScript`、`installLocalPackage`、`localStatus`、`resolveStrategy`。
+- `feishu.js`：install 主流程分层（本地优先、失败降级 npx）、`cliPlan()` 统一 login/logout/setup/probe 的命令形态、`status().runtime` 增加 `mode/ready/installer/local`、`renderEntryBlock` 支持 `local` 注记。
+
+### 自动化验证
+
+- `node --test tests/*.test.mjs` → **312/312**。新增 `tests/feishu-local.test.mjs` 9 项，其中两项是真跑进程的：
+  - `installLocalPackage` + 真 `probeMcpServer`：假 pnpm 造一个最小 MCP 服务，启动器拉起来后返回 `toolCount=1`；
+  - `manager.start('install')`：写入 `~/.dsh` 临时补丁、断言 `# local 0.27.4`、`command: '…/feishu-mcp/run.sh'`、`args: []`、不含 `npx`，并且连接测试通过。
+- 原有 `tests/feishu.test.mjs` 26/26 未改一行仍通过（`feishuMode` 默认 local，但 `binaries()` 被替换的旧用例走 npx 分支）。
+
+### 真机端到端（两条链路）
+
+| 链路 | 命令 | 结果 |
+|---|---|---|
+| 系统 npm | `npm install --prefix /tmp/fs-e2e/state/feishu-mcp @mi/feishu-mcp-pro@0.27.4 --registry=<私有源>` | 14.0 s 装完，`run.sh` 探测 **52 个工具** |
+| DSH 自带 pnpm + Electron 当 node | `…/pnpm.cjs add --dir … --store-dir … --ignore-scripts` | 依赖树 71 MB / 131 包，`run.sh` 探测 **52 个工具** |
+
+- 生成的补丁片段（本地模式）：
+
+```yaml
+- insert:
+    - id: mcp-feishu-pro
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: feishu
+        transport: stdio
+        command: '/Users/…/.dsh/meetclip/feishu-mcp/run.sh'
+        args: []
+        env:
+          PATH: '…'
+        failOnStartupError: false
+        # local 0.27.4
+```
+
+- 启动器内容（`~/.dsh/meetclip/feishu-mcp/run.sh`）：`export ELECTRON_RUN_AS_NODE=1` + 固定 `exec "<node>" "<entry>" "$@"`，因此 DSH 之后任何会话拉起它都不再依赖 PATH 上的 Node。
+
+### 安装副本同步
+
+- `client.js`、`src/host/{feishu.js,feishu-local.js,config.js}`、`package.json`（0.9.21）已同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；同步前备份 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.21-*.tgz`。
+- 现有本机补丁仍是 npx 形态（0.9.20 及更早写入），点一次「重新安装」即可切成本地启动器；不点也照常工作。
+
+## 0.9.20 新机器自举：uv / CPython / ffmpeg 全部自动下载（2026-11-18）
+
+### 现象与根因
+
+- 新 Mac 首次安装：`create-env` 抛 `未找到 Python 3.10+，也没有 uv。请安装 uv 或 Homebrew python@3.12 后重试`；接着采集组件弹终端装 Homebrew，卡在 `Error in the HTTP2 framing layer` / `Failed to connect to github.com port 443`，并提示 macOS 14.7 不受支持。
+- 根因：`src/host/setup.js` 把「找 Python」当前提而不是自己解决；`backend/app/deps.py` 只会 `brew install`，没 brew 就让用户去装 Homebrew。
+
+### 自举链路
+
+| 步骤 | 内容 | 来源顺序 | 体积 |
+|---|---|---|---|
+| 1 | `uv`（wheel 内的二进制） | 系统已有 → 清华 PyPI → 阿里云 → 官方 | ~17 MB |
+| 2 | CPython 3.12（`install_only`） | npmmirror → 官方跳转 | ~16 MB |
+| 3 | 后端依赖 wheel | 清华 PyPI → 阿里云 → 官方 | ~60 MB |
+| 4 | `yt-dlp` | 软链独立环境里的 console script（0 下载） | 0 |
+| 5 | `ffmpeg` / `ffprobe` | osxexperts → GitHub 代理 → imageio-ffmpeg | ~50 MB |
+
+- 1、2 任一步失败都会继续下一条；机器上已有 ≥3.10 的 Python 时可以直接用系统解释器建 venv。
+- 采集组件落在 `~/.dsh/meetclip/bin/`（后端 `PATH` 首位 + `ZHIBO_BIN_DIR`），不写系统目录、不要管理员密码。
+- Homebrew 仅在机器上**已经**有 brew 时兜底。
+- 镜像可用 config（`pypiMirror`/`pythonMirror`/`ffmpegMirror`）或同名环境变量覆盖，`backend.js` 把三个变量透传进引擎环境。
+
+### 自动化验证
+
+- 前端：`node --test tests/*.test.mjs` → **303/303**；新增 `tests/bootstrap.test.mjs` 8 项（含相对 `href` 解析、架构过滤、版本数字比较、standalone 资产挑选与变体排除、release 目录倒序、环境变量覆盖、wheel 内 `uv` 定位）。
+- 后端：`MEETCLIP_TEST_PYTHON="$HOME/.dsh/meetclip/venv/bin/python" backend/tests/run-all.sh` → **33 个文件全 PASS**；新增 `backend/tests/test_deps_install.py` 13 项（源顺序/架构/环境变量覆盖、zip 与 gz 解包及 chmod、`verify` 首行与错误、yt-dlp 软链指向 venv、已有组件不重复下载、首个源失败自动换源、全部失败的可读报错）。
+- 两个测试文件都做了离线化处理：`test_deps_install.py` 用 `capture` 桩避免拉 numpy，下载与 `verify` 全用 mock，不触网。
+
+### 真机端到端（模拟全新 Mac）
+
+- `HOME=/tmp/mc-home PATH=/usr/local/bin:/usr/bin:/bin`（看不到 `~/bin/uv`、Homebrew）跑 `prepareEnvironment` + `installRequirements`：
+  - `uv 0.13.9` 从 `pypi.tuna.tsinghua.edu.cn` 的 wheel 解出，落到 `state/bin/uv`；
+  - `UV_PYTHON_INSTALL_MIRROR=https://registry.npmmirror.com/-/binary/python-build-standalone` 下拿到 **CPython 3.12.16**，venv 建好；
+  - 依赖从清华源装完 **145.7 s**，`import fastapi, yt_dlp` → `deps ok`。
+- 采集组件按真实线程流程跑 `deps.start()`：`yt-dlp` 软链 → `ffmpeg-7.0`（20 MB，osxexperts）→ `ffprobe-7.0`（19.9 MB），逐行进度日志正常，结束时 `running=False / done=True`，三个二进制 `-version` 都能跑。
+- 镜像可控性：`MEETCLIP_FFMPEG_MIRROR` 置于链首时优先生效（单测覆盖）。
+
+### 安装副本同步
+
+- `npm pack` → `meetclip-dsh-meetclip-0.9.20.tgz`（830 KB，101 个文件）→ 解包后 `rsync -a --delete --checksum` 到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；`diff -r` 与解包目录一致，`package.json` 为 `0.9.20`。
+- 同步前备份：`~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.20-20261118-105055.tgz`（836 KB）。
+- 逐文件核对：`src/host/bootstrap.js`、`src/host/setup.js`、`src/host/backend.js`、`backend/app/deps.py`、`client.js` 与工作区 `cmp` 全部一致；`client.js` 里已是新文案（转义后的「自动下载运行环境」命中 1 处）。
+- 生效条件：Host（`setup.js`/`bootstrap.js`/`backend.js`）与 `client.js` 要重启 DSH；`deps.py` 随引擎重启加载。本机引擎仍在跑旧 `deps.py`，采集组件本来就齐全，不影响使用。
+
+## 0.9.19 转写默认中文（2026-11-16）
+
+### 现象与根因
+
+- 中文 B 站视频「小米澎湃OS 4---脱胎换骨」的转写整篇是阿拉伯文；同类中文视频也会落到外文轨。
+- B 站 `metadata.json` 的 `subtitles` 同时有 `ai-zh / ai-en / ai-ja / ai-es / ai-ar / ai-pt`，`language` 为 `null`、没有 `-orig` 标记；`subtitles.candidates()` 按字母序排序，第一条是 `ar:automatic`，无默认轨时任务取第一条。
+- 链接视频入队没有语种提示，转写参数为空；云端 ASR 走 `auto`，片头自动检测容易判错。云端转写完成也不回写 `language`，字幕残留的 `ar` 留在记录信息里。
+
+### 自动化验证
+
+- 后端：`MEETCLIP_TEST_PYTHON="$HOME/.dsh/meetclip/venv/bin/python" backend/tests/run-all.sh` → **32 个文件全 PASS**。新增 `backend/tests/test_asr_language.py` 10 项：默认中文 / `en`、`zh` 短代码归一 / `auto` 保留 / 设置改默认与非法值 400 / 空提示与历史空值跟随默认 / 会议入队参数与 `language_hint` / 链接记录写入中文提示 / B 站多轨优先 `zh:automatic` 且外语轨仍要求选择 / 原声已知时原声优先 / 云端任务用默认语种并清掉字幕遗留的 `language`、`subtitle_language`、`subtitle_source_language`、`subtitle_track_id`。
+- 前端：`node --test tests/*.test.mjs` **295/295**（新增 `tests/language.test.mjs` 2 项：`default_language` 兜底、已有提示不覆盖）；`node build/render-smoke.mjs`、`node build/interaction-smoke.mjs` 均 PASS。
+- 真实元数据离线复核（只读 `data/<sid>/source/metadata.json`，不转写、不改库）：
+
+  | 记录 | 标题 | 修复前（无默认轨，候选第一条） | 修复后默认轨 |
+  | --- | --- | --- | --- |
+  | `331c7b3324a1` | 小米澎湃OS 4---脱胎换骨 | `ar:automatic`（记录实际落了 ar） | `zh:automatic` |
+  | `806571aed45a` | 澎湃OS4.0初体验… | `ar:automatic`（记录实际落了 ar） | `zh:automatic` |
+  | `2a619b8907e4` | 学不如抄？Anthropic… | `ar:automatic`（记录里已显式选 zh） | `zh:automatic` |
+
+### 安装副本与引擎重启
+
+- 已同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`：`client.js`、`package.json`、`src/host/tools.js` 与 `backend/app/{asr.py,asr_engines.py,asr_languages.py,capture.py,meeting.py,settings.py,subtitles.py,routes/{link_videos,meetings,models,system}.py}`，逐个 `cmp` 一致。
+- 旧引擎 PID 30449 / 32172 先后收到 SIGTERM 退出；用同一套环境（`ZHIBO_DATA_DIR`、`MEETCLIP_SHARED_DIR`、venv python、uvicorn 参数）在 `backend/` 目录重启，最终 `/api/health` 返回 `pid=32458`，Host 状态自动切换为 `attached`。重启后接口实测：
+  - `GET /api/meeting/options` → `languages` 首项 `id=auto`，并新增 `default_language: "Chinese"`；
+  - `GET /api/settings` → `asr_language: "Chinese"`；
+  - `POST /api/link-videos/preview` 用出问题的那条 B 站链接 `BV1rfgP6yEHW` 实测（只预读、不建记录）：`default_subtitle_track_id=zh:automatic`、`subtitle_selection_required=false`，选项顺序 `zh / en / ar / es / ja / pt`。
+- `client.js` 在打开页面时加载，**刷新 DSH 页面**后会议表单 / 补转录弹窗 / 设置 → 模型会显示新的「默认语种」；`src/host/tools.js` 只是 Agent 工具参数文案，随 DSH 重启生效，不影响转写。后端的新默认值即时生效（旧页面继续提交空语种也会按默认中文处理）。
+
+### 真实资料库清理（本机，一次性）
+
+- 全库脚本扫描后只有两条非英文外语转写：`331c7b3324a1`（107 行）与 `806571aed45a`（98 行）整篇阿拉伯文；其余记录均为中文或英文。
+- 两条都用平台自带的中文 AI 字幕重新导入（`LinkTask._import_subtitles`，字幕内联在 `metadata.json`，不下载、不调用 ASR、不消耗额度）：分别得到 111 行 / 97 行中文，`title`、缩略图、时间轴与媒体不变，`transcription_source=subtitle`、`subtitle_language=zh`、`language=zh`。
+- `331c7b3324a1` 的旧 AI 纪要来自阿拉伯文转写，术语表「听作」里留着 4 组阿拉伯语变体；按新中文字幕清空这些 **只属于旧转写的听错写法**（不改总结/章节/结论），用 `minutes.materialize_notes(force=True)` 重写笔记块，再 `POST /api/cards/sync?force=1` 刷新 26 张 @ 卡片。结构化纪要、笔记与卡片都不再含阿拉伯文。
+- 另修正 `2b7dc5f9a612` 的过时语种标签（转写一直是中文，`language` 却残留 `ar`）为 `zh`。
+- 清理前备份：`~/.dsh/meetclip/backups/transcripts-zh-20261116-120743/`，内含整库 SQLite 快照（`.backup` API，含 WAL 内容）、两条记录的 `transcripts.json`、`session.json`（含笔记）与旧 `subtitles/` 目录。回滚时可用快照覆盖 `zhibo.db` 或按记录恢复转写/笔记。
+- 清理后全库扫描：转写、标题、笔记、纪要 JSON、`会摘卡片/*.md` 中阿拉伯文/西里尔文/假名/谚文/泰文命中数均为 0；英文记录（Brett Adcock、Alexandr Wang 等）保持英文不动。
+
+### 已知边界
+
+- B 站不声明哪条 AI 字幕是原声；多轨且原声未知时按设置的默认语种优先（默认中文）。若某个 B 站视频原声是外语，预读页仍可在字幕语言下拉里改选，或把设置改成对应语种。
+- 显式选「自动识别」时仍交给云端/本地检测，检测结果可能受片头音乐、多人重叠说话影响；要稳定中文就保持默认。
+- 只改默认值，不自动重转历史记录；旧的外文记录可在详情页「转写选项」里选中文后重新转写（会调用云端 ASR，产生额度消耗）。
+
+## 0.9.18 备份与迁移（2026-11-16）
+
+### 功能范围
+
+- 设置 → 备份：按卡片勾选导出（记录 / 卡包 / 便利签 / 标记 / 图片 / 飞书文档 / 批次），全选、按类型全选、标题搜索；卡包展开成员；标记/批次自动带上所属记录。
+- 导出默认不含媒体，勾选后带媒体；流式写 zip、进度、取消、SHA-256、Finder 中显示；默认目录 `<资料库>/备份/`。
+- 导入先读清单再确认；记录/便利签/图片/卡包新 id，mark 旧→新映射，批次 id 与卡包成员重映射，文档卡按链接去重；未完成状态归一为终态。
+- `backup_import_items` 去重：同备份重复导入默认跳过；可选再存一份。
+- 失败/取消清理新建文件与目录；启动清理中断残留；备份任务与切库互斥（确认后先取消任务）。
+
+### 自动化验证
+
+- 后端：`MEETCLIP_TEST_PYTHON="$HOME/.dsh/meetclip/venv/bin/python" backend/tests/run-all.sh` → **31 个文件全 PASS**。新增 `backend/tests/test_backup.py` 13 项：catalog 全卡型与体积；manifest/布局/无媒体与有媒体导出；卡包成员展开含文档前缀归一；空库往返（id 重映射、转写/纪要/互动/截图/封面/便利签/图片/文档/卡包成员）；二次导入跳过与强制复制；未完成状态与批次 id 重映射；缺媒体时清 `asr_failures`；空选择/非法目录；坏 zip、错格式、高版本、zip-slip 拒绝；损坏 record.json 时任务失败且库不变。
+- Host：`node --test tests/host-picker.test.mjs` 7/7（备份选择框脚本、`revealPath` 只接受绝对存在路径）；`tests/libraries.test.mjs` 14/14（新增「备份任务在跑时切库要确认，确认后先取消备份」）。
+- 前端：`node --test tests/*.test.mjs` **293/293**（新增 `tests/backup-client.test.mjs` 7 项：选择集/展开/体积/文案/进度/导入摘要）；`node build/render-smoke.mjs`（settings slot 增加「备份」断言）、`node build/interaction-smoke.mjs` 均 PASS。
+- 预览：`node build/build-backup-preview.mjs` + `node build/backup-preview-shot.mjs [--light] [--scenario=import|done|importdone]`，真实 `SettingsBackup` + mock 后端，核对深/浅色、导出中、导出完成、导入中、导入完成五种状态；`docs/assets/backup-preview.png` 为深色导出中 + 导入清单。
+
+### 真实资料库冒烟（临时副本，不动用户资料）
+
+1. 复制真实 `zhibo.db` 与卡包 3 条记录的目录（只带封面，不带媒体）到 `/tmp/mc-backup-smoke-a`，用工作区后端代码在 8399 启动。
+2. `POST /api/backup/export` 选卡包 `pack 81a26c275e57`、不含媒体 → 169,150 B zip；manifest：records 3、transcripts 736、minutes 3、docs 2、packs 1；SHA-256 正常。
+3. `POST /api/backup/inspect` → 数量、来源、`already_imported` 全 0、`media_included=false`。
+4. 空目录 `/tmp/mc-backup-smoke-b` 起第二个后端（8400），`POST /api/backup/import` → 3 条记录 / 2 篇文档 / 1 个卡包；`GET /api/home` 显示 3 条记录、卡包成员 3 记录 + 2 文档、2 篇文档卡 `has_content=true`；详情 40/48/648 行转写、`media_path=null`、纪要正文可读；`会摘卡片/` 生成记录卡与卡包卡。
+5. 同一备份再次导入 → `counts` 全 0、`skipped` records 3 / docs 2 / packs 1，会话数仍 3。
+6. 冒烟后停后端并删除 `/tmp/mc-backup-smoke-*`。
+
+### 安装副本与运行冒烟（本机）
+
+- 已把 `client.js`、`package.json`、`src/host/{files,routes,runtime}.js`、`backend/app/{backup.py,database.py,main.py,routes/backup.py}` 同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`，逐文件 SHA-256 一致；同步前留 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.18-20261116-114935.tgz`。
+- 等资料库没有采集中/转写中的任务后，给本地引擎 PID 发 SIGINT，Host 自动重启为新代码。`GET /api/backup/catalog` 返回 23 条记录、2 个卡包、默认目录 `<dataDir>/备份`；`POST /api/backup/export` 导出 1 条短视频记录（8 行转写、1 份纪要、不含媒体）到 `/tmp`，`inspect` 计数与 manifest 一致，随后删除临时目录。
+- **Host 改动（备份选择框、在 Finder 中显示、切库保护）跑在 DSH 主进程里，需要重启 DSH 后才生效**；`client.js` 打开页面时加载，刷新 DSH 页面即可看到「备份」页签。后端已经先行生效，因此刷新后即使不重启 DSH，导出/导入主流程也能用（只是系统选择框文案仍是旧的音视频提示、「在 Finder 中显示」会报未知目标）。
+
+### 发布包演练
+
+- `node build/release.mjs --dry-run` 通过：重建 `client.js`、前端 293 项测试、打 `dist/release/0.9.18/dsh-meetclip-0.9.18.tgz`（836,140 bytes，sha256 `602bede21229f305461d968d9ace8d74f17bffa57daccc4fb1e6cd5d797ca6e4`，99 个条目，含 `backend/app/backup.py`、`backend/app/routes/backup.py`），并生成 `latest.json` / `SHA256SUMS.txt`。**未上传 GitHub**（需要用户明确要求）。
+
+### 已知边界
+
+- 备份是普通 zip，未加密；敏感资料的分享范围由用户自己控制。
+- 媒体只带 `media_path`（会议/直播/视频统一），`asr_chunks/` 等中间文件不带；没有媒体的记录不能补齐中断转写。
+- 跨资料空间一次只导入当前激活空间；不覆盖整库、不合并到指定空间。
+
 ## 0.9.17 解压安装的副本也能在应用内升级（2026-11-16）
 
 ### 现象与根因
