@@ -1097,9 +1097,17 @@ try {
   await act(async () => { newPackButton.props.onClick() })
   await flush(140)
   const packNodes = () => cardNodes().filter((node) => node.props['data-type'] === 'pack')
+  // 卡包正面是组件（封面），textOf 只走 props.children 会看不到里面的标题和张数，
+  // 所以这里按 renderer 的实例树取文本。
+  const nodeText = (node) => {
+    if (node == null) return ''
+    if (typeof node === 'string' || typeof node === 'number') return String(node)
+    if (Array.isArray(node)) return node.map(nodeText).join('')
+    return (node.children || []).map(nodeText).join('')
+  }
   const packText = (node) => {
     const article = node?.findAll((child) => typeof child.props?.className === 'string' && child.props.className.includes('mc-pack-card'))[0]
-    return article ? textOf(article.props.children) : ''
+    return article ? nodeText(article) : ''
   }
   let currentPack = packNodes()[0]
   if (!currentPack) throw new Error('New empty pack card missing')
@@ -1151,6 +1159,32 @@ try {
   if (!firstPackModal.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-sticky-card')).length) {
     throw new Error('Pack overlay did not reuse the sticky card component')
   }
+
+  // ---- 卡包浮层里右键成员卡：和首页一样「基于此卡片提问」，不自动发送 ----
+  const firstPackRow = firstPackModal.findAll((node) => node.props?.className === 'mc-pack-row')[0]
+  if (!firstPackRow) throw new Error('Pack overlay member row missing')
+  const draftsBeforeMemberAsk = agentDrafts.length
+  await act(async () => { firstPackRow.props.onContextMenuCapture(fakeEvent()) })
+  await flush(60)
+  text = JSON.stringify(renderer.toJSON())
+  for (const expected of ['基于此卡片提问', '移出卡包']) {
+    if (!text.includes(expected)) throw new Error('Pack member context menu missing ' + expected)
+  }
+  const memberAskButton = renderer.root.findAllByType('button')
+    .find((node) => textOf(node.props.children).startsWith('基于此卡片提问'))
+  if (!memberAskButton) throw new Error('Pack member ask action missing')
+  await act(async () => { memberAskButton.props.onClick() })
+  await flush(120)
+  if (agentDrafts.length <= draftsBeforeMemberAsk) throw new Error('Pack member ask did not prepare an Agent draft')
+  const memberDraft = agentDrafts[agentDrafts.length - 1]
+  if (!memberDraft?.references?.[0]?.ref?.includes('会摘卡片')) {
+    throw new Error('Pack member ask draft missing card reference: ' + JSON.stringify(memberDraft))
+  }
+  if (!agentCalls.some(([kind]) => kind === 'open')) throw new Error('Pack member ask did not open Agent session')
+  if (!renderer.root.findAll((node) => typeof node.props?.className === 'string' && node.props.className.includes('mc-pack-modal')).length) {
+    throw new Error('Asking from the pack menu should keep the pack overlay open')
+  }
+
   const packTitleInput = renderer.root.findAll((node) => node.props?.['aria-label'] === '卡包名称')[0]
   if (!packTitleInput) throw new Error('Pack title input missing')
   await act(async () => { packTitleInput.props.onChange({ target: { value: '本周复盘' } }) })

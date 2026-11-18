@@ -1,5 +1,6 @@
 import { clock, dateTime, kindInfo, statusText } from '../../lib/format.js'
 import { movePackMember, packMemberKey } from './pack-model.js'
+import { packMemberMenuItems } from './pack-member-menu.js'
 
 function memberLabel(member) {
   if (!member) return ''
@@ -58,8 +59,8 @@ function FallbackCard({ member, t, onOpen }) {
 }
 
 export function PackOverlay({
-  pack, t, busy = false, renameFocus = false, memberEntries = null, renderEntry,
-  onClose, onOpenMember, onRemoveMember, onDissolve, onRename, onReorder
+  pack, t, busy = false, renameFocus = false, memberEntries = null, renderEntry, menuOpen = false,
+  onClose, onOpenMember, onRemoveMember, onDissolve, onRename, onReorder, onAskMember, onOpenMenu
 }) {
   const inputRef = React.useRef(null)
   const cancelRef = React.useRef(false)
@@ -104,6 +105,12 @@ export function PackOverlay({
     function onKey(event) {
       if (event.key !== 'Escape') return
       if (event.target === inputRef.current) return
+      // 右键菜单开着时，Esc 只收菜单（ContextMenu 自己的捕获监听会收起它），
+      // 不要把整个卡包一起关掉。
+      if (menuOpen) {
+        event.stopPropagation()
+        return
+      }
       if (reorderRef.current) {
         event.stopPropagation()
         cancelReorder()
@@ -114,7 +121,7 @@ export function PackOverlay({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  }, [menuOpen, onClose])
 
   React.useEffect(() => () => {
     removeGhost()
@@ -347,6 +354,30 @@ export function PackOverlay({
     }
   }
 
+  // 右键菜单的动作同样先落地正在编辑的卡包名，避免「提问 / 打开」把刚改的名字丢掉。
+  function runWithSavedTitle(action) {
+    if (typeof action !== 'function') return
+    const value = String(title || '').trim()
+    if (value && value !== (pack?.title || '')) {
+      commitTitle().finally(() => action())
+    } else {
+      action()
+    }
+  }
+
+  // 菜单项在首页（ContextMenu）渲染，z-index 高于卡包浮层；这里只负责组装动作。
+  function openMemberMenu(member, event) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (typeof onOpenMenu !== 'function') return
+    onOpenMenu(event, packMemberMenuItems(member, {
+      locked: busy || savingOrder,
+      onAsk: (target) => runWithSavedTitle(() => onAskMember?.(target)),
+      onOpen: (target) => runWithSavedTitle(() => onOpenMember?.(pack, target)),
+      onRemove: (target) => runWithSavedTitle(() => onRemoveMember?.(pack, target))
+    }))
+  }
+
   if (!pack) return null
   const members = order
   const count = members.length
@@ -411,10 +442,7 @@ export function PackOverlay({
                     event.preventDefault()
                     event.stopPropagation()
                   }}
-                  onContextMenuCapture={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                  }}>
+                  onContextMenuCapture={(event) => openMemberMenu(member, event)}>
                   <div className="mc-pack-row-card">
                     {entry && typeof renderEntry === 'function'
                       ? renderEntry(entry, { packMode: true, onOpenMember: () => onOpenMember?.(pack, member) })

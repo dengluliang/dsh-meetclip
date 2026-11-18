@@ -43,6 +43,9 @@ const images = showBoardImage
   ? [{ id: 'i1', path: 'board-images/i1.png', width: 840, height: 620, x: showcase ? 400 : -380, y: 300, created_at: now - 1800 }]
   : []
 
+// 卡包封面要同时看到「四格底片」和「超过四格收成 +N」两种形态：
+// pack-preview-1 是 4 张的常规包，pack-preview-2 是 6 张的混合包。
+const showEmptyPack = new URLSearchParams(window.location.search).get('empty') === '1'
 const previewPacks = new URLSearchParams(window.location.search).get('packs') === '1'
   ? [{
     id: 'pack-preview-1',
@@ -57,7 +60,30 @@ const previewPacks = new URLSearchParams(window.location.search).get('packs') ==
       { type: 'highlight', id: '1', title: highlights[0].note, subtitle: highlights[0].session_title, kind: 'link_video', status: 'done', session_id: highlights[0].session_id, session_title: highlights[0].session_title, ts: highlights[0].ts, created_at: highlights[0].created_at },
       { type: 'note', id: 'n1', title: '周末把散落画布的拖拽手感再调一遍', subtitle: '待办清单', kind: 'todo', status: 'done', created_at: notes[0].created_at }
     ]
-  }]
+  }, {
+    id: 'pack-preview-2',
+    title: 'AI 硬件与端侧模型',
+    created_at: now - day * 1.4,
+    updated_at: now - day * 0.1,
+    count: 6,
+    active_count: 1,
+    members: [
+      { type: 'session', id: 's3', title: sessions[2].title, kind: 'link_video', status: 'done', created_at: sessions[2].started_at, duration: sessions[2].duration, active: false },
+      { type: 'session', id: 's4', title: sessions[3].title, kind: 'meeting', status: 'recording', created_at: sessions[3].started_at, duration: sessions[3].duration, active: true },
+      { type: 'session', id: 's5', title: sessions[4].title, kind: 'live', status: 'done', created_at: sessions[4].started_at, duration: sessions[4].duration, active: false },
+      { type: 'session', id: 's6', title: sessions[5].title, kind: 'link_video', status: 'done', created_at: sessions[5].started_at, duration: sessions[5].duration, active: false },
+      { type: 'highlight', id: '2', title: highlights[1].note, subtitle: highlights[1].session_title, kind: 'meeting', status: 'done', session_id: highlights[1].session_id, session_title: highlights[1].session_title, ts: highlights[1].ts, created_at: highlights[1].created_at },
+      { type: 'note', id: 'n2', title: '下次直播开场先讲一个问题', subtitle: '便利签', kind: 'note', status: 'done', created_at: notes[1].created_at }
+    ]
+  }, ...(showEmptyPack ? [{
+    id: 'pack-preview-3',
+    title: '卡包 3',
+    created_at: now - day * 2.2,
+    updated_at: now - day * 2.2,
+    count: 0,
+    active_count: 0,
+    members: []
+  }] : [])]
   : []
 
 const homePayload = {
@@ -144,6 +170,14 @@ window.fetch = async (input, init = {}) => {
   if (target.includes('/api/packs/')) {
     const pack = previewPacks[0]
     if (!pack) return json({ ok: false, detail: '卡包不存在' }, false, 404)
+    if (target.includes('/members/remove')) {
+      const body = JSON.parse(init.body || '{}')
+      const wanted = new Set((Array.isArray(body.members) ? body.members : []).map((member) => `${member.type}-${member.id}`))
+      pack.members = pack.members.filter((member) => !wanted.has(`${member.type}-${member.id}`))
+      pack.count = pack.members.length
+      pack.updated_at = Math.floor(Date.now() / 1000)
+      return json({ ok: true, pack })
+    }
     if (method === 'PATCH' && target.split('/api/packs/')[1]?.includes('/members')) {
       const body = JSON.parse(init.body || '{}')
       const order = Array.isArray(body.members) ? body.members : []
@@ -239,6 +273,15 @@ if (window.location.search.includes('demo=pack-hotzone')) {
     }
     // 不松手：让 160ms 上膛动画和提示停在截图里。
   }, 1500)
+}
+
+if (window.location.search.includes('demo=feed')) {
+  // 截图用：切到信息流，检查卡包封面在 260px 窄列里的排版。
+  setTimeout(() => {
+    const tab = [...document.querySelectorAll('button[role="tab"]')]
+      .find((node) => node.textContent.trim() === '信息流')
+    tab?.click()
+  }, 1200)
 }
 
 if (window.location.search.includes('demo=pack-overlay')) {

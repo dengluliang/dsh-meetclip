@@ -1735,8 +1735,11 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
         <PackOverlay pack={openPack} t={t}
           busy={packBusy}
           renameFocus={packRenameFocus}
+          menuOpen={Boolean(menu)}
           memberEntries={rawEntryByKey}
           renderEntry={renderEntry}
+          onOpenMenu={openMenu}
+          onAskMember={(member) => askAgentAboutCard(member?.type, member)}
           onClose={() => { setOpenPackId(''); setPackRenameFocus(false) }}
           onOpenMember={openPackMember}
           onRemoveMember={removePackMember}

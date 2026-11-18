@@ -27,7 +27,12 @@ export function ContextMenu({ menu, onClose }) {
     const onPointer = (event) => {
       if (ref.current && !ref.current.contains(event.target)) onClose()
     }
-    const onKey = (event) => { if (event.key === 'Escape') onClose() }
+    const onKey = (event) => {
+      if (event.key !== 'Escape') return
+      // 菜单是最顶层：Esc 只用来收菜单，别让底下的弹层/页面同时处理这次按键。
+      event.stopPropagation()
+      onClose()
+    }
     const onBlur = () => onClose()
     window.addEventListener('mousedown', onPointer, true)
     window.addEventListener('keydown', onKey, true)

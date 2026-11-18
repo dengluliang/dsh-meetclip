@@ -33,8 +33,8 @@ export function TopBar({
         </button>
       ) : null}
       {onHelp ? (
-        <button type="button" className="mc-topbar-tool" aria-label="使用指南" title="使用指南"
-          onClick={onHelp}>?</button>
+        <button type="button" className="mc-topbar-tool mc-topbar-tool-text" aria-label="使用指南" title="使用指南"
+          onClick={onHelp}>帮助</button>
       ) : null}
       {onSettings ? (
         <button type="button" className="mc-topbar-tool mc-topbar-tool-text" aria-label="设置"

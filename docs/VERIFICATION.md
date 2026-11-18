@@ -1,3 +1,45 @@
+## 0.9.22 卡包浮层成员卡右键「基于此卡片提问」（2026-11-18）
+
+### 现象与根因
+
+- 卡包浮层 `PackOverlay` 的成员行用 `onContextMenuCapture` 只做 `preventDefault`/`stopPropagation`，把成员卡自己的右键动作一起吞掉了；首页记录/便利签/标记/图片/批次/文档/卡包都能右键「基于此卡片提问」，唯独展开卡包后不行。
+- 浮层里显示的是首页同一套卡片组件（`renderEntry(entry, { packMode: true })`），`packMode` 会显式把各卡的 `onMenu` 置空，所以即使去掉行级拦截也拿不到菜单。
+
+### 改动
+
+- 新增纯函数 `client-src/components/home/pack-member-menu.js`：生成 `基于此卡片提问`（首项）、按成员类型给 `打开记录/打开批次/打开文档`（仅 session/highlight/batch/doc）、最后 `移出卡包`（hint「不删除记录」）。
+- `PackOverlay.jsx`：成员行右键改调 `openMemberMenu(member, event)`；菜单交给首页 `ContextMenu` 渲染（新增 `onOpenMenu` prop，z-index 1000 高于浮层 z-index 40），新增 `onAskMember`；三个动作都先 `runWithSavedTitle` 提交正在编辑的卡包名；`menuOpen` 透传后 Esc 只收菜单。
+- `HomePage.jsx`：给 `PackOverlay` 传 `onOpenMenu={openMenu}`、`onAskMember={(member) => askAgentAboutCard(member.type, member)}`、`menuOpen={Boolean(menu)}`。
+- `ContextMenu.jsx`：Esc 时先 `event.stopPropagation()` 再 `onClose()`，让菜单成为 Esc 的唯一消费者（此前浮层/页面会同时收到同一个 Esc）。
+- 提问只依赖成员 `type`/`id`，所以成员尚未落入当前信息流分页、浮层显示 `FallbackCard` 时同样可用。
+
+### 自动化验证
+
+- `node --test tests/*.test.mjs` → **317/317**。新增 `tests/pack-member-menu.test.mjs` 5 项：首项提问、按类型给打开文案、移出排最后且提示不删记录、`locked` 时只锁打开/移出、空成员返回空数组。
+- `node build/interaction-smoke.mjs` → PASS。新增：渲染真实卡包浮层后对成员行触发 `onContextMenuCapture`，断言菜单出现；点「基于此卡片提问」后 `agentDrafts` 新增且带 `会摘卡片` 引用、`prompt` 数量不变（不自动发送）、浮层仍在。
+
+### 真浏览器验证（无头 Chrome + CDP）
+
+- 页面：`build/scatter-preview.html?packs=1&demo=pack-overlay`（`../client.js` 为本次构建）。
+- 用 `Input.dispatchMouseEvent` 在成员卡上真按右键：`.mc-context` 出现，`left/top` 与光标相差 ≤2px（说明固定定位没有被浮层的 `backdrop-filter` 带偏），按钮为「基于此卡片提问 / 打开记录 / 移出卡包」。
+- 按 Esc：`.mc-context` 消失、`.mc-pack-modal` 仍在（修复前这里会连浮层一起关掉）。
+- 再开菜单点「移出卡包」：成员从 4 变成 3、浮层保持打开（顺带给 `build/scatter-preview.jsx` 的 mock 补了 `POST /api/packs/:id/members/remove` 分支，之前它只回 `{ok:true}`、不真的删成员，无法验证这条路径）。
+- 截图核对：菜单白底、位于浮层之上、三项与 hint 可读。预览页本身没定义 `--dsw-alias-bg-overlay`，截图时临时补了该变量；真实 DSH 主题里有这个变量。
+
+### 安装副本与版本
+
+- `client.js` 同步两次：先是 0.9.22 的右键提问（sha256 `cb5a724496cac0ff7df7e109fa24382c79e0f5cc05d34f425f140463c75a370a`，备份 `client.js.bak-20261118-140156`）；随后卡包封面在同一工作区做完，重新构建为 `d5ebf4c41aef65c1dbe005ac46c4b995f715efee93c60a3a46e85ffdebe8884b` 并再次同步（备份 `client.js.bak-20261118-140947`）。两次之后工作区与安装副本 `client.js` 的 sha256 一致，安装副本同时带上右键提问和封面两处改动。
+- 工作区 `package.json` 版本为 **0.9.22**（未发 Release）；安装副本的 `package.json` 暂留 0.9.21，避免本机「检查更新」把未发布的本地版本当成已发布版本。刷新 DSH 页面即可加载新 `client.js`；Host 与后端本次无改动。
+
+### 卡包正面改成封面（同一版）
+
+- **起因**：散落/信息流里卡包外壳是「一张真实成员卡 + 底部 10.5px 玻璃胶囊」，包名比成员标题（12.5px）还小、还压在摘要上；三个候选视觉方案（底部名牌 / 顶部页签 / 封面）做成同尺寸对比图后选定封面。
+- **实现**：`PackCard.jsx` 只保留叠卡背板 + `CoverFace`；成员标签、主题色、类型构成、更新时间、底片条取舍抽到 `client-src/components/home/pack-cover-model.js`（纯函数，可单测）。样式替换 `styles.css` 里旧的 `.mc-pack-tab` / `.mc-pack-front*` / `.mc-pack-front-card` / `.mc-pack-todo-preview`，新增 `.mc-pack-cover*` / `.mc-pack-strip` / `.mc-pack-thumb*`，并给深色主题补 10 条 `:is(body[data-ds-dark-theme], [data-theme='dark'])` 覆盖（封面底、芯片文字、8 种底片块、+N 格）。
+- `node --test tests/*.test.mjs` → **322/322**。新增 `tests/pack-cover-model.test.mjs` 5 项（类型标签、主题色、构成排序取前三、更新时间、底片条 4 格/+N 与 count 大于已加载成员数）；`tests/style.test.mjs` 的卡包断言改为封面：`17.5px` 标题、`38px` 底片条、封面用 `--dsw-alias-bg-layer-1` 且不写死白底、深色底片渐变存在、深色选择器仍成对。
+- `node build/interaction-smoke.mjs` → PASS。卡包计数（1 张 → 2 张）、拖卡入包、浮层成员、右键提问全部照旧；`packText` 从「遍历 `props.children`」改成「遍历 renderer 实例树」，因为正面已经是函数组件（旧写法读不到封面里的标题和张数）。
+- **视觉核对**：`build/scatter-preview.jsx` 的 mock 增加 6 张混合包（2 视频 + 1 会议 + 1 直播 + 1 标记 + 1 便利签）与空卡包；`--packs` / `--packs-feed`（新增，切信息流）/ `--packs-dark` 分别出 `build/pack-preview.png`、`build/pack-preview-feed.png`、`build/pack-preview-dark.png`。逐张核对：散落里两个包与彩色卡同框仍先读到包名；信息流 260px 列里两行标题不挤压构成行；深色下封面不再是白板，底片块换深色渐变，`卡包` 芯片文字提亮到可读（首版在深色里偏棕，改 `color-mix(accent 44%, #fff)`）。
+- **已知取舍**：封面不再展示最新成员的正文（这是选 C 时确认的交换），成员内容压成底片条 + 类型构成；`+N` 只在超过 4 张时出现，张数始终以 `pack.count` 为准，成员还没落到当前分页时用标题首字兜底。
+
 ## 0.9.21 飞书 MCP 本地安装（2026-11-18）
 
 ### 现象与根因

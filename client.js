@@ -3472,7 +3472,7 @@ var styles_default = `.mc-root {
 .mc-batch-member:hover .mc-batch-member-open { color: var(--dsw-alias-label-primary); }
 
 
-/* ---------- \u5361\u5305\uFF1A\u771F\u5B9E\u6210\u5458\u5361\u53E0\u653E\u3001\u7070\u8272\u547C\u5438\u70ED\u533A\u3001\u5168\u5361\u7247\u6D6E\u5C42 ---------- */
+/* ---------- \u5361\u5305\uFF1A\u5C01\u9762\u5F0F\u5361\u5305\uFF08\u6807\u9898\u5373\u6B63\u9762\u3001\u6210\u5458\u538B\u6210\u5E95\u7247\u6761\uFF09 ---------- */
 .mc-pack-card {
   position: relative;
   display: block;
@@ -3483,34 +3483,9 @@ var styles_default = `.mc-root {
   outline: none;
 }
 .mc-pack-card:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 4px; border-radius: 20px; }
-.mc-pack-tab {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  z-index: 10;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: calc(100% - 22px);
-  box-sizing: border-box;
-  padding: 5px 10px;
-  border: .5px solid var(--mc-line);
-  border-radius: 999px;
-  /* \u6BDB\u73BB\u7483\u80F6\u56CA\u8DDF\u4E3B\u9898\u8D70\uFF1A\u6D45\u8272\u662F\u767D\uFF0C\u6DF1\u8272\u662F\u62AC\u5347\u5C42\uFF0C\u907F\u514D\u767D\u5E95\u767D\u5B57 */
-  background: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 92%, transparent);
-  color: var(--dsw-alias-label-secondary);
-  box-shadow: 0 8px 20px -14px rgb(0 0 0 / .35);
-  backdrop-filter: blur(16px) saturate(150%);
-  font-size: 11px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.mc-pack-tab-label { flex: 0 0 auto; padding: 1px 5px; border-radius: 999px; background: color-mix(in srgb, var(--dsw-alias-brand-primary) 13%, transparent); color: var(--dsw-alias-brand-primary); font-size: 9.5px; font-weight: 600; }
-.mc-pack-tab strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--dsw-alias-label-primary); font-size: 10.5px; font-weight: 550; }
-.mc-pack-tab em { flex: 0 0 auto; color: var(--dsw-alias-label-tertiary); font-style: normal; font-variant-numeric: tabular-nums; }
-.mc-pack-tab-active { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: #d9862f; box-shadow: 0 0 0 3px color-mix(in srgb, #d9862f 16%, transparent); animation: mc-pack-dot 1.4s ease-in-out infinite; }
+/* \u53E0\u5728\u5C01\u9762\u4E0B\u9762\u7684\u4E24\u5F20\u6210\u5458\u5361\uFF1A\u53EA\u9732\u51FA\u9519\u4F4D\u7684\u8FB9\u7F18\uFF0C\u8BF4\u660E\u8FD9\u662F\u4E2A\u300C\u88C5\u4E86\u5F88\u591A\u5F20\u300D\u7684\u5305\u3002 */
 .mc-pack-back,
-.mc-pack-front {
+.mc-pack-cover {
   position: absolute;
   inset: 0;
   border-radius: 20px;
@@ -3539,47 +3514,82 @@ var styles_default = `.mc-root {
 .mc-pack-card:focus-visible .mc-pack-back[data-slot='1'] { transform: translate(10px, 10px) rotate(1.5deg); }
 .mc-pack-card:hover .mc-pack-back[data-slot='2'],
 .mc-pack-card:focus-visible .mc-pack-back[data-slot='2'] { transform: translate(18px, 17px) rotate(-1.2deg); }
-.mc-pack-front {
+
+/* \u5C01\u9762\uFF1A\u5305\u540D\u662F\u6B63\u9762\u552F\u4E00\u7684\u5927\u5B57\uFF0C\u53F3\u4E0A\u89D2\u7ED9\u5F20\u6570\uFF0C\u5E95\u90E8\u4E00\u6761\u5E95\u7247\u8BF4\u660E\u91CC\u9762\u88C5\u4E86\u4EC0\u4E48\u3002 */
+.mc-pack-cover {
   z-index: 3;
-  overflow: hidden;
-  background: var(--dsw-alias-bg-layer-2);
-  box-shadow: 0 14px 30px -22px rgb(0 0 0 / .42);
-}
-.mc-pack-front-card { width: 100%; height: 100%; box-sizing: border-box; border-radius: 20px; }
-.mc-pack-front .mc-home-card {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  box-shadow: none;
+  box-sizing: border-box;
+  padding: 13px 14px 0;
+  overflow: hidden;
+  border: .5px solid var(--mc-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 92% at 102% -10%, color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 20%, transparent), transparent 62%),
+    var(--dsw-alias-bg-layer-1);
+  box-shadow: 0 14px 30px -22px rgb(0 0 0 / .42);
+  transition: box-shadow .22s ease;
 }
-.mc-pack-front .mc-home-card:hover { transform: none; box-shadow: none; }
-.mc-pack-front .mc-home-cover { flex: 0 0 auto; height: 56%; margin: 0; border-radius: 0; }
-.mc-pack-front .mc-home-card-body { flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 9px 12px 10px; }
-.mc-pack-front .mc-home-card-title { margin-top: 5px; font-size: 12.5px; line-height: 1.42; -webkit-line-clamp: 2; }
-.mc-pack-front .mc-home-card-snippet { margin-top: 3px; font-size: 10.5px; line-height: 1.45; -webkit-line-clamp: 2; }
-.mc-pack-front .mc-home-card-foot { margin-top: 6px; font-size: 9.5px; }
-.mc-pack-front .mc-home-quote { padding: 13px 13px 11px; height: 100%; overflow: hidden; }
-.mc-pack-front .mc-home-quote blockquote { display: -webkit-box; margin-top: 2px; overflow: hidden; font-size: 14px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
-.mc-pack-front .mc-home-quote .mc-home-card-foot { margin-top: 8px; font-size: 9.5px; }
-.mc-pack-front .mc-sticky-card { height: 100%; padding: 11px 12px 10px; gap: 5px; }
-.mc-pack-front .mc-sticky-head { font-size: 9px; }
-.mc-pack-front .mc-sticky-text { display: -webkit-box; overflow: hidden; font-size: 13px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 6; }
-.mc-pack-todo-preview { display: flex; flex-direction: column; gap: 4px; min-height: 0; overflow: hidden; }
-.mc-pack-todo-preview span { display: flex; align-items: flex-start; gap: 5px; overflow: hidden; font-size: 10.5px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
-.mc-pack-todo-preview span[data-done='true'] { opacity: .55; text-decoration: line-through; }
-.mc-pack-todo-preview i { flex: 0 0 auto; width: 8px; height: 8px; margin-top: 2px; border: 1px solid currentColor; border-radius: 2px; opacity: .55; }
-.mc-pack-front .mc-doc-wall-card { display: flex; flex: 1 1 auto; width: 100%; min-height: 0; height: 100%; padding: 10px 12px; gap: 5px; }
-.mc-pack-front .mc-doc-wall-title { font-size: 12.5px; line-height: 1.42; -webkit-line-clamp: 4; }
-.mc-pack-front .mc-doc-wall-top,
-.mc-pack-front .mc-doc-wall-foot { font-size: 9.5px; }
-.mc-pack-front .mc-image-card { height: 100%; }
-.mc-pack-front .mc-image-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.mc-pack-front .mc-batch-card { height: 100%; min-height: 0; padding: 11px 12px 10px; gap: 5px; }
-.mc-pack-front .mc-batch-title { font-size: 12.5px; }
-.mc-pack-front .mc-batch-counts,
-.mc-pack-front .mc-batch-foot,
-.mc-pack-front .mc-batch-head { font-size: 9.5px; }
+.mc-pack-card:hover .mc-pack-cover { box-shadow: 0 18px 40px -24px rgb(0 0 0 / .46); }
+/* \u4E3B\u9898\u8272\u8DDF\u7740\u5305\u5185\u4E3B\u7C7B\u578B\u8D70\uFF0C\u8BA9\u540C\u7C7B\u5361\u5305\u5728\u5899\u9762\u4E0A\u4E00\u773C\u53EF\u8FA8\u3002 */
+.mc-pack-cover[data-tone='live'] { --pack-accent: #d9534f; }
+.mc-pack-cover[data-tone='video'] { --pack-accent: #d98a2f; }
+.mc-pack-cover[data-tone='meeting'] { --pack-accent: #7f6ad8; }
+.mc-pack-cover[data-tone='highlight'] { --pack-accent: #8b7cc4; }
+.mc-pack-cover[data-tone='note'] { --pack-accent: #c9a227; }
+.mc-pack-cover[data-tone='todo'] { --pack-accent: #5b86c9; }
+.mc-pack-cover[data-tone='doc'] { --pack-accent: #5b86c9; }
+.mc-pack-cover[data-tone='batch'] { --pack-accent: #c07a3a; }
+.mc-pack-cover-top { display: flex; align-items: center; gap: 6px; min-height: 18px; }
+.mc-pack-cover-chip {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 14%, transparent);
+  color: color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 78%, var(--dsw-alias-label-primary));
+  font-size: 9.5px;
+  font-weight: 620;
+  letter-spacing: .06em;
+}
+.mc-pack-cover-dot { flex: 0 0 auto; width: 5px; height: 5px; border-radius: 50%; background: #d9862f; box-shadow: 0 0 0 3px color-mix(in srgb, #d9862f 16%, transparent); animation: mc-pack-dot 1.4s ease-in-out infinite; }
+.mc-pack-cover-count { margin-left: auto; color: var(--dsw-alias-label-tertiary); font-size: 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mc-pack-cover-title {
+  margin: 11px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--dsw-alias-label-primary);
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 1.36;
+  letter-spacing: -.008em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.mc-pack-cover-comp { margin: 7px 0 0; overflow: hidden; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; line-height: 1.5; text-overflow: ellipsis; white-space: nowrap; }
+.mc-pack-cover-updated { margin: 5px 0 0; color: var(--dsw-alias-label-caption); font-size: 9.5px; line-height: 1.4; letter-spacing: .02em; }
+
+/* \u5E95\u7247\u6761\uFF1A\u4E00\u683C\u4E00\u4E2A\u6210\u5458\u7C7B\u578B\uFF0C\u4F1A\u8BDD\u5361\u76F4\u63A5\u7528\u5C01\u9762\uFF0C\u5176\u4F59\u7528\u7C7B\u578B\u8272\u5757\uFF08\u5F15\u53F7 / \u4FBF\u7B7E\u6A2A\u7EBF / \u6587\u6863\u884C\uFF09\u3002 */
+.mc-pack-strip { position: absolute; left: 0; right: 0; bottom: 0; display: flex; height: 38px; border-top: .5px solid var(--mc-line); }
+.mc-pack-strip > * { position: relative; flex: 1 1 0; min-width: 0; }
+.mc-pack-strip > * + * { border-left: .5px solid color-mix(in srgb, var(--dsw-alias-label-primary) 9%, transparent); }
+.mc-pack-thumb { display: block; height: 100%; overflow: hidden; }
+.mc-pack-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.mc-pack-thumb b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: color-mix(in srgb, var(--dsw-alias-label-primary) 32%, transparent); font-family: var(--mc-serif); font-size: 15px; font-weight: 500; }
+.mc-pack-thumb[data-tone='live'] { background: linear-gradient(150deg, #f3dadd, #e8cad3); }
+.mc-pack-thumb[data-tone='video'] { background: linear-gradient(150deg, #fae3cb, #f1d5bf); }
+.mc-pack-thumb[data-tone='meeting'] { background: linear-gradient(150deg, #e5e1fb, #d9e7fb); }
+.mc-pack-thumb[data-type='highlight'] { background: linear-gradient(150deg, #f1e9fb, #e7edf9); }
+.mc-pack-thumb[data-type='highlight']::before { content: '\\201C'; position: absolute; left: 5px; top: -3px; color: #8b7cc4; font-family: var(--mc-serif); font-size: 27px; line-height: 1.2; }
+.mc-pack-thumb[data-type='note'] { background: linear-gradient(160deg, #faf3d9, #f0e6c6); }
+.mc-pack-thumb[data-type='note']::before { content: ''; position: absolute; left: 8px; right: 10px; top: 12px; height: 2px; border-radius: 2px; background: rgb(90 74 30 / .26); box-shadow: 0 6px 0 rgb(90 74 30 / .19), 0 12px 0 rgb(90 74 30 / .13); }
+.mc-pack-thumb[data-tone='todo'] { background: linear-gradient(160deg, #eaf3fc, #dbe9f7); }
+.mc-pack-thumb[data-tone='todo']::before { content: ''; position: absolute; left: 9px; top: 11px; width: 15px; height: 15px; border: 1px solid rgb(70 100 140 / .32); border-radius: 3px; box-shadow: 0 9px 0 -1px transparent, 0 0 0 0 transparent; }
+.mc-pack-thumb[data-type='doc'] { background: linear-gradient(155deg, #f4f7fc, #e8eef8); }
+.mc-pack-thumb[data-type='doc']::before { content: ''; position: absolute; left: 10px; right: 12px; top: 12px; height: 2px; border-radius: 2px; background: rgb(70 95 130 / .22); box-shadow: 0 6px 0 rgb(70 95 130 / .16), 0 12px 0 rgb(70 95 130 / .11); }
+.mc-pack-thumb[data-type='image'] { background: #dfe3e8; }
+.mc-pack-thumb[data-type='batch'] { background: linear-gradient(155deg, #fff0dc, #f6e4da); }
+.mc-pack-thumb[data-type='batch']::before { content: ''; position: absolute; left: 10px; right: 12px; top: 16px; height: 4px; border-radius: 3px; background: rgb(150 100 60 / .26); }
+.mc-pack-strip-more { display: flex; flex: 0 0 38px; align-items: center; justify-content: center; background: color-mix(in srgb, var(--dsw-alias-label-primary) 4%, transparent); color: var(--dsw-alias-label-tertiary); font-size: 10px; font-weight: 550; font-variant-numeric: tabular-nums; }
 .mc-pack-empty-face {
   position: absolute;
   inset: 0;
@@ -3587,7 +3597,7 @@ var styles_default = `.mc-root {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 5px;
   box-sizing: border-box;
   padding: 18px;
   border: 1px dashed color-mix(in srgb, var(--dsw-alias-label-tertiary) 42%, transparent);
@@ -3596,8 +3606,8 @@ var styles_default = `.mc-root {
   color: var(--dsw-alias-label-tertiary);
   text-align: center;
 }
-.mc-pack-empty-face span { font-size: 9.5px; letter-spacing: .08em; }
-.mc-pack-empty-face strong { color: var(--dsw-alias-label-primary); font-size: 14px; font-weight: 550; }
+.mc-pack-empty-face span { padding: 1px 7px; border-radius: 999px; background: color-mix(in srgb, var(--dsw-alias-label-primary) 6%, transparent); font-size: 9.5px; font-weight: 600; letter-spacing: .06em; }
+.mc-pack-empty-face strong { color: var(--dsw-alias-label-primary); font-size: 15px; font-weight: 600; line-height: 1.4; }
 .mc-pack-empty-face em { font-style: normal; font-size: 10.5px; }
 
 /* \u62D6\u62FD\u70ED\u533A\uFF1A\u53EA\u4FDD\u7559\u4E00\u5708\u7070\u8272\u547C\u5438\u5149\uFF0C\u4E0D\u518D\u753B\u865A/\u5B9E\u8FB9\u6846 */
@@ -3865,7 +3875,25 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 .mc-pack-modal-hint { flex: 1 1 auto; color: var(--dsw-alias-label-tertiary); font-size: 10.5px; text-align: left; }
 
 :is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-back { border-color: rgba(255, 255, 255, .13); filter: brightness(.72) saturate(.9); }
-:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-front { background: var(--dsw-alias-bg-layer-2); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-cover {
+  background:
+    radial-gradient(120% 92% at 102% -10%, color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 26%, transparent), transparent 60%),
+    var(--dsw-alias-bg-layer-2);
+}
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-cover-chip {
+  background: color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 26%, transparent);
+  color: color-mix(in srgb, var(--pack-accent, var(--dsw-alias-label-tertiary)) 44%, #fff);
+}
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-tone='live'] { background: linear-gradient(150deg, #3b2a2e, #332934); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-tone='video'] { background: linear-gradient(150deg, #3b3226, #342b2b); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-tone='meeting'] { background: linear-gradient(150deg, #2f2b3d, #2a3140); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-type='highlight'] { background: linear-gradient(150deg, #2f2a3d, #2a3340); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-type='note'] { background: linear-gradient(160deg, #38331f, #332f27); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-tone='todo'] { background: linear-gradient(160deg, #26313c, #232d38); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-type='doc'] { background: linear-gradient(155deg, #2a313a, #262e38); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-type='image'] { background: #2a2c30; }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-thumb[data-type='batch'] { background: linear-gradient(155deg, #3a2f25, #332a2d); }
+:is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-strip-more { background: color-mix(in srgb, #fff 5%, transparent); }
 :is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-empty-face { background: rgba(32, 32, 39, .7); border-color: rgba(255, 255, 255, .18); }
 :is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-glow { border-color: rgba(255, 255, 255, .3); box-shadow: 0 0 30px 9px rgba(255, 255, 255, .16); }
 :is(body[data-ds-dark-theme], [data-theme='dark']) .mc-pack-glow[data-ready='true'] { border-color: rgba(255, 255, 255, .45); box-shadow: 0 0 38px 13px rgba(255, 255, 255, .24); }
@@ -3888,7 +3916,7 @@ body.mc-pack-reordering * { cursor: grabbing !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .mc-pack-back,
-  .mc-pack-tab-active,
+  .mc-pack-cover-dot,
   .mc-pack-glow,
   .mc-pack-hint,
   .mc-pack-hint i,
@@ -40584,7 +40612,9 @@ function ContextMenu({ menu, onClose }) {
       if (ref.current && !ref.current.contains(event.target)) onClose();
     };
     const onKey = (event) => {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      event.stopPropagation();
+      onClose();
     };
     const onBlur = () => onClose();
     window.addEventListener("mousedown", onPointer, true);
@@ -46952,12 +46982,12 @@ function TopBar({
     "button",
     {
       type: "button",
-      className: "mc-topbar-tool",
+      className: "mc-topbar-tool mc-topbar-tool-text",
       "aria-label": "\u4F7F\u7528\u6307\u5357",
       title: "\u4F7F\u7528\u6307\u5357",
       onClick: onHelp
     },
-    "?"
+    "\u5E2E\u52A9"
   ) : null, onSettings ? /* @__PURE__ */ React.createElement(
     "button",
     {
@@ -48786,6 +48816,56 @@ function BatchOverlay({ batch, t, onClose, onOpenRecord, onDeleteAll, onRefresh,
 
 // client-src/components/home/PackCard.jsx
 init_react_shim();
+
+// client-src/components/home/pack-cover-model.js
+init_react_shim();
+function memberLabel(member) {
+  if (!member) return "";
+  if (member.type === "session") return kindInfo(member.kind).label;
+  if (member.type === "batch") return "\u6279\u6B21";
+  if (member.type === "highlight") return "\u6807\u8BB0";
+  if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E" : "\u4FBF\u5229\u7B7E";
+  if (member.type === "image") return "\u56FE\u7247";
+  if (member.type === "doc") return "\u6587\u6863";
+  return "\u5361\u7247";
+}
+function memberTone(member) {
+  if (!member) return "card";
+  if (member.type === "session") return kindInfo(member.kind).tone;
+  if (member.type === "note") return member.kind === "todo" ? "todo" : "note";
+  if (member.type === "highlight") return "highlight";
+  if (member.type === "doc") return "doc";
+  if (member.type === "image") return "image";
+  if (member.type === "batch") return "batch";
+  return "card";
+}
+function composition(members) {
+  const counts = /* @__PURE__ */ new Map();
+  for (const member of Array.isArray(members) ? members : []) {
+    const label = memberLabel(member);
+    if (!label) continue;
+    counts.set(label, (counts.get(label) || 0) + 1);
+  }
+  return [...counts.entries()].sort((left, right) => right[1] - left[1]).slice(0, 3).map(([label, count]) => `${count} ${label}`).join(" \xB7 ");
+}
+function updatedLabel(seconds) {
+  const epoch = Number(seconds);
+  if (!epoch) return "";
+  const date = new Date(epoch * 1e3);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getMonth() + 1}/${date.getDate()} \u66F4\u65B0`;
+}
+function stripMembers(members, count) {
+  const rows = (Array.isArray(members) ? members : []).filter(Boolean);
+  const total = Math.max(Number(count) || 0, rows.length);
+  const shown = rows.slice(0, total > 4 ? 3 : 4);
+  return { shown, rest: Math.max(0, total - shown.length) };
+}
+function packTone(members) {
+  return memberTone((Array.isArray(members) ? members : [])[0]);
+}
+
+// client-src/components/home/PackCard.jsx
 function cleanText(value, limit = 160) {
   return String(value || "").replace(/\s+/g, " ").trim().slice(0, limit);
 }
@@ -48800,104 +48880,53 @@ function coverSources(item) {
     coverToUrl(item, item.cover?.fallback)
   ].filter(Boolean))];
 }
-function memberLabel(member) {
-  if (!member) return "";
-  if (member.type === "session") return kindInfo(member.kind).label;
-  if (member.type === "batch") return "\u6279\u6B21";
-  if (member.type === "highlight") return "\u6807\u8BB0";
-  if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E" : "\u4FBF\u5229\u7B7E";
-  if (member.type === "image") return "\u56FE\u7247";
-  if (member.type === "doc") return "\u6587\u6863";
-  return "\u5361\u7247";
+function Thumb({ member, entry }) {
+  const type = member?.type || "card";
+  const image = type === "image" ? boardImageUrl(member.id) : type === "session" ? coverSources(entry?.item)[0] : null;
+  const glyph = type === "session" ? cleanText(entry?.item?.title || member?.title, 1) : "";
+  return /* @__PURE__ */ React.createElement("span", { className: "mc-pack-thumb", "data-type": type, "data-tone": memberTone(member) }, image ? /* @__PURE__ */ React.createElement("img", { src: image, alt: "", loading: "lazy", decoding: "async", draggable: false, referrerPolicy: "no-referrer" }) : null, !image && glyph ? /* @__PURE__ */ React.createElement("b", null, glyph) : null);
 }
-function todoLines(text) {
-  return String(text || "").split("\n").map((line) => line.match(/^\s*-\s+(.*)$/)).filter(Boolean).map((match) => match[1].replace(/^\[[ xX]\]\s*/, "").trim()).filter(Boolean);
-}
-function SessionFace({ entry, member, t }) {
-  const item = entry?.item || member;
-  const info = kindInfo(member.kind);
-  const sources = coverSources(entry?.item);
-  const [sourceIndex, setSourceIndex] = React.useState(0);
-  const source = sources[sourceIndex];
-  return /* @__PURE__ */ React.createElement("div", { className: `mc-home-card mc-pack-front-card${source ? "" : " is-text"}`, "data-kind": info.tone }, source ? /* @__PURE__ */ React.createElement("div", { className: "mc-home-cover", "data-kind": info.tone }, /* @__PURE__ */ React.createElement(
-    "img",
+function CoverFace({ item, members, memberEntries }) {
+  const title = cleanText(item?.title, 90) || "\u672A\u547D\u540D\u5361\u5305";
+  const count = Number(item?.count) || members.length;
+  const active2 = Number(item?.active_count) > 0 || members.some((member) => member.active);
+  const tone = packTone(members);
+  const comp = composition(members);
+  const updated = updatedLabel(item?.updated_at);
+  const { shown, rest } = stripMembers(members, count);
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-pack-cover", "data-tone": tone }, /* @__PURE__ */ React.createElement("div", { className: "mc-pack-cover-top" }, !/^卡包/.test(title) ? /* @__PURE__ */ React.createElement("span", { className: "mc-pack-cover-chip" }, "\u5361\u5305") : null, active2 ? /* @__PURE__ */ React.createElement("i", { className: "mc-pack-cover-dot", "aria-label": "\u5305\u542B\u8FDB\u884C\u4E2D\u7684\u5361\u7247" }) : null, /* @__PURE__ */ React.createElement("span", { className: "mc-pack-cover-count" }, count, " \u5F20")), /* @__PURE__ */ React.createElement("h3", { className: "mc-pack-cover-title" }, title), comp ? /* @__PURE__ */ React.createElement("p", { className: "mc-pack-cover-comp" }, comp) : null, updated ? /* @__PURE__ */ React.createElement("p", { className: "mc-pack-cover-updated" }, updated) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-pack-strip", "aria-hidden": "true" }, shown.map((member) => /* @__PURE__ */ React.createElement(
+    Thumb,
     {
-      src: source,
-      alt: "",
-      loading: "lazy",
-      decoding: "async",
-      draggable: false,
-      referrerPolicy: "no-referrer",
-      onError: () => {
-        if (sourceIndex + 1 < sources.length) setSourceIndex(sourceIndex + 1);
-        else setSourceIndex(sources.length);
-      }
+      key: `${member.type}-${member.id}`,
+      member,
+      entry: memberEntries?.get?.(`${member.type}-${member.id}`)
     }
-  )) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: `mc-home-type-inline mc-home-tone-${info.tone}` }, info.label), /* @__PURE__ */ React.createElement("span", { className: "mc-home-status", "data-status": member.status }, /* @__PURE__ */ React.createElement("i", null), statusText(member.status, t))), /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, cleanText(item.title, 90) || "\u672A\u547D\u540D\u8BB0\u5F55"), item.snippet ? /* @__PURE__ */ React.createElement("p", { className: "mc-home-card-snippet" }, cleanText(item.snippet, 100)) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, item.platform && item.platform !== "bilibili" ? item.platform : info.label), /* @__PURE__ */ React.createElement("span", null, dateTime(member.created_at), member.duration ? ` \xB7 ${clock(member.duration)}` : ""))));
-}
-function NoteFace({ entry, member }) {
-  const item = entry?.item || {};
-  const text = item.text || member.title || "";
-  const todos = member.kind === "todo" ? todoLines(text) : [];
-  const body = text.split("\n").filter((line) => !/^\s*-\s+/.test(line)).join("\n").trim();
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-sticky-card mc-pack-front-card", "data-kind": member.kind || "note" }, /* @__PURE__ */ React.createElement("div", { className: "mc-sticky-head" }, /* @__PURE__ */ React.createElement("span", null, member.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E")), body ? /* @__PURE__ */ React.createElement("p", { className: "mc-sticky-text" }, cleanText(body, 140)) : null, todos.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-todo-preview" }, todos.slice(0, 4).map((textLine, index) => /* @__PURE__ */ React.createElement("span", { key: `${index}-${textLine}`, "data-done": Boolean(item.checked?.[index]) }, /* @__PURE__ */ React.createElement("i", null), cleanText(textLine, 60)))) : null);
-}
-function HighlightFace({ entry, member }) {
-  const item = entry?.item || member;
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-card mc-home-quote mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-quote-mark" }, "\u201C"), /* @__PURE__ */ React.createElement("blockquote", null, cleanText(item.note || member.title, 120)), /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-foot" }, /* @__PURE__ */ React.createElement("span", null, cleanText(item.session_title || member.subtitle, 60)), /* @__PURE__ */ React.createElement("span", null, clock(item.ts ?? member.ts ?? 0))));
-}
-function DocFace({ entry, member, t }) {
-  const item = entry?.item || member;
-  const label = item.doc_type === "wiki" ? "\u98DE\u4E66\u77E5\u8BC6\u5E93" : item.doc_type === "sheet" ? "\u98DE\u4E66\u8868\u683C" : item.doc_type === "base" ? "\u98DE\u4E66\u591A\u7EF4\u8868\u683C" : "\u98DE\u4E66\u6587\u6863";
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-doc-wall-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-top" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, dateTime(item.updated_at || member.created_at))), /* @__PURE__ */ React.createElement("strong", { className: "mc-doc-wall-title" }, cleanText(item.title || member.title, 90) || "\u98DE\u4E66\u6587\u6863"), /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-foot" }, /* @__PURE__ */ React.createElement("span", null, item.has_content === false ? "\u4EC5\u94FE\u63A5" : "\u6709\u6B63\u6587\u5FEB\u7167"), /* @__PURE__ */ React.createElement("span", null, t?.("home.docs.open") || "\u6253\u5F00", " \u2197")));
-}
-function ImageFace({ entry, member }) {
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-image-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("img", { src: boardImageUrl(member.id), alt: "", loading: "lazy", draggable: false }));
-}
-function BatchFace({ entry, member }) {
-  const item = entry?.item || member;
-  const total = Number(item.total) || Number(member.count) || 0;
-  const done = Number(item.counts?.done) || 0;
-  const percent = total > 0 ? Math.min(100, Math.round(done / total * 100)) : 0;
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-batch-card mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-batch-head" }, /* @__PURE__ */ React.createElement("span", { className: "mc-batch-tag" }, "\u6279\u6B21"), /* @__PURE__ */ React.createElement("span", { className: "mc-batch-head-meta" }, dateTime(member.created_at))), /* @__PURE__ */ React.createElement("h3", { className: "mc-batch-title" }, cleanText(item.title || member.title, 80) || "\u6279\u91CF\u89C6\u9891"), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-progress", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement("span", { style: { width: `${percent}%` } })), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-counts" }, /* @__PURE__ */ React.createElement("span", null, done, "/", total, " \u5B8C\u6210"), Number(item.active) ? /* @__PURE__ */ React.createElement("span", { className: "is-active" }, item.active, " \u8FDB\u884C\u4E2D") : null), /* @__PURE__ */ React.createElement("div", { className: "mc-batch-foot" }, /* @__PURE__ */ React.createElement("span", null, "\u67E5\u770B ", total, " \u6761"), /* @__PURE__ */ React.createElement("span", null, Number(item.active) ? "\u5904\u7406\u4E2D" : "\u5DF2\u5B8C\u6210")));
-}
-function UnknownFace({ member }) {
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-card is-text mc-pack-front-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-body" }, /* @__PURE__ */ React.createElement("div", { className: "mc-home-card-top" }, /* @__PURE__ */ React.createElement("span", { className: "mc-home-type-inline" }, memberLabel(member))), /* @__PURE__ */ React.createElement("h3", { className: "mc-home-card-title" }, cleanText(member.title, 90) || "\u5361\u7247")));
-}
-function FrontFace({ entry, member, t }) {
-  if (member.type === "session") return /* @__PURE__ */ React.createElement(SessionFace, { entry, member, t });
-  if (member.type === "note") return /* @__PURE__ */ React.createElement(NoteFace, { entry, member });
-  if (member.type === "highlight") return /* @__PURE__ */ React.createElement(HighlightFace, { entry, member });
-  if (member.type === "doc") return /* @__PURE__ */ React.createElement(DocFace, { entry, member, t });
-  if (member.type === "image") return /* @__PURE__ */ React.createElement(ImageFace, { entry, member });
-  if (member.type === "batch") return /* @__PURE__ */ React.createElement(BatchFace, { entry, member });
-  return /* @__PURE__ */ React.createElement(UnknownFace, { member });
+  )), rest ? /* @__PURE__ */ React.createElement("span", { className: "mc-pack-strip-more" }, "+", rest) : null));
 }
 function BackFace({ entry, member, slot }) {
   const item = entry?.item || {};
-  const type = member.type;
-  const cover = type === "session" ? coverSources(item)[0] : type === "image" ? boardImageUrl(member.id) : type === "doc" ? null : null;
+  const type = member?.type || "card";
+  const cover = type === "session" ? coverSources(item)[0] : null;
   const backgroundImage = cover ? `linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.12)), url("${cover}")` : void 0;
   return /* @__PURE__ */ React.createElement(
     "span",
     {
       className: "mc-pack-back",
       "data-type": type,
-      "data-kind": member.kind || type,
+      "data-kind": member?.kind || type,
       "data-slot": slot,
       style: { ...backgroundImage ? { backgroundImage } : {}, zIndex: 3 - slot },
       "aria-hidden": "true"
     }
   );
 }
-function PackCard({ item, memberEntries = null, t, onOpen, onMenu }) {
+function PackCard({ item, memberEntries = null, onOpen, onMenu }) {
   const members = Array.isArray(item?.members) ? item.members : [];
   const count = Number(item?.count) || members.length;
-  const active2 = Number(item?.active_count) || members.filter((member) => member.active).length;
+  const active2 = Number(item?.active_count) > 0 || members.some((member) => member.active);
   const empty = count === 0;
-  const frontMember = members[0] || null;
-  const frontEntry = frontMember ? memberEntries?.get?.(`${frontMember.type}-${frontMember.id}`) : null;
-  const backs = members.slice(1, 3);
+  const title = cleanText(item?.title, 90) || "\u672A\u547D\u540D\u5361\u5305";
+  const backs = empty ? [] : members.slice(0, 2);
   return /* @__PURE__ */ React.createElement(
     "article",
     {
@@ -48905,7 +48934,7 @@ function PackCard({ item, memberEntries = null, t, onOpen, onMenu }) {
       "data-pack-id": item?.id,
       role: "button",
       tabIndex: 0,
-      "aria-label": `\u5361\u5305\uFF1A${item?.title || "\u672A\u547D\u540D\u5361\u5305"}\uFF0C${count} \u5F20\u5361\u7247`,
+      "aria-label": `\u5361\u5305\uFF1A${title}\uFF0C${count} \u5F20\u5361\u7247`,
       onClick: () => onOpen?.(item),
       onContextMenu: (event) => onMenu?.(event),
       onKeyDown: (event) => {
@@ -48915,8 +48944,7 @@ function PackCard({ item, memberEntries = null, t, onOpen, onMenu }) {
         }
       }
     },
-    /* @__PURE__ */ React.createElement("span", { className: "mc-pack-tab" }, !/^卡包/.test(item?.title || "") ? /* @__PURE__ */ React.createElement("span", { className: "mc-pack-tab-label" }, "\u5361\u5305") : null, /* @__PURE__ */ React.createElement("strong", null, item?.title || "\u672A\u547D\u540D\u5361\u5305"), /* @__PURE__ */ React.createElement("em", null, count, " \u5F20"), active2 ? /* @__PURE__ */ React.createElement("i", { className: "mc-pack-tab-active", "aria-label": "\u5305\u542B\u8FDB\u884C\u4E2D\u7684\u5361\u7247" }) : null),
-    empty ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-empty-face" }, /* @__PURE__ */ React.createElement("span", null, "\u5361\u5305"), /* @__PURE__ */ React.createElement("strong", null, item?.title || "\u672A\u547D\u540D\u5361\u5305"), /* @__PURE__ */ React.createElement("em", null, "\u628A\u5361\u7247\u62D6\u5230\u8FD9\u91CC")) : /* @__PURE__ */ React.createElement(React.Fragment, null, backs.map((member, index) => /* @__PURE__ */ React.createElement(
+    empty ? /* @__PURE__ */ React.createElement("div", { className: "mc-pack-empty-face" }, /* @__PURE__ */ React.createElement("span", null, "\u5361\u5305"), /* @__PURE__ */ React.createElement("strong", null, title), /* @__PURE__ */ React.createElement("em", null, "\u628A\u5361\u7247\u62D6\u5230\u8FD9\u91CC")) : /* @__PURE__ */ React.createElement(React.Fragment, null, backs.map((member, index) => /* @__PURE__ */ React.createElement(
       BackFace,
       {
         key: `${member.type}-${member.id}`,
@@ -48924,12 +48952,50 @@ function PackCard({ item, memberEntries = null, t, onOpen, onMenu }) {
         member,
         slot: index + 1
       }
-    )), /* @__PURE__ */ React.createElement("div", { className: "mc-pack-front", "aria-hidden": "true" }, /* @__PURE__ */ React.createElement(FrontFace, { entry: frontEntry, member: frontMember, t })))
+    )), /* @__PURE__ */ React.createElement(CoverFace, { item, members, memberEntries }))
   );
 }
 
 // client-src/components/home/PackOverlay.jsx
 init_react_shim();
+
+// client-src/components/home/pack-member-menu.js
+init_react_shim();
+var OPEN_LABELS = {
+  session: "\u6253\u5F00\u8BB0\u5F55",
+  highlight: "\u6253\u5F00\u8BB0\u5F55",
+  batch: "\u6253\u5F00\u6279\u6B21",
+  doc: "\u6253\u5F00\u6587\u6863"
+};
+function packMemberMenuItems(member, { locked = false, onAsk, onOpen, onRemove } = {}) {
+  if (!member) return [];
+  const items2 = [{
+    id: "ask-member",
+    label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE",
+    hint: "\u5728 Agent\u4E2D @\u5B83",
+    onSelect: () => onAsk?.(member)
+  }];
+  const openLabel = OPEN_LABELS[member.type];
+  if (openLabel) {
+    items2.push({
+      id: "open-member",
+      label: openLabel,
+      disabled: locked,
+      onSelect: () => onOpen?.(member)
+    });
+  }
+  items2.push({ separator: true });
+  items2.push({
+    id: "remove-member",
+    label: "\u79FB\u51FA\u5361\u5305",
+    hint: "\u4E0D\u5220\u9664\u8BB0\u5F55",
+    disabled: locked,
+    onSelect: () => onRemove?.(member)
+  });
+  return items2;
+}
+
+// client-src/components/home/PackOverlay.jsx
 function memberLabel2(member) {
   if (!member) return "";
   if (member.type === "session") return kindInfo(member.kind).label;
@@ -48974,12 +49040,15 @@ function PackOverlay({
   renameFocus = false,
   memberEntries = null,
   renderEntry,
+  menuOpen = false,
   onClose,
   onOpenMember,
   onRemoveMember,
   onDissolve,
   onRename,
-  onReorder
+  onReorder,
+  onAskMember,
+  onOpenMenu
 }) {
   const inputRef = React.useRef(null);
   const cancelRef = React.useRef(false);
@@ -49021,6 +49090,10 @@ function PackOverlay({
     function onKey(event) {
       if (event.key !== "Escape") return;
       if (event.target === inputRef.current) return;
+      if (menuOpen) {
+        event.stopPropagation();
+        return;
+      }
       if (reorderRef.current) {
         event.stopPropagation();
         cancelReorder();
@@ -49031,7 +49104,7 @@ function PackOverlay({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [menuOpen, onClose]);
   React.useEffect(() => () => {
     removeGhost();
     if (bodyClassRef.current) {
@@ -49244,6 +49317,26 @@ function PackOverlay({
       action();
     }
   }
+  function runWithSavedTitle(action) {
+    if (typeof action !== "function") return;
+    const value = String(title || "").trim();
+    if (value && value !== (pack?.title || "")) {
+      commitTitle().finally(() => action());
+    } else {
+      action();
+    }
+  }
+  function openMemberMenu(member, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof onOpenMenu !== "function") return;
+    onOpenMenu(event, packMemberMenuItems(member, {
+      locked: busy || savingOrder,
+      onAsk: (target) => runWithSavedTitle(() => onAskMember?.(target)),
+      onOpen: (target) => runWithSavedTitle(() => onOpenMember?.(pack, target)),
+      onRemove: (target) => runWithSavedTitle(() => onRemoveMember?.(pack, target))
+    }));
+  }
   if (!pack) return null;
   const members = order;
   const count = members.length;
@@ -49291,10 +49384,7 @@ function PackOverlay({
           event.preventDefault();
           event.stopPropagation();
         },
-        onContextMenuCapture: (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }
+        onContextMenuCapture: (event) => openMemberMenu(member, event)
       },
       /* @__PURE__ */ React.createElement("div", { className: "mc-pack-row-card" }, entry && typeof renderEntry === "function" ? renderEntry(entry, { packMode: true, onOpenMember: () => onOpenMember?.(pack, member) }) : /* @__PURE__ */ React.createElement(FallbackCard, { member, t, onOpen: () => onOpenMember?.(pack, member) })),
       /* @__PURE__ */ React.createElement("div", { className: "mc-pack-row-tools" }, /* @__PURE__ */ React.createElement(
@@ -52778,8 +52868,11 @@ function HomePage({
       t,
       busy: packBusy,
       renameFocus: packRenameFocus,
+      menuOpen: Boolean(menu),
       memberEntries: rawEntryByKey,
       renderEntry,
+      onOpenMenu: openMenu,
+      onAskMember: (member) => askAgentAboutCard(member?.type, member),
       onClose: () => {
         setOpenPackId("");
         setPackRenameFocus(false);

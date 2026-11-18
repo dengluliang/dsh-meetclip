@@ -16,15 +16,25 @@ const pasteImage = process.argv.includes('--paste-image')
 const pasteHeic = process.argv.includes('--paste-heic')
 const board = process.argv.includes('--board')
 const packs = process.argv.includes('--packs')
+const packsFeed = process.argv.includes('--packs-feed')
 const packsDark = process.argv.includes('--packs-dark')
 const packOverlay = process.argv.includes('--pack-overlay')
 const packHotzone = process.argv.includes('--pack-hotzone')
 const paste = pasteText ? 'paste=text' : pasteImage ? 'paste=image' : pasteHeic ? 'paste=heic' : ''
 const darkQuery = dark || packsDark ? 'theme=dark' : ''
-const query = [drag ? 'demo=drag' : '', packHotzone ? 'demo=pack-hotzone' : '', packOverlay ? 'packs=1&demo=pack-overlay' : packs || packsDark ? 'packs=1' : '', darkQuery, board ? 'board=1' : '', paste].filter(Boolean).join('&')
+const query = [
+  drag ? 'demo=drag' : '',
+  packHotzone ? 'demo=pack-hotzone' : '',
+  packOverlay ? 'packs=1&demo=pack-overlay' : '',
+  packsFeed ? 'packs=1&empty=1&demo=feed' : packs || packsDark ? 'packs=1' : '',
+  darkQuery,
+  board ? 'board=1' : '',
+  paste
+].filter(Boolean).join('&')
 const page = `file://${path.join(here, 'scatter-preview.html')}${query ? `?${query}` : ''}`
 const output = path.join(root,
-  packHotzone ? 'build/pack-hotzone-preview.png'
+  packsFeed ? 'build/pack-preview-feed.png'
+    : packHotzone ? 'build/pack-hotzone-preview.png'
     : packOverlay ? 'build/pack-overlay-preview.png'
     : pasteText ? 'build/paste-text-preview.png'
       : pasteImage ? 'build/paste-image-preview.png'
@@ -49,7 +59,8 @@ try {
     '--no-first-run',
     '--force-prefers-reduced-motion',
     `--user-data-dir=${profile}`,
-    '--window-size=1440,1000',
+    // 卡包截图要同时看到两个包，散落画布给大一点的画幅；其余预览保持 1440×1000。
+    `--window-size=${packsFeed ? '1440,1240' : packs || packsDark ? '1600,1200' : '1440,1000'}`,
     '--virtual-time-budget=8000',
     `--screenshot=${output}`,
     page

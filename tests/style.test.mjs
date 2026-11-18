@@ -99,9 +99,11 @@ test('pin animation is scoped to the card that was just pinned', async () => {
 test('pack card, glow and full-card overlay styles are present', async () => {
   const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
   assert.match(css, /\.mc-pack-card \{[^}]*position: relative/)
-  assert.match(css, /\.mc-pack-back,\n\.mc-pack-front \{/)
+  assert.match(css, /\.mc-pack-back,\n\.mc-pack-cover \{/)
   assert.match(css, /\.mc-pack-back\[data-slot='2'\] \{ transform: translate/)
-  assert.match(css, /\.mc-pack-front \.mc-home-card \{/)
+  // 封面是包名的唯一载体：标题必须够大，底片条必须存在，否则又退回「包里第一张卡」。
+  assert.match(css, /\.mc-pack-cover-title \{[^}]*font-size: 17\.5px/)
+  assert.match(css, /\.mc-pack-strip \{[^}]*height: 38px/)
   assert.match(css, /\.mc-pack-glow \{[^}]*box-shadow:/)
   assert.doesNotMatch(css, /\.mc-pack-outline/)
   assert.doesNotMatch(css, /\.mc-pack-hotzone/)
@@ -116,16 +118,20 @@ test('pack card, glow and full-card overlay styles are present', async () => {
   // 深色标记由 DSH 打在 body 上（body[data-ds-dark-theme]），预览页仍用 :root[data-theme='dark']；
   // 两者都写进 :is()，只写其中一种时另一种就是死代码。
   assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-back/)
-  assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-front/)
+  assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-cover/)
 })
 
-// 卡包胶囊浮在成员卡上：底色必须跟主题走，写死成白色会在深色模式变成白底白字
-// （批次卡进卡包时整条「卡包 · 标题 · N 张」都看不见）。
-test('pack tab pill follows the theme instead of a hard-coded white surface', async () => {
+// 卡包封面取代了压在成员卡上的玻璃胶囊：底色必须跟主题走，
+// 写死成白色会在深色模式变成一块白板，标题、张数、底片条全部糊掉。
+test('pack cover follows the theme instead of a hard-coded white surface', async () => {
   const css = await readFile(new URL('../client-src/styles.css', import.meta.url), 'utf8')
-  const tab = (css.match(/\.mc-pack-tab \{[^}]*\}/g) || [])[0] || ''
-  assert.match(tab, /background: color-mix\(in srgb, var\(--dsw-alias-bg-layer-1\)/, '卡包胶囊应使用主题抬升层做底色')
-  assert.doesNotMatch(tab, /rgba\(255,\s*255,\s*255/, '卡包胶囊不能再写死浅色底')
+  const cover = (css.match(/\.mc-pack-cover \{[^}]*\}/g) || [])
+    .find((rule) => rule.includes('--pack-accent')) || ''
+  assert.match(cover, /var\(--dsw-alias-bg-layer-1\)/, '卡包封面应使用主题抬升层做底色')
+  assert.doesNotMatch(cover, /rgba\(255,\s*255,\s*255/, '卡包封面不能再写死浅色底')
+  assert.match(cover, /--pack-accent/, '卡包封面要用主题色洗区分类型')
+  // 底片条在深色下必须换成深色渐变，否则一条白底缩略图会比封面还抢眼。
+  assert.match(css, /:is\(body\[data-ds-dark-theme\], \[data-theme='dark'\]\) \.mc-pack-thumb\[data-tone='live'\]/)
 })
 
 // 深色覆盖必须同时认 DSH 的 body 属性与预览页的 data-theme，且数量配对，
