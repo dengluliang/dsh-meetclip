@@ -45,8 +45,17 @@
 
 ### 安装副本同步
 
-- `client.js`、`src/host/{feishu.js,feishu-local.js,config.js}`、`package.json`（0.9.21）已同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；同步前备份 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.21-*.tgz`。
+- `client.js`、`src/host/{feishu.js,feishu-local.js,config.js}`、`package.json`（0.9.21）已同步到 `~/.dsh/profiles/desktop/node_modules/@meetclip/dsh-meetclip`；同步前备份 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.21-20261118-115228.tgz`。
 - 现有本机补丁仍是 npx 形态（0.9.20 及更早写入），点一次「重新安装」即可切成本地启动器；不点也照常工作。
+
+### 发布（0.9.18–0.9.21 合并）
+
+- 0.9.18 / 0.9.19 / 0.9.20 此前只在本地出包、没有发 GitHub Release；这次把四个版本的改动合成一条提交 `61becca feat:新机器自举与飞书 MCP 本地安装（v0.9.18–0.9.21）` 推到 `main`，再以该提交为 target 发布 v0.9.21，tag 与发布包代码一致。
+- Release：<https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.21>（release id 449571863，非 draft / 非 prerelease，tag `v0.9.21` → `61becca`）。
+- 资产：`dsh-meetclip-0.9.21.tgz`（857,414 bytes，sha256 `30d652b6…6505f`）、`latest.json`、`SHA256SUMS.txt`。
+- 发布说明合并了 0.9.18–0.9.21 四段 CHANGELOG（从 0.9.17 升上来的机器也能看到自己被带上了什么），同一份内容也写回 `latest.json` 的 `notes`。
+- 发布后核对：`releases/latest/download/latest.json` → `version 0.9.21`、`asset.size 857414`、sha 与本地一致；`releases/latest/download/dsh-meetclip-0.9.21.tgz` 下载 857,414 bytes、`shasum -a 256` 与 feed 完全一致；`releases/latest` 302 到 `v0.9.21`。
+- **坑（GitHub edge cache）**：同名资产替换后，不带参数的 `releases/latest/download/latest.json` 可能还吐旧内容（实测抓到 3,356 bytes 旧版，带 `?cachebust=` 立即是新版 14,661 bytes）。插件自己的更新器本来就带 `latest.json?ts=<now>`（`src/host/update.js:630`），不受影响；版本号与 tgz 的 sha 一直是对的。
 
 ## 0.9.20 新机器自举：uv / CPython / ffmpeg 全部自动下载（2026-11-18）
 
