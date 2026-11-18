@@ -29,7 +29,7 @@
 ### 安装副本与版本
 
 - `client.js` 同步两次：先是 0.9.22 的右键提问（sha256 `cb5a724496cac0ff7df7e109fa24382c79e0f5cc05d34f425f140463c75a370a`，备份 `client.js.bak-20261118-140156`）；随后卡包封面在同一工作区做完，重新构建为 `d5ebf4c41aef65c1dbe005ac46c4b995f715efee93c60a3a46e85ffdebe8884b` 并再次同步（备份 `client.js.bak-20261118-140947`）。两次之后工作区与安装副本 `client.js` 的 sha256 一致，安装副本同时带上右键提问和封面两处改动。
-- 工作区 `package.json` 版本为 **0.9.22**（未发 Release）；安装副本的 `package.json` 暂留 0.9.21，避免本机「检查更新」把未发布的本地版本当成已发布版本。刷新 DSH 页面即可加载新 `client.js`；Host 与后端本次无改动。
+- 工作区 `package.json` 版本为 **0.9.22**，已发布（见下节）；安装副本的 `package.json` 仍留 0.9.21，安装副本只跟 `client.js`，版本号留给应用内更新去改。刷新 DSH 页面即可加载新 `client.js`；Host 与后端本次无改动。
 
 ### 卡包正面改成封面（同一版）
 
@@ -39,6 +39,15 @@
 - `node build/interaction-smoke.mjs` → PASS。卡包计数（1 张 → 2 张）、拖卡入包、浮层成员、右键提问全部照旧；`packText` 从「遍历 `props.children`」改成「遍历 renderer 实例树」，因为正面已经是函数组件（旧写法读不到封面里的标题和张数）。
 - **视觉核对**：`build/scatter-preview.jsx` 的 mock 增加 6 张混合包（2 视频 + 1 会议 + 1 直播 + 1 标记 + 1 便利签）与空卡包；`--packs` / `--packs-feed`（新增，切信息流）/ `--packs-dark` 分别出 `build/pack-preview.png`、`build/pack-preview-feed.png`、`build/pack-preview-dark.png`。逐张核对：散落里两个包与彩色卡同框仍先读到包名；信息流 260px 列里两行标题不挤压构成行；深色下封面不再是白板，底片块换深色渐变，`卡包` 芯片文字提亮到可读（首版在深色里偏棕，改 `color-mix(accent 44%, #fff)`）。
 - **已知取舍**：封面不再展示最新成员的正文（这是选 C 时确认的交换），成员内容压成底片条 + 类型构成；`+N` 只在超过 4 张时出现，张数始终以 `pack.count` 为准，成员还没落到当前分页时用标题首字兜底。
+
+### 发布（v0.9.22）
+
+- 发布提交 `cef919e feat:卡包浮层右键提问 + 卡包正面改成封面（v0.9.22）` 推到 `main`，再以该提交为 target 发布 `v0.9.22`，tag 与发布包代码一致。
+- Release：<https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.22>（release id **449718604**，非 draft / 非 prerelease，`v0.9.22` → `cef919e`）。
+- 资产（`node build/release.mjs --upload --target cef919e…` 上传）：`dsh-meetclip-0.9.22.tgz`（858,071 bytes，sha256 `43e2299a3270a9f30c22fc3cd5a870df9af78dfae3ca132a98039814e4815a63`）、`latest.json`（5,606 bytes）、`SHA256SUMS.txt`（90 bytes）；tar 内 `package/package.json` 为 `@meetclip/dsh-meetclip@0.9.22`，`client.js` 与工作区同一份（`d5ebf4c4…8884b`）。
+- 发布说明取自 CHANGELOG 的 0.9.22 段（含「同一版：卡包正面改成封面」），2,622 字符，同一份写回 `latest.json` 的 `notes`。
+- 发布后核对：`releases/download/v0.9.22/latest.json` → `version 0.9.22`、`asset.size 858071`、sha 一致；`releases/latest/download/latest.json?cachebust=<ts>` 跟随 302 后 200 / 5,606 bytes，同样是 0.9.22；`releases/latest` 302 到 `v0.9.22`；下载 `dsh-meetclip-0.9.22.tgz` 858,071 bytes，`shasum -a 256` 与本地 `dist/release/0.9.22/` 完全一致。
+- 发布前工作区干净、`tests 322/322`；发布脚本重建的 `client.js` 与提交里的一致，安装副本无需再同步。
 
 ## 0.9.21 飞书 MCP 本地安装（2026-11-18）
 
