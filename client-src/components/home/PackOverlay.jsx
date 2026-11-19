@@ -10,8 +10,12 @@ function memberLabel(member) {
   if (member.type === 'note') return member.kind === 'todo' ? '待办清单' : '便利签'
   if (member.type === 'image') return '图片'
   if (member.type === 'doc') {
-    return member.doc_type === 'wiki' ? '飞书知识库' : member.doc_type === 'sheet' ? '飞书表格'
-      : member.doc_type === 'base' ? '飞书多维表格' : '飞书文档'
+    if (member.doc_type === 'wiki') return '飞书知识库'
+    if (member.doc_type === 'sheet') return '飞书表格'
+    if (member.doc_type === 'base') return '飞书多维表格'
+    if (member.doc_type === 'wechat') return member.site ? `公众号 · ${member.site}` : '公众号'
+    if (member.doc_type === 'web') return member.site ? `网页 · ${member.site}` : '网页'
+    return '飞书文档'
   }
   return '卡片'
 }

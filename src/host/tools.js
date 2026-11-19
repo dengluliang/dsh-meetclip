@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { workspaceStatus } from './workspace.js'
-import { createFeishuDocCard } from './doc-cards.js'
+import { createLinkCard } from './link-cards.js'
 
 // 多资料空间：同一个 id 在别的库里很常见是「找不到」的真实原因。
 const MISSING_RECORD_HINT = 'Not found in the active library. MeetClip can hold several libraries (work, life, …) and only the active one is searchable: call meetclip_status to see which one is active, and ask the user to switch in the MeetClip header if the record lives in another library.'
@@ -91,15 +91,15 @@ function buildDefinitions(runtime, ctx) {
     }),
     definition({
       name: 'meetclip_capture',
-      description: 'Create and control MeetClip work: check/start a Bilibili live capture, preview or add video links, register a Feishu document as a card, import a local meeting file, inspect or cancel queued work.',
+      description: 'Create and control MeetClip work: check/start a Bilibili live capture, preview or add video links, register any web link (Feishu document, WeChat article, generic webpage) as an @-mention card, import a local meeting file, inspect or cancel queued work.',
       parameters: objectSchema({
-        action: enumField('Operation', ['precheck_live', 'start_live', 'preview_link', 'add_links', 'add_doc', 'import_meeting', 'stop', 'cancel_task', 'queue_status'], true),
-        url: stringField('Live or video URL for the URL actions, or a Feishu document URL for add_doc.'),
+        action: enumField('Operation', ['precheck_live', 'start_live', 'preview_link', 'add_links', 'add_link', 'add_doc', 'import_meeting', 'stop', 'cancel_task', 'queue_status'], true),
+        url: stringField('Live or video URL for the URL actions; any http(s) link for add_link/add_doc (Feishu document, WeChat article, webpage).'),
         urls: arrayField('Video URLs for action=add_links (max 20).'),
         session_id: stringField('Record id for stop or cancel_task.'),
         path: stringField('Local audio/video path for import_meeting; must be inside MeetClip data or uploads.'),
-        title: stringField('Optional title for start_live, import_meeting or add_doc.'),
-        link_only: booleanField('For add_doc: register the link without reading the document body.'),
+        title: stringField('Optional title for start_live, import_meeting, add_link or add_doc.'),
+        link_only: booleanField('For add_link/add_doc: register the link without reading the page body.'),
         language: stringField('Meeting language id, for example zh or en; auto means detect, empty uses the default transcription language (Chinese unless changed in settings).'),
         hotwords: stringField('Meeting hotwords separated by commas.'),
         transcription_mode: enumField('Video transcription preference.', ['auto', 'asr']),
@@ -111,7 +111,7 @@ function buildDefinitions(runtime, ctx) {
         if (action === 'start_live') return startLive(runtime, args)
         if (action === 'preview_link') return safe(async () => ({ ok: true, result: await post(runtime, '/api/link-videos/preview', { url: requireString(args.url, 'url') }) }))
         if (action === 'add_links') return addLinks(runtime, args)
-        if (action === 'add_doc') return addDocCard(runtime, ctx, args)
+        if (action === 'add_link' || action === 'add_doc') return addLinkCard(runtime, ctx, args)
         if (action === 'import_meeting') return importMeeting(runtime, args)
         if (action === 'stop') return stopRecord(runtime, args)
         if (action === 'cancel_task') return cancelTask(runtime, args)
@@ -506,31 +506,43 @@ async function startLive(runtime, args) {
   })
 }
 
-async function addDocCard(runtime, ctx, args) {
+async function addLinkCard(runtime, ctx, args) {
   const url = requireString(args.url, 'url')
   try {
-    const result = await createFeishuDocCard({
+    const result = await createLinkCard({
       tools: ctx.get('tools'),
       backend: runtime.backend,
       url,
       title: args.title ? String(args.title) : '',
       linkOnly: args.link_only === true
     })
+    const kind = result?.kind || ''
+    const linkOnly = Boolean(result?.link_only)
+    const notes = []
+    if (linkOnly) {
+      notes.push(kind === 'feishu-doc'
+        ? 'Only the link was registered. No document body was read; log in to Feishu and add it again for the full text.'
+        : 'Only the link was registered. The page body was not read (login wall, anti-bot or non-HTML); open the link for the full content.')
+    }
+    if (kind === 'video') {
+      notes.push('This is a video link: the card only stores the page snapshot and does not transcribe. Use add_links or start_live when the user wants a transcript.')
+    }
     return {
       ok: true,
+      kind,
       created: Boolean(result?.created),
       title: result?.card?.title || result?.card?.name || '',
-      link_only: Boolean(result?.link_only),
+      doc_type: result?.card?.doc_type || '',
+      site: result?.card?.site || '',
+      link_only: linkOnly,
       warning: result?.warning || '',
-      note: result?.link_only
-        ? 'Only the link was registered. No document body was read; login to Feishu and add it again for the full text.'
-        : undefined
+      note: notes.join(' ') || undefined
     }
   } catch (error) {
     return {
       ok: false,
-      code: error?.code || 'doc_card_failed',
-      message: String(error?.message || error || '登记飞书文档失败'),
+      code: error?.code || 'link_card_failed',
+      message: String(error?.message || error || '登记链接卡片失败'),
       hint: error?.hint || ''
     }
   }

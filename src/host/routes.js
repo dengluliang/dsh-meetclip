@@ -5,6 +5,7 @@ import { openFullDiskAccess, openTarget, openUrl, pickFile, receiveUpload, revea
 import { receiveFallbackUpload } from './fallback.js'
 import { FEISHU_DOC_URL, validOpenUrl } from './feishu.js'
 import { createFeishuDocCard, previewFeishuDoc } from './doc-cards.js'
+import { createLinkCard, previewLinkCard } from './link-cards.js'
 import { probeMimo } from './asr-probe.js'
 import { probeModelCatalog, probeUsable } from './models-probe.js'
 import { inspectDir } from './storage.js'
@@ -47,7 +48,9 @@ export function registerAppRoutes(ctx, runtime) {
     { path: '/meetclip/app/feishu/cancel', methods: { POST: handleFeishuCancel } },
     { path: '/meetclip/app/feishu/config', methods: { POST: handleFeishuConfig } },
     { path: '/meetclip/app/feishu/doc-card', methods: { POST: handleFeishuDocCard } },
-    { path: '/meetclip/app/feishu/doc-preview', methods: { POST: handleFeishuDocPreview } }
+    { path: '/meetclip/app/feishu/doc-preview', methods: { POST: handleFeishuDocPreview } },
+    { path: '/meetclip/app/link/card', methods: { POST: handleLinkCard } },
+    { path: '/meetclip/app/link/preview', methods: { POST: handleLinkPreview } }
   ]
 
   for (const definition of definitions) {
@@ -443,6 +446,59 @@ export function registerAppRoutes(ctx, runtime) {
         jsonResponse(res, error.status || 500, {
           ok: false,
           code: error.code || 'doc_card_failed',
+          detail: error.message,
+          hint: error.hint || undefined
+        })
+        return
+      }
+      throw error
+    }
+  }
+
+  /** 预读任意链接：飞书文档走飞书预览，公众号/网页抓 HTML 抽标题与摘要；不写卡片。 */
+  async function handleLinkPreview(req, res) {
+    const body = await readJsonBody(req, 64 * 1024)
+    try {
+      const result = await previewLinkCard({
+        tools: ctx.get('tools'),
+        url: body.url
+      })
+      jsonResponse(res, 200, result)
+    } catch (error) {
+      if (error?.name === 'DocCardError') {
+        jsonResponse(res, error.status || 500, {
+          ok: false,
+          code: error.code || 'link_preview_failed',
+          detail: error.message,
+          hint: error.hint || undefined
+        })
+        return
+      }
+      throw error
+    }
+  }
+
+  /**
+   * 把任意链接登记成会摘卡片。飞书文档仍走飞书 MCP/Open API；
+   * 公众号文章与普通网页在 Host 侧抓取正文；读不到时仍可只登记链接。
+   */
+  async function handleLinkCard(req, res) {
+    const body = await readJsonBody(req, 256 * 1024)
+    try {
+      const result = await createLinkCard({
+        tools: ctx.get('tools'),
+        backend: runtime.backend,
+        url: body.url,
+        title: body.title,
+        linkOnly: body.link_only === true
+      })
+      if (result?.kind === 'feishu-doc' && result.link_only === false) runtime.feishu.recordDocRead()
+      jsonResponse(res, 200, result)
+    } catch (error) {
+      if (error?.name === 'DocCardError') {
+        jsonResponse(res, error.status || 500, {
+          ok: false,
+          code: error.code || 'link_card_failed',
           detail: error.message,
           hint: error.hint || undefined
         })

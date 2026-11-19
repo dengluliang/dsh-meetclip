@@ -40,7 +40,7 @@ export function FeishuAccountCard({ compact = false }) {
         <span className="mc-login-state" data-ok={summary.tone === 'ok' ? 'true' : 'false'}>{summary.text}</span>
       </div>
       <p className="mc-login-hint">
-        登录后 Agent 能读写飞书文档、多维表格、云盘与 Wiki；首页「＋ → 飞书文档」也能读取正文。
+        登录后 Agent 能读写飞书文档、多维表格、云盘与 Wiki；首页「＋ → 链接卡片」粘贴飞书文档链接也能读取正文。
       </p>
       {summary.detail ? <p className="mc-form-note" data-tone={summary.tone}>{summary.detail}</p> : null}
       {loggedIn ? (

@@ -16,7 +16,7 @@ const TYPE_LABEL = {
   note: '便利签',
   highlight: '标记',
   image: '图片',
-  doc: '飞书文档',
+  doc: '链接卡片',
   batch: '批次'
 }
 

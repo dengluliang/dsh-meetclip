@@ -26,7 +26,7 @@ test('可打开的成员才有「打开」，文案按类型区分', () => {
   assert.deepEqual(labels(packMemberMenuItems(member('session'), { onOpen })), ['基于此卡片提问', '打开记录', '移出卡包'])
   assert.deepEqual(labels(packMemberMenuItems(member('highlight'), { onOpen })), ['基于此卡片提问', '打开记录', '移出卡包'])
   assert.deepEqual(labels(packMemberMenuItems(member('batch'), { onOpen })), ['基于此卡片提问', '打开批次', '移出卡包'])
-  assert.deepEqual(labels(packMemberMenuItems(member('doc', 'doc:abc'), { onOpen })), ['基于此卡片提问', '打开文档', '移出卡包'])
+  assert.deepEqual(labels(packMemberMenuItems(member('doc', 'doc:abc'), { onOpen })), ['基于此卡片提问', '打开链接', '移出卡包'])
   // 便利签与图片卡在墙面上也没有「打开」动作。
   assert.deepEqual(labels(packMemberMenuItems(member('note'), { onOpen })), ['基于此卡片提问', '移出卡包'])
   assert.deepEqual(labels(packMemberMenuItems(member('image'), { onOpen })), ['基于此卡片提问', '移出卡包'])

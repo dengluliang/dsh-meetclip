@@ -86,10 +86,21 @@ const previewPacks = new URLSearchParams(window.location.search).get('packs') ==
   }] : [])]
   : []
 
+// 链接卡片：默认不出现，避免改变既有散落布局（click smoke 依赖固定位置）。
+const showLinks = new URLSearchParams(window.location.search).get('links') === '1'
+const documents = showLinks
+  ? [
+    { id: 'doc:wechat1', key: 'wechat1', title: '小米发布会：一口气看完', url: 'https://mp.weixin.qq.com/s/AbCdEf123456', doc_type: 'wechat', source: 'wechat', site: '差评', author: '', published_at: '2026-11-03 20:00', excerpt: '手机、汽车和价格，一篇看完。', has_content: true, updated_at: now - 1800, path: '会摘卡片/小米发布会.md' },
+    { id: 'doc:web1', key: 'web1', title: 'The Age of AI Hardware', url: 'https://example.com/posts/ai-hardware', doc_type: 'web', source: 'web', site: 'example.com', author: 'Jane Doe', published_at: '2026-10-28 09:30', excerpt: 'Why the second wave of AI hardware may finally stick.', has_content: true, updated_at: now - 7200, path: '会摘卡片/AI Hardware.md' },
+    { id: 'doc:feishu1', key: 'feishu1', title: '会议纪要：物模型白皮书', url: 'https://example.feishu.cn/docx/ExampleDocToken1', doc_type: 'docx', source: 'feishu', site: '', author: '', published_at: '', excerpt: '', has_content: true, updated_at: now - 9000, path: '会摘卡片/会议纪要.md' }
+  ]
+  : []
+
 const homePayload = {
-  stats: { total: 42, week: 3, duration: 66600, recording: 0, unreviewed: 5, marks: 37, live: 18, link_video: 12, meeting: 12 },
+  stats: { total: 45, week: 3, duration: 66600, recording: 0, unreviewed: 5, marks: 37, live: 18, link_video: 12, meeting: 12, doc: documents.length },
   items: sessions,
   highlights,
+  documents,
   packs: previewPacks,
   has_more: false
 }

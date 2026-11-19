@@ -693,6 +693,23 @@ export function addFeishuDocCard({ url, title = '', linkOnly = false } = {}) {
   })
 }
 
+/** 预读任意链接：飞书文档走飞书，公众号/网页抓 HTML；只返回标题、站点、摘要，不落卡片。 */
+export function previewLinkCard({ url, signal } = {}) {
+  return app('/link/preview', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+    signal
+  })
+}
+
+/** 把任意链接（飞书文档、公众号文章、网页）登记成会摘卡片；linkOnly 时只存链接。 */
+export function addLinkCard({ url, title = '', linkOnly = false } = {}) {
+  return app('/link/card', {
+    method: 'POST',
+    body: JSON.stringify({ url, title, link_only: Boolean(linkOnly) })
+  })
+}
+
 // ------------------------------------------------------------------ 资料空间
 
 /** 全部资料空间 + 当前激活的那个。 */

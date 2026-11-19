@@ -13,7 +13,7 @@ test('memberLabel covers every card type the pack can hold', () => {
   assert.equal(memberLabel({ type: 'note', kind: 'todo' }), '待办')
   assert.equal(memberLabel({ type: 'note', kind: 'note' }), '便利签')
   assert.equal(memberLabel({ type: 'image' }), '图片')
-  assert.equal(memberLabel({ type: 'doc' }), '文档')
+  assert.equal(memberLabel({ type: 'doc' }), '链接')
   assert.equal(memberLabel({ type: 'batch' }), '批次')
   assert.equal(memberLabel(null), '')
 })
@@ -42,7 +42,7 @@ test('composition sorts by count, keeps three groups and drops empty labels', ()
     { type: 'note', kind: 'todo' }
   ]), '2 直播 · 1 标记 · 1 待办')
   // 相同数量时按成员出现的先后排，不和成员顺序打架。
-  assert.equal(composition([{ type: 'doc' }, { type: 'image' }]), '1 文档 · 1 图片')
+  assert.equal(composition([{ type: 'doc' }, { type: 'image' }]), '1 链接 · 1 图片')
   assert.equal(composition([]), '')
   assert.equal(composition(null), '')
 })

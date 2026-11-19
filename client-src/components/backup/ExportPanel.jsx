@@ -128,7 +128,7 @@ export function ExportPanel({
             title={row.title} meta={imageMeta(row)}
             onChange={() => onToggle('image', String(row.id))} />
         ))}
-        {group('doc', rows.docs, '飞书文档', 'key', (row) => (
+        {group('doc', rows.docs, '链接卡片', 'key', (row) => (
           <CardRow key={row.key} checked={isSelected(selection, 'doc', row.key)}
             title={row.title} meta={docMeta(row)}
             onChange={() => onToggle('doc', String(row.key))} />

@@ -683,7 +683,7 @@ export function SetupWizard({ status, onComplete }) {
               <div className="mc-setup-start">
                 <strong>现在试一次</strong>
                 <div className="mc-setup-start-grid">
-                  {[['launch', '发布会直播'], ['video', '视频链接'], ['meeting', '会议录音'], ['doc', '飞书文档']].map(([kind, label]) => (
+                  {[['launch', '发布会直播'], ['video', '视频链接'], ['meeting', '会议录音'], ['doc', '链接卡片']].map(([kind, label]) => (
                     <button key={kind} type="button" onClick={() => finish(kind)}>
                       <strong>{label}</strong>
                       <span>进入后直接打开</span>

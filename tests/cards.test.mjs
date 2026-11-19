@@ -13,7 +13,7 @@ const t = (key) => ({
   'kind.meeting': '会议',
   'kind.link_video': '视频',
   'kind.live': '直播',
-  'kind.doc': '飞书文档',
+  'kind.doc': '链接卡片',
   'kind.pack': '卡包',
   'kind.note': '便利签',
   'kind.highlight': '标记',
@@ -71,7 +71,7 @@ test('cardCandidate 生成菜单行与可解析的 value', () => {
   assert.equal(cardCandidate({ id: 'x', title: '无路径' }, t, undefined), null)
 })
 
-test('飞书文档卡候选使用 updated_at 并标注仅链接', () => {
+test('链接卡片候选使用 updated_at 并标注仅链接', () => {
   const doc = cardCandidate({
     id: 'doc:abc',
     title: '会议纪要：物模型白皮书',
@@ -84,7 +84,7 @@ test('飞书文档卡候选使用 updated_at 并标注仅链接', () => {
     url: 'https://example.feishu.cn/docx/ExampleDocToken1',
     path: '会摘卡片/会议纪要-物模型白皮书.md'
   }, t, undefined)
-  assert.match(doc.description, /飞书文档/)
+  assert.match(doc.description, /链接卡片/)
   assert.match(doc.description, /仅链接/)
   const value = JSON.parse(doc.value)
   assert.equal(value.kind, 'doc')

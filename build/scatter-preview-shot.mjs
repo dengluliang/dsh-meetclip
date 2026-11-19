@@ -16,6 +16,7 @@ const pasteImage = process.argv.includes('--paste-image')
 const pasteHeic = process.argv.includes('--paste-heic')
 const board = process.argv.includes('--board')
 const packs = process.argv.includes('--packs')
+const links = process.argv.includes('--links')
 const packsFeed = process.argv.includes('--packs-feed')
 const packsDark = process.argv.includes('--packs-dark')
 const packOverlay = process.argv.includes('--pack-overlay')
@@ -27,13 +28,15 @@ const query = [
   packHotzone ? 'demo=pack-hotzone' : '',
   packOverlay ? 'packs=1&demo=pack-overlay' : '',
   packsFeed ? 'packs=1&empty=1&demo=feed' : packs || packsDark ? 'packs=1' : '',
+  links ? 'links=1' : '',
   darkQuery,
   board ? 'board=1' : '',
   paste
 ].filter(Boolean).join('&')
 const page = `file://${path.join(here, 'scatter-preview.html')}${query ? `?${query}` : ''}`
 const output = path.join(root,
-  packsFeed ? 'build/pack-preview-feed.png'
+  links ? 'build/link-preview.png'
+    : packsFeed ? 'build/pack-preview-feed.png'
     : packHotzone ? 'build/pack-hotzone-preview.png'
     : packOverlay ? 'build/pack-overlay-preview.png'
     : pasteText ? 'build/paste-text-preview.png'

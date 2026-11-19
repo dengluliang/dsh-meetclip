@@ -1,13 +1,13 @@
 import { deps, listSessions, meetingOptions } from '../../lib/api.js'
 import { LaunchForm, MeetingForm, VideoForm } from '../NewCaptureDialog.jsx'
-import { DocCardForm } from './DocCardForm.jsx'
+import { LinkCardForm } from './LinkCardForm.jsx'
 import { openSettings } from '../../lib/settings-bus.js'
 
 const TITLES = {
   launch: ['发布会直播', '粘贴直播间链接，预检通过后开始采集'],
   video: ['视频链接', 'B站、YouTube 等链接导入，或批量粘贴'],
   meeting: ['会议录音', '选择本地音频或视频，可多选；导入后自动收进卡包'],
-  doc: ['飞书文档', '读取文档正文，生成可在会话里 @ 的会摘卡片']
+  doc: ['链接卡片', '公众号文章、网页或飞书文档，读成可在会话里 @ 的卡片']
 }
 
 // 面板贴着输入框下沿展开：底部操作行必须留在首页可视区内，否则会掉到裁切区外面。
@@ -171,7 +171,7 @@ export function CaptureInline({ t, type = 'launch', url = '', file = null, files
           <MeetingForm t={t} options={options} optionsError={optionsError} initialFile={file}
             initialFiles={files} onClose={onClose} onCreated={onCreated} />
         ) : null}
-        {type === 'doc' ? <DocCardForm t={t} onClose={onClose} onCreated={onCreated} /> : null}
+        {type === 'doc' ? <LinkCardForm t={t} onClose={onClose} onCreated={onCreated} /> : null}
       </div>
     </section>
   )

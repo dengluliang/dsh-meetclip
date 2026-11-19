@@ -137,6 +137,27 @@ globalThis.fetch = async (url, options = {}) => {
   if (target.includes('/api/douyin/status')) return json({ saved: false, count: 0, updated_at: 0, browser: 'chrome', last_url: '' })
   if (target.includes('/app/feishu/status')) return json(feishuStatus())
   if (target.includes('/app/feishu/doc-preview')) return json({ ok: false, code: 'feishu_not_logged_in', detail: '飞书登录已失效或未登录', hint: '到会摘面板右上角「设置 → 飞书」重新登录后重试，或先仅登记链接。' }, 409)
+  if (target.includes('/app/link/preview')) {
+    const body = JSON.parse(options.body || '{}')
+    if (String(body.url).includes('feishu.cn')) {
+      return json({ ok: false, code: 'feishu_not_logged_in', detail: '飞书登录已失效或未登录', hint: '到会摘面板右上角「设置 → 飞书」重新登录后重试，或先仅登记链接。' }, 409)
+    }
+    if (String(body.url).includes('mp.weixin.qq.com')) {
+      return json({
+        ok: true, kind: 'wechat', doc_type: 'wechat',
+        title: '小米发布会：一口气看完', site: '差评', author: '',
+        published_at: '2026-11-03 20:00', excerpt: '手机、汽车和价格，一篇看完。',
+        has_content: true, content_chars: 5200, link_only: false, warning: ''
+      })
+    }
+    return json({
+      ok: true, kind: 'web', doc_type: 'web', title: 'The Age of AI Hardware',
+      site: 'example.com', author: 'Jane Doe', published_at: '2026-10-28 09:30',
+      excerpt: 'Why the second wave of AI hardware may finally stick.',
+      has_content: true, content_chars: 8600, link_only: false, warning: ''
+    })
+  }
+  if (target.includes('/app/link/card')) return json({ ok: true, created: true, card: { title: '小米发布会：一口气看完', doc_type: 'wechat', site: '差评' } })
   if (target.includes('/app/feishu/')) return json({ ok: true, job: null })
   if (target.includes('/api/deps')) return json({ yt_dlp: true, ffmpeg: true, ready: true })
   if (target.includes('/api/meeting/options')) return json({ asr_ready: scene !== 'progress', languages: [] })
@@ -232,8 +253,14 @@ function App() {
       }
       if (scene === 'progress') clickText('配置')
       if (scene === 'doc') {
-        const input = document.querySelector('input[placeholder*="example.feishu.cn"]')
+        const input = document.querySelector('.mc-new-form input')
         if (input) setNativeValue(input, 'https://example.feishu.cn/docx/ExampleDocToken1')
+        await sleep(900)
+      }
+      if (scene === 'doc-link') {
+        const input = document.querySelector('.mc-new-form input')
+        if (input) setNativeValue(input, 'https://mp.weixin.qq.com/s/AbCdEf123456')
+        await sleep(1100)
       }
     }
     run()
@@ -250,7 +277,7 @@ function App() {
   if (scene === 'video-bili') return videoScene(false)
   if (scene === 'video-douyin') return videoScene(true)
   if (scene === 'launch') return launchScene()
-  if (scene === 'doc') return docScene()
+  if (scene === 'doc' || scene === 'doc-link') return docScene()
   if (scene === 'record') return recordScene()
   return panelScene()
 }

@@ -418,7 +418,7 @@ def catalog() -> dict:
         content = str(row.get("content") or "")
         docs.append({
             "key": str(row.get("key") or ""),
-            "title": _text(row.get("title"), 200) or "飞书文档",
+            "title": _text(row.get("title"), 200) or "链接卡片",
             "url": str(row.get("url") or ""),
             "doc_type": str(row.get("doc_type") or "docx"),
             "has_content": bool(content.strip()),
@@ -940,6 +940,7 @@ def _run_export(job: _Job, dest: Path, source: dict, include_media: bool) -> Non
                 "title": _text(row.get("title"), MAX_TITLE) or "飞书文档",
                 "content": str(row.get("content") or ""),
                 "revision": str(row.get("revision") or ""),
+                "meta": str(row.get("meta") or "{}"),
                 "created_at": _num(row.get("created_at")),
                 "updated_at": _num(row.get("updated_at")),
             })
@@ -1673,7 +1674,7 @@ def _run_import(job: _Job, raw_path: str, include_media: bool, skip_existing: bo
                 pass
 
         # ---- 文档卡：已存在的不覆盖 ----
-        job.update(phase="登记文档卡片", message="正在登记飞书文档卡片")
+        job.update(phase="登记链接卡片", message="正在登记文档与链接卡片")
         for doc in docs:
             job.check()
             data = doc["data"]
@@ -1684,6 +1685,7 @@ def _run_import(job: _Job, raw_path: str, include_media: bool, skip_existing: bo
                     content=str(data.get("content") or ""),
                     document_id=str(data.get("document_id") or ""),
                     revision=str(data.get("revision") or ""),
+                    meta=data.get("meta"),
                 )
                 key = str((result.get("card") or {}).get("key") or doc["key"])
                 db.execute(
@@ -1692,7 +1694,7 @@ def _run_import(job: _Job, raw_path: str, include_media: bool, skip_existing: bo
                     (archive_id, "doc", doc["origin"], "doc", key, time.time()),
                 )
             except (ValueError, OSError) as exc:
-                _warn(warnings, f"有文档卡片登记失败：{_text(exc, 120)}")
+                _warn(warnings, f"有链接卡片登记失败：{_text(exc, 120)}")
 
         # ---- 卡包：成员重映射后建新卡包 ----
         job.update(phase="恢复卡包", message="正在恢复卡包与成员")

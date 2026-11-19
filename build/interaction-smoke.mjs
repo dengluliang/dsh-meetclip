@@ -388,8 +388,9 @@ globalThis.fetch = async (url, options = {}) => {
       job: null
     })
   }
-  if (target.includes('/app/feishu/doc-preview')) {
+  if (target.includes('/app/link/preview') || target.includes('/app/feishu/doc-preview')) {
     return json({
+      kind: 'feishu-doc',
       ok: true,
       title: '会议纪要：物模型白皮书',
       doc_type: 'docx',
@@ -661,21 +662,21 @@ try {
     await flush(50)
   }
 
-  // 第四个入口：飞书文档表单；只验证入口/表单渲染，提交由 Host 单测覆盖。
+  // 第四个入口：链接卡片表单；只验证入口/预读/回填，提交由 Host 单测覆盖。
   plusButton = renderer.root.findAllByType('button').find((node) => node.props['data-testid'] === 'hero-new-capture')
   await act(async () => { plusButton.props.onClick() })
   await flush(60)
   const docEntry = renderer.root.findAllByType('button').find((node) => node.props['data-kind'] === 'doc')
-  if (!docEntry) throw new Error('Hero menu missing Feishu document entry')
+  if (!docEntry) throw new Error('Hero menu missing link card entry')
   await act(async () => { docEntry.props.onClick() })
   await flush(150)
   text = JSON.stringify(renderer.toJSON())
-  for (const expected of ['飞书文档', '仅登记链接', 'example.feishu.cn/docx']) {
-    if (!text.includes(expected)) throw new Error('Inline doc panel missing ' + expected)
+  for (const expected of ['链接卡片', '仅登记链接', 'mp.weixin.qq.com']) {
+    if (!text.includes(expected)) throw new Error('Inline link panel missing ' + expected)
   }
   // 粘链接后先预读标题并填入，用户可在预读结果上修改。
   const docUrlInput = renderer.root.findAllByType('input')
-    .find((node) => String(node.props.placeholder || '').includes('example.feishu.cn/docx'))
+    .find((node) => String(node.props.placeholder || '').includes('mp.weixin.qq.com'))
   if (!docUrlInput) throw new Error('Doc URL input missing')
   await act(async () => {
     docUrlInput.props.onChange({ target: { value: 'https://example.feishu.cn/docx/ExampleDocToken1' } })

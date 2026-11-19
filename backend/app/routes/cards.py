@@ -1,4 +1,4 @@
-"""@ 会摘卡片：列出卡片清单、触发卡片文件同步、登记飞书文档卡片。"""
+"""@ 会摘卡片：列出卡片清单、触发卡片文件同步、登记链接卡片（飞书文档/公众号/网页）。"""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -13,6 +13,7 @@ class DocCardReq(BaseModel):
     content: str = ""
     document_id: str = ""
     revision: str | int | float | None = ""
+    meta: dict | None = None
 
 
 @router.get("/api/cards")
@@ -29,7 +30,11 @@ def sync_cards(force: bool = False):
 
 @router.post("/api/cards/doc")
 def upsert_doc_card(req: DocCardReq):
-    """登记/刷新一张飞书文档卡片；正文由 Host 通过飞书 MCP 读取后传入。"""
+    """登记/刷新一张链接卡片。
+
+    飞书文档的正文由 Host 通过飞书 MCP 读取后传入；公众号文章与普通网页的正文
+    由 Host 抓取，meta 里带站点、作者、发布时间和摘要。
+    """
     try:
         return {"ok": True, **cards.upsert_doc_card(
             req.url,
@@ -37,6 +42,7 @@ def upsert_doc_card(req: DocCardReq):
             content=req.content,
             document_id=req.document_id,
             revision=str(req.revision or ""),
+            meta=req.meta,
         )}
     except ValueError as exc:
         raise HTTPException(400, str(exc)) from exc

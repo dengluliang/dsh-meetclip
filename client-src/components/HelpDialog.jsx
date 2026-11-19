@@ -2,7 +2,7 @@ const ENTRIES = [
   { kind: 'launch', title: '发布会直播', hint: '贴直播间链接，边录边转写；登录 B站可录原画' },
   { kind: 'video', title: '视频链接', hint: 'B站、YouTube、抖音等链接；抖音通常要登录' },
   { kind: 'meeting', title: '会议录音', hint: '选本地音频或视频，可多选批量导入' },
-  { kind: 'doc', title: '飞书文档', hint: '读成可 @ 的卡片；也可只登记链接' }
+  { kind: 'doc', title: '链接卡片', hint: '公众号、网页、飞书文档都能读成可 @ 的卡片；也可只登记链接' }
 ]
 
 export function HelpDialog({ onClose, onStart }) {

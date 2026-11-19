@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -18,7 +19,7 @@ import threading
 import time
 import unicodedata
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 import minutes
 import minutes_notes
@@ -47,7 +48,7 @@ MEMBER_TYPE_LABELS = {
     "highlight": "标记",
     "note": "便利签",
     "image": "图片",
-    "doc": "文档",
+    "doc": "链接",
     "pack": "卡包",
 }
 
@@ -71,7 +72,12 @@ DOC_TYPE_LABELS = {
     "sheet": "飞书表格",
     "base": "飞书多维表格",
     "docs": "飞书文档",
+    "wechat": "公众号文章",
+    "web": "网页",
 }
+FEISHU_DOC_TYPES = {"docx", "wiki", "sheet", "base", "docs"}
+DOC_META_LIMITS = {"site": 120, "author": 80, "published_at": 40, "excerpt": 300}
+PRIVATE_HOST_SUFFIXES = (".local", ".internal", ".lan", ".home.arpa")
 DOC_URL_TYPES = {
     "docx": "docx",
     "wiki": "wiki",
@@ -157,9 +163,90 @@ def parse_doc_url(value) -> tuple[str, str] | None:
     return doc_type, token
 
 
+def _is_private_host(host: str) -> bool:
+    """本机/内网字面地址不允许登记，避免把 URL 当成内网探针。"""
+    name = str(host or "").strip().strip("[]").lower().rstrip(".")
+    if not name or name == "localhost" or name.endswith(".localhost"):
+        return True
+    if name.endswith(PRIVATE_HOST_SUFFIXES):
+        return True
+    try:
+        address = ipaddress.ip_address(name)
+    except ValueError:
+        return False
+    return bool(address.is_private or address.is_loopback or address.is_link_local
+                or address.is_reserved or address.is_multicast or address.is_unspecified)
+
+
+def parse_card_url(value) -> tuple[str, str] | None:
+    """任意链接 → (doc_type, token)。
+
+    飞书文档沿用 /docx、/wiki 等文档类型；公众号文章记为 wechat，其他网页记为 web，
+    token 是去掉 #片段 后 URL 的 sha1 前 16 位（同一链接重复登记只刷新同一张卡）。
+    """
+    doc = parse_doc_url(value)
+    if doc:
+        return doc
+    try:
+        parsed = urlparse(_clean(value))
+    except Exception:
+        return None
+    if parsed.scheme not in ("http", "https"):
+        return None
+    if parsed.username or parsed.password:
+        return None
+    host = (parsed.hostname or "").lower()
+    if _is_private_host(host):
+        return None
+    # 查询串要保留：公众号文章靠 __biz/mid/idx/sn 定位。
+    normalized = parsed._replace(fragment="").geturl()
+    if len(normalized) > MAX_DOC_URL_CHARS:
+        return None
+    doc_type = "wechat" if host == "mp.weixin.qq.com" or host.endswith(".mp.weixin.qq.com") else "web"
+    token = hashlib.sha1(normalized.encode("utf-8")).hexdigest()[:16]
+    return doc_type, token
+
+
 def doc_key(doc_type: str, token: str) -> str:
     blob = f"{DOC_GENERATOR}:{doc_type}:{token}".encode("utf-8")
     return hashlib.sha1(blob).hexdigest()[:12]
+
+
+def _doc_meta(value) -> dict:
+    """公众号/网页元数据：只保留四个短字段，兼容 JSON 字符串与 None。"""
+    if isinstance(value, str):
+        try:
+            raw = json.loads(value)
+        except Exception:
+            raw = {}
+    elif isinstance(value, dict):
+        raw = value
+    else:
+        raw = {}
+    out = {}
+    for key, limit in DOC_META_LIMITS.items():
+        text = _clean(raw.get(key))[:limit]
+        if text:
+            out[key] = text
+    return out
+
+
+def _doc_meta_json(value) -> str:
+    return json.dumps(_doc_meta(value), ensure_ascii=False, sort_keys=True)
+
+
+def _fallback_link_title(url: str) -> str:
+    """没有读到标题时的兜底：站点 + 路径末段，避免用 hash 当标题。"""
+    try:
+        parsed = urlparse(_clean(url))
+    except Exception:
+        return "链接卡片"
+    host = (parsed.hostname or "").replace("www.", "", 1)
+    path = unquote(parsed.path or "").strip("/")
+    tail = path.split("/")[-1] if path else ""
+    if tail and len(tail) <= 48:
+        return f"{host} · {tail}"[:MAX_DOC_TITLE_CHARS]
+    return (host or "链接卡片")[:MAX_DOC_TITLE_CHARS]
 
 
 def _unique_file(base: str, used: set[str]) -> str:
@@ -429,11 +516,11 @@ def build_card(row: dict) -> tuple[str, str]:
     return markdown, search
 
 
-def _doc_content(title: str, content: str) -> str:
+def _doc_content(title: str, content: str, doc_type: str = "docx") -> str:
     text = str(content or "").strip()
     if not text:
         return ""
-    # 飞书 doc_read 的正文通常以标题开头；卡片标题已经单独写过，去掉重复首行。
+    # doc_read / 网页正文通常以标题开头；卡片标题已经单独写过，去掉重复首行。
     lines = text.splitlines()
     if lines and _clean(lines[0]) == _clean(title):
         lines = lines[1:]
@@ -441,32 +528,49 @@ def _doc_content(title: str, content: str) -> str:
             lines.pop(0)
     text = "\n".join(lines).strip()
     if len(text) > MAX_DOC_CONTENT_CHARS:
-        text = text[:MAX_DOC_CONTENT_CHARS].rstrip() + (
-            "\n\n_（正文较长，已截断；完整内容请用 mcp__feishu__doc_read 读取。）_"
+        note = (
+            "完整内容请用 mcp__feishu__doc_read 读取"
+            if doc_type in FEISHU_DOC_TYPES
+            else "完整内容请打开原链接"
         )
+        text = text[:MAX_DOC_CONTENT_CHARS].rstrip() + f"\n\n_（正文较长，已截断；{note}。）_"
     return text
 
 
-def _doc_search(title: str, doc_type: str, url: str, content: str) -> str:
-    type_label = DOC_TYPE_LABELS.get(doc_type, "飞书文档")
-    parts = [title, type_label, url, str(content or "")[:MAX_DOC_SEARCH_CHARS]]
+def _doc_search(title: str, doc_type: str, url: str, content: str, meta: dict | None = None) -> str:
+    type_label = DOC_TYPE_LABELS.get(doc_type, "链接卡片")
+    meta = meta or {}
+    parts = [title, type_label, meta.get("site"), meta.get("author"), meta.get("published_at"),
+             url, str(content or "")[:MAX_DOC_SEARCH_CHARS]]
     return _clean(" ".join(part for part in parts if part))[:MAX_DOC_SEARCH_CHARS]
 
 
+def _doc_excerpt(content: str, meta: dict) -> str:
+    if meta.get("excerpt"):
+        return meta["excerpt"]
+    for line in str(content or "").splitlines():
+        text = _clean(line)
+        if text:
+            return text[:160]
+    return ""
+
+
 def build_doc_card(row: dict) -> tuple[str, str]:
-    """生成一张飞书文档卡片的 Markdown 与搜索文本。"""
+    """生成一张文档/链接卡片的 Markdown 与搜索文本。"""
     title = _clean(row.get("title")) or f"未命名-{row.get('key')}"
     doc_type = str(row.get("doc_type") or "docx")
-    type_label = DOC_TYPE_LABELS.get(doc_type, "飞书文档")
+    type_label = DOC_TYPE_LABELS.get(doc_type, "链接卡片")
     url = _clean(row.get("url"))[:MAX_DOC_URL_CHARS]
     document_id = _clean(row.get("document_id")) or _clean(row.get("token"))
     revision = _clean(row.get("revision"))
     content = str(row.get("content") or "")
+    meta = _doc_meta(row.get("meta"))
+    feishu = doc_type in FEISHU_DOC_TYPES
     try:
         stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(float(row.get("updated_at") or 0)))
     except Exception:
         stamp = ""
-    search = _doc_search(title, doc_type, url, content)
+    search = _doc_search(title, doc_type, url, content, meta)
 
     lines = [f"# {title}", ""]
     bits = [type_label]
@@ -475,33 +579,49 @@ def build_doc_card(row: dict) -> tuple[str, str]:
     lines.append("> 会摘卡片 · " + " · ".join(bits))
     if url:
         lines.append(f"> 链接：{url}")
-    meta = f"> 文档 ID：`{document_id}` · 类型：`{doc_type}`"
-    if revision:
-        meta += f" · 修订：`{revision}`"
-    lines.append(meta)
-    lines += [
-        "",
-        "## 怎么用",
-        "这是用户在会摘里登记的飞书文档卡片。回答前先读本文件；下面是登记时读取的正文快照。",
-        "需要最新全文、块结构或图片时，使用 `mcp__feishu__doc_read` / `mcp__feishu__doc_fetch`，"
-        f"`document_id = \"{document_id}\"`；wiki 链接先用 `mcp__feishu__wiki_get_node` 取 `obj_token`。",
-        "这张卡片不对应会摘记录，没有 `session_id`；不要用 `meetclip_records` 查它。",
-        "",
-    ]
+    if feishu:
+        meta_line = f"> 文档 ID：`{document_id}` · 类型：`{doc_type}`"
+        if revision:
+            meta_line += f" · 修订：`{revision}`"
+        lines.append(meta_line)
+    else:
+        source = " · ".join(part for part in (
+            f"站点：{meta.get('site')}" if meta.get("site") else "",
+            f"作者：{meta.get('author')}" if meta.get("author") else "",
+            f"发布：{meta.get('published_at')}" if meta.get("published_at") else "",
+        ) if part)
+        if source:
+            lines.append(f"> {source}")
+
+    if feishu:
+        lines += [
+            "",
+            "## 怎么用",
+            "这是用户在会摘里登记的飞书文档卡片。回答前先读本文件；下面是登记时读取的正文快照。",
+            "需要最新全文、块结构或图片时，使用 `mcp__feishu__doc_read` / `mcp__feishu__doc_fetch`，"
+            f"`document_id = \"{document_id}\"`；wiki 链接先用 `mcp__feishu__wiki_get_node` 取 `obj_token`。",
+            "这张卡片不对应会摘记录，没有 `session_id`；不要用 `meetclip_records` 查它。",
+            "",
+        ]
+        empty_text = "这条文档还没有读取正文。打开上面的链接查看，或在会摘面板右上角「设置 → 飞书」登录后重新添加。"
+    else:
+        lines += [
+            "",
+            "## 怎么用",
+            "这是用户在会摘里登记的网页卡片。回答前先读本文件；下面是登记时保存的正文快照，页面可能已经更新。",
+            "需要最新内容时，请让用户重新粘贴链接添加一次，或在浏览器打开上面的链接。",
+            "这张卡片不对应会摘记录，没有 `session_id`；不要用 `meetclip_records` 查它。",
+            "",
+        ]
+        empty_text = "这条链接还没有读取正文（可能需要登录、被站点拦截，或页面不是文章）。打开上面的链接查看，或重新添加一次。"
 
     if content:
         lines += ["## 正文", "", content, ""]
     else:
-        lines += [
-            "## 正文",
-            "",
-            "这条文档还没有读取正文。打开上面的链接查看，或在会摘面板右上角「设置 → 飞书」登录后重新添加。",
-            "",
-        ]
+        lines += ["## 正文", "", empty_text, ""]
 
-    lines += ["---", "", "> 本文件由会摘生成；再次添加同一文档会刷新正文快照，请勿手工编辑。"]
+    lines += ["---", "", "> 本文件由会摘生成；再次添加同一链接会刷新正文快照，请勿手工编辑。"]
     return "\n".join(lines).strip() + "\n", search
-
 
 
 def _stamp_text(value) -> str:
@@ -757,18 +877,24 @@ def _remove_doc_file(old_file, keep: set[str]) -> None:
     _remove_card_file(name)
 
 
-def upsert_doc_card(url, title="", content="", document_id="", revision=""):
-    """登记/刷新一张飞书文档卡片；同一 doc_type:token 只保留一张。"""
-    parsed = parse_doc_url(url)
+def upsert_doc_card(url, title="", content="", document_id="", revision="", meta=None):
+    """登记/刷新一张链接卡片；同一 doc_type:token 只保留一张。
+
+    飞书文档沿用原有 doc_type（docx/wiki/sheet/base/docs）；公众号文章与普通网页
+    分别记为 wechat/web，meta 里带站点、作者、发布时间和摘要。
+    """
+    parsed = parse_card_url(url)
     if not parsed:
-        raise ValueError("只支持飞书文档链接（/docx、/wiki、/sheets、/base）")
+        raise ValueError("只支持 http(s) 链接（飞书文档、公众号文章、普通网页）")
     doc_type, token = parsed
-    type_label = DOC_TYPE_LABELS.get(doc_type, "飞书文档")
+    type_label = DOC_TYPE_LABELS.get(doc_type, "链接卡片")
+    feishu = doc_type in FEISHU_DOC_TYPES
     clean_title = _clean(title)[:MAX_DOC_TITLE_CHARS]
     if not clean_title:
-        clean_title = f"{type_label} {token[:8]}"
+        clean_title = f"{type_label} {token[:8]}" if feishu else _fallback_link_title(_clean(url))
     clean_url = _clean(url)[:MAX_DOC_URL_CHARS]
-    clean_content = _doc_content(clean_title, content)
+    clean_meta = _doc_meta(meta)
+    clean_content = _doc_content(clean_title, content, doc_type)
     clean_document_id = _clean(document_id)[:120] or (token if doc_type == "docx" else "")
     clean_revision = _clean(revision)[:120]
     key = doc_key(doc_type, token)
@@ -799,7 +925,8 @@ def upsert_doc_card(url, title="", content="", document_id="", revision=""):
             desired = _unique_file(base, used)
 
         signature = _doc_signature(clean_url, doc_type, token, clean_document_id,
-                                   clean_title, desired, clean_content, clean_revision)
+                                   clean_title, desired, clean_content, clean_revision,
+                                   clean_meta)
         path = card_dir / desired
         changed = not (
             existing
@@ -816,6 +943,7 @@ def upsert_doc_card(url, title="", content="", document_id="", revision=""):
                 "document_id": clean_document_id,
                 "revision": clean_revision,
                 "content": clean_content,
+                "meta": clean_meta,
                 "updated_at": time.time(),
             }
             markdown, _search = build_doc_card(row)
@@ -826,10 +954,10 @@ def upsert_doc_card(url, title="", content="", document_id="", revision=""):
 
         now = time.time()
         created_at = float(existing.get("created_at") or now) if existing else now
-        search = _doc_search(clean_title, doc_type, clean_url, clean_content)
+        search = _doc_search(clean_title, doc_type, clean_url, clean_content, clean_meta)
         db.upsert_doc_card(key, clean_url, doc_type, token, clean_document_id,
                            clean_title, desired, signature, search, clean_content,
-                           clean_revision, created_at, now)
+                           clean_revision, _doc_meta_json(clean_meta), created_at, now)
         return {
             "created": existing is None,
             "changed": changed,
@@ -840,14 +968,19 @@ def upsert_doc_card(url, title="", content="", document_id="", revision=""):
                 "url": clean_url,
                 "doc_type": doc_type,
                 "document_id": clean_document_id,
+                "site": clean_meta.get("site", ""),
+                "author": clean_meta.get("author", ""),
+                "published_at": clean_meta.get("published_at", ""),
+                "excerpt": _doc_excerpt(clean_content, clean_meta),
                 "has_content": bool(clean_content),
                 "updated_at": now,
             },
         }
 
 
-def _doc_signature(url, doc_type, token, document_id, title, file, content, revision) -> str:
-    fields = [DOC_GENERATOR, url, doc_type, token, document_id, title, file, content, revision]
+def _doc_signature(url, doc_type, token, document_id, title, file, content, revision, meta=None) -> str:
+    fields = [DOC_GENERATOR, url, doc_type, token, document_id, title, file, content, revision,
+              _doc_meta(meta)]
     blob = json.dumps(fields, ensure_ascii=False, sort_keys=True)
     return hashlib.sha1(blob.encode("utf-8")).hexdigest()
 
@@ -1055,7 +1188,7 @@ def sync_if_stale(max_age: float = 2.0) -> dict:
 
 
 def home_documents(limit: int = 12) -> list[dict]:
-    """首页「飞书文档」条：只返回文件仍存在的已登记文档卡。"""
+    """首页「链接卡片」条：只返回文件仍存在的已登记文档/链接卡。"""
     limit = max(1, min(int(limit or 12), 50))
     out: list[dict] = []
     for row in db.list_doc_cards():
@@ -1065,13 +1198,21 @@ def home_documents(limit: int = 12) -> list[dict]:
         path = DATA_DIR / CARD_DIR_NAME / file
         if not path.is_file():
             continue
+        doc_type = str(row.get("doc_type") or "docx")
+        meta = _doc_meta(row.get("meta"))
+        content = str(row.get("content") or "")
         out.append({
             "id": f"doc:{row.get('key') or ''}",
             "key": str(row.get("key") or ""),
             "title": _clean(row.get("title")) or file,
             "url": str(row.get("url") or ""),
-            "doc_type": str(row.get("doc_type") or "docx"),
-            "has_content": bool(str(row.get("content") or "").strip()),
+            "doc_type": doc_type,
+            "source": "feishu" if doc_type in FEISHU_DOC_TYPES else doc_type,
+            "site": meta.get("site", ""),
+            "author": meta.get("author", ""),
+            "published_at": meta.get("published_at", ""),
+            "excerpt": _doc_excerpt(content, meta),
+            "has_content": bool(content.strip()),
             "updated_at": row.get("updated_at"),
             "path": f"{CARD_DIR_NAME}/{file}",
         })
@@ -1179,7 +1320,7 @@ def list_cards(query: str = "", limit: int = 20, card_id: str = "") -> dict:
             "_stamp": float(row.get("started_at") or row.get("created_at") or 0),
         })
 
-    # 飞书文档卡片与记录卡片共用同一个 @ 分组；它们不参与记录卡同步。
+    # 链接卡片（飞书文档/公众号/网页）与记录卡片共用同一个 @ 分组；它们不参与记录卡同步。
     for row in db.list_doc_cards():
         file = Path(str(row.get("file") or "")).name
         if not file:
@@ -1188,15 +1329,22 @@ def list_cards(query: str = "", limit: int = 20, card_id: str = "") -> dict:
         if not path.is_file():
             continue
         stamp = float(row.get("updated_at") or row.get("created_at") or 0)
+        doc_type = str(row.get("doc_type") or "docx")
+        meta = _doc_meta(row.get("meta"))
+        content = str(row.get("content") or "")
         cards.append({
             "id": f"doc:{row.get('key') or ''}",
             "title": _clean(row.get("title")) or file,
             "kind": "doc",
             "status": "done",
-            "source": "feishu",
+            "source": "feishu" if doc_type in FEISHU_DOC_TYPES else doc_type,
             "url": str(row.get("url") or ""),
-            "doc_type": str(row.get("doc_type") or "docx"),
-            "has_content": bool(str(row.get("content") or "").strip()),
+            "doc_type": doc_type,
+            "site": meta.get("site", ""),
+            "author": meta.get("author", ""),
+            "published_at": meta.get("published_at", ""),
+            "excerpt": _doc_excerpt(content, meta),
+            "has_content": bool(content.strip()),
             "created_at": row.get("created_at"),
             "updated_at": row.get("updated_at"),
             "started_at": None,

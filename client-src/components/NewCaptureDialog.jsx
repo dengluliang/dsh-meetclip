@@ -3,7 +3,7 @@ import {
   precheckLive, previewLink, startSession, uploadFile
 } from '../lib/api.js'
 import { bytes, clock, dateTime, duration } from '../lib/format.js'
-import { DocCardForm } from './capture/DocCardForm.jsx'
+import { LinkCardForm } from './capture/LinkCardForm.jsx'
 import { LoginRequiredNotice } from './login/LoginRequiredNotice.jsx'
 import { initialLanguage } from '../lib/language.js'
 import { openSettings } from '../lib/settings-bus.js'
@@ -128,7 +128,7 @@ export function NewCaptureDialog({ t, onClose, onCreated, onSubmitted, statusDat
             <MeetingForm t={t} options={options} optionsError={optionsError} onClose={onClose} onCreated={onCreated} />
           </div>
           <div hidden={kind !== 'doc'}>
-            <DocCardForm t={t} onClose={onClose} onCreated={onCreated} />
+            <LinkCardForm t={t} onClose={onClose} onCreated={onCreated} />
           </div>
         </div>
       </div>

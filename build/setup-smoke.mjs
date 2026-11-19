@@ -173,7 +173,7 @@ if (!text().includes('进入主界面')) throw new Error('Setup done action miss
 if (!text().includes('已添加 DSH 工作区：') || !text().includes('会摘资料')) {
   throw new Error('Workspace result missing: ' + text().slice(0, 800))
 }
-for (const expected of ['现在试一次', '发布会直播', '视频链接', '会议录音', '飞书文档', '连接账号（可选）', 'B站账号', '抖音账号', '飞书 MCP（可选）']) {
+for (const expected of ['现在试一次', '发布会直播', '视频链接', '会议录音', '链接卡片', '连接账号（可选）', 'B站账号', '抖音账号', '飞书 MCP（可选）']) {
   if (!text().includes(expected)) throw new Error('Done step missing ' + expected + ': ' + text().slice(0, 1200))
 }
 if (!saved.some((item) => item.model === 'ASR_NonStreaming')) throw new Error('Selected ASR model was not saved: ' + JSON.stringify(saved))

@@ -5324,6 +5324,15 @@ body.mc-stage-resizing-stack, body.mc-stage-resizing-stack * { cursor: row-resiz
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.mc-doc-wall-excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .mc-doc-wall-foot { margin-top: auto; }
 
 .mc-home-wall .mc-doc-wall-card,
@@ -6085,8 +6094,15 @@ function previewFeishuDoc({ url, signal } = {}) {
     signal
   });
 }
-function addFeishuDocCard({ url, title = "", linkOnly = false } = {}) {
-  return app("/feishu/doc-card", {
+function previewLinkCard({ url, signal } = {}) {
+  return app("/link/preview", {
+    method: "POST",
+    body: JSON.stringify({ url }),
+    signal
+  });
+}
+function addLinkCard({ url, title = "", linkOnly = false } = {}) {
+  return app("/link/card", {
     method: "POST",
     body: JSON.stringify({ url, title, link_only: Boolean(linkOnly) })
   });
@@ -45339,7 +45355,7 @@ function Welcome({ t }) {
 // client-src/components/NewCaptureDialog.jsx
 init_react_shim();
 
-// client-src/components/capture/DocCardForm.jsx
+// client-src/components/capture/LinkCardForm.jsx
 init_react_shim();
 
 // client-src/lib/feishu.js
@@ -45571,7 +45587,7 @@ function FeishuLoginActions({ status: status3, actions, busy, running }) {
   ), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55"), auth.loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, busy === "logout" ? "\u9000\u51FA\u4E2D\u2026" : "\u9000\u51FA\u767B\u5F55") : null);
 }
 
-// client-src/components/capture/DocCardForm.jsx
+// client-src/components/capture/LinkCardForm.jsx
 var DOC_PATH = /^\/(docx|wiki|sheets|base|docs)\/[A-Za-z0-9_-]+/;
 var DOC_HOST = /(^|\.)(feishu\.cn|larksuite\.com)$/i;
 var DOC_LABELS = {
@@ -45579,7 +45595,15 @@ var DOC_LABELS = {
   wiki: "\u98DE\u4E66\u77E5\u8BC6\u5E93",
   sheet: "\u98DE\u4E66\u8868\u683C",
   base: "\u98DE\u4E66\u591A\u7EF4\u8868\u683C",
-  docs: "\u98DE\u4E66\u6587\u6863"
+  docs: "\u98DE\u4E66\u6587\u6863",
+  wechat: "\u516C\u4F17\u53F7\u6587\u7AE0",
+  web: "\u7F51\u9875"
+};
+var KIND_LABELS = {
+  "feishu-doc": "\u98DE\u4E66",
+  wechat: "\u516C\u4F17\u53F7",
+  web: "\u7F51\u9875",
+  video: "\u89C6\u9891"
 };
 function looksLikeFeishuDoc(value) {
   try {
@@ -45589,7 +45613,36 @@ function looksLikeFeishuDoc(value) {
     return false;
   }
 }
-function DocCardForm({ t, onClose, onCreated }) {
+function looksLikeLink(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+function firstLink(value) {
+  const text = String(value || "").trim();
+  if (looksLikeLink(text)) return text;
+  const match = text.match(/https?:\/\/[^\s"'<>]+/);
+  if (!match) return "";
+  return match[0].replace(/[)"'“”‘’>\],.;:!?，。；：！？、]+$/, "");
+}
+function failureText(failure, t) {
+  if (failure?.status === 405) return "\u5BBF\u4E3B\u8FD8\u6CA1\u91CD\u65B0\u52A0\u8F7D\uFF1A\u9000\u51FA\u5E76\u91CD\u65B0\u6253\u5F00 DeepSeek Harness \u540E\u518D\u8BD5";
+  return failure?.message || t("home.doc.failed");
+}
+function previewMeta(preview, t) {
+  if (!preview) return "";
+  const typeLabel2 = preview.kind === "feishu-doc" ? DOC_LABELS[preview.doc_type] || t("home.docs.title") : KIND_LABELS[preview.kind] || t("home.docs.title");
+  const bits = [typeLabel2];
+  if (preview.kind !== "feishu-doc" && preview.site && preview.site !== typeLabel2) bits.push(preview.site);
+  if (preview.author) bits.push(preview.author);
+  if (preview.published_at) bits.push(preview.published_at);
+  bits.push(preview.has_content ? `${preview.content_chars}${t("home.doc.chars")}` : t("home.doc.linkOnly"));
+  return bits.join(" \xB7 ");
+}
+function LinkCardForm({ t, onClose, onCreated }) {
   const [url, setUrl] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [busy, setBusy] = React.useState("");
@@ -45604,7 +45657,8 @@ function DocCardForm({ t, onClose, onCreated }) {
   const sequence2 = React.useRef(0);
   const titleTouched = React.useRef(false);
   const retriedAfterLogin = React.useRef(false);
-  const feishu = useFeishu();
+  const feishuUrl = looksLikeFeishuDoc(firstLink(url));
+  const feishu = useFeishu({ enabled: feishuUrl });
   React.useEffect(() => {
     mounted.current = true;
     return () => {
@@ -45616,12 +45670,12 @@ function DocCardForm({ t, onClose, onCreated }) {
   const loggedIn = Boolean(feishu.status?.auth?.loggedIn);
   const accessExpired = Boolean(feishu.status?.auth?.accessExpired);
   const canRead = installed && loggedIn && !accessExpired;
-  const jobRunning = feishu.status?.job?.state === "running";
-  const pending = busy === "read" || busy === "link" || jobRunning;
+  const jobRunning = feishuUrl && feishu.status?.job?.state === "running";
+  const pending = busy === "read" || busy === "link" || Boolean(jobRunning);
   React.useEffect(() => {
     const current = ++sequence2.current;
-    const value = url.trim();
-    if (!value || !looksLikeFeishuDoc(value)) {
+    const value = firstLink(url);
+    if (!value) {
       setPreview(null);
       setPreviewing(false);
       setPreviewError("");
@@ -45634,16 +45688,16 @@ function DocCardForm({ t, onClose, onCreated }) {
     setPreviewHint("");
     const timer = setTimeout(async () => {
       try {
-        const result = await previewFeishuDoc({ url: value, signal: controller.signal });
+        const result = await previewLinkCard({ url: value, signal: controller.signal });
         if (!mounted.current || current !== sequence2.current) return;
         setPreview(result);
         if (!titleTouched.current && result?.title) setTitle(result.title);
-        feishu.load();
+        if (feishuUrl) feishu.load();
       } catch (failure) {
         if (failure?.name === "AbortError" || !mounted.current || current !== sequence2.current) return;
         setPreview(null);
-        setPreviewError(failure?.message || t("home.doc.previewFailed"));
-        setPreviewHint(failure?.data?.hint || "");
+        setPreviewError(failure?.status === 405 ? failureText(failure, t) : failure?.message || t("home.doc.previewFailed"));
+        setPreviewHint(failure?.hint || failure?.data?.hint || "");
       } finally {
         if (mounted.current && current === sequence2.current) setPreviewing(false);
       }
@@ -45654,10 +45708,10 @@ function DocCardForm({ t, onClose, onCreated }) {
     };
   }, [url, previewNonce]);
   React.useEffect(() => {
-    if (!canRead || !previewError || retriedAfterLogin.current) return;
+    if (!feishuUrl || !canRead || !previewError || retriedAfterLogin.current) return;
     retriedAfterLogin.current = true;
     setPreviewNonce((value) => value + 1);
-  }, [canRead, previewError]);
+  }, [feishuUrl, canRead, previewError]);
   function changeUrl(value) {
     retriedAfterLogin.current = false;
     setUrl(value);
@@ -45672,12 +45726,12 @@ function DocCardForm({ t, onClose, onCreated }) {
   }
   async function submit(linkOnly) {
     if (pending) return;
-    const value = url.trim();
+    const value = firstLink(url);
     if (!value) {
-      setError(t("home.doc.urlRequired"));
+      setError(url.trim() ? t("home.doc.invalid") : t("home.doc.urlRequired"));
       return;
     }
-    if (!looksLikeFeishuDoc(value)) {
+    if (!looksLikeLink(value)) {
       setError(t("home.doc.invalid"));
       setHint("");
       return;
@@ -45686,30 +45740,39 @@ function DocCardForm({ t, onClose, onCreated }) {
     setError("");
     setHint("");
     try {
-      const result = await addFeishuDocCard({ url: value, title: title.trim(), linkOnly });
+      const result = await addLinkCard({ url: value, title: title.trim(), linkOnly });
       if (!mounted.current) return;
       onCreated?.({ kind: "doc", ...result });
       onClose?.();
     } catch (failure) {
       if (!mounted.current) return;
-      setError(failure?.message || t("home.doc.failed"));
-      setHint(failure?.data?.hint || "");
+      setError(failureText(failure, t));
+      setHint(failure?.hint || failure?.data?.hint || "");
     } finally {
       if (mounted.current) setBusy("");
     }
   }
-  const label = preview ? DOC_LABELS[preview.doc_type] || t("home.docs.title") : "";
+  const linkOnlyPreview = Boolean(preview?.link_only);
+  const primaryLabel = busy === "read" ? t("home.doc.reading") : preview ? linkOnlyPreview ? t("home.doc.createLinkOnly") : t("home.doc.create") : t("home.doc.read");
   return /* @__PURE__ */ React.createElement("div", { className: "mc-new-form" }, /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, t("home.doc.hint")), /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, t("home.doc.url")), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
       value: url,
       onChange: (event) => changeUrl(event.target.value),
-      placeholder: "https://example.feishu.cn/docx/\u2026",
+      onPaste: (event) => {
+        const text = event.clipboardData?.getData?.("text") || "";
+        const link = firstLink(text);
+        if (link && link !== text.trim()) {
+          event.preventDefault();
+          changeUrl(link);
+        }
+      },
+      placeholder: "https://mp.weixin.qq.com/s/\u2026 \xB7 https://example.com/article",
       spellCheck: false,
       autoFocus: true
     }
-  )), previewing ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, t("home.doc.previewing")) : null, preview ? /* @__PURE__ */ React.createElement("div", { className: "mc-preview-card mc-doc-preview" }, /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, preview.title || t("home.doc.noTitle")), /* @__PURE__ */ React.createElement("span", null, label, " \xB7 ", preview.has_content ? `${preview.content_chars}${t("home.doc.chars")}` : t("home.doc.linkOnly")), preview.excerpt ? /* @__PURE__ */ React.createElement("span", { className: "mc-doc-preview-excerpt" }, preview.excerpt) : null, preview.warning ? /* @__PURE__ */ React.createElement("span", { className: "mc-doc-preview-warning" }, preview.warning) : null), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: previewing, onClick: retryPreview }, t("home.doc.rePreview"))) : null, previewError ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-error-text", role: "alert" }, previewError, previewHint ? `\uFF1A${previewHint}` : ""), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: retryPreview }, t("home.doc.rePreview"))) : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, t("home.doc.titleLabel")), /* @__PURE__ */ React.createElement(
+  )), previewing ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, t("home.doc.previewing")) : null, preview ? /* @__PURE__ */ React.createElement("div", { className: "mc-preview-card mc-doc-preview" }, /* @__PURE__ */ React.createElement("div", { className: "mc-preview-main" }, /* @__PURE__ */ React.createElement("strong", null, preview.title || t("home.doc.noTitle")), /* @__PURE__ */ React.createElement("span", null, previewMeta(preview, t)), preview.excerpt ? /* @__PURE__ */ React.createElement("span", { className: "mc-doc-preview-excerpt" }, preview.excerpt) : null, preview.warning ? /* @__PURE__ */ React.createElement("span", { className: "mc-doc-preview-warning" }, preview.warning) : null), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", disabled: previewing, onClick: retryPreview }, t("home.doc.rePreview"))) : null, preview?.kind === "video" ? /* @__PURE__ */ React.createElement("div", { className: "mc-notice", "data-tone": "info" }, t("home.doc.videoHint")) : null, previewError ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-row" }, /* @__PURE__ */ React.createElement("span", { className: "mc-error-text", role: "alert" }, previewError, previewHint ? `\uFF1A${previewHint}` : ""), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: retryPreview }, t("home.doc.rePreview"))) : null, /* @__PURE__ */ React.createElement("label", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, t("home.doc.titleLabel")), /* @__PURE__ */ React.createElement(
     "input",
     {
       className: "mc-input",
@@ -45722,7 +45785,7 @@ function DocCardForm({ t, onClose, onCreated }) {
       placeholder: preview ? t("home.doc.titleAutoPlaceholder") : t("home.doc.titlePlaceholder"),
       spellCheck: false
     }
-  )), !canRead ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-issue", "data-tone": summary2.tone }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, summary2.text), /* @__PURE__ */ React.createElement("span", null, summary2.detail || "\u767B\u5F55\u540E\u8BFB\u5230\u7684\u6587\u6863\u624D\u80FD\u8FDB\u5165\u5361\u7247\u6B63\u6587\uFF1B\u4E5F\u53EF\u4EE5\u5148\u53EA\u767B\u8BB0\u94FE\u63A5\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement(
+  )), feishuUrl && !canRead ? /* @__PURE__ */ React.createElement("div", { className: "mc-feishu-issue", "data-tone": summary2.tone }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("strong", null, summary2.text), /* @__PURE__ */ React.createElement("span", null, summary2.detail || t("home.doc.feishuDetail"))), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, !installed ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -45759,16 +45822,7 @@ function DocCardForm({ t, onClose, onCreated }) {
       onClick: feishu.actions.probe
     },
     "\u68C0\u6D4B\u8FDE\u63A5"
-  ) : null, /* @__PURE__ */ React.createElement(
-    "button",
-    {
-      type: "button",
-      className: "mc-button mc-button-small",
-      disabled: pending,
-      onClick: () => submit(true)
-    },
-    "\u4EC5\u767B\u8BB0\u94FE\u63A5"
-  ))) : /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, "\u5DF2\u767B\u5F55\uFF1B\u8BFB\u5230\u6B63\u6587\u4F1A\u4E00\u8D77\u5B58\u8FDB\u5361\u7247\uFF0C\u8BFB\u4E0D\u5230\u65F6\u4E0B\u65B9\u4ECD\u53EF\u300C\u4EC5\u767B\u8BB0\u94FE\u63A5\u300D\u3002"), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: feishu.status?.job, actions: feishu.actions }), pending ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, busy === "link" ? t("home.doc.linking") : t("home.doc.reading")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error, hint ? `\uFF1A${hint}` : "") : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending, onClick: onClose }, t("new.cancel")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending || !url.trim(), onClick: () => submit(true) }, t("home.doc.linkOnly")), /* @__PURE__ */ React.createElement(
+  ) : null)) : feishuUrl ? /* @__PURE__ */ React.createElement("p", { className: "mc-foot-meta" }, t("home.doc.feishuReady")) : null, feishuUrl ? /* @__PURE__ */ React.createElement(FeishuJobPanel, { job: feishu.status?.job, actions: feishu.actions }) : null, pending ? /* @__PURE__ */ React.createElement("div", { className: "mc-inline-note", role: "status" }, busy === "link" ? t("home.doc.linking") : t("home.doc.reading")) : null, error ? /* @__PURE__ */ React.createElement("div", { className: "mc-error-text", role: "alert" }, error, hint ? `\uFF1A${hint}` : "") : null, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending, onClick: onClose }, t("new.cancel")), !linkOnlyPreview ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled: pending || !url.trim(), onClick: () => submit(true) }, t("home.doc.linkOnly")) : null, /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -45776,9 +45830,9 @@ function DocCardForm({ t, onClose, onCreated }) {
       "data-variant": "primary",
       "data-new-submit": "true",
       disabled: pending || previewing || !url.trim(),
-      onClick: () => submit(false)
+      onClick: () => submit(linkOnlyPreview)
     },
-    busy === "read" ? t("home.doc.reading") : preview ? t("home.doc.create") : t("home.doc.read")
+    primaryLabel
   )));
 }
 
@@ -46169,7 +46223,7 @@ function NewCaptureDialog({ t, onClose, onCreated, onSubmitted, statusData, init
       onCreated,
       onSubmitted
     }
-  )), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "meeting" }, /* @__PURE__ */ React.createElement(MeetingForm, { t, options, optionsError, onClose, onCreated })), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "doc" }, /* @__PURE__ */ React.createElement(DocCardForm, { t, onClose, onCreated })))));
+  )), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "meeting" }, /* @__PURE__ */ React.createElement(MeetingForm, { t, options, optionsError, onClose, onCreated })), /* @__PURE__ */ React.createElement("div", { hidden: kind !== "doc" }, /* @__PURE__ */ React.createElement(LinkCardForm, { t, onClose, onCreated })))));
 }
 function LaunchForm({ t, health, initialUrl = "", onClose, onCreated }) {
   const [url, setUrl] = React.useState(initialUrl);
@@ -48826,7 +48880,7 @@ function memberLabel(member) {
   if (member.type === "highlight") return "\u6807\u8BB0";
   if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E" : "\u4FBF\u5229\u7B7E";
   if (member.type === "image") return "\u56FE\u7247";
-  if (member.type === "doc") return "\u6587\u6863";
+  if (member.type === "doc") return "\u94FE\u63A5";
   return "\u5361\u7247";
 }
 function memberTone(member) {
@@ -48965,7 +49019,7 @@ var OPEN_LABELS = {
   session: "\u6253\u5F00\u8BB0\u5F55",
   highlight: "\u6253\u5F00\u8BB0\u5F55",
   batch: "\u6253\u5F00\u6279\u6B21",
-  doc: "\u6253\u5F00\u6587\u6863"
+  doc: "\u6253\u5F00\u94FE\u63A5"
 };
 function packMemberMenuItems(member, { locked = false, onAsk, onOpen, onRemove } = {}) {
   if (!member) return [];
@@ -49004,7 +49058,12 @@ function memberLabel2(member) {
   if (member.type === "note") return member.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E";
   if (member.type === "image") return "\u56FE\u7247";
   if (member.type === "doc") {
-    return member.doc_type === "wiki" ? "\u98DE\u4E66\u77E5\u8BC6\u5E93" : member.doc_type === "sheet" ? "\u98DE\u4E66\u8868\u683C" : member.doc_type === "base" ? "\u98DE\u4E66\u591A\u7EF4\u8868\u683C" : "\u98DE\u4E66\u6587\u6863";
+    if (member.doc_type === "wiki") return "\u98DE\u4E66\u77E5\u8BC6\u5E93";
+    if (member.doc_type === "sheet") return "\u98DE\u4E66\u8868\u683C";
+    if (member.doc_type === "base") return "\u98DE\u4E66\u591A\u7EF4\u8868\u683C";
+    if (member.doc_type === "wechat") return member.site ? `\u516C\u4F17\u53F7 \xB7 ${member.site}` : "\u516C\u4F17\u53F7";
+    if (member.doc_type === "web") return member.site ? `\u7F51\u9875 \xB7 ${member.site}` : "\u7F51\u9875";
+    return "\u98DE\u4E66\u6587\u6863";
   }
   return "\u5361\u7247";
 }
@@ -49428,7 +49487,7 @@ var TITLES = {
   launch: ["\u53D1\u5E03\u4F1A\u76F4\u64AD", "\u7C98\u8D34\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u9884\u68C0\u901A\u8FC7\u540E\u5F00\u59CB\u91C7\u96C6"],
   video: ["\u89C6\u9891\u94FE\u63A5", "B\u7AD9\u3001YouTube \u7B49\u94FE\u63A5\u5BFC\u5165\uFF0C\u6216\u6279\u91CF\u7C98\u8D34"],
   meeting: ["\u4F1A\u8BAE\u5F55\u97F3", "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u53EF\u591A\u9009\uFF1B\u5BFC\u5165\u540E\u81EA\u52A8\u6536\u8FDB\u5361\u5305"],
-  doc: ["\u98DE\u4E66\u6587\u6863", "\u8BFB\u53D6\u6587\u6863\u6B63\u6587\uFF0C\u751F\u6210\u53EF\u5728\u4F1A\u8BDD\u91CC @ \u7684\u4F1A\u6458\u5361\u7247"]
+  doc: ["\u94FE\u63A5\u5361\u7247", "\u516C\u4F17\u53F7\u6587\u7AE0\u3001\u7F51\u9875\u6216\u98DE\u4E66\u6587\u6863\uFF0C\u8BFB\u6210\u53EF\u5728\u4F1A\u8BDD\u91CC @ \u7684\u5361\u7247"]
 };
 var PANEL_GAP = 10;
 var PANEL_MIN_HEIGHT = 200;
@@ -49587,7 +49646,7 @@ function CaptureInline({ t, type = "launch", url = "", file = null, files = null
         onClose,
         onCreated
       }
-    ) : null, type === "doc" ? /* @__PURE__ */ React.createElement(DocCardForm, { t, onClose, onCreated }) : null)
+    ) : null, type === "doc" ? /* @__PURE__ */ React.createElement(LinkCardForm, { t, onClose, onCreated }) : null)
   );
 }
 
@@ -49978,29 +50037,33 @@ var zh = {
   "home.entry.videoHint": "B\u7AD9\u3001YouTube \u7B49\u94FE\u63A5\u5BFC\u5165",
   "home.entry.meeting": "\u4F1A\u8BAE\u5F55\u97F3",
   "home.entry.meetingHint": "\u9009\u62E9\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u652F\u6301\u591A\u9009\u6279\u91CF\u5BFC\u5165",
-  "home.entry.doc": "\u98DE\u4E66\u6587\u6863",
-  "home.entry.docHint": "\u7C98\u8D34\u6587\u6863\u94FE\u63A5\uFF0C\u8BFB\u6210\u53EF @ \u7684\u5361\u7247",
-  "home.doc.url": "\u6587\u6863\u94FE\u63A5",
+  "home.entry.doc": "\u94FE\u63A5\u5361\u7247",
+  "home.entry.docHint": "\u516C\u4F17\u53F7\u6587\u7AE0\u3001\u7F51\u9875\u3001\u98DE\u4E66\u6587\u6863\u90FD\u80FD\u5B58\u6210\u5361\u7247",
+  "home.doc.url": "\u94FE\u63A5",
   "home.doc.titleLabel": "\u6807\u9898\uFF08\u53EF\u9009\uFF09",
-  "home.doc.titlePlaceholder": "\u7559\u7A7A\u5219\u7528\u6587\u6863\u6807\u9898",
+  "home.doc.titlePlaceholder": "\u7559\u7A7A\u5219\u7528\u9875\u9762\u6807\u9898",
   "home.doc.titleAutoPlaceholder": "\u8BFB\u53D6\u540E\u81EA\u52A8\u586B\u5165\uFF0C\u53EF\u4FEE\u6539",
-  "home.doc.previewing": "\u6B63\u5728\u8BFB\u53D6\u6587\u6863\u6807\u9898\u2026",
-  "home.doc.previewFailed": "\u8BFB\u53D6\u6587\u6863\u6807\u9898\u5931\u8D25",
-  "home.doc.noTitle": "\uFF08\u6587\u6863\u672A\u8FD4\u56DE\u6807\u9898\uFF09",
+  "home.doc.previewing": "\u6B63\u5728\u8BFB\u53D6\u9875\u9762\u2026",
+  "home.doc.previewFailed": "\u8BFB\u53D6\u9875\u9762\u5931\u8D25",
+  "home.doc.noTitle": "\uFF08\u9875\u9762\u672A\u8FD4\u56DE\u6807\u9898\uFF09",
   "home.doc.chars": " \u5B57\u6B63\u6587",
   "home.doc.rePreview": "\u91CD\u65B0\u8BFB\u53D6",
   "home.doc.create": "\u751F\u6210\u5361\u7247",
-  "home.doc.hint": "\u7C98\u8D34\u94FE\u63A5\u540E\u4F1A\u5148\u8BFB\u53D6\u6587\u6863\u6807\u9898\uFF0C\u786E\u8BA4\u540E\u518D\u751F\u6210\u5361\u7247\uFF1B\u8BFB\u4E0D\u5230\u6B63\u6587\u65F6\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5\u3002",
+  "home.doc.createLinkOnly": "\u751F\u6210\u94FE\u63A5\u5361\u7247",
+  "home.doc.hint": "\u7C98\u8D34\u516C\u4F17\u53F7\u6587\u7AE0\u3001\u666E\u901A\u7F51\u9875\u6216\u98DE\u4E66\u6587\u6863\u94FE\u63A5\uFF0C\u5148\u9884\u8BFB\u6807\u9898\uFF1B\u8BFB\u4E0D\u5230\u6B63\u6587\u65F6\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5\u3002",
   "home.doc.read": "\u8BFB\u53D6\u5E76\u751F\u6210\u5361\u7247",
-  "home.doc.reading": "\u6B63\u5728\u8BFB\u53D6\u98DE\u4E66\u6587\u6863\u2026",
+  "home.doc.reading": "\u6B63\u5728\u8BFB\u53D6\u9875\u9762\u2026",
   "home.doc.linkOnly": "\u4EC5\u767B\u8BB0\u94FE\u63A5",
   "home.doc.linking": "\u6B63\u5728\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u2026",
-  "home.doc.urlRequired": "\u5148\u7C98\u8D34\u98DE\u4E66\u6587\u6863\u94FE\u63A5",
-  "home.doc.invalid": "\u53EA\u652F\u6301\u98DE\u4E66\u6587\u6863\u94FE\u63A5\uFF08/docx\u3001/wiki\u3001/sheets\u3001/base\uFF09",
+  "home.doc.urlRequired": "\u5148\u7C98\u8D34\u94FE\u63A5",
+  "home.doc.invalid": "\u53EA\u652F\u6301 http(s) \u7F51\u9875\u94FE\u63A5",
   "home.doc.failed": "\u767B\u8BB0\u5361\u7247\u5931\u8D25",
   "home.doc.notReady": "\u98DE\u4E66 MCP \u672A\u767B\u5F55\u6216\u672A\u8FDE\u63A5\uFF1B\u4ECD\u53EF\u4EC5\u767B\u8BB0\u94FE\u63A5",
-  "home.docs.title": "\u98DE\u4E66\u6587\u6863",
-  "home.docs.add": "\uFF0B\u6DFB\u52A0\u6587\u6863",
+  "home.doc.feishuDetail": "\u767B\u5F55\u540E\u8BFB\u5230\u7684\u6587\u6863\u624D\u80FD\u8FDB\u5165\u5361\u7247\u6B63\u6587\uFF1B\u4E5F\u53EF\u4EE5\u5148\u53EA\u767B\u8BB0\u94FE\u63A5\u3002",
+  "home.doc.feishuReady": "\u5DF2\u767B\u5F55\uFF1B\u8BFB\u5230\u6B63\u6587\u4F1A\u4E00\u8D77\u5B58\u8FDB\u5361\u7247\uFF0C\u8BFB\u4E0D\u5230\u65F6\u4E0B\u65B9\u4ECD\u53EF\u300C\u4EC5\u767B\u8BB0\u94FE\u63A5\u300D\u3002",
+  "home.doc.videoHint": "\u8FD9\u662F\u89C6\u9891\u94FE\u63A5\uFF1A\u5361\u7247\u53EA\u5B58\u7F51\u9875\u5FEB\u7167\uFF0C\u4E0D\u8F6C\u5199\uFF1B\u9700\u8981\u8F6C\u5199\u8BF7\u6539\u7528\u300C\u89C6\u9891\u94FE\u63A5\u300D\u3002",
+  "home.docs.title": "\u94FE\u63A5\u5361\u7247",
+  "home.docs.add": "\uFF0B\u6DFB\u52A0\u94FE\u63A5",
   "home.docs.hasContent": "\u6B63\u6587\u5DF2\u6536\u5F55",
   "home.docs.linkOnly": "\u4EC5\u94FE\u63A5",
   "home.docs.open": "\u6253\u5F00",
@@ -50299,7 +50362,7 @@ var zh = {
   "kind.live": "\u76F4\u64AD",
   "kind.link_video": "\u89C6\u9891",
   "kind.meeting": "\u4F1A\u8BAE",
-  "kind.doc": "\u98DE\u4E66\u6587\u6863",
+  "kind.doc": "\u94FE\u63A5\u5361\u7247",
   "kind.pack": "\u5361\u5305",
   "kind.note": "\u4FBF\u5229\u7B7E",
   "kind.highlight": "\u6807\u8BB0",
@@ -50440,29 +50503,33 @@ var en = {
   "home.entry.videoHint": "Import from Bilibili, YouTube and more",
   "home.entry.meeting": "Meeting recording",
   "home.entry.meetingHint": "Choose local audio or video, multiple files supported",
-  "home.entry.doc": "Feishu document",
-  "home.entry.docHint": "Paste a document link to create an @-mention card",
-  "home.doc.url": "Document link",
+  "home.entry.doc": "Link card",
+  "home.entry.docHint": "Save a WeChat article, webpage or Feishu document as a card",
+  "home.doc.url": "Link",
   "home.doc.titleLabel": "Title (optional)",
-  "home.doc.titlePlaceholder": "Leave empty to use the document title",
-  "home.doc.titleAutoPlaceholder": "Filled from the document; edit if needed",
-  "home.doc.previewing": "Reading the document title\u2026",
-  "home.doc.previewFailed": "Could not read the document title",
-  "home.doc.noTitle": "(The document returned no title)",
+  "home.doc.titlePlaceholder": "Leave empty to use the page title",
+  "home.doc.titleAutoPlaceholder": "Filled from the page; edit if needed",
+  "home.doc.previewing": "Reading the page\u2026",
+  "home.doc.previewFailed": "Could not read the page",
+  "home.doc.noTitle": "(The page returned no title)",
   "home.doc.chars": " chars",
   "home.doc.rePreview": "Read again",
   "home.doc.create": "Create card",
-  "home.doc.hint": "Paste a link to preview the document title first, then create the card; you can still register the link only.",
+  "home.doc.createLinkOnly": "Create link card",
+  "home.doc.hint": "Paste a WeChat article, webpage or Feishu document link to preview its title; you can still register the link only.",
   "home.doc.read": "Read and create card",
-  "home.doc.reading": "Reading the Feishu document\u2026",
+  "home.doc.reading": "Reading the page\u2026",
   "home.doc.linkOnly": "Register link only",
   "home.doc.linking": "Registering the link card\u2026",
-  "home.doc.urlRequired": "Paste a Feishu document link first",
-  "home.doc.invalid": "Only Feishu document links are supported (/docx, /wiki, /sheets, /base)",
+  "home.doc.urlRequired": "Paste a link first",
+  "home.doc.invalid": "Only http(s) links are supported",
   "home.doc.failed": "Could not create the card",
   "home.doc.notReady": "Feishu MCP is not signed in or not connected; you can still register the link only",
-  "home.docs.title": "Feishu documents",
-  "home.docs.add": "\uFF0B Add document",
+  "home.doc.feishuDetail": "Only a signed-in Feishu account can read the document body; you can also register the link only.",
+  "home.doc.feishuReady": "Signed in; the document body will be stored with the card. If reading fails you can still register the link only.",
+  "home.doc.videoHint": 'This is a video link: the card only stores a page snapshot and is not transcribed. Use "Video link" when you need a transcript.',
+  "home.docs.title": "Link cards",
+  "home.docs.add": "\uFF0B Add link",
   "home.docs.hasContent": "Content captured",
   "home.docs.linkOnly": "Link only",
   "home.docs.open": "Open",
@@ -50761,7 +50828,7 @@ var en = {
   "kind.live": "Live",
   "kind.link_video": "Video",
   "kind.meeting": "Meeting",
-  "kind.doc": "Feishu document",
+  "kind.doc": "Link card",
   "kind.pack": "Pack",
   "kind.note": "Sticky note",
   "kind.highlight": "Highlight",
@@ -51261,7 +51328,7 @@ var FILTERS2 = [
   { id: "live", label: "\u76F4\u64AD" },
   { id: "link_video", label: "\u89C6\u9891" },
   { id: "meeting", label: "\u4F1A\u8BAE" },
-  { id: "doc", label: "\u6587\u6863" },
+  { id: "doc", label: "\u94FE\u63A5" },
   { id: "active", label: "\u8FDB\u884C\u4E2D" },
   { id: "mark", label: "\u6807\u8BB0" }
 ];
@@ -51445,10 +51512,13 @@ var DOC_TYPE_LABELS = {
   wiki: "\u98DE\u4E66\u77E5\u8BC6\u5E93",
   sheet: "\u98DE\u4E66\u8868\u683C",
   base: "\u98DE\u4E66\u591A\u7EF4\u8868\u683C",
-  docs: "\u98DE\u4E66\u6587\u6863"
+  docs: "\u98DE\u4E66\u6587\u6863",
+  wechat: "\u516C\u4F17\u53F7",
+  web: "\u7F51\u9875"
 };
 function DocWallCard({ doc, onOpen, onMenu, t }) {
-  const label = DOC_TYPE_LABELS[doc.doc_type] || t("home.docs.title");
+  const typeLabel2 = DOC_TYPE_LABELS[doc.doc_type] || t("home.docs.title");
+  const label = doc.site ? `${typeLabel2} \xB7 ${doc.site}` : typeLabel2;
   return /* @__PURE__ */ React.createElement(
     "article",
     {
@@ -51467,6 +51537,7 @@ function DocWallCard({ doc, onOpen, onMenu, t }) {
     },
     /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-top" }, /* @__PURE__ */ React.createElement("span", null, label), /* @__PURE__ */ React.createElement("span", null, dateTime(doc.updated_at))),
     /* @__PURE__ */ React.createElement("strong", { className: "mc-doc-wall-title" }, doc.title),
+    doc.excerpt ? /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-excerpt" }, doc.excerpt) : null,
     /* @__PURE__ */ React.createElement("span", { className: "mc-doc-wall-foot" }, /* @__PURE__ */ React.createElement("span", null, doc.has_content ? t("home.docs.hasContent") : t("home.docs.linkOnly")), /* @__PURE__ */ React.createElement("span", null, t("home.docs.open"), " \u2197"))
   );
 }
@@ -51725,7 +51796,7 @@ var CAPTURE_ENTRIES = [
   { kind: "doc", title: "home.entry.doc", hint: "home.entry.docHint" }
 ];
 function Empty({ t, onNewCapture }) {
-  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-empty" }, /* @__PURE__ */ React.createElement("h2", null, "\u6458\u5F55\u5899\u8FD8\u662F\u7A7A\u7684"), /* @__PURE__ */ React.createElement("p", null, "\u4ECE\u4E00\u573A\u76F4\u64AD\u3001\u4E00\u4E2A\u89C6\u9891\u94FE\u63A5\u3001\u4E00\u6B21\u4F1A\u8BAE\u5F55\u97F3\uFF0C\u6216\u4E00\u7BC7\u98DE\u4E66\u6587\u6863\u5F00\u59CB\u3002\u8F6C\u5199\u3001\u622A\u56FE\u548C\u6807\u8BB0\u4F1A\u81EA\u52A8\u94FA\u5230\u8FD9\u91CC\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-home-empty-grid" }, CAPTURE_ENTRIES.map((entry) => /* @__PURE__ */ React.createElement("button", { key: entry.kind, type: "button", onClick: () => onNewCapture({ kind: entry.kind }) }, /* @__PURE__ */ React.createElement("strong", null, t(entry.title)), /* @__PURE__ */ React.createElement("span", null, t(entry.hint))))));
+  return /* @__PURE__ */ React.createElement("div", { className: "mc-home-empty" }, /* @__PURE__ */ React.createElement("h2", null, "\u6458\u5F55\u5899\u8FD8\u662F\u7A7A\u7684"), /* @__PURE__ */ React.createElement("p", null, "\u4ECE\u4E00\u573A\u76F4\u64AD\u3001\u4E00\u4E2A\u89C6\u9891\u94FE\u63A5\u3001\u4E00\u6B21\u4F1A\u8BAE\u5F55\u97F3\uFF0C\u6216\u4E00\u7BC7\u516C\u4F17\u53F7\u6587\u7AE0/\u7F51\u9875\u5F00\u59CB\u3002\u8F6C\u5199\u3001\u622A\u56FE\u548C\u6807\u8BB0\u4F1A\u81EA\u52A8\u94FA\u5230\u8FD9\u91CC\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-home-empty-grid" }, CAPTURE_ENTRIES.map((entry) => /* @__PURE__ */ React.createElement("button", { key: entry.kind, type: "button", onClick: () => onNewCapture({ kind: entry.kind }) }, /* @__PURE__ */ React.createElement("strong", null, t(entry.title)), /* @__PURE__ */ React.createElement("span", null, t(entry.hint))))));
 }
 function HomePage({
   t,
@@ -52639,7 +52710,7 @@ function HomePage({
       try {
         window.open(doc.url, "_blank", "noopener");
       } catch {
-        onToast?.("\u65E0\u6CD5\u6253\u5F00\u6587\u6863\u94FE\u63A5");
+        onToast?.("\u65E0\u6CD5\u6253\u5F00\u94FE\u63A5");
       }
     }
   }
@@ -52714,7 +52785,7 @@ function HomePage({
     openMenu(event, [
       { id: "ask-doc", label: "\u57FA\u4E8E\u6B64\u5361\u7247\u63D0\u95EE", hint: "\u5728 Agent \u4E2D @\u5B83", onSelect: () => askAgentAboutCard("doc", doc) },
       { separator: true },
-      { id: "open-doc", label: "\u6253\u5F00\u6587\u6863", onSelect: () => openDoc(doc) }
+      { id: "open-doc", label: "\u6253\u5F00\u94FE\u63A5", onSelect: () => openDoc(doc) }
     ]);
   }
   const renderEntry = (entry, options = {}) => {
@@ -53439,7 +53510,7 @@ function SetupWizard({ status: status3, onComplete }) {
   } }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762")), /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError })) : /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done" }, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-done-icon" }, "\u2713"), /* @__PURE__ */ React.createElement("h3", null, issues.length ? "\u5DF2\u53EF\u8FDB\u5165\u4F1A\u6458" : "\u73AF\u5883\u5DF2\u5C31\u7EEA"), /* @__PURE__ */ React.createElement("p", null, issues.length ? "\u4E0B\u9762\u6807\u51FA\u7684\u9879\u53EF\u4EE5\u73B0\u5728\u8865\uFF0C\u4E5F\u53EF\u4EE5\u8FDB\u5165\u540E\u518D\u8865\u3002" : "\u53EF\u4EE5\u5F00\u59CB\u91C7\u96C6\u4E86\u3002"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-checklist" }, /* @__PURE__ */ React.createElement("div", { "data-ok": envReady ? "true" : "false" }, /* @__PURE__ */ React.createElement("strong", null, "\u8FD0\u884C\u73AF\u5883"), /* @__PURE__ */ React.createElement("span", null, envReady ? "\u5DF2\u5C31\u7EEA" : "\u672A\u5C31\u7EEA")), /* @__PURE__ */ React.createElement("div", { "data-ok": issues.some((row) => row.id === "capture-deps") ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u91C7\u96C6\u7EC4\u4EF6"), /* @__PURE__ */ React.createElement("span", null, issues.some((row) => row.id === "capture-deps") ? "\u9700\u8981\u5B89\u88C5" : "\u5DF2\u5B89\u88C5")), /* @__PURE__ */ React.createElement("div", { "data-ok": issues.some((row) => row.id.includes("asr") || row.id.includes("model")) ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u4E91\u7AEF\u8F6C\u5199"), /* @__PURE__ */ React.createElement("span", null, issues.some((row) => row.id.includes("asr") || row.id.includes("model")) ? "\u9700\u8981\u914D\u7F6E" : "\u5DF2\u914D\u7F6E")), /* @__PURE__ */ React.createElement("div", { "data-ok": status3?.locations?.dataDirWritable === false ? "false" : "true" }, /* @__PURE__ */ React.createElement("strong", null, "\u5B58\u50A8\u4F4D\u7F6E"), /* @__PURE__ */ React.createElement("span", null, status3?.locations?.dataDirWritable === false ? "\u4E0D\u53EF\u5199" : "\u53EF\u5199"))), issues.length ? /* @__PURE__ */ React.createElement("div", { className: "mc-setup-issues" }, issues.map((issue) => /* @__PURE__ */ React.createElement("div", { key: issue.id }, /* @__PURE__ */ React.createElement("strong", null, issue.title), /* @__PURE__ */ React.createElement("span", null, issue.detail), issue.id === "capture-deps" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => {
     setBackground(true);
     runInstall();
-  } }, "\u91CD\u65B0\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6") : null, issue.id !== "capture-deps" && issue.id !== "home" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setStep(1) }, "\u8FD4\u56DE\u7B2C 1 \u6B65\u4FEE\u6539") : null))) : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError }), workspaceError ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: retryWorkspace }, "\u91CD\u8BD5\u6DFB\u52A0\u5DE5\u4F5C\u533A")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start" }, /* @__PURE__ */ React.createElement("strong", null, "\u73B0\u5728\u8BD5\u4E00\u6B21"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start-grid" }, [["launch", "\u53D1\u5E03\u4F1A\u76F4\u64AD"], ["video", "\u89C6\u9891\u94FE\u63A5"], ["meeting", "\u4F1A\u8BAE\u5F55\u97F3"], ["doc", "\u98DE\u4E66\u6587\u6863"]].map(([kind, label]) => /* @__PURE__ */ React.createElement("button", { key: kind, type: "button", onClick: () => finish(kind) }, /* @__PURE__ */ React.createElement("strong", null, label), /* @__PURE__ */ React.createElement("span", null, "\u8FDB\u5165\u540E\u76F4\u63A5\u6253\u5F00"))))), /* @__PURE__ */ React.createElement("details", { className: "mc-setup-accounts", open: false }, /* @__PURE__ */ React.createElement("summary", null, "\u8FDE\u63A5\u8D26\u53F7\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "B\u7AD9\u767B\u5F55\u540E\u53EF\u5F55\u539F\u753B/\u4F1A\u5458\u89C6\u9891\uFF1B\u6296\u97F3\u591A\u6570\u89C6\u9891\u9700\u8981\u767B\u5F55\uFF1B\u98DE\u4E66\u7528\u4E8E\u6587\u6863\u5361\u7247\u4E0E Agent \u8BFB\u5199\u3002"), /* @__PURE__ */ React.createElement(BilibiliLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(DouyinLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(FeishuSetupSection, { feishu })), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setStep(2) }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762"))) : null));
+  } }, "\u91CD\u65B0\u5B89\u88C5\u91C7\u96C6\u7EC4\u4EF6") : null, issue.id !== "capture-deps" && issue.id !== "home" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setStep(1) }, "\u8FD4\u56DE\u7B2C 1 \u6B65\u4FEE\u6539") : null))) : null, /* @__PURE__ */ React.createElement(WorkspaceNote, { info: workspaceInfo, error: workspaceError }), workspaceError ? /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: retryWorkspace }, "\u91CD\u8BD5\u6DFB\u52A0\u5DE5\u4F5C\u533A")) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start" }, /* @__PURE__ */ React.createElement("strong", null, "\u73B0\u5728\u8BD5\u4E00\u6B21"), /* @__PURE__ */ React.createElement("div", { className: "mc-setup-start-grid" }, [["launch", "\u53D1\u5E03\u4F1A\u76F4\u64AD"], ["video", "\u89C6\u9891\u94FE\u63A5"], ["meeting", "\u4F1A\u8BAE\u5F55\u97F3"], ["doc", "\u94FE\u63A5\u5361\u7247"]].map(([kind, label]) => /* @__PURE__ */ React.createElement("button", { key: kind, type: "button", onClick: () => finish(kind) }, /* @__PURE__ */ React.createElement("strong", null, label), /* @__PURE__ */ React.createElement("span", null, "\u8FDB\u5165\u540E\u76F4\u63A5\u6253\u5F00"))))), /* @__PURE__ */ React.createElement("details", { className: "mc-setup-accounts", open: false }, /* @__PURE__ */ React.createElement("summary", null, "\u8FDE\u63A5\u8D26\u53F7\uFF08\u53EF\u9009\uFF09"), /* @__PURE__ */ React.createElement("p", { className: "mc-setup-fine" }, "B\u7AD9\u767B\u5F55\u540E\u53EF\u5F55\u539F\u753B/\u4F1A\u5458\u89C6\u9891\uFF1B\u6296\u97F3\u591A\u6570\u89C6\u9891\u9700\u8981\u767B\u5F55\uFF1B\u98DE\u4E66\u7528\u4E8E\u6587\u6863\u5361\u7247\u4E0E Agent \u8BFB\u5199\u3002"), /* @__PURE__ */ React.createElement(BilibiliLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(DouyinLoginCard, { compact: true }), /* @__PURE__ */ React.createElement(FeishuSetupSection, { feishu })), /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setStep(2) }, "\u8FD4\u56DE\u5B89\u88C5"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-setup-primary", "data-variant": "primary", onClick: () => finish() }, "\u8FDB\u5165\u4E3B\u754C\u9762"))) : null));
 }
 function storagePermissionMessage(target, info) {
   const state2 = info && info.exists === true && info.isDirectory === false ? "\u8FD9\u4E2A\u8DEF\u5F84\u4E0D\u662F\u6587\u4EF6\u5939" : "\u8FD9\u4E2A\u4F4D\u7F6E\u5F53\u524D\u4E0D\u53EF\u5199";
@@ -53852,7 +53923,7 @@ var TYPE_LABEL = {
   note: "\u4FBF\u5229\u7B7E",
   highlight: "\u6807\u8BB0",
   image: "\u56FE\u7247",
-  doc: "\u98DE\u4E66\u6587\u6863",
+  doc: "\u94FE\u63A5\u5361\u7247",
   batch: "\u6279\u6B21"
 };
 function typeLabel(type) {
@@ -54162,8 +54233,17 @@ function highlightMeta(row) {
   if (stamp) bits.push(dateTime(stamp));
   return bits.join(" \xB7 ");
 }
+var DOC_TYPE_LABELS2 = {
+  docx: "\u98DE\u4E66\u6587\u6863",
+  wiki: "\u98DE\u4E66\u77E5\u8BC6\u5E93",
+  sheet: "\u98DE\u4E66\u8868\u683C",
+  base: "\u98DE\u4E66\u591A\u7EF4\u8868\u683C",
+  docs: "\u98DE\u4E66\u6587\u6863",
+  wechat: "\u516C\u4F17\u53F7\u6587\u7AE0",
+  web: "\u7F51\u9875"
+};
 function docMeta(row) {
-  return [typeLabel("doc"), row.doc_type ? `${row.doc_type}` : "", row.has_content ? "\u6709\u6B63\u6587\u5FEB\u7167" : "\u4EC5\u94FE\u63A5"].filter(Boolean).join(" \xB7 ");
+  return [typeLabel("doc"), DOC_TYPE_LABELS2[row.doc_type] || row.doc_type || "", row.has_content ? "\u6709\u6B63\u6587\u5FEB\u7167" : "\u4EC5\u94FE\u63A5"].filter(Boolean).join(" \xB7 ");
 }
 function noteMeta(row) {
   return [row.kind === "todo" ? "\u5F85\u529E\u6E05\u5355" : "\u4FBF\u5229\u7B7E", Number(row.created_at) ? dateTime(row.created_at) : ""].filter(Boolean).join(" \xB7 ");
@@ -54326,7 +54406,7 @@ function ExportPanel({
       meta: imageMeta(row),
       onChange: () => onToggle("image", String(row.id))
     }
-  )), group("doc", rows.docs, "\u98DE\u4E66\u6587\u6863", "key", (row) => /* @__PURE__ */ React.createElement(
+  )), group("doc", rows.docs, "\u94FE\u63A5\u5361\u7247", "key", (row) => /* @__PURE__ */ React.createElement(
     CardRow,
     {
       key: row.key,
@@ -54723,7 +54803,7 @@ function FeishuAccountCard({ compact = false }) {
   const expiry = auth.refreshExpiresAt ? new Date(auth.refreshExpiresAt * 1e3).toLocaleDateString("zh-CN") : "";
   const lastRead = status3?.lastDocReadAt ? new Date(status3.lastDocReadAt).toLocaleString("zh-CN", { hour12: false }) : "";
   const primary = !status3 ? null : !installed ? { label: running && job?.action === "install" ? "\u5B89\u88C5\u4E2D\u2026" : "\u5B89\u88C5\u5E76\u8FDE\u63A5", run: actions.install, disabled: disabled || !canInstall, variant: "primary" } : !loggedIn || auth.accessExpired ? { label: busy === "login" ? "\u7B49\u5F85\u6388\u6743\u2026" : auth.accessExpired ? "\u5237\u65B0\u98DE\u4E66\u767B\u5F55" : "\u767B\u5F55\u98DE\u4E66", run: () => actions.login("auto"), disabled, variant: "primary" } : { label: running && job?.action === "probe" ? "\u68C0\u6D4B\u4E2D\u2026" : "\u68C0\u6D4B\u8FDE\u63A5", run: actions.probe, disabled };
-  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card mc-feishu-login${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": summary2.tone === "ok" ? "true" : "false" }, summary2.text)), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E Agent \u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF1B\u9996\u9875\u300C\uFF0B \u2192 \u98DE\u4E66\u6587\u6863\u300D\u4E5F\u80FD\u8BFB\u53D6\u6B63\u6587\u3002"), summary2.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": summary2.tone }, summary2.detail) : null, loggedIn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, expiry ? `\u767B\u5F55\u6709\u6548\u671F\u81F3 ${expiry}` : "\u5DF2\u767B\u5F55", lastRead ? ` \xB7 \u4E0A\u6B21\u6210\u529F\u8BFB\u6587\u6863\uFF1A${lastRead}` : " \xB7 \u8FD8\u6CA1\u6709\u9A8C\u8BC1\u8FC7\u8BFB\u6587\u6863") : null, !runtimeReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-form-note", "data-tone": "error" }, runtime.mode === "npx" ? "\u98DE\u4E66 MCP \u9700\u8981 Node.js 20+\u3002\u88C5\u597D\u540E\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u3002" : "\u627E\u4E0D\u5230\u53EF\u7528\u7684 node \u8FD0\u884C\u65F6\uFF08DSH \u81EA\u5E26\u8FD0\u884C\u65F6\u5F02\u5E38\uFF09\u3002\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u518D\u8BD5\u3002", /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, runtime.mode === "npx" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
+  return /* @__PURE__ */ React.createElement("div", { className: `mc-login-card mc-feishu-login${compact ? " is-compact" : ""}` }, /* @__PURE__ */ React.createElement("div", { className: "mc-login-head" }, /* @__PURE__ */ React.createElement("strong", null, "\u98DE\u4E66"), /* @__PURE__ */ React.createElement("span", { className: "mc-login-state", "data-ok": summary2.tone === "ok" ? "true" : "false" }, summary2.text)), /* @__PURE__ */ React.createElement("p", { className: "mc-login-hint" }, "\u767B\u5F55\u540E Agent \u80FD\u8BFB\u5199\u98DE\u4E66\u6587\u6863\u3001\u591A\u7EF4\u8868\u683C\u3001\u4E91\u76D8\u4E0E Wiki\uFF1B\u9996\u9875\u300C\uFF0B \u2192 \u94FE\u63A5\u5361\u7247\u300D\u7C98\u8D34\u98DE\u4E66\u6587\u6863\u94FE\u63A5\u4E5F\u80FD\u8BFB\u53D6\u6B63\u6587\u3002"), summary2.detail ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note", "data-tone": summary2.tone }, summary2.detail) : null, loggedIn ? /* @__PURE__ */ React.createElement("p", { className: "mc-form-note" }, expiry ? `\u767B\u5F55\u6709\u6548\u671F\u81F3 ${expiry}` : "\u5DF2\u767B\u5F55", lastRead ? ` \xB7 \u4E0A\u6B21\u6210\u529F\u8BFB\u6587\u6863\uFF1A${lastRead}` : " \xB7 \u8FD8\u6CA1\u6709\u9A8C\u8BC1\u8FC7\u8BFB\u6587\u6863") : null, !runtimeReady ? /* @__PURE__ */ React.createElement("div", { className: "mc-form-note", "data-tone": "error" }, runtime.mode === "npx" ? "\u98DE\u4E66 MCP \u9700\u8981 Node.js 20+\u3002\u88C5\u597D\u540E\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u3002" : "\u627E\u4E0D\u5230\u53EF\u7528\u7684 node \u8FD0\u884C\u65F6\uFF08DSH \u81EA\u5E26\u8FD0\u884C\u65F6\u5F02\u5E38\uFF09\u3002\u70B9\u300C\u91CD\u65B0\u68C0\u6D4B\u300D\u518D\u8BD5\u3002", /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, runtime.mode === "npx" ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => openExternal("url", "https://nodejs.org/zh-cn").catch(() => {
   }) }, "\u5B89\u88C5 Node.js") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: actions.status }, "\u91CD\u65B0\u68C0\u6D4B"))) : null, /* @__PURE__ */ React.createElement("div", { className: "mc-actions" }, primary ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", "data-variant": primary.variant, disabled: primary.disabled, onClick: primary.run }, primary.label) : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: () => actions.login("device") }, "\u7528\u8BBE\u5907\u7801\u767B\u5F55") : null, installed ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.probe }, "\u68C0\u6D4B\u8FDE\u63A5") : null, loggedIn ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", disabled, onClick: actions.logout }, "\u9000\u51FA\u767B\u5F55") : null), /* @__PURE__ */ React.createElement(FeishuJobPanel, { job, actions }), loggedIn && summary2.tone !== "pending" ? /* @__PURE__ */ React.createElement(FeishuDocProbe, { compact: true, onLogin: () => actions.login("auto") }) : null, error ? /* @__PURE__ */ React.createElement("p", { className: "mc-error-text", role: "alert" }, error) : null);
 }
 
@@ -55613,7 +55693,7 @@ var ENTRIES = [
   { kind: "launch", title: "\u53D1\u5E03\u4F1A\u76F4\u64AD", hint: "\u8D34\u76F4\u64AD\u95F4\u94FE\u63A5\uFF0C\u8FB9\u5F55\u8FB9\u8F6C\u5199\uFF1B\u767B\u5F55 B\u7AD9\u53EF\u5F55\u539F\u753B" },
   { kind: "video", title: "\u89C6\u9891\u94FE\u63A5", hint: "B\u7AD9\u3001YouTube\u3001\u6296\u97F3\u7B49\u94FE\u63A5\uFF1B\u6296\u97F3\u901A\u5E38\u8981\u767B\u5F55" },
   { kind: "meeting", title: "\u4F1A\u8BAE\u5F55\u97F3", hint: "\u9009\u672C\u5730\u97F3\u9891\u6216\u89C6\u9891\uFF0C\u53EF\u591A\u9009\u6279\u91CF\u5BFC\u5165" },
-  { kind: "doc", title: "\u98DE\u4E66\u6587\u6863", hint: "\u8BFB\u6210\u53EF @ \u7684\u5361\u7247\uFF1B\u4E5F\u53EF\u53EA\u767B\u8BB0\u94FE\u63A5" }
+  { kind: "doc", title: "\u94FE\u63A5\u5361\u7247", hint: "\u516C\u4F17\u53F7\u3001\u7F51\u9875\u3001\u98DE\u4E66\u6587\u6863\u90FD\u80FD\u8BFB\u6210\u53EF @ \u7684\u5361\u7247\uFF1B\u4E5F\u53EF\u53EA\u767B\u8BB0\u94FE\u63A5" }
 ];
 function HelpDialog({ onClose, onStart }) {
   React.useEffect(() => {
@@ -55794,7 +55874,7 @@ function Panel({ t }) {
     setRevision((value) => value + 1);
     if (payload && typeof payload === "object" && payload.kind === "doc") {
       const card = payload.card || {};
-      const name = card.title || "\u98DE\u4E66\u6587\u6863";
+      const name = card.title || "\u94FE\u63A5\u5361\u7247";
       if (payload.warning) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF1A${payload.warning}`);
       else if (payload.link_only) setNotice(`\u5DF2\u767B\u8BB0\u94FE\u63A5\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);
       else setNotice(`\u5DF2\u751F\u6210\u4F1A\u6458\u5361\u7247\u300A${name}\u300B\uFF0C\u9996\u9875\u6458\u5F55\u5899\u548C\u4F1A\u8BDD @ \u90FD\u80FD\u770B\u5230\u3002`);

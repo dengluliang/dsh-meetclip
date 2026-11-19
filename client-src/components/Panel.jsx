@@ -195,7 +195,7 @@ export function Panel({ t }) {
     setRevision((value) => value + 1)
     if (payload && typeof payload === 'object' && payload.kind === 'doc') {
       const card = payload.card || {}
-      const name = card.title || '飞书文档'
+      const name = card.title || '链接卡片'
       if (payload.warning) setNotice(`已登记链接卡片《${name}》：${payload.warning}`)
       else if (payload.link_only) setNotice(`已登记链接卡片《${name}》，首页摘录墙和会话 @ 都能看到。`)
       else setNotice(`已生成会摘卡片《${name}》，首页摘录墙和会话 @ 都能看到。`)

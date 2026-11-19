@@ -7,6 +7,24 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.23 链接卡片：首页「＋」不再只认飞书文档，公众号/网页也能读成卡片
+
+发布日期：2026-11-19。
+
+- **需求**：首页「＋ → 飞书文档」只能登记飞书文档；想存一篇公众号文章或普通网页时没有入口，只能把链接丢给 Agent，也拿不到标题、站点和正文快照。
+- **入口**：「＋ → 飞书文档」升级成「＋ → 链接卡片」，提示「公众号文章、网页、飞书文档都能存成卡片」。表单仍是 650ms 防抖预读，预览卡显示类型、站点、作者、发布时间、正文长度与摘要，标题自动回填且可改；读不到正文时主按钮变成「生成链接卡片」，只存链接。
+- **读取**（新增 `src/host/link-cards.js`）：Host 侧分类并读取，飞书文档仍复用 `doc-cards.js`（MCP → Open API → 仅链接）；公众号和普通网页直接抓 HTML（跟随跳转，15 秒超时、4 MB 上限、只允许 http(s) 且拦住 localhost/内网字面地址与带账号密码的链接、URL 最长 2000 字符）。
+  - 解码按 `Content-Type` 的 charset，缺失时嗅探 `<meta charset>`，兼容 GBK/GB18030 老站点。
+  - 元数据优先 og/twitter/meta author/description/article:published_time；公众号额外读 `#activity-name`、`#js_name`、`#publish_time` 和 `var ct` 里的发布时间。
+  - 正文按 `#js_content`、`.rich_media_content`、`.mw-parser-output`、`article`、`main`、常见 article/post 容器依次找，用「文本长度 × (1 − 链接文字占比)」打分，避免选中导航；去掉脚本、样式、导航、页头页脚，`<h1>` 标题与前置作者块不重复进正文。
+  - 小红书（`xiaohongshu.com` / `xhslink.com`）单独走移动 UA：桌面 UA 会被重定向到登录页；标题只取 `<title>` 第一段（`og:title` 会把整篇笔记拼进来），正文优先 `meta description`。粘贴分享文案时只保留其中的链接，不让整段文案占满输入框。
+- **失败与降级**：401/403、429、5xx、超时、非 HTML、微信「环境异常」验证页都算环境性失败，自动落一张「仅链接」卡片并把原因写进预览与卡片；404/410、非法链接、内网地址直接报错，不落卡。公众号文章实测可读到标题、公众号名、发布时间和正文。旧 Host 还没重载时新前端会收到 405，表单直接提示「退出并重新打开 DSH」，不再显示含糊的「请求失败（HTTP 405）」。
+- **飞书不变**：飞书文档仍走现有登录与 MCP 读取；只有 URL 是飞书文档时才显示「安装/登录飞书」面板，普通网页不再被飞书登录状态挡住。
+- **卡片与数据**：`doc_cards` 新增 `meta TEXT`（站点/作者/发布时间/摘要，启动时自动迁移）；公众号记 `wechat`、网页记 `web`，token 是去掉 `#` 片段后 URL 的 sha1 前 16 位，同一链接重复添加只刷新同一张卡。卡片 Markdown 的「怎么用」按链接类型分支：飞书卡仍指向 `mcp__feishu__doc_read`，网页卡说明快照可能过期、需要最新内容时重新添加或打开原链接。首页墙/散落卡显示 `公众号 · 差评`、`网页 · example.com` 和摘要；`/api/home`、`/api/cards`、卡包成员、备份导出导入都带上 `site`/`excerpt`/`meta`，旧数据（无 meta）自动按空值显示。
+- **Agent 工具**：`meetclip_capture` 新增 `add_link`（`add_doc` 保留为别名），描述改成任意链接；`link_only` 时工具会明确说明「只登记了链接，没有读到正文」；视频链接会额外提示用 `add_links`/`start_live` 才能转写。系统提示词同步改成「贴任意链接 → add_link」。
+- **验证**：`node --test tests/*.test.mjs` **340/340**（新增 `tests/link-cards.test.mjs` 17 项：URL/内网拦截、分类、公众号与通用网页抽取、charset、跳转、体积上限、状态码降级、飞书委托、后端错误映射；`tests/host.test.mjs` 新增链接路由 1 项；`build/interaction-smoke.mjs` 的「＋ → 链接卡片」入口/预读/回填断言更新；`pack-member-menu` 文案改为「打开链接」）；`build/render-smoke.mjs` PASS。后端 `backend/tests/run-all.sh` **33 个文件全 PASS**（`test_cards_doc` 17 项，新增公众号/网页 meta、路由、私有地址、飞书会议纪要按网页登记）。真实页面抽查：两篇公众号文章（标题/公众号名/发布时间/正文均正确）、两篇真实小红书笔记（移动 UA 读到干净标题与正文；桌面 UA 会跳登录页）、少数派、维基百科、Apple、example.com；知乎 403 与未登录飞书纪要约降级成仅链接，伪造的小红书 404 链接直接报不存在。另用无头 Chrome 核对 `build/link-preview.png`（墙面三种链接卡）与 `build/link-form-preview.png`（公众号预读表单）。
+- **部署**：`npm pack` + `rsync --checksum` 同步到本机 DSH 桌面 profile 的安装副本（版本 `0.9.23`，`client.js` sha256 `08b23de1…210f`），同步前旧版本备份为 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.23-20261119-093035.tgz`，旧 bundle 留 `client.js.bak-20261119-094415`；最终安装包 `dist/meetclip-dsh-meetclip-0.9.23.tgz`（sha256 `669c28ed…36c6a`）；解包后与安装副本逐文件核对一致。本次 Host、`index.js` 与后端都有改动，**需要退出并重新打开 DSH**（只刷新页面会加载新前端但 Host 还没有 `/meetclip/app/link/*` 路由）；后端首次启动会自动给 `doc_cards` 加 `meta` 列，现有 3 张飞书卡不受影响。
+
 ## 0.9.22 卡包浮层里右键卡片也能「基于此卡片提问」
 
 发布日期：2026-11-18。

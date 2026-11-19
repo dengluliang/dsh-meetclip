@@ -62,29 +62,30 @@ GET /api/cards?q=…  ──→ 客户端 @ source（仅 cwd = dataDir 的会话
 - 客户端用 `ctx.inject(['inputTriggers','sessions'])` 注册 `meetclip-cards` source（order -10），只在会话 cwd 等于会摘根目录时出现；`inputTriggers` 不可用时自动降级为 DSH 原生文件 `@`。
 - 旧版/外部后端没有 `/api/cards` 时，Host 熔断并只记一次日志；文件菜单仍可用，其他采集/转写/工具不受影响。
 
-### 飞书文档卡片（0.8.11）
+### 链接卡片（0.9.23，原「飞书文档卡片」0.8.11）
 
 ```
-首页「＋」→ 飞书文档 →（650ms 防抖）POST /meetclip/app/feishu/doc-preview → 标题/长度/摘要回填（可改）
-      ↓ 确认
-POST /meetclip/app/feishu/doc-card
-      ↓ Host 解析 docx/wiki/sheets/base/docs
-      ├─ mcp__feishu__doc_read（wiki 先 mcp__feishu__wiki_get_node）
-      ├─ 兜底（仅 docx、本地 token 未过期）：open.feishu.cn docx raw_content
-      └─ 仍失败：仅链接卡片 + warning
-      ↓
+首页「＋」→ 链接卡片 →（650ms 防抖）POST /meetclip/app/link/preview
+      ↓ Host 分类：飞书文档 / 公众号 / 视频 / 普通网页
+      ├─ 飞书文档：reuse doc-cards.js（MCP → Open API → 仅链接）
+      └─ 其余：fetch HTML（15s、4MB、拦住本机/内网地址）→ 按 og/meta/正文容器抽标题、站点、作者、时间、正文
+      ↓ 标题/站点/摘要回填（可改）
+POST /meetclip/app/link/card
+      ↓ 同一分类；网页读不到时环境性失败降级为仅链接 + warning
 POST /api/cards/doc ──→ cards.upsert_doc_card()
       ├─→ <dataDir>/会摘卡片/<标题>.md
-      └─→ doc_cards（key、doc_type:token、文件名、签名、正文快照）
+      └─→ doc_cards（key、doc_type:token、文件名、签名、正文快照、meta JSON）
       ↓
-GET /api/cards ──→ 记录卡 + 文档卡混排（kind=doc）
-GET /api/home  ──→ documents[]：首页文档墙/散落卡与「文档」筛选
+GET /api/cards ──→ 记录卡 + 链接卡混排（kind=doc）
+GET /api/home  ──→ documents[]：首页链接墙/散落卡与「链接」筛选（site/excerpt）
 ```
 
-- 不重复实现飞书授权：正文读取优先复用 DSH 已配置的 Feishu MCP；token、私有域名与刷新由 MCP 负责。Open API 只在 MCP 不可用、且本地 `auth.json` 的 access token 未过期时作为 docx 兜底，只读、不写回。
-- 文档卡是**登记时的快照**：`doc_type:token` 去重，重复添加刷新正文与时间；没有 `session_id`，不参与 `meetclip_*` 记录查询。
+- 飞书文档不重复实现授权：正文读取优先复用 DSH 已配置的 Feishu MCP；token、私有域名与刷新由 MCP 负责。Open API 只在 MCP 不可用、且本地 `auth.json` 的 access token 未过期时作为 docx 兜底，只读、不写回。
+- 公众号/网页在 Host 侧抓取，后端只登记：`doc_type` 记 `wechat` 或 `web`，`token` 是去掉 `#` 片段后 URL 的 sha1 前 16 位；`meta` 列存站点、作者、发布时间与摘要。重复添加同一链接刷新同一张卡。
+- 链接卡是**登记时的快照**：没有 `session_id`，不参与 `meetclip_*` 记录查询；卡片文件里的「怎么用」会说明正文可能过期、需要最新内容时重新添加或打开原链接。
+- 环境性失败（登录墙 401/403、限流 429、超时、5xx、非 HTML、微信验证页）降级成「仅链接」卡片并带 warning；404/410 与非法/内网链接直接报错，不落卡。
 - 文件名分配与记录卡共用一套规则：`sync_cards` 先占住现存文档卡文件名；文档卡改名时只在确认旧文件不属于记录卡时删除。`sync_cards` 不清理 `doc_cards`。
-- 支持范围：docx 与解析到 docx 的 wiki 读正文；sheets/base/旧 docs 只登记链接。没有 AI 摘要、没有定时同步，也不在 `/jianbao` 后自动登记。
+- 飞书文档的支持范围不变：docx 与解析到 docx 的 wiki 读正文；sheets/base/旧 docs 只登记链接。公众号/网页读登记时的正文快照。没有 AI 摘要、没有定时同步，也不在 `/jianbao` 后自动登记。
 
 ## 备份与迁移
 

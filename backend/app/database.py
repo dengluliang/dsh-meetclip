@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS doc_cards (
     search TEXT NOT NULL DEFAULT '',
     content TEXT NOT NULL DEFAULT '',  -- 登记时读取的正文快照（有上限）
     revision TEXT NOT NULL DEFAULT '',
+    meta TEXT NOT NULL DEFAULT '{}',   -- 公众号/网页的站点、作者、发布时间、摘要（JSON）
     created_at REAL NOT NULL,
     updated_at REAL NOT NULL
 );
@@ -248,6 +249,7 @@ class DB:
             "ALTER TABLE link_jobs ADD COLUMN phase_text TEXT NOT NULL DEFAULT ''",
             "ALTER TABLE link_jobs ADD COLUMN fallback_token TEXT",
             "ALTER TABLE link_jobs ADD COLUMN download_progress REAL",
+            "ALTER TABLE doc_cards ADD COLUMN meta TEXT NOT NULL DEFAULT '{}'",
         ):
             try:
                 self._conn.execute(sql)
@@ -651,17 +653,18 @@ class DB:
         return self.one("SELECT * FROM doc_cards WHERE key=?", (key,))
 
     def upsert_doc_card(self, key, url, doc_type, token, document_id, title, file,
-                        signature, search, content, revision, created_at, updated_at):
+                        signature, search, content, revision, meta, created_at, updated_at):
         self.execute(
             "INSERT INTO doc_cards(key,url,doc_type,token,document_id,title,file,signature,"
-            "search,content,revision,created_at,updated_at) "
-            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) "
+            "search,content,revision,meta,created_at,updated_at) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) "
             "ON CONFLICT(key) DO UPDATE SET url=excluded.url, doc_type=excluded.doc_type, "
             "token=excluded.token, document_id=excluded.document_id, title=excluded.title, "
             "file=excluded.file, signature=excluded.signature, search=excluded.search, "
-            "content=excluded.content, revision=excluded.revision, updated_at=excluded.updated_at",
+            "content=excluded.content, revision=excluded.revision, meta=excluded.meta, "
+            "updated_at=excluded.updated_at",
             (key, url, doc_type, token, document_id, title, file, signature,
-             search, content, revision, created_at, updated_at),
+             search, content, revision, meta, created_at, updated_at),
         )
 
     def delete_doc_card(self, key):

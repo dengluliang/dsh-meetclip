@@ -32,6 +32,7 @@ const scenes = [
   ['15-help', 'help', 900],
   ['16-record-login', 'record', 1300],
   ['17-settings-about', 'settings-about', 1300],
+  ['18-doc-link', 'doc-link', 1150],
 ]
 
 const profile = mkdtempSync(path.join(tmpdir(), 'meetclip-journey-'))

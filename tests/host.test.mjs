@@ -676,6 +676,99 @@ test('feishu routes expose status and validate input', async () => {
   }
 })
 
+test('link card routes read WeChat/web pages and degrade to link-only', async () => {
+  const stateDir = tempDir()
+  const dataDir = tempDir()
+  const originalFetch = globalThis.fetch
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta property="og:title" content="小米发布会：一口气看完">
+<meta name="description" content="手机、汽车和价格。"></head>
+<body><h1 id="activity-name">小米发布会：一口气看完</h1><span id="js_name">差评</span>
+<div id="js_content"><p>${'第一段正文，讲的是手机和汽车。'.repeat(12)}</p></div></body></html>`
+  globalThis.fetch = async (url) => ({
+    ok: true,
+    status: 200,
+    url: String(url),
+    headers: new Headers({ 'content-type': 'text/html; charset=utf-8' }),
+    arrayBuffer: async () => Buffer.from(html, 'utf8')
+  })
+  try {
+    const runtime = new MeetClipRuntime({ stateDir, dataDir, port: 18522 })
+    const posted = []
+    runtime.backend.json = async (pathname, init) => {
+      posted.push({ pathname, init })
+      return {
+        ok: true,
+        created: true,
+        card: { title: '小米发布会：一口气看完', path: '会摘卡片/小米发布会.md', doc_type: 'wechat', site: '差评' }
+      }
+    }
+    const { ctx, routes } = fakeContext()
+    registerAppRoutes(ctx, runtime)
+
+    const preview = response()
+    await routes.get('/meetclip/app/link/preview').handler(request({
+      method: 'POST',
+      url: '/meetclip/app/link/preview',
+      body: { url: 'https://mp.weixin.qq.com/s/AbCdEf123456' }
+    }), preview)
+    assert.equal(preview.status, 200, preview.body)
+    const previewPayload = JSON.parse(preview.body)
+    assert.equal(previewPayload.kind, 'wechat')
+    assert.equal(previewPayload.title, '小米发布会：一口气看完')
+    assert.equal(previewPayload.site, '差评')
+    assert.equal(previewPayload.has_content, true)
+    assert.equal(posted.length, 0)
+
+    const card = response()
+    await routes.get('/meetclip/app/link/card').handler(request({
+      method: 'POST',
+      url: '/meetclip/app/link/card',
+      body: { url: 'https://mp.weixin.qq.com/s/AbCdEf123456' }
+    }), card)
+    assert.equal(card.status, 200, card.body)
+    const cardPayload = JSON.parse(card.body)
+    assert.equal(cardPayload.kind, 'wechat')
+    assert.equal(posted.length, 1)
+    const body = JSON.parse(posted[0].init.body)
+    assert.equal(body.url, 'https://mp.weixin.qq.com/s/AbCdEf123456')
+    assert.equal(body.document_id, '')
+    assert.match(body.content, /第一段正文/)
+    assert.equal(body.meta.site, '差评')
+
+    // 站点 403 → 预览返回「仅链接」而不是报错
+    globalThis.fetch = async () => ({
+      ok: false,
+      status: 403,
+      url: 'https://example.com/a',
+      headers: new Headers({ 'content-type': 'text/html' })
+    })
+    const blocked = response()
+    await routes.get('/meetclip/app/link/preview').handler(request({
+      method: 'POST',
+      url: '/meetclip/app/link/preview',
+      body: { url: 'https://example.com/a' }
+    }), blocked)
+    assert.equal(blocked.status, 200)
+    assert.equal(JSON.parse(blocked.body).link_only, true)
+    assert.match(JSON.parse(blocked.body).warning, /登录|拒绝/)
+
+    // 本机地址直接拒绝
+    const denied = response()
+    await routes.get('/meetclip/app/link/card').handler(request({
+      method: 'POST',
+      url: '/meetclip/app/link/card',
+      body: { url: 'http://127.0.0.1:8080/secret' }
+    }), denied)
+    assert.equal(denied.status, 400, denied.body)
+    assert.equal(JSON.parse(denied.body).code, 'invalid_url')
+  } finally {
+    globalThis.fetch = originalFetch
+    fs.rmSync(stateDir, { recursive: true, force: true })
+    fs.rmSync(dataDir, { recursive: true, force: true })
+  }
+})
+
 test('feishu doc-card route reads via MCP and rejects bad input', async () => {
   const stateDir = tempDir()
   const dataDir = tempDir()

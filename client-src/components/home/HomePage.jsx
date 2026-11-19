@@ -22,7 +22,7 @@ const FILTERS = [
   { id: 'live', label: '直播' },
   { id: 'link_video', label: '视频' },
   { id: 'meeting', label: '会议' },
-  { id: 'doc', label: '文档' },
+  { id: 'doc', label: '链接' },
   { id: 'active', label: '进行中' },
   { id: 'mark', label: '标记' }
 ]
@@ -208,11 +208,14 @@ const DOC_TYPE_LABELS = {
   wiki: '飞书知识库',
   sheet: '飞书表格',
   base: '飞书多维表格',
-  docs: '飞书文档'
+  docs: '飞书文档',
+  wechat: '公众号',
+  web: '网页'
 }
 
 function DocWallCard({ doc, onOpen, onMenu, t }) {
-  const label = DOC_TYPE_LABELS[doc.doc_type] || t('home.docs.title')
+  const typeLabel = DOC_TYPE_LABELS[doc.doc_type] || t('home.docs.title')
+  const label = doc.site ? `${typeLabel} · ${doc.site}` : typeLabel
   return (
     <article className="mc-doc-wall-card" role="button" tabIndex={0}
       aria-label={`${label}：${doc.title}`}
@@ -229,6 +232,7 @@ function DocWallCard({ doc, onOpen, onMenu, t }) {
         <span>{dateTime(doc.updated_at)}</span>
       </span>
       <strong className="mc-doc-wall-title">{doc.title}</strong>
+      {doc.excerpt ? <span className="mc-doc-wall-excerpt">{doc.excerpt}</span> : null}
       <span className="mc-doc-wall-foot">
         <span>{doc.has_content ? t('home.docs.hasContent') : t('home.docs.linkOnly')}</span>
         <span>{t('home.docs.open')} ↗</span>
@@ -512,7 +516,7 @@ function Empty({ t, onNewCapture }) {
   return (
     <div className="mc-home-empty">
       <h2>摘录墙还是空的</h2>
-      <p>从一场直播、一个视频链接、一次会议录音，或一篇飞书文档开始。转写、截图和标记会自动铺到这里。</p>
+      <p>从一场直播、一个视频链接、一次会议录音，或一篇公众号文章/网页开始。转写、截图和标记会自动铺到这里。</p>
       <div className="mc-home-empty-grid">
         {CAPTURE_ENTRIES.map((entry) => (
           <button key={entry.kind} type="button" onClick={() => onNewCapture({ kind: entry.kind })}>
@@ -1497,7 +1501,7 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
       try {
         window.open(doc.url, '_blank', 'noopener')
       } catch {
-        onToast?.('无法打开文档链接')
+        onToast?.('无法打开链接')
       }
     }
   }
@@ -1566,7 +1570,7 @@ export function HomePage({ t, revision = 0, onOpenRecord, onNewCapture, onToast,
     openMenu(event, [
       { id: 'ask-doc', label: '基于此卡片提问', hint: '在 Agent 中 @它', onSelect: () => askAgentAboutCard('doc', doc) },
       { separator: true },
-      { id: 'open-doc', label: '打开文档', onSelect: () => openDoc(doc) }
+      { id: 'open-doc', label: '打开链接', onSelect: () => openDoc(doc) }
     ])
   }
 

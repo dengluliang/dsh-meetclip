@@ -9,7 +9,7 @@ export function memberLabel(member) {
   if (member.type === 'highlight') return '标记'
   if (member.type === 'note') return member.kind === 'todo' ? '待办' : '便利签'
   if (member.type === 'image') return '图片'
-  if (member.type === 'doc') return '文档'
+  if (member.type === 'doc') return '链接'
   return '卡片'
 }
 

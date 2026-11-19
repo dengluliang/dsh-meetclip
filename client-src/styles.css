@@ -3577,6 +3577,15 @@ body.mc-stage-resizing-stack, body.mc-stage-resizing-stack * { cursor: row-resiz
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.mc-doc-wall-excerpt {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 .mc-doc-wall-foot { margin-top: auto; }
 
 .mc-home-wall .mc-doc-wall-card,

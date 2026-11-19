@@ -1,4 +1,4 @@
-"""飞书文档卡片：生成、列表、幂等、改名、与记录卡片文件名隔离、路由。"""
+"""链接卡片（飞书文档/公众号/网页）：生成、列表、幂等、改名、文件名隔离、路由。"""
 import importlib
 import os
 from pathlib import Path
@@ -11,6 +11,8 @@ from unittest.mock import patch
 
 
 DOC_URL = "https://example.feishu.cn/docx/ExampleDocToken1"
+WECHAT_URL = "https://mp.weixin.qq.com/s/AbCdEf123456"
+WEB_URL = "https://example.com/posts/hello"
 DOC_CONTENT = (
     "会议纪要：2026-11-04 | 聊聊「物模型」白皮书\n\n"
     "🎉 总结\n传播口径与白皮书发布策略。\n\n"
@@ -126,8 +128,16 @@ class DocCardTests(unittest.TestCase):
         self.assertIn("`DocXyz987654`", text)
 
     def test_invalid_url_rejected(self):
-        with self.assertRaises(ValueError):
-            self.cards.upsert_doc_card("https://example.feishu.cn/minutes/obcn1g2429f9e82rg5euo348", title="不是文档")
+        for bad in (
+            "http://127.0.0.1/secret",
+            "http://192.168.1.5/report",
+            "ftp://example.com/files/a",
+            "mailto:someone@example.com",
+            "https://user:pass@example.com/a",
+            "",
+        ):
+            with self.assertRaises(ValueError, msg=bad):
+                self.cards.upsert_doc_card(bad, title="不是链接")
         self.assertEqual(self.card_files(), [])
 
     # ---------- 幂等 / 刷新 / 改名 ----------
@@ -196,10 +206,104 @@ class DocCardTests(unittest.TestCase):
         self.assertEqual(listed["total"], 1)
         self.assertEqual(listed["cards"][0]["kind"], "doc")
 
-    def test_route_rejects_non_doc_url(self):
-        response = self.client.post("/api/cards/doc", json={"url": "https://example.feishu.cn/minutes/obcn1g24"})
+    def test_route_stores_web_meta(self):
+        response = self.client.post("/api/cards/doc", json={
+            "url": WEB_URL,
+            "title": "一篇网页",
+            "content": "网页正文。",
+            "meta": {"site": "示例站点", "author": "张三", "published_at": "2026-10-28 09:30", "excerpt": "摘要"},
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        card = response.json()["card"]
+        self.assertEqual(card["doc_type"], "web")
+        self.assertEqual(card["site"], "示例站点")
+        self.assertEqual(card["excerpt"], "摘要")
+        listed = self.cards.list_cards("网页正文")
+        self.assertEqual(listed["cards"][0]["source"], "web")
+        self.assertEqual(listed["cards"][0]["site"], "示例站点")
+
+    def test_route_rejects_private_host(self):
+        response = self.client.post("/api/cards/doc", json={"url": "http://127.0.0.1:8080/secret"})
         self.assertEqual(response.status_code, 400, response.text)
-        self.assertEqual(self.card_files(), [])
+
+    def test_route_accepts_feishu_minutes_as_web_link(self):
+        # 飞书会议纪要不再是「文档」，但作为普通链接仍可登记成链接卡片。
+        response = self.client.post("/api/cards/doc", json={"url": "https://example.feishu.cn/minutes/obcn1g24"})
+        self.assertEqual(response.status_code, 200, response.text)
+        payload = response.json()
+        self.assertEqual(payload["card"]["doc_type"], "web")
+        self.assertFalse(payload["card"]["has_content"])
+        self.assertEqual(len(self.card_files()), 1)
+
+    # ---------- 公众号 / 普通网页 ----------
+    def test_parse_card_url_marks_wechat_and_web(self):
+        self.assertEqual(self.cards.parse_card_url(WECHAT_URL)[0], "wechat")
+        self.assertEqual(self.cards.parse_card_url(WEB_URL)[0], "web")
+        self.assertEqual(self.cards.parse_card_url(DOC_URL)[0], "docx")
+        # 同一链接去掉 #片段 后是同一个 key
+        first = self.cards.parse_card_url(WEB_URL + "#part")
+        second = self.cards.parse_card_url(WEB_URL)
+        self.assertEqual(first, second)
+        token = first[1]
+        self.assertEqual(len(token), 16)
+
+    def test_web_card_contains_source_meta_and_usage(self):
+        result = self.cards.upsert_doc_card(
+            WECHAT_URL,
+            title="小米发布会：一口气看完",
+            content="第一段正文，讲的是手机。\n第二段正文，讲的是汽车。",
+            meta={
+                "site": "差评",
+                "author": "张三",
+                "published_at": "2026-11-03 20:00",
+                "excerpt": "手机、汽车和价格。",
+            },
+        )
+        self.assertTrue(result["created"])
+        self.assertEqual(result["card"]["doc_type"], "wechat")
+        self.assertEqual(result["card"]["site"], "差评")
+        text = self.read(self.card_files()[0])
+        for marker in (
+            "# 小米发布会：一口气看完",
+            "> 会摘卡片 · 公众号文章",
+            f"> 链接：{WECHAT_URL}",
+            "站点：差评", "作者：张三", "发布：2026-11-03 20:00",
+            "## 怎么用", "网页卡片", "## 正文", "第二段正文",
+            "没有 `session_id`", "请勿手工编辑",
+        ):
+            self.assertIn(marker, text)
+        self.assertNotIn("mcp__feishu__doc_read", text)
+
+        listing = self.cards.list_cards("汽车")
+        self.assertEqual(listing["total"], 1)
+        card = listing["cards"][0]
+        self.assertEqual(card["kind"], "doc")
+        self.assertEqual(card["source"], "wechat")
+        self.assertEqual(card["site"], "差评")
+        self.assertEqual(card["excerpt"], "手机、汽车和价格。")
+
+        home = self.cards.home_documents()
+        self.assertEqual(len(home), 1)
+        self.assertEqual(home[0]["doc_type"], "wechat")
+        self.assertEqual(home[0]["site"], "差评")
+        self.assertEqual(home[0]["excerpt"], "手机、汽车和价格。")
+
+    def test_web_card_is_idempotent_and_refreshes_meta(self):
+        first = self.cards.upsert_doc_card(WEB_URL, title="一篇网页", content="第一版正文", meta={"site": "示例站点"})
+        second = self.cards.upsert_doc_card(WEB_URL, title="一篇网页", content="第二版正文", meta={"site": "新站点"})
+        self.assertFalse(second["created"])
+        self.assertTrue(second["changed"])
+        self.assertEqual(len(self.card_files()), 1)
+        text = self.read(self.card_files()[0])
+        self.assertIn("第二版正文", text)
+        self.assertIn("站点：新站点", text)
+
+    def test_web_card_falls_back_to_host_title_and_derived_excerpt(self):
+        result = self.cards.upsert_doc_card(WEB_URL, title="", content="第一行是摘要。\n第二行是正文。")
+        self.assertEqual(result["card"]["title"], "example.com · hello")
+        self.assertEqual(result["card"]["excerpt"], "第一行是摘要。")
+        text = self.read(self.card_files()[0])
+        self.assertIn("> 会摘卡片 · 网页", text)
 
 
 if __name__ == "__main__":

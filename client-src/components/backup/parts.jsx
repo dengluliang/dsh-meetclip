@@ -86,8 +86,13 @@ export function highlightMeta(row) {
   return bits.join(' · ')
 }
 
+const DOC_TYPE_LABELS = {
+  docx: '飞书文档', wiki: '飞书知识库', sheet: '飞书表格', base: '飞书多维表格', docs: '飞书文档',
+  wechat: '公众号文章', web: '网页'
+}
+
 export function docMeta(row) {
-  return [typeLabel('doc'), row.doc_type ? `${row.doc_type}` : '', row.has_content ? '有正文快照' : '仅链接']
+  return [typeLabel('doc'), DOC_TYPE_LABELS[row.doc_type] || row.doc_type || '', row.has_content ? '有正文快照' : '仅链接']
     .filter(Boolean).join(' · ')
 }
 

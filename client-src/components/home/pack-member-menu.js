@@ -4,7 +4,7 @@ const OPEN_LABELS = {
   session: '打开记录',
   highlight: '打开记录',
   batch: '打开批次',
-  doc: '打开文档'
+  doc: '打开链接'
 }
 
 /**

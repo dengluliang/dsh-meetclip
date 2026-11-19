@@ -8,6 +8,7 @@
 """
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 import time
@@ -136,6 +137,16 @@ def _batch_active(row):
     return int(row.get("active") or 0) > 0
 
 
+def _doc_meta(row) -> dict:
+    raw = row.get("meta") if isinstance(row, dict) else None
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            raw = {}
+    return raw if isinstance(raw, dict) else {}
+
+
 def _describe_member(member_type, member_id, catalog):
     if member_type == "session":
         row = catalog["sessions"].get(member_id)
@@ -214,14 +225,16 @@ def _describe_member(member_type, member_id, catalog):
         row = catalog["docs"].get(member_id)
         if not row:
             return None
+        meta = _doc_meta(row)
         return {
             "type": "doc", "id": member_id,
-            "title": _text(row.get("title"), 160) or "飞书文档",
-            "subtitle": "",
+            "title": _text(row.get("title"), 160) or "链接卡片",
+            "subtitle": _text(meta.get("site"), 80),
             "kind": "doc",
             "status": "done",
             "url": str(row.get("url") or ""),
             "doc_type": str(row.get("doc_type") or "docx"),
+            "site": _text(meta.get("site"), 80),
             "has_content": bool(str(row.get("content") or "").strip()),
             "created_at": row.get("updated_at"),
         }
