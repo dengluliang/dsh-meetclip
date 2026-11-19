@@ -1,3 +1,34 @@
+## 0.9.23 链接卡片：公众号、网页、小红书（2026-11-19）
+
+### 需求与改动
+
+- 首页「＋ → 飞书文档」升级成「＋ → 链接卡片」：飞书文档/公众号文章/普通网页都能读标题、站点、作者、发布时间与正文；读不到正文时降级「仅链接」。Host 新增 `src/host/link-cards.js`，前端新增 `LinkCardForm.jsx`，后端 `doc_cards` 增加 `meta` 列（启动自动迁移）。
+- 小红书（`xiaohongshu.com` / `xhslink.com`）用移动 UA 抓取（桌面 UA 会被重定向到登录页）；标题只取 `<title>` 第一段（`og:title` 会把整篇笔记拼进来），正文优先 `meta description`；分享文案粘贴时只保留链接。
+- 旧 Host 未重载时新前端收到 405，表单明确提示「退出并重新打开 DeepSeek Harness」，不再显示「请求失败（HTTP 405）」。
+
+### 自动化验证
+
+- `node --test tests/*.test.mjs` → **340/340**（新增 `tests/link-cards.test.mjs` 17 项：URL/内网拦截、分类、公众号/通用网页/小红书抽取、charset、跳转、体积上限、状态码降级、飞书委托、后端错误映射；`tests/host.test.mjs` 新增链接路由 1 项）。`build/interaction-smoke.mjs`、`build/setup-smoke.mjs`、`build/render-smoke.mjs` 均 PASS。
+- 后端 `backend/tests/run-all.sh` → **33 个文件全 PASS**（`test_cards_doc` 17 项：公众号/网页 meta、路由、私有地址、飞书会议纪要按网页登记）。
+
+### 真页面核对
+
+- 两篇公众号文章：标题、公众号名、发布时间、正文均正确（如 `cxuanAI`、`A视野`）。
+- 两篇真实小红书笔记：移动 UA 读到干净标题和正文；同一链接桌面 UA 会跳登录页。`xhslink.com` 短链若被小红书判为过期，会跳验证/404，按预期降级仅链接或报不存在。
+- 少数派、维基百科、Apple、example.com 正常；知乎 403、未登录飞书纪要约降级仅链接。无头 Chrome 核对 `build/link-preview.png`、`build/link-form-preview.png`。
+
+### 安装副本与版本
+
+- 工作区与安装副本均为 **0.9.23**；`client.js` sha256 `08b23de1117d6fdca371532f3a13714c9bd8ba55868b0e75833dda0c9cc5210f`，`src/host/link-cards.js` sha256 `0e02f840f9c3021ebb8b2fef87cca99a192aeaa6f7e783142dbb6d8906b2ee2d`，安装副本与工作区一致。同步前旧版本备份 `~/.dsh/meetclip/backups/dsh-meetclip-pre-0.9.23-20261119-093035.tgz`，旧 bundle 留 `client.js.bak-20261119-094415`。
+- 本次 Host、`index.js` 与后端都有改动，需退出并重新打开 DSH；只刷新页面会加载新 `client.js`，但 Host 仍没有 `/meetclip/app/link/*` 路由（实测返回 405，DSH 进程自 11/16 起未重启）。后端首次启动自动给 `doc_cards` 加 `meta` 列，现有 3 张飞书卡不受影响。
+
+### 发布（v0.9.23）
+
+- 发布提交 `cec69b38231e44a5038e9cd118241c8527836f74` 推到 `main`，`v0.9.23` tag 指向同一提交。
+- Release：<https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.23>（release id **450775772**，非 draft / 非 prerelease）。
+- 资产：`dsh-meetclip-0.9.23.tgz`（872,304 bytes，sha256 `669c28ed1b18f2a0ee908e7d482a72783b85a821c18aeba3a7c1be4b5b736c6a`）、`latest.json`（5,885 bytes）、`SHA256SUMS.txt`（90 bytes）；发布说明取 CHANGELOG 0.9.23 段（2,882 字符）。
+- 发布后核对：`releases/latest` 302 → `v0.9.23`；`releases/latest/download/latest.json?cachebust=…` → `version 0.9.23`、`asset.size 872304`、sha 一致；下载 tgz 与本地 `dist/release/0.9.23/dsh-meetclip-0.9.23.tgz` 逐字节一致；tag 包内 `client.js` 即 `08b23de1…210f`。
+
 ## 0.9.22 卡包浮层成员卡右键「基于此卡片提问」（2026-11-18）
 
 ### 现象与根因
