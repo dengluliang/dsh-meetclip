@@ -76,15 +76,15 @@ export function updateSummary(status) {
   if (job?.state === 'done' && job.kind === 'rollback' && job.version) {
     return { tone: 'warn', text: `已回退到 v${job.version}`, detail: '重启 DeepSeek Harness 后生效' }
   }
-  // 查到新版本时这一行直接问「是否升级」，回答的方式就是同一位置的「点击升级」按钮。
+  // 查到新版本时这一行只报告版本；是否升级由下面的确认条（立即升级 / 暂不升级）回答。
   // 必须排在 restartRequired 前面：装好新版本还没重启、同时又有更新时，只写「已安装 vX」
-  // 会让人以为没有可升级的版本，只剩一个没人解释的「点击升级」按钮。
+  // 会让人以为没有可升级的版本。
   const isSource = status.target?.kind === 'source'
   if (status.updateAvailable && status.latest) {
     if (isSource) {
       return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '源码运行，请 git pull 后重启' }
     }
-    return { tone: 'warn', text: `是否升级最新的 v${status.latest.version}`, detail: '点「点击升级」下载并安装' }
+    return { tone: 'warn', text: `发现新版本 v${status.latest.version}`, detail: '确认后才会下载安装' }
   }
   if (status.restartRequired) {
     return {
@@ -114,6 +114,21 @@ export function updatePrimary(status) {
 
 export function isUpdateRunning(status) {
   return Boolean(status?.job && RUNNING_STATES.has(status.job.state))
+}
+
+/**
+ * 查到新版本后要不要弹升级确认（「立即升级 / 暂不升级」）。
+ * 有可用版本就弹；正在跑任务时不弹（进度条已经在解释）；源码运行不弹（不能覆盖安装）；
+ * 用户点过「暂不升级」的同一个版本不再自动弹，之后点「点击升级」会重新打开。
+ */
+export function upgradePrompt(status, declinedVersion = '') {
+  if (!status) return null
+  if (status.target?.kind === 'source') return null
+  if (isUpdateRunning(status)) return null
+  const version = status.latest?.version
+  if (!status.updateAvailable || !version) return null
+  if (declinedVersion && declinedVersion === version) return null
+  return { version }
 }
 
 /**

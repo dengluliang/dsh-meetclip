@@ -7,6 +7,17 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.25 关于页升级改成显式确认：检查完不会一步安装，点「暂不升级」就不更新
+
+发布日期：2026-11-26。
+
+- **现象**：设置 → 会摘 → 关于里点「检查更新」查到新版本后，主按钮在同一位置从「检查更新」变成「点击升级」，没有「暂不升级」这个出口；用户没注意按钮变了、在原地再点一次就会下载安装，容易以为「检查完就直接更新了」。如果之前查过、页面打开时就带着已知更新，主按钮本身就是「点击升级」，也容易误触；页脚「自动更新会替换…」同样容易被读成自动更新。
+- **检查与安装仍然彻底分开**：`POST /meetclip/app/update` 的 `check` 只有显式 `auto_install: true` 才顺带安装，`UpdateManager.startCheck()` 默认 `autoInstall: false`，客户端「检查更新」固定发 `auto_install: false`；下载安装必须走独立的 `install` 动作，本次没有放宽这条边界。
+- **升级确认**（`client-src/lib/update.js` 新增 `upgradePrompt()`，`SettingsAbout.jsx` 渲染确认条）：查到新版本后状态行只写 **发现新版本 vX · 确认后才会下载安装**，下面出现一条确认：**发现新版本 vX，是否现在升级？** 两个按钮——**立即升级** / **暂不升级**。只有「立即升级」才开始下载；「暂不升级」不安装，状态行改成「已暂不升级 vX」，之后点「点击升级」会重新打开确认条，而不是直接安装。源码运行、更新任务进行中不弹确认。
+- **文案**：页脚「自动更新会替换 DSH 里已安装的插件副本」改成「应用内升级会替换…」；README 与 `docs/UPDATE.md` 同步成确认条流程。
+- **验证**：`node --test tests/*.test.mjs` **362/362**（新增 `upgradePrompt` 用例与确认条/源码断言）；用模拟 Host 驱动构建产物：检查 1 次、安装 0 次 → 点「暂不升级」安装 0 次 → 点「点击升级」只重开确认 → 点「立即升级」安装 1 次；`build/render-smoke.mjs`、`build/interaction-smoke.mjs` PASS；无头 Chrome 核对 `build/about-preview-upgrade-confirm.png`。
+- **部署**：本次只改 client（以及文档/测试），Host 与后端未改；把 `client.js` 同步到本机 DSH 桌面 profile 的安装副本后刷新页面即可生效，不需要重启 DSH。
+
 ## 0.9.24 直播断流自动续录：60 分钟取流地址过期、卡死、掉线都不再需要手动停/重录
 
 发布日期：2026-11-25。

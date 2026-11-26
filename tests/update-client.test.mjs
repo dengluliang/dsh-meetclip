@@ -9,7 +9,8 @@ import {
   progressPercent,
   rollbackCandidates,
   updatePrimary,
-  updateSummary
+  updateSummary,
+  upgradePrompt
 } from '../client-src/lib/update.js'
 
 test('formatBytes stays readable from bytes to gigabytes', () => {
@@ -158,7 +159,7 @@ test('updatePrimary 在没有更新时是检查更新，查到更新后变成点
   )
 })
 
-test('发现新版本时这一行直接问是否升级，回答方式就是点击升级', () => {
+test('查到新版本只报告版本，是否升级交给确认条回答', () => {
   const summary = updateSummary({
     currentVersion: '0.9.5',
     latest: { version: '0.9.6' },
@@ -167,9 +168,29 @@ test('发现新版本时这一行直接问是否升级，回答方式就是点�
     job: null
   })
   assert.equal(summary.tone, 'warn')
-  assert.equal(summary.text, '是否升级最新的 v0.9.6')
-  assert.match(summary.detail, /点击升级/)
-  assert.doesNotMatch(summary.detail, /立即更新/)
+  assert.equal(summary.text, '发现新版本 v0.9.6')
+  assert.match(summary.detail, /确认/)
+})
+
+test('upgradePrompt 只在确实能升级时弹确认，暂不升级的版本不再自动弹', () => {
+  const base = {
+    currentVersion: '0.9.5',
+    installedVersion: '0.9.5',
+    latest: { version: '0.9.6' },
+    updateAvailable: true,
+    target: { kind: 'installed' },
+    job: null
+  }
+  assert.deepEqual(upgradePrompt(base), { version: '0.9.6' })
+  // 没有新版本、源码运行、任务在跑都不弹。
+  assert.equal(upgradePrompt({ ...base, updateAvailable: false }), null)
+  assert.equal(upgradePrompt({ ...base, latest: null }), null)
+  assert.equal(upgradePrompt({ ...base, target: { kind: 'source' } }), null)
+  assert.equal(upgradePrompt({ ...base, job: { state: 'downloading' } }), null)
+  assert.equal(upgradePrompt(null), null)
+  // 用户点过「暂不升级」的同一个版本不再自动弹；换了新版本会重新问。
+  assert.equal(upgradePrompt(base, '0.9.6'), null)
+  assert.deepEqual(upgradePrompt(base, '0.9.5'), { version: '0.9.6' })
 })
 
 test('已装好新版本还没重启、同时又有更新时，仍然先问是否升级', () => {
@@ -185,9 +206,9 @@ test('已装好新版本还没重启、同时又有更新时，仍然先问是�
     job: null
   })
   assert.equal(summary.tone, 'warn')
-  assert.equal(summary.text, '是否升级最新的 v0.9.13')
+  assert.equal(summary.text, '发现新版本 v0.9.13')
   assert.doesNotMatch(summary.text, /已安装/)
-  assert.match(summary.detail, /点击升级/)
+  assert.match(summary.detail, /确认/)
   // 没有可升版本时才是「已安装 vX」。
   assert.equal(updateSummary({
     currentVersion: '0.9.11',
@@ -224,6 +245,24 @@ test('检查更新只查询版本，不会自动下载安装', async () => {
     assert.doesNotMatch(text, /updateCheck\(\{ autoInstall: true \}\)/)
     assert.doesNotMatch(text, /updateCheck\(\{ autoInstall: !/)
   }
+})
+
+test('关于页：查到新版本先弹「立即升级 / 暂不升级」，点否不会安装', async () => {
+  const [about, client] = await Promise.all([
+    readFile(new URL('../client-src/components/SettingsAbout.jsx', import.meta.url), 'utf8'),
+    readFile(new URL('../client.js', import.meta.url), 'utf8')
+  ])
+  assert.match(about, /upgradePrompt\(status, declinedVersion\)/)
+  assert.match(about, /data-action="upgrade-now"/)
+  assert.match(about, /data-action="upgrade-later"/)
+  assert.match(about, /onClick=\{confirmUpgrade\}/)
+  assert.match(about, /onClick=\{declineUpgrade\}/)
+  // 主按钮不再直接把「点击升级」接到安装：先重新打开确认条。
+  assert.match(about, /setDeclinedVersion\(''\)/)
+  assert.doesNotMatch(about, /primary\.action === 'install'\s*\n\s*\? actions\.install/)
+  assert.match(client, /upgradePrompt/)
+  assert.match(client, /about\.upgradeNow/)
+  assert.match(client, /about\.upgradeLater/)
 })
 
 test('关于页：更新内容按 Markdown 预览，且没有独立的刷新状态按钮', async () => {

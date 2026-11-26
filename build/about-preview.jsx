@@ -129,11 +129,11 @@ function snapshot() {
     }
   }
   if (state === 'update-ready') {
-    // 查到新版本、还没点升级：主按钮应该是「点击升级」。
+    // 查到新版本、还没确认：显示「立即升级 / 暂不升级」，主按钮让位给确认条。
     return { ...base, job: null }
   }
   if (state === 'update-ready-restart') {
-    // 磁盘上装了 0.9.12、还在用 0.9.11，同时又有 0.9.13：这一行仍应问「是否升级最新的 v0.9.13」。
+    // 磁盘上装了 0.9.12、还在用 0.9.11，同时又有 0.9.13：仍要先问是否升级。
     return {
       ...base,
       currentVersion: '0.9.11',

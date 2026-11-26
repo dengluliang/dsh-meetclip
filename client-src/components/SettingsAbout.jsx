@@ -5,6 +5,7 @@ import {
   rollbackCandidates,
   updatePrimary,
   updateSummary,
+  upgradePrompt,
   useUpdate
 } from '../lib/update.js'
 import { Markdown } from '../lib/markdown.jsx'
@@ -18,7 +19,7 @@ function dotTone(tone) {
 }
 
 export function SettingsAbout({ t, onRestartSetup = null }) {
-  const { status, error, busy, notice, actions } = useUpdate()
+  const { status, error, busy, notice, setNotice, actions } = useUpdate()
   const tr = (key, fallback) => {
     const value = typeof t === 'function' ? t(key) : ''
     return value && value !== key ? value : fallback
@@ -26,13 +27,20 @@ export function SettingsAbout({ t, onRestartSetup = null }) {
 
   const job = status?.job || null
   const latest = status?.latest || null
-  const summary = updateSummary(status)
+  // 查到新版本后先问一次「立即升级 / 暂不升级」；用户点「暂不升级」的版本不再自动问，
+  // 之后点主按钮「点击升级」会重新弹出确认。任何路径都不会在检查时顺手安装。
+  const [declinedVersion, setDeclinedVersion] = React.useState('')
+  const declined = Boolean(declinedVersion && status?.updateAvailable && latest?.version === declinedVersion)
+  const summary = declined
+    ? { tone: 'warn', text: `已暂不升级 v${latest.version}`, detail: '点「点击升级」仍可升级' }
+    : updateSummary(status)
   const running = Boolean(job && ['checking', 'downloading', 'verifying', 'installing'].includes(job.state))
   const percent = progressPercent(job)
   const isSource = status?.target?.kind === 'source'
   const canCancel = running && (job.state === 'checking' || job.state === 'downloading')
   const restartRequired = Boolean(status?.restartRequired)
   const updateAvailable = Boolean(status?.updateAvailable && latest)
+  const upgrade = upgradePrompt(status, declinedVersion)
   const primary = updatePrimary(status)
   const primaryLabel = primary.action === 'install'
     ? tr('about.install', '点击升级')
@@ -40,8 +48,10 @@ export function SettingsAbout({ t, onRestartSetup = null }) {
       ? tr('about.check', '检查更新')
       : (job?.phase || tr('about.working', '更新中…'))
   const primaryOnClick = primary.action === 'install'
-    ? actions.install
-    : primary.action === 'check' ? actions.check : undefined
+    ? () => { setNotice(''); setDeclinedVersion('') }
+    : primary.action === 'check'
+      ? () => { setNotice(''); setDeclinedVersion(''); return actions.check() }
+      : undefined
   const primaryDisabled = !status || Boolean(busy) || running
   const showProgress = Boolean(job && (running || job.state === 'error' || job.state === 'cancelled' || job.percent === 100))
   const repo = status?.repo || 'dengluliang/dsh-meetclip'
@@ -71,6 +81,16 @@ export function SettingsAbout({ t, onRestartSetup = null }) {
     const version = pendingRollback
     setPendingRollback('')
     await actions.rollback(version)
+  }
+
+  async function confirmUpgrade() {
+    setDeclinedVersion('')
+    await actions.install()
+  }
+
+  function declineUpgrade() {
+    setDeclinedVersion(upgrade?.version || latest?.version || '')
+    setNotice('')
   }
 
   return (
@@ -160,16 +180,49 @@ export function SettingsAbout({ t, onRestartSetup = null }) {
           {summary.detail ? <span className="mc-foot-meta">{summary.detail}</span> : null}
         </div>
 
+        {upgrade ? (
+          <div className="mc-rollback-confirm mc-upgrade-confirm">
+            <p className="mc-about-warning" data-tone="warn">
+              {tr('about.upgradeConfirm', '发现新版本')}{' '}
+              <strong className="mc-mono">{versionText(upgrade.version)}</strong>
+              {tr('about.upgradeConfirmDetail', '，是否现在升级？升级会下载安装包并替换 DSH 里已安装的插件副本，重启 DeepSeek Harness 后生效。资料库、笔记和转写不受影响。')}
+            </p>
+            <div className="mc-actions">
+              <button
+                type="button"
+                className="mc-button"
+                data-variant="primary"
+                data-action="upgrade-now"
+                disabled={Boolean(busy) || running}
+                onClick={confirmUpgrade}
+              >
+                {tr('about.upgradeNow', '立即升级')}
+              </button>
+              <button
+                type="button"
+                className="mc-button"
+                data-action="upgrade-later"
+                disabled={Boolean(busy) || running}
+                onClick={declineUpgrade}
+              >
+                {tr('about.upgradeLater', '暂不升级')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="mc-actions">
-          <button
-            type="button"
-            className="mc-button"
-            data-variant="primary"
-            disabled={primaryDisabled}
-            onClick={primaryOnClick}
-          >
-            {primaryLabel}
-          </button>
+          {upgrade ? null : (
+            <button
+              type="button"
+              className="mc-button"
+              data-variant="primary"
+              disabled={primaryDisabled}
+              onClick={primaryOnClick}
+            >
+              {primaryLabel}
+            </button>
+          )}
           {canCancel ? (
             <button type="button" className="mc-button" onClick={actions.cancel}>
               {tr('about.cancel', '取消')}
@@ -256,7 +309,7 @@ export function SettingsAbout({ t, onRestartSetup = null }) {
         ) : null}
 
         <p className="mc-foot-meta">
-          {tr('about.privacy', '检查更新只访问 GitHub，不上传资料库、笔记或转写。自动更新会替换 DSH 里已安装的插件副本，重启 DSH 后生效。')}
+          {tr('about.privacy', '检查更新只访问 GitHub，不上传资料库、笔记或转写。应用内升级会替换 DSH 里已安装的插件副本，重启 DSH 后生效。')}
         </p>
       </div>
 

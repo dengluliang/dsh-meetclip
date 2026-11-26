@@ -58,6 +58,10 @@
   font-weight: 550;
 }
 
+/* 查到新版本后的升级确认：和回退确认同一种内联样式，避免弹窗打断。 */
+.mc-upgrade-confirm { margin-top: 10px; }
+.mc-upgrade-confirm .mc-about-warning { margin: 0; }
+
 .mc-link-button {
   padding: 0;
   border: 0;
