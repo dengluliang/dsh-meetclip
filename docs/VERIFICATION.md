@@ -1,3 +1,26 @@
+## 0.9.25 关于页升级改成显式确认（2026-11-26）
+
+### 现象与改动
+
+- 关于页查到新版本后没有「暂不升级」出口：主按钮在同一位置从「检查更新」变成「点击升级」，用户没注意按钮变化、在原地再点一次就会下载安装，容易以为「检查完就直接更新了」；页面打开时若已带已知更新，主按钮本身就是「点击升级」，也容易误触。
+- 检查/安装边界未放宽：`UpdateManager.startCheck()` 默认 `autoInstall: false`，`POST /meetclip/app/update` 的 `check` 只有显式 `auto_install: true` 才安装，客户端「检查更新」固定发 `false`，下载安装走独立 `install`。
+- 新增 `upgradePrompt()`（`client-src/lib/update.js`）与确认条（`SettingsAbout.jsx`）：查到新版本后状态行写「发现新版本 vX · 确认后才会下载安装」，下面问「是否现在升级？」；只有「立即升级」调用安装，「暂不升级」不安装并把状态行改成「已暂不升级 vX」，之后点「点击升级」会重新打开确认条。源码运行、任务进行中不弹确认。
+- 页脚「自动更新会替换…」改为「应用内升级会替换…」；README、`docs/UPDATE.md` 同步。
+
+### 自动化验证
+
+- `node --test tests/*.test.mjs` → **362/362**（新增 `upgradePrompt` 用例：有更新才弹、源码/运行中不弹、暂不升级同版本不再自动弹；新增确认条与主按钮改走确认的源码断言）。
+- 模拟 Host 驱动构建产物：检查 1 次、安装 0 次 → 点「暂不升级」安装 0 次 → 点「点击升级」只重新打开确认 → 点「立即升级」安装 1 次。
+- `build/render-smoke.mjs`、`build/interaction-smoke.mjs` 均 PASS；无头 Chrome 核对 `build/about-preview-upgrade-confirm.png`。
+
+### 发布（v0.9.25）
+
+- 发布提交 `edfe7454963d482435996f4077869af01eadcebe` 推到 `main`，`v0.9.25` tag 指向同一提交。
+- Release：<https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.25>（release id **458899371**，非 draft / 非 prerelease）。
+- 资产：`dsh-meetclip-0.9.25.tgz`（885,068 bytes，sha256 `df9d2268c8a7479d5bf1d331ebd9486c374f6766373ca86c1d310bd3f181430e`）、`latest.json`（2,675 bytes）、`SHA256SUMS.txt`（90 bytes）；发布说明取 CHANGELOG 0.9.25 段（1,133 字符）。
+- 发布后核对：`releases/latest/download/latest.json?cb=…` → `version 0.9.25`、`asset.size 885068`、sha 一致；下载 tgz 与本地 `dist/release/0.9.25/dsh-meetclip-0.9.25.tgz` 逐字节一致；包内 `client.js` sha256 `e5143a1386020c17d54e12c9dbd3dca449d3ad84af06435cc6e02de5c62d4a77`，与工作区一致。
+- 本机安装副本仍是 0.9.24，可在「设置 → 会摘 → 关于」检查更新到 0.9.25；本次 Host 未改，装完重启 DSH 生效。0.9.25 的确认条会在下一次检查到更新时出现。
+
 ## 0.9.23 链接卡片：公众号、网页、小红书（2026-11-19）
 
 ### 需求与改动

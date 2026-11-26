@@ -16,7 +16,7 @@
 - **升级确认**（`client-src/lib/update.js` 新增 `upgradePrompt()`，`SettingsAbout.jsx` 渲染确认条）：查到新版本后状态行只写 **发现新版本 vX · 确认后才会下载安装**，下面出现一条确认：**发现新版本 vX，是否现在升级？** 两个按钮——**立即升级** / **暂不升级**。只有「立即升级」才开始下载；「暂不升级」不安装，状态行改成「已暂不升级 vX」，之后点「点击升级」会重新打开确认条，而不是直接安装。源码运行、更新任务进行中不弹确认。
 - **文案**：页脚「自动更新会替换 DSH 里已安装的插件副本」改成「应用内升级会替换…」；README 与 `docs/UPDATE.md` 同步成确认条流程。
 - **验证**：`node --test tests/*.test.mjs` **362/362**（新增 `upgradePrompt` 用例与确认条/源码断言）；用模拟 Host 驱动构建产物：检查 1 次、安装 0 次 → 点「暂不升级」安装 0 次 → 点「点击升级」只重开确认 → 点「立即升级」安装 1 次；`build/render-smoke.mjs`、`build/interaction-smoke.mjs` PASS；无头 Chrome 核对 `build/about-preview-upgrade-confirm.png`。
-- **部署**：本次只改 client（以及文档/测试），Host 与后端未改；把 `client.js` 同步到本机 DSH 桌面 profile 的安装副本后刷新页面即可生效，不需要重启 DSH。
+- **部署**：本次只改 client（以及文档/测试），Host 与后端未改；把 `client.js` 同步到本机 DSH 桌面 profile 的安装副本后刷新页面即可生效，不需要重启 DSH。已发布 GitHub Release [v0.9.25](https://github.com/dengluliang/dsh-meetclip/releases/tag/v0.9.25)（release id 458899371，tag 指向提交 `edfe745`，三个资产与 `latest.json` feed 均已核对；安装包 sha256 `df9d2268…430e`，包内 `client.js` sha256 `e5143a13…4a77`）。
 
 ## 0.9.24 直播断流自动续录：60 分钟取流地址过期、卡死、掉线都不再需要手动停/重录
 
