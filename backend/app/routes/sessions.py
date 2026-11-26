@@ -752,6 +752,32 @@ def cancel_session(sid: str):
     return {"ok": True}
 
 
+@router.post("/api/sessions/{sid}/reconnect")
+def reconnect_session(sid: str):
+    """录制中手动换流：不等退避，立即重连续录同一条记录。"""
+    require_session(sid)
+    if not capture.force_reconnect(sid):
+        raise HTTPException(409, "当前没有正在录制的直播")
+    return {"ok": True}
+
+
+@router.post("/api/sessions/{sid}/resume")
+def resume_session(sid: str):
+    """继续录制：新分段接在已有媒体后面，结束自动拼接，不新建记录。"""
+    sess = require_session(sid)
+    if is_running(sid):
+        raise HTTPException(409, "该记录仍在处理中，请等它结束或先停止")
+    if (sess.get("kind") or "live") != "live" or not sess.get("source_url"):
+        raise HTTPException(400, "只有直播记录可以继续录制")
+    media = sess.get("media_path")
+    if not media or not (session_dir(sid) / media).exists():
+        raise HTTPException(400, "这条记录没有可续接的媒体文件，请新建采集")
+    check = capture.check_bilibili_live(sess["source_url"])
+    if not check.get("ok"):
+        raise HTTPException(400, check.get("message", "直播当前不可采集"))
+    return {"ok": True, **scheduler.enqueue(sid, "capture", url=sess["source_url"], resume=True)}
+
+
 # ---------------- 媒体文件访问 ----------------
 @router.get("/api/files/{sid}/{path:path}")
 def files(sid: str, path: str, request: Request):

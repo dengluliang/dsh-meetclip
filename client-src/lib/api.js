@@ -180,6 +180,14 @@ export function stopSession(id) {
   return api(`/sessions/${encodeURIComponent(id)}/stop`, { method: 'POST', body: '{}' })
 }
 
+export function reconnectSession(id) {
+  return api(`/sessions/${encodeURIComponent(id)}/reconnect`, { method: 'POST', body: '{}' })
+}
+
+export function resumeSession(id) {
+  return api(`/sessions/${encodeURIComponent(id)}/resume`, { method: 'POST', body: '{}' })
+}
+
 export function cancelSession(id) {
   return api(`/sessions/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: '{}' })
 }

@@ -32,6 +32,11 @@ from hints import HINT_YTDLP
 MAX_QUEUE = 50
 MAX_DURATION = 6 * 60 * 60
 MAX_BYTES = 8 * 1024 * 1024 * 1024
+# 可以交给 ffmpeg -c copy 转成 mp4 的容器；不在这里的一律当作「不是视频」。
+MEDIA_SUFFIXES = {".mp4", ".mkv", ".webm", ".mov", ".m4v", ".flv", ".avi", ".ts",
+                  ".m2ts", ".3gp", ".wmv", ".mpg", ".mpeg"}
+PREVIEW_ONLY_ERROR = ("只下载到平台预览图（没有音轨），无法转写。请点「重试」重新下载；"
+                      "如果一直这样，把设置 → 链接视频里的「最高清晰度」改成「不限」。")
 PLATFORMS = {
     "bilibili": ("bilibili.com", "b23.tv"),
     "weibo": ("weibo.com", "weibo.cn"),
@@ -426,6 +431,17 @@ def _disk_ok() -> bool:
         return True
 
 
+def playable_media(path: Path) -> bool:
+    """已经落盘的媒体能不能直接转写：必须真的有音轨，否则重新下载。"""
+    try:
+        if not path.is_file() or path.stat().st_size <= 0:
+            return False
+        _, has_audio, duration = capture.probe_streams(str(path))
+        return bool(has_audio) and duration > 0.5
+    except Exception:
+        return False
+
+
 def _mark_cancelled(sid: str):
     db.update_link_job(sid, job_state="cancelled", phase="cancelled", finished_at=time.time())
     db.update_session(sid, status="cancelled", error="已取消", ended_at=time.time())
@@ -708,14 +724,21 @@ class LinkTask:
             self._update("downloading", "downloading")
             self.emit("phase", phase="downloading", text="正在下载视频")
             final = root / "media.mp4"
+            if final.exists() and final.stat().st_size > 0 and not playable_media(final):
+                # 上次可能只下到预览图或坏文件：留着会让「重试」永远跳过下载，先删掉。
+                final.unlink(missing_ok=True)
             if not final.exists() or final.stat().st_size <= 0:
                 downloaded, src = self._download(sess["source_url"], source, info)
                 if downloaded > MAX_BYTES:
                     raise RuntimeError("单条缓存超过 8 GB，已停止下载")
-                self._make_playable(src, final)
-                src.unlink(missing_ok=True)
+                try:
+                    self._make_playable(src, final)
+                finally:
+                    src.unlink(missing_ok=True)
             if not final.exists() or final.stat().st_size <= 0:
                 raise RuntimeError("下载完成但没有得到可回放的视频文件")
+            if not playable_media(final):
+                raise RuntimeError(PREVIEW_ONLY_ERROR)
             db.update_session(sid, media_path="media.mp4", status="processing")
             self._update("transcribing", "transcribing", downloaded_bytes=final.stat().st_size,
                          total_bytes=final.stat().st_size, download_progress=1.0, speed=0, eta=None,
@@ -934,9 +957,17 @@ class LinkTask:
                           cookie_args: list[str]) -> tuple[int, Path]:
         template = str(source / "media.%(ext)s")
         fmt = "bv*+ba/b"
-        limit = settings.get("link_max_height")
+        limit = int(settings.get("link_max_height") or 0)
         if limit:
-            fmt = f"bv*[height<={int(limit)}]+ba/b[height<={int(limit)}]"
+            # 竖屏视频的 height 是长边（1080x1920），只按 height 卡会把 540x960 / 720x1280 /
+            # 1080x1920 三档真视频全过滤掉，只剩平台给的预览拼图（微博 scrubber_hd，元数据
+            # 180x320），下下来是一张没有音轨的 JPEG。改成先横屏按 height、再竖屏按 width
+            # 各试一档（相当于短边约束），并给 b 加 vcodec!=none —— 否则 b[height<=N] 会
+            # 匹配到图片格式；末尾再兜底一次真实清晰度，宁可超一点也不要拿到图片。
+            high, wide = f"height<={limit}", f"width<={limit}"
+            fmt = (f"bv*[{high}]+ba/b[{high}][vcodec!=none]"
+                   f"/bv*[{wide}]+ba/b[{wide}][vcodec!=none]"
+                   "/bv*+ba/b")
         cmd = [*_command(), "--ignore-config", "--no-playlist", "--newline", "--no-quiet", "--no-simulate",
                *_single_video_args(url), *_extractor_args(info, cookie_args),
                "--continue", "--part", "--retries", "3",
@@ -991,7 +1022,12 @@ class LinkTask:
         return chosen.stat().st_size, chosen
 
     def _make_playable(self, source: Path, final: Path):
-        if source.suffix.lower() == ".mp4":
+        suffix = source.suffix.lower()
+        if suffix not in MEDIA_SUFFIXES:
+            # 平台有时把预览拼图当成「格式」返回（例如微博 scrubber_hd 的 .jpg）。
+            # 以前这里会用 ffmpeg -c copy 把图片包成 mp4，得到一段没有音轨的假视频。
+            raise RuntimeError(PREVIEW_ONLY_ERROR)
+        if suffix == ".mp4":
             source.replace(final)
             return
         ffmpeg = capture.DEPS.get("ffmpeg")

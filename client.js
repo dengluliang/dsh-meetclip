@@ -5724,6 +5724,12 @@ function startSession(id) {
 function stopSession(id) {
   return api(`/sessions/${encodeURIComponent(id)}/stop`, { method: "POST", body: "{}" });
 }
+function reconnectSession(id) {
+  return api(`/sessions/${encodeURIComponent(id)}/reconnect`, { method: "POST", body: "{}" });
+}
+function resumeSession(id) {
+  return api(`/sessions/${encodeURIComponent(id)}/resume`, { method: "POST", body: "{}" });
+}
 function cancelSession(id) {
   return api(`/sessions/${encodeURIComponent(id)}/cancel`, { method: "POST", body: "{}" });
 }
@@ -42385,6 +42391,134 @@ function SpeakersPanel({ detail, sessionId, onReload, t }) {
   }
 }
 
+// client-src/lib/clipboard-image.js
+init_react_shim();
+var CLIPBOARD_IMAGE_TYPE = "image/png";
+var CLIPBOARD_IMAGE_TYPES = /* @__PURE__ */ new Set([CLIPBOARD_IMAGE_TYPE]);
+function mimeOf(value) {
+  return String(value || "").toLowerCase().split(";")[0].trim();
+}
+function needsPngRewrite(type) {
+  return !CLIPBOARD_IMAGE_TYPES.has(mimeOf(type));
+}
+function unsupported(message = "\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u590D\u5236\u56FE\u7247") {
+  const error = new Error(message);
+  error.code = "clipboard_unsupported";
+  return error;
+}
+function documentCanvas(width, height) {
+  if (typeof document === "undefined" || typeof document.createElement !== "function") return null;
+  const canvas = document.createElement("canvas");
+  if (!canvas || typeof canvas.getContext !== "function" || typeof canvas.toBlob !== "function") return null;
+  canvas.width = width;
+  canvas.height = height;
+  return canvas;
+}
+async function decodeWithImage(blob) {
+  if (typeof Image !== "function" || typeof URL === "undefined" || typeof URL.createObjectURL !== "function") {
+    throw unsupported();
+  }
+  const url = URL.createObjectURL(blob);
+  const image = new Image();
+  try {
+    await new Promise((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("\u622A\u56FE\u89E3\u7801\u5931\u8D25"));
+      image.src = url;
+    });
+  } catch (failure) {
+    URL.revokeObjectURL(url);
+    throw failure;
+  }
+  return {
+    source: image,
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height,
+    close: () => URL.revokeObjectURL(url)
+  };
+}
+async function decodeBitmap(blob) {
+  if (typeof createImageBitmap === "function") {
+    try {
+      const bitmap = await createImageBitmap(blob);
+      return {
+        source: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        close: () => bitmap.close?.()
+      };
+    } catch {
+    }
+  }
+  return decodeWithImage(blob);
+}
+async function pngBlobFromImage(blob, deps2 = {}) {
+  const decode = deps2.decode || decodeBitmap;
+  const makeCanvas = deps2.createCanvas || documentCanvas;
+  const decoded = await decode(blob);
+  try {
+    if (!decoded?.width || !decoded?.height) throw new Error("\u622A\u56FE\u89E3\u7801\u5931\u8D25");
+    const canvas = makeCanvas(decoded.width, decoded.height);
+    if (!canvas) throw unsupported();
+    const context = canvas.getContext("2d");
+    if (!context) throw unsupported();
+    context.drawImage(decoded.source, 0, 0);
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((png) => png ? resolve(png) : reject(new Error("\u622A\u56FE\u8F6C\u7801\u5931\u8D25")), CLIPBOARD_IMAGE_TYPE);
+    });
+  } finally {
+    decoded.close?.();
+  }
+}
+async function clipboardImageBlob(blob, deps2 = {}) {
+  if (!blob) throw new Error("\u6CA1\u6709\u53EF\u590D\u5236\u7684\u622A\u56FE");
+  if (!needsPngRewrite(blob.type)) return blob;
+  try {
+    return await pngBlobFromImage(blob, deps2);
+  } catch (failure) {
+    if (failure?.code === "clipboard_unsupported") throw failure;
+    throw new Error("\u622A\u56FE\u8F6C\u7801\u5931\u8D25\uFF0C\u53EF\u6539\u7528\u300C\u4E0B\u8F7D\u56FE\u7247\u300D", { cause: failure });
+  }
+}
+function clipboardWriteError(failure) {
+  const name = String(failure?.name || "");
+  const message = String(failure?.message || "");
+  if (/not supported on write/i.test(message)) {
+    return new Error("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u590D\u5236\u56FE\u7247\uFF0C\u53EF\u6539\u7528\u300C\u4E0B\u8F7D\u56FE\u7247\u300D", { cause: failure });
+  }
+  if (name === "NotAllowedError" || name === "SecurityError" || name === "NotSupportedError") {
+    return new Error("\u526A\u8D34\u677F\u88AB\u62D2\u7EDD\u5199\u5165\uFF0C\u8BF7\u70B9\u4E00\u4E0B\u9875\u9762\u518D\u590D\u5236", { cause: failure });
+  }
+  return new Error("\u590D\u5236\u622A\u56FE\u5931\u8D25", { cause: failure });
+}
+async function copyImageToClipboard(blob, options = {}) {
+  const clipboard = options.clipboard || globalThis.navigator?.clipboard;
+  const Item = options.ClipboardItem || globalThis.ClipboardItem;
+  if (!clipboard || typeof clipboard.write !== "function" || typeof Item !== "function") {
+    throw unsupported();
+  }
+  const png = await clipboardImageBlob(blob, options);
+  try {
+    await clipboard.write([new Item({ [CLIPBOARD_IMAGE_TYPE]: png })]);
+  } catch (failure) {
+    throw clipboardWriteError(failure);
+  }
+}
+async function copyImageFromUrl(url, options = {}) {
+  if (!url) throw new Error("\u6CA1\u6709\u53EF\u590D\u5236\u7684\u622A\u56FE");
+  const fetchImpl = options.fetch || globalThis.fetch;
+  if (typeof fetchImpl !== "function") throw unsupported();
+  let response;
+  try {
+    response = await fetchImpl(url, { credentials: "same-origin" });
+  } catch (failure) {
+    throw new Error("\u8BFB\u53D6\u622A\u56FE\u5931\u8D25", { cause: failure });
+  }
+  if (!response || response.ok === false) throw new Error("\u8BFB\u53D6\u622A\u56FE\u5931\u8D25");
+  const blob = await response.blob();
+  await copyImageToClipboard(blob, options);
+}
+
 // client-src/components/SessionDetail.jsx
 function copyText2(text) {
   if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
@@ -42401,15 +42535,6 @@ function copyText2(text) {
   } catch (failure) {
     return Promise.reject(failure);
   }
-}
-async function copyImage(url) {
-  const response = await fetch(url, { credentials: "same-origin" });
-  if (!response.ok) throw new Error("\u8BFB\u53D6\u622A\u56FE\u5931\u8D25");
-  const blob = await response.blob();
-  if (!navigator.clipboard?.write || typeof window.ClipboardItem !== "function") {
-    throw new Error("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u590D\u5236\u56FE\u7247");
-  }
-  await navigator.clipboard.write([new ClipboardItem({ [blob.type || "image/png"]: blob })]);
 }
 var DETAIL_MIN_GAP = 900;
 var SHOT_PAGE_SIZE = 120;
@@ -42777,6 +42902,11 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
           return;
         }
       }
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !typing && event.key.toLowerCase() === "c" && lightbox?.list?.length) {
+        event.preventDefault();
+        copyShots([lightbox.list[lightbox.index] || lightbox.list[0]]);
+        return;
+      }
       if (!inside || typing) return;
       if (lightbox?.list?.length > 1 && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
         event.preventDefault();
@@ -42847,6 +42977,8 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
   const running = detail?.recording || detail?.status === "recording";
   const queued = detail?.queued || detail?.status === "queued";
   const canStart = kind === "live" && !running && !queued && Boolean(detail?.source_url) && !detail?.media_path;
+  const canResumeLive = kind === "live" && !running && !queued && Boolean(detail?.source_url) && Boolean(detail?.media_path) && detail?.status !== "processing";
+  const reconnects = Array.isArray(detail?.live?.reconnects) ? detail.live.reconnects : [];
   const canRetryLink = kind === "link_video" && linkJob?.job_state === "error";
   const canCancelLink = kind === "link_video" && Boolean(linkJob) && linkJob?.job_state !== "error" && linkJob?.job_state !== "done";
   const failures = Array.isArray(detail?.asr_failures) ? detail.asr_failures : [];
@@ -43318,7 +43450,7 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
     if (!list.length) return;
     try {
       if (list.length === 1) {
-        await copyImage(fileUrl(sessionId, list[0].path));
+        await copyImageFromUrl(fileUrl(sessionId, list[0].path));
         showToast("\u5DF2\u590D\u5236\u622A\u56FE");
       } else {
         await copyText2(list.map((shot) => fileUrl(sessionId, shot.path)).join("\n"));
@@ -43359,7 +43491,7 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
       { separator: true },
       {
         id: "copy",
-        label: list.length > 1 ? `\u590D\u5236 ${list.length} \u5F20\u56FE\u7247` : "\u590D\u5236\u56FE\u7247",
+        label: list.length > 1 ? `\u590D\u5236 ${list.length} \u5F20\u622A\u56FE\u7684\u94FE\u63A5` : "\u590D\u5236\u56FE\u7247",
         onSelect: () => copyShots(list)
       },
       { id: "copyTime", label: "\u590D\u5236\u65F6\u95F4\u7801", onSelect: () => copyShotTimes(list) },
@@ -43426,7 +43558,17 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
       }
     },
     view2.title || view2.id
-  )), /* @__PURE__ */ React.createElement("div", { className: "mc-detail-meta" }, /* @__PURE__ */ React.createElement("span", { "data-partial": partial ? "true" : void 0 }, partial ? t("status.partial") : t(`status.${view2.status || "pending"}`)), view2.duration ? /* @__PURE__ */ React.createElement("span", null, duration(view2.duration)) : null, /* @__PURE__ */ React.createElement("span", null, dateTime(view2.started_at || view2.created_at)), view2.queue_position ? /* @__PURE__ */ React.createElement("span", null, t("list.queue").replace("{n}", String(view2.queue_position))) : null, view2.source_url ? /* @__PURE__ */ React.createElement("a", { href: view2.source_url, target: "_blank", rel: "noreferrer noopener" }, t("detail.source")) : null, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-live-capsule", title: "\u6B63\u5728\u91C7\u96C6" }, /* @__PURE__ */ React.createElement("span", { className: "mc-live-dot" }), " ", clock(currentTime || detail?.live?.live_media_time || 0), shots.length ? ` \xB7 ${shots.length} \u5F20\u622A\u56FE` : "", detail?.stream_quality ? ` \xB7 ${detail.stream_quality}` : "") : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-detail-actions" }, running ? /* @__PURE__ */ React.createElement(
+  )), /* @__PURE__ */ React.createElement("div", { className: "mc-detail-meta" }, /* @__PURE__ */ React.createElement("span", { "data-partial": partial ? "true" : void 0 }, partial ? t("status.partial") : t(`status.${view2.status || "pending"}`)), view2.duration ? /* @__PURE__ */ React.createElement("span", null, duration(view2.duration)) : null, /* @__PURE__ */ React.createElement("span", null, dateTime(view2.started_at || view2.created_at)), view2.queue_position ? /* @__PURE__ */ React.createElement("span", null, t("list.queue").replace("{n}", String(view2.queue_position))) : null, view2.source_url ? /* @__PURE__ */ React.createElement("a", { href: view2.source_url, target: "_blank", rel: "noreferrer noopener" }, t("detail.source")) : null, running ? /* @__PURE__ */ React.createElement("span", { className: "mc-live-capsule", title: "\u6B63\u5728\u91C7\u96C6" }, /* @__PURE__ */ React.createElement("span", { className: "mc-live-dot" }), " ", clock(currentTime || detail?.live?.live_media_time || 0), shots.length ? ` \xB7 ${shots.length} \u5F20\u622A\u56FE` : "", detail?.stream_quality ? ` \xB7 ${detail.stream_quality}` : "") : null, running && reconnects.length ? /* @__PURE__ */ React.createElement("span", { className: "mc-live-capsule", title: "\u76F4\u64AD\u6D41\u4E2D\u65AD\u540E\u5DF2\u81EA\u52A8\u8FDE\u56DE\u6765\uFF0C\u4ECD\u662F\u540C\u4E00\u6761\u8BB0\u5F55" }, "\u5DF2\u81EA\u52A8\u7EED\u5F55 ", reconnects.length, " \u6B21") : null)), /* @__PURE__ */ React.createElement("div", { className: "mc-detail-actions" }, running && kind === "live" ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      className: "mc-button mc-button-small",
+      disabled: Boolean(actionBusy),
+      title: "\u76F4\u64AD\u6D41\u5361\u4F4F\u65F6\u4E0D\u7528\u7B49\u81EA\u52A8\u91CD\u8FDE\uFF0C\u7ACB\u523B\u6362\u4E00\u6761\u6D41\u63A5\u7740\u5F55\uFF08\u4ECD\u662F\u540C\u4E00\u6761\u8BB0\u5F55\uFF09",
+      onClick: () => act("reconnect", () => reconnectSession(sessionId), "\u5DF2\u8BF7\u6C42\u91CD\u8FDE\uFF0C\u51E0\u79D2\u540E\u4F1A\u7EE7\u7EED\u5F55\u5236")
+    },
+    actionBusy === "reconnect" ? "\u91CD\u8FDE\u4E2D\u2026" : "\u7ACB\u5373\u91CD\u8FDE"
+  ) : null, running ? /* @__PURE__ */ React.createElement(
     "button",
     {
       type: "button",
@@ -43532,7 +43674,24 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
       onClick: makeDuplicate
     },
     t("detail.duplicate")
-  ), view2.source_url ? /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
+  ), canResumeLive ? /* @__PURE__ */ React.createElement(
+    "button",
+    {
+      type: "button",
+      role: "menuitem",
+      disabled: Boolean(actionBusy),
+      onClick: () => {
+        setMenuOpen(false);
+        askConfirm({
+          title: "\u7EE7\u7EED\u5F55\u5236",
+          body: "\u65B0\u5F55\u7684\u5185\u5BB9\u4F1A\u63A5\u5728\u8FD9\u6761\u8BB0\u5F55\u5DF2\u6709\u5A92\u4F53\u540E\u9762\uFF0C\u7ED3\u675F\u65F6\u81EA\u52A8\u62FC\u63A5\uFF0C\u4E0D\u65B0\u5EFA\u8BB0\u5F55\uFF1B\u65AD\u6863\u65F6\u95F4\u4F1A\u5199\u8FDB\u7B14\u8BB0\u3002",
+          label: "\u7EE7\u7EED\u5F55\u5236",
+          run: () => act("resume", () => resumeSession(sessionId), "\u5DF2\u5F00\u59CB\u7EE7\u7EED\u5F55\u5236")
+        });
+      }
+    },
+    "\u7EE7\u7EED\u5F55\u5236\u2026"
+  ) : null, view2.source_url ? /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
     setMenuOpen(false);
     copyLiveLink();
   } }, "\u590D\u5236\u76F4\u64AD\u94FE\u63A5") : null, /* @__PURE__ */ React.createElement("button", { type: "button", role: "menuitem", onClick: () => {
@@ -43960,7 +44119,7 @@ function SessionDetail({ sessionId, summary: summary2, t, backendStopped, onBack
   ) : null, exportData ? /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", "aria-label": "\u5BFC\u51FA" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal" }, /* @__PURE__ */ React.createElement("div", { className: "mc-modal-head" }, /* @__PURE__ */ React.createElement("h3", null, "\u5BFC\u51FA"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-icon-button", onClick: () => setExportData(null), "aria-label": "\u5173\u95ED" }, "\xD7")), /* @__PURE__ */ React.createElement("pre", { className: "mc-export-text" }, exportData.markdown || ""), /* @__PURE__ */ React.createElement("div", { className: "mc-modal-actions" }, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => navigator.clipboard?.writeText(exportData.markdown || "").catch(() => {
   }) }, "\u590D\u5236\u5168\u6587"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: downloadMarkdown }, "\u4E0B\u8F7D Markdown"), /* @__PURE__ */ React.createElement("a", { className: "mc-button", href: exportZipUrl(sessionId) }, "\u4E0B\u8F7D ZIP"), /* @__PURE__ */ React.createElement("a", { className: "mc-button", href: exportFormatUrl(sessionId, "srt") }, "\u4E0B\u8F7D SRT"), /* @__PURE__ */ React.createElement("a", { className: "mc-button", href: exportFormatUrl(sessionId, "vtt") }, "\u4E0B\u8F7D VTT"), /* @__PURE__ */ React.createElement("a", { className: "mc-button", href: exportFormatUrl(sessionId, "docx") }, "\u4E0B\u8F7D Word"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button", onClick: () => setExportData(null) }, "\u5173\u95ED")))) : null, lightbox?.list?.length ? (() => {
     const shot = lightbox.list[lightbox.index] || lightbox.list[0];
-    return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", onClick: () => setLightbox(null) }, /* @__PURE__ */ React.createElement("div", { className: "mc-lightbox", onClick: (event) => event.stopPropagation() }, /* @__PURE__ */ React.createElement("img", { src: fileUrl(sessionId, shot.path), alt: clock(shot.ts) }), /* @__PURE__ */ React.createElement("div", { className: "mc-lightbox-foot" }, lightbox.list.length > 1 ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setLightbox((current) => ({ ...current, index: (current.index - 1 + current.list.length) % current.list.length })) }, "\u2190") : null, /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, clock(shot.ts)), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, lightbox.index + 1, " / ", lightbox.list.length), lightbox.list.length > 1 ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setLightbox((current) => ({ ...current, index: (current.index + 1) % current.list.length })) }, "\u2192") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => copyShots([shot]) }, "\u590D\u5236\u56FE\u7247"), /* @__PURE__ */ React.createElement("a", { className: "mc-button mc-button-small", href: fileUrl(sessionId, shot.path), download: `shot-${shot.ts}.jpg` }, "\u4E0B\u8F7D"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => {
+    return /* @__PURE__ */ React.createElement("div", { className: "mc-modal-layer", role: "dialog", "aria-modal": "true", onClick: () => setLightbox(null) }, /* @__PURE__ */ React.createElement("div", { className: "mc-lightbox", onClick: (event) => event.stopPropagation() }, /* @__PURE__ */ React.createElement("img", { src: fileUrl(sessionId, shot.path), alt: clock(shot.ts) }), /* @__PURE__ */ React.createElement("div", { className: "mc-lightbox-foot" }, lightbox.list.length > 1 ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setLightbox((current) => ({ ...current, index: (current.index - 1 + current.list.length) % current.list.length })) }, "\u2190") : null, /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, clock(shot.ts)), /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, lightbox.index + 1, " / ", lightbox.list.length), lightbox.list.length > 1 ? /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setLightbox((current) => ({ ...current, index: (current.index + 1) % current.list.length })) }, "\u2192") : null, /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", title: "\u2318C", onClick: () => copyShots([shot]) }, "\u590D\u5236\u56FE\u7247"), /* @__PURE__ */ React.createElement("a", { className: "mc-button mc-button-small", href: fileUrl(sessionId, shot.path), download: `shot-${shot.ts}.jpg` }, "\u4E0B\u8F7D"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => {
       seek(shot.ts);
       setLightbox(null);
     } }, "\u8DF3\u8F6C\u5230\u6B64\u5904"), /* @__PURE__ */ React.createElement("button", { type: "button", className: "mc-button mc-button-small", onClick: () => setLightbox(null) }, "\u5173\u95ED"))));
@@ -55230,6 +55389,17 @@ function SettingsLive({ t }) {
       }
     }, 450);
   }
+  async function patchLive(body) {
+    setBusy("live");
+    setError("");
+    try {
+      setSettings(await saveAppSettings(body));
+    } catch (failure) {
+      setError(failure?.message || String(failure));
+    } finally {
+      setBusy("");
+    }
+  }
   async function patchAutoEnd(body) {
     setBusy("auto-end");
     setError("");
@@ -55254,7 +55424,15 @@ function SettingsLive({ t }) {
       onChange: (event) => changeSensitivity(Number(event.target.value)),
       "aria-label": "\u622A\u56FE\u7075\u654F\u5EA6"
     }
-  ), /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, sensitivity.toFixed(2)), savingSensitivity ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u4FDD\u5B58\u4E2D\u2026") : null))), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6CA1\u4EBA\u8BF4\u8BDD"), /* @__PURE__ */ React.createElement(
+  ), /* @__PURE__ */ React.createElement("span", { className: "mc-mono" }, sensitivity.toFixed(2)), savingSensitivity ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u4FDD\u5B58\u4E2D\u2026") : null))), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("label", { style: { display: "flex", alignItems: "center", gap: 8 } }, /* @__PURE__ */ React.createElement(
+    "input",
+    {
+      type: "checkbox",
+      checked: settings?.live_reconnect !== false,
+      disabled: Boolean(busy),
+      onChange: (event) => patchLive({ live_reconnect: event.target.checked })
+    }
+  ), /* @__PURE__ */ React.createElement("span", null, "\u65AD\u6D41\u81EA\u52A8\u7EED\u5F55")), busy === "live" ? /* @__PURE__ */ React.createElement("span", { className: "mc-foot-meta" }, "\u4FDD\u5B58\u4E2D\u2026") : null), /* @__PURE__ */ React.createElement("p", { className: "mc-card-text" }, "B\u7AD9\u53D6\u6D41\u5730\u5740\u7EA6 60 \u5206\u949F\u8FC7\u671F\uFF0CCDN \u4E5F\u53EF\u80FD\u4E2D\u9014\u65AD\u5F00\u3002\u5F00\u542F\u540E\uFF1A\u5230\u671F\u524D\u4E3B\u52A8\u6362\u5730\u5740\u3001\u5361\u4F4F 45 \u79D2\u6216\u6389\u7EBF\u65F6\u81EA\u52A8\u91CD\u8FDE\uFF0C \u6240\u6709\u5206\u6BB5\u6700\u540E\u62FC\u6210\u540C\u4E00\u6761\u8BB0\u5F55\uFF0C\u4E0D\u9700\u8981\u624B\u52A8\u505C\u6B62\u518D\u91CD\u5F55\u3002\u5F55\u5236\u4E2D\u4E5F\u53EF\u4EE5\u5728\u8BE6\u60C5\u9875\u70B9\u300C\u7ACB\u5373\u91CD\u8FDE\u300D\u3002 \u5173\u6389\u5219\u6062\u590D\u65E7\u884C\u4E3A\uFF08\u65AD\u6D41\u5C31\u7ED3\u675F\u8FD9\u4E00\u6761\uFF09\u3002")), /* @__PURE__ */ React.createElement("div", { className: "mc-card" }, /* @__PURE__ */ React.createElement("div", { className: "mc-form-row" }, /* @__PURE__ */ React.createElement("span", null, "\u6CA1\u4EBA\u8BF4\u8BDD"), /* @__PURE__ */ React.createElement(
     "select",
     {
       className: "mc-input mc-select",

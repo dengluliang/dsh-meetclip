@@ -5,6 +5,7 @@ import {
   getSession, keepGoing,
   saveAppSettings,
   renameSession, retranscribeSession, retryLink,
+  reconnectSession, resumeSession,
   revealRecord, saveRecordNotes, searchRecord, startSession, stopSession, updateMark
 } from '../lib/api.js'
 import { motionOf, shouldReloadForEvent } from '../lib/liveEvents.js'
@@ -15,6 +16,7 @@ import { RetranscribeDialog } from './RetranscribeDialog.jsx'
 import { MinutesNotesPanel } from './MinutesNotesPanel.jsx'
 import { SpeakersPanel } from './SpeakersPanel.jsx'
 import { ContextMenu, useContextMenu } from './ContextMenu.jsx'
+import { copyImageFromUrl } from '../lib/clipboard-image.js'
 import {
   clock, dateTime, duration, kindInfo, mergeTranscripts, speakerName, statusTone,
   transcriptLine, transcriptText
@@ -35,16 +37,6 @@ function copyText(text) {
   } catch (failure) {
     return Promise.reject(failure)
   }
-}
-
-async function copyImage(url) {
-  const response = await fetch(url, { credentials: 'same-origin' })
-  if (!response.ok) throw new Error('读取截图失败')
-  const blob = await response.blob()
-  if (!navigator.clipboard?.write || typeof window.ClipboardItem !== 'function') {
-    throw new Error('当前浏览器不支持复制图片')
-  }
-  await navigator.clipboard.write([new ClipboardItem({ [blob.type || 'image/png']: blob })])
 }
 
 // 采集中的记录每 0.5 秒推一条 motion 分数（画面是否在动）。它只是侧栏那根指示条，
@@ -434,6 +426,13 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
           return
         }
       }
+      // 灯箱里 ⌘C 直接复制当前这张截图：发布会现场大多是「空格放大 → ⌘C → 粘进文档」，
+      // 不用再退回右键菜单。这里放在 inside 判定之前，因为灯箱打开时 keydown 可能落在 body 上。
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && !typing && event.key.toLowerCase() === 'c' && lightbox?.list?.length) {
+        event.preventDefault()
+        copyShots([lightbox.list[lightbox.index] || lightbox.list[0]])
+        return
+      }
       if (!inside || typing) return
       if (lightbox?.list?.length > 1 && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
         event.preventDefault()
@@ -505,6 +504,9 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
   const running = detail?.recording || detail?.status === 'recording'
   const queued = detail?.queued || detail?.status === 'queued'
   const canStart = kind === 'live' && !running && !queued && Boolean(detail?.source_url) && !detail?.media_path
+  const canResumeLive = kind === 'live' && !running && !queued && Boolean(detail?.source_url)
+    && Boolean(detail?.media_path) && detail?.status !== 'processing'
+  const reconnects = Array.isArray(detail?.live?.reconnects) ? detail.live.reconnects : []
   const canRetryLink = kind === 'link_video' && linkJob?.job_state === 'error'
   const canCancelLink = kind === 'link_video' && Boolean(linkJob) && linkJob?.job_state !== 'error' && linkJob?.job_state !== 'done'
 
@@ -1015,7 +1017,8 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
     if (!list.length) return
     try {
       if (list.length === 1) {
-        await copyImage(fileUrl(sessionId, list[0].path))
+        // 截图按 JPEG 落盘，而剪贴板只收 PNG：copyImageFromUrl 负责转码后再写。
+        await copyImageFromUrl(fileUrl(sessionId, list[0].path))
         showToast('已复制截图')
       } else {
         await copyText(list.map((shot) => fileUrl(sessionId, shot.path)).join('\n'))
@@ -1059,7 +1062,7 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
       { separator: true },
       {
         id: 'copy',
-        label: list.length > 1 ? `复制 ${list.length} 张图片` : '复制图片',
+        label: list.length > 1 ? `复制 ${list.length} 张截图的链接` : '复制图片',
         onSelect: () => copyShots(list)
       },
       { id: 'copyTime', label: '复制时间码', onSelect: () => copyShotTimes(list) },
@@ -1137,9 +1140,21 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
                 {detail?.stream_quality ? ` · ${detail.stream_quality}` : ''}
               </span>
             ) : null}
+            {running && reconnects.length ? (
+              <span className="mc-live-capsule" title="直播流中断后已自动连回来，仍是同一条记录">
+                已自动续录 {reconnects.length} 次
+              </span>
+            ) : null}
           </div>
         </div>
         <div className="mc-detail-actions">
+          {running && kind === 'live' ? (
+            <button type="button" className="mc-button mc-button-small" disabled={Boolean(actionBusy)}
+              title="直播流卡住时不用等自动重连，立刻换一条流接着录（仍是同一条记录）"
+              onClick={() => act('reconnect', () => reconnectSession(sessionId), '已请求重连，几秒后会继续录制')}>
+              {actionBusy === 'reconnect' ? '重连中…' : '立即重连'}
+            </button>
+          ) : null}
           {running ? (
             <button type="button" className="mc-button mc-button-small" data-variant="stop" disabled={Boolean(actionBusy)}
               onClick={() => askConfirm({
@@ -1211,6 +1226,20 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
                 <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); setTitleDraft(view.title || ''); setEditingTitle(true) }}>{t('detail.rename')}</button>
                 <button type="button" role="menuitem" disabled={kind === 'link_video' || active}
                   onClick={makeDuplicate}>{t('detail.duplicate')}</button>
+                {canResumeLive ? (
+                  <button type="button" role="menuitem" disabled={Boolean(actionBusy)}
+                    onClick={() => {
+                      setMenuOpen(false)
+                      askConfirm({
+                        title: '继续录制',
+                        body: '新录的内容会接在这条记录已有媒体后面，结束时自动拼接，不新建记录；断档时间会写进笔记。',
+                        label: '继续录制',
+                        run: () => act('resume', () => resumeSession(sessionId), '已开始继续录制')
+                      })
+                    }}>
+                    继续录制…
+                  </button>
+                ) : null}
                 {view.source_url ? <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); copyLiveLink() }}>复制直播链接</button> : null}
                 <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); revealRecordDir() }}>在 Finder 中显示</button>
                 {!active && detail?.media_path ? (
@@ -1668,7 +1697,7 @@ export function SessionDetail({ sessionId, summary, t, backendStopped, onBackend
                 {lightbox.list.length > 1 ? (
                   <button type="button" className="mc-button mc-button-small" onClick={() => setLightbox((current) => ({ ...current, index: (current.index + 1) % current.list.length }))}>→</button>
                 ) : null}
-                <button type="button" className="mc-button mc-button-small" onClick={() => copyShots([shot])}>复制图片</button>
+                <button type="button" className="mc-button mc-button-small" title="⌘C" onClick={() => copyShots([shot])}>复制图片</button>
                 <a className="mc-button mc-button-small" href={fileUrl(sessionId, shot.path)} download={`shot-${shot.ts}.jpg`}>下载</a>
                 <button type="button" className="mc-button mc-button-small" onClick={() => { seek(shot.ts); setLightbox(null) }}>跳转到此处</button>
                 <button type="button" className="mc-button mc-button-small" onClick={() => setLightbox(null)}>关闭</button>

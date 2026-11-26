@@ -137,6 +137,16 @@ def classify_failure(platform: str | None, raw: str, context: str = "video") -> 
             "detail": detail,
         }
 
+    if "预览图" in text or "没有音轨" in text:
+        return {
+            "status": "error",
+            "code": "preview_only",
+            "message": ("这次只下到了平台的预览图（没有音轨），没法转写。点「重试」会重新下载；"
+                        "如果反复出现，把设置 → 链接视频里的「最高清晰度」改成「不限」。"),
+            "action": None,
+            "detail": detail,
+        }
+
     if any(word in lower for word in _NETWORK_WORDS):
         return {
             "status": "unreachable",

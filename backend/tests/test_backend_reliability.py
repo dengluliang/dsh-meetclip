@@ -4,6 +4,7 @@
 链接视频取消状态、会话列表计数。
 """
 import importlib
+import json
 import os
 from pathlib import Path
 import sys
@@ -58,6 +59,16 @@ class BackendReliabilityTests(unittest.TestCase):
         self.assertEqual(bare.get("/api/deps").status_code, 401)
         self.assertEqual(bare.get("/api/asr/status").status_code, 401)
         self.assertEqual(bare.get("/api/health").status_code, 200)
+
+    def test_health_reports_version_and_app_dir(self):
+        """插件靠 health 里的 version / app_dir 判断端口上的后端是不是自己这一份代码：
+        升级后端口上如果还挂着旧进程，就按这两个字段认出来并结束它。"""
+        data = self.client.get("/api/health").json()
+        self.assertEqual(data["app"], "meetclip")
+        self.assertEqual(data["protocol"], 3)
+        package = json.loads((Path(self.main.APP_DIR).parent / "package.json").read_text(encoding="utf-8"))
+        self.assertEqual(data["version"], package["version"])
+        self.assertEqual(Path(data["app_dir"]).resolve(), Path(self.main.APP_DIR).resolve())
 
     def test_forwarded_for_does_not_bypass_auth(self):
         bare = self.TestClient(self.main.app, base_url="http://127.0.0.1:8321")

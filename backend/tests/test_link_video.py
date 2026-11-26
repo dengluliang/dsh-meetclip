@@ -51,6 +51,8 @@ class LinkVideoTests(unittest.TestCase):
             # 这些用例模拟命令行 yt-dlp 的输出；进程内读取另有专门测试。
             patch.object(self.link, "_has_module", return_value=False),
             patch.object(self.link, "_disk_ok", return_value=True),
+            # 模拟下载只写出假媒体，没有真实音轨；音轨校验由下面的专门用例覆盖。
+            patch.object(self.link, "playable_media", return_value=True),
         ]
         for p in self.patches:
             p.start()
@@ -745,6 +747,72 @@ class LinkVideoTests(unittest.TestCase):
             self.link.LinkTask(sid).run()
         self.assertEqual(seen, [["First"]])
         self.assertEqual(self.db.get_session(sid)["status"], "done")
+
+    def test_height_limit_keeps_portrait_videos_and_rejects_preview_images(self):
+        """清晰度上限要按短边兜底：竖屏视频只卡 height 会把真视频全过滤掉。"""
+        url = "https://weibo.com/u/1/portrait"
+        self.link._remember(url, {"title": "竖屏", "duration": 4})
+        sid = self.new_job(url)
+        captured = {}
+        original_get = self.link.settings.get
+
+        def limited(key):
+            return 720 if key == "link_max_height" else original_get(key)
+
+        def download(cmd, **kwargs):
+            captured["cmd"] = cmd
+            return self.public_download(cmd, **kwargs)
+
+        with patch.object(self.link.settings, "get", side_effect=limited), \
+                patch.object(self.link.subprocess, "Popen", side_effect=download):
+            self.link.LinkTask(sid).run()
+        fmt = captured["cmd"][captured["cmd"].index("-f") + 1]
+        self.assertIn("height<=720", fmt)
+        self.assertIn("width<=720", fmt)
+        # b[height<=N] 会匹配到平台预览拼图这类图片格式，必须显式要求有视频流。
+        self.assertIn("vcodec!=none", fmt)
+
+    def test_preview_image_download_is_not_wrapped_into_a_video(self):
+        """平台只返回预览拼图时报「预览图」，不能把 jpg 包成没有音轨的 mp4。"""
+        url = "https://weibo.com/u/1/preview"
+        self.link._remember(url, {"title": "预览图", "duration": 4})
+        sid = self.new_job(url)
+
+        def download(cmd, **_kwargs):
+            target = Path(cmd[cmd.index("-o") + 1].replace("%(ext)s", "jpg"))
+            target.write_bytes(b"jpeg-preview" * 64)
+            return SimpleNamespace(stdout=io.StringIO("[download] 100%\n"), wait=lambda: 0)
+
+        with patch.object(self.link.subprocess, "Popen", side_effect=download):
+            self.link.LinkTask(sid).run()
+        session = self.db.get_session(sid)
+        self.assertEqual(session["status"], "error")
+        self.assertIn("预览图", session["error"])
+        directory = self.database.session_dir(sid)
+        self.assertFalse((directory / "media.mp4").exists())
+        # 坏缓存不能留在 source/，否则下次下载会挑中它当「最大的媒体文件」。
+        self.assertFalse((directory / "source" / "media.jpg").exists())
+
+    def test_cached_media_without_audio_is_downloaded_again(self):
+        """上次只下到预览图时，重试要重新下载而不是永远跳过下载。"""
+        url = "https://weibo.com/u/1/retry"
+        self.link._remember(url, {"title": "重试", "duration": 4})
+        sid = self.new_job(url)
+        directory = self.database.session_dir(sid)
+        directory.mkdir(parents=True, exist_ok=True)
+        (directory / "media.mp4").write_bytes(b"jpeg-only")
+        calls = []
+
+        def download(cmd, **kwargs):
+            calls.append(cmd)
+            return self.public_download(cmd, **kwargs)
+
+        with patch.object(self.link, "playable_media", side_effect=[False, True]), \
+                patch.object(self.link.subprocess, "Popen", side_effect=download):
+            self.link.LinkTask(sid).run()
+        self.assertEqual(len(calls), 1)
+        session = self.db.get_session(sid)
+        self.assertEqual(session["status"], "done", session.get("error"))
 
     def test_ambiguous_caption_language_fails_after_keeping_video(self):
         url = "https://youtu.be/ambiguous"

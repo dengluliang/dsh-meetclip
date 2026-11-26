@@ -121,6 +121,9 @@ class SettingsReq(BaseModel):
     link_browser_cookies: bool | None = None
     link_cookie_browser: str | None = None
     link_max_height: int | None = None
+    live_reconnect: bool | None = None
+    live_stall_seconds: int | None = None
+    live_refresh_minutes: int | None = None
 
 
 @router.get("/api/settings")
@@ -149,6 +152,12 @@ def settings_set(req: SettingsReq):
         changes["link_cookie_browser"] = browser
     if req.link_max_height is not None:
         changes["link_max_height"] = max(0, min(2160, int(req.link_max_height)))
+    if req.live_reconnect is not None:
+        changes["live_reconnect"] = bool(req.live_reconnect)
+    if req.live_stall_seconds is not None:
+        changes["live_stall_seconds"] = max(15, min(300, int(req.live_stall_seconds)))
+    if req.live_refresh_minutes is not None:
+        changes["live_refresh_minutes"] = max(5, min(180, int(req.live_refresh_minutes)))
     data = settings.update(**changes) if changes else settings.get_all()
     data["shot_threshold"] = capture.sensitivity_threshold(data["shot_sensitivity"])
     return data

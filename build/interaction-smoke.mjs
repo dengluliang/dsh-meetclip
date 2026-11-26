@@ -172,12 +172,41 @@ globalThis.document = {
   visibilityState: 'visible',
   addEventListener() {}, removeEventListener() {},
   querySelector: () => null,
-  createElement: (tag) => tag === 'video' ? { canPlayType: () => '' } : { addEventListener() {}, removeEventListener() {} }
+  createElement: (tag) => {
+    if (tag === 'video') return { canPlayType: () => '' }
+    if (tag === 'canvas') {
+      // 截图复制要把 JPEG 重编码成 PNG（剪贴板只收 PNG），这里给一块够用的假画布。
+      return {
+        width: 0, height: 0,
+        getContext: () => ({ drawImage() {} }),
+        toBlob: (callback, type) => callback(new Blob(['png-bytes'], { type }))
+      }
+    }
+    return { addEventListener() {}, removeEventListener() {} }
+  }
 }
 const clipboardWrites = []
+const clipboardImageItems = []
 try {
-  Object.defineProperty(globalThis, 'navigator', { value: { language: 'zh-CN', clipboard: { writeText: async (text) => { clipboardWrites.push(String(text)) } } }, configurable: true })
+  Object.defineProperty(globalThis, 'navigator', {
+    value: {
+      language: 'zh-CN',
+      clipboard: {
+        writeText: async (text) => { clipboardWrites.push(String(text)) },
+        write: async (items) => { clipboardImageItems.push(...items) }
+      }
+    },
+    configurable: true
+  })
 } catch {}
+// 截图是 JPEG：解码走 createImageBitmap，剪贴板条目走 ClipboardItem。
+globalThis.createImageBitmap = async () => ({ width: 1920, height: 1080, close() {} })
+globalThis.ClipboardItem = class ClipboardItem {
+  constructor(data) {
+    this.data = data
+    this.types = Object.keys(data)
+  }
+}
 const minutesPayload = {
   title: '预算评审', summary: '确认了预算缺口。', state: 'idle', state_text: '', final: true, covered: 120,
   topics: [{ start: 12, title: '预算缺口', summary: '缺口二十万', points: [{ text: '缺口二十万', t: 12, support: 2 }], fishbone: null }],
@@ -480,6 +509,10 @@ globalThis.fetch = async (url, options = {}) => {
         path: isPack ? `会摘卡片/卡包/${id.split(':')[1]}.md` : '会摘卡片/发布会回放.md'
       }]
     })
+  }
+  // 截图复制：/api/files 返回 JPEG，正好验证「JPEG 转 PNG 再写剪贴板」。
+  if (target.includes('/api/files/')) {
+    return { ok: true, status: 200, blob: async () => new Blob([new Uint8Array([0xff, 0xd8, 0xff, 0xe0])], { type: 'image/jpeg' }) }
   }
   if (target.includes('/api/search')) return json({ total: 0, counts: {}, results: [], has_more: false })
   if (target.includes('/api/calendar/range')) return json({ events: [calendarEvent], records: [] })
@@ -1412,6 +1445,22 @@ try {
   for (const expected of ['复制时间码', '跳转到']) {
     if (!text.includes(expected)) throw new Error('Shot context menu missing ' + expected)
   }
+  // 右键「复制图片」：截图是 JPEG，剪贴板只收 PNG（写 image/jpeg 会被 Chromium 拒绝），
+  // 所以剪贴板里必须出现一条 image/png，而不是把原始 JPEG 塞进去。
+  const copyImageItem = renderer.root.findAllByType('button').find((node) => textOf(node.props.children) === '复制图片')
+  if (!copyImageItem) throw new Error('Shot context menu missing 复制图片')
+  await act(async () => { copyImageItem.props.onClick() })
+  await flush(120)
+  const copiedImage = clipboardImageItems[0]
+  if (!copiedImage) throw new Error('复制图片 should write a clipboard item')
+  if (!copiedImage.types.includes('image/png')) {
+    throw new Error('clipboard item should be image/png, got ' + copiedImage.types.join(','))
+  }
+  const copiedPng = await copiedImage.data['image/png']
+  if (copiedPng?.type !== 'image/png') throw new Error('clipboard blob should be PNG')
+  text = JSON.stringify(renderer.toJSON())
+  if (!text.includes('已复制截图')) throw new Error('Shot copy toast missing')
+  if (text.includes('Failed to execute')) throw new Error('Raw clipboard error leaked into the toast')
 
   const allButtons = renderer.root.findAllByType('button')
   if (allButtons.some((node) => textOf(node.props.children) === '笔记')) {

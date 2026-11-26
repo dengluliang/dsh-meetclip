@@ -2,8 +2,10 @@
 
 路由按领域拆分在 routes/ 下；本文件只负责中间件与启动/退出钩子。
 """
+import json
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -25,6 +27,21 @@ from routes import (asr_engines, backup as backup_routes, calendar, cards as car
 PORT = int(os.environ.get("MEETCLIP_PORT") or 8321)
 ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
 PUBLIC_API = {"/api/health"}
+
+# 健康检查要能证明「这个进程跑的是哪份代码」：插件用版本号与安装目录判断
+# 端口上那个后端是不是自己这一份，旧进程不会一直占着端口冒充新版本。
+APP_DIR = Path(__file__).resolve().parent.parent
+
+
+def read_package_version() -> str:
+    try:
+        meta = json.loads((APP_DIR.parent / "package.json").read_text(encoding="utf-8"))
+        return str(meta.get("version") or "")
+    except (OSError, ValueError):
+        return ""
+
+
+PACKAGE_VERSION = read_package_version()
 
 
 @asynccontextmanager
@@ -71,7 +88,8 @@ async def local_api_guard(request: Request, call_next):
 @app.get("/api/health")
 def health():
     return {"ok": True, "protocol": 3, "app": "meetclip", "pid": os.getpid(),
-            "data_dir": str(DATA_DIR)}
+            "data_dir": str(DATA_DIR), "version": PACKAGE_VERSION,
+            "app_dir": str(APP_DIR)}
 
 
 for module in (system, models, sessions, meetings, link_videos, asr_engines, calendar, search,

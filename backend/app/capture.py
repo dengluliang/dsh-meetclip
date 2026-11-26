@@ -11,6 +11,7 @@ import signal
 import subprocess
 import threading
 import time
+import urllib.parse
 import urllib.request
 import uuid
 from datetime import datetime
@@ -96,6 +97,16 @@ def _resolve_short(url: str) -> str:
             return r.geturl()
     except Exception:
         return url
+
+
+def _url_expiry(url: str):
+    """取流地址里的签名过期时间（B站直播 URL 带 expires，约 60 分钟）。"""
+    try:
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        raw = (query.get("expires") or [None])[0]
+        return float(raw) if raw else None
+    except (TypeError, ValueError):
+        return None
 
 
 def parse_bilibili_room(url: str):
@@ -198,6 +209,13 @@ SILENCE_RMS = 300
 SILENCE_WARN_SEC = 60
 PLAYABLE = {".mp4", ".mov", ".m4v", ".mp3", ".m4a", ".wav", ".aac"}
 AUDIO_EXT = {".mp3", ".m4a", ".wav", ".aac", ".flac", ".ogg", ".opus"}
+# 直播断流：B站的取流地址带签名（expires，实测约 60 分钟），到点必断；
+# CDN 踢连接、主播重推流也会让 ffmpeg 退出。每段单独落盘，重取流后接着录，
+# 结束时无损拼接，整场仍然是一条记录。
+MAX_LIVE_RECONNECTS = 8      # 连续失败多少次后放弃（成功一次即清零）
+STALL_WARN_SEC = 20          # 多久没有新数据先提示
+STALL_RECONNECT_SEC = 45     # 多久没有新数据就主动重连
+REFRESH_MINUTES = 40         # 取流地址提前多久刷新（没有 expires 时按这个）
 
 
 def sensitivity_threshold(s: float) -> float:
@@ -228,6 +246,108 @@ def probe_streams(path: str):
     return has_v, has_a, dur
 
 
+# ---------- 分段媒体工具（拼接、探测） ----------
+def probe_duration(path) -> float:
+    """容器时长（秒）；优先 ffprobe，缺失时退回 ffmpeg 解析。失败返回 0。"""
+    p = str(path)
+    if DEPS["ffprobe"]:
+        r = subprocess.run([DEPS["ffprobe"], "-v", "error", "-show_entries", "format=duration",
+                            "-of", "default=noprint_wrappers=1:nokey=1", p],
+                           capture_output=True, text=True, timeout=60)
+        try:
+            return max(0.0, float((r.stdout or "").strip().splitlines()[0]))
+        except (ValueError, IndexError):
+            pass
+    try:
+        _, _, dur = probe_streams(p)
+        return dur
+    except Exception:
+        return 0.0
+
+
+def probe_spec(path):
+    """视频/音频编码参数；用于判断分段能不能直接 -c copy 拼。"""
+    if not DEPS["ffprobe"]:
+        return None
+    r = subprocess.run([DEPS["ffprobe"], "-v", "error", "-show_entries",
+                        "stream=codec_type,codec_name,width,height,r_frame_rate,sample_rate,channels",
+                        "-of", "json", str(path)], capture_output=True, text=True, timeout=60)
+    try:
+        streams = json.loads(r.stdout or "{}").get("streams") or []
+    except Exception:
+        return None
+    video = next((s for s in streams if s.get("codec_type") == "video"), {})
+    audio = next((s for s in streams if s.get("codec_type") == "audio"), {})
+    if not video and not audio:
+        return None
+    return {
+        "video": {k: video.get(k) for k in ("codec_name", "width", "height", "r_frame_rate")},
+        "audio": {k: audio.get(k) for k in ("codec_name", "sample_rate", "channels")},
+    }
+
+
+def to_ts(src, out) -> bool:
+    """把已有媒体统一转成 mpegts 再拼，避免 mp4/ts 混拼的时间戳问题。"""
+    cmd = [DEPS["ffmpeg"], "-y", "-loglevel", "error", "-i", str(src),
+           "-map", "0:v?", "-map", "0:a?", "-c", "copy",
+           "-avoid_negative_ts", "make_zero", "-f", "mpegts", str(out)]
+    r = subprocess.run(cmd, capture_output=True, timeout=3600)
+    return r.returncode == 0 and Path(out).exists() and Path(out).stat().st_size > 0
+
+
+def normalize_part(src, out, spec) -> bool:
+    """把画质/编码不一致的分段转成目标规格（只在对齐时用，比较慢）。"""
+    video = (spec or {}).get("video") or {}
+    audio = (spec or {}).get("audio") or {}
+    w, h = video.get("width"), video.get("height")
+    fps = video.get("r_frame_rate") or "30"
+    cmd = [DEPS["ffmpeg"], "-y", "-loglevel", "error", "-i", str(src)]
+    if w and h:
+        cmd += ["-vf", f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2"]
+    cmd += ["-r", str(fps), "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-c:a", "aac", "-b:a", "160k", "-ar", str(audio.get("sample_rate") or 48000),
+            "-ac", str(audio.get("channels") or 2), "-f", "mpegts", str(out)]
+    r = subprocess.run(cmd, capture_output=True, timeout=7200)
+    return r.returncode == 0 and Path(out).exists() and Path(out).stat().st_size > 0
+
+
+def concat_media(files, out, log=None) -> bool:
+    """把多段媒体按顺序无损拼接成一个 mpegts。失败返回 False（调用方保留原始分段）。"""
+    files = [Path(f) for f in files]
+    if not files:
+        return False
+    missing = [str(f) for f in files if not f.exists() or f.stat().st_size == 0]
+    if missing:
+        if log:
+            log("concat_missing", files=missing)
+        return False
+    list_path = Path(out).with_name("concat-list.txt")
+    try:
+        list_path.write_text("".join(f"file '{f.resolve()}'\n" for f in files), encoding="utf-8")
+        cmd = [DEPS["ffmpeg"], "-y", "-loglevel", "error", "-f", "concat", "-safe", "0",
+               "-i", str(list_path), "-map", "0:v?", "-map", "0:a?", "-c", "copy",
+               "-avoid_negative_ts", "make_zero", "-f", "mpegts", str(out)]
+        r = subprocess.run(cmd, capture_output=True, timeout=7200)
+        if r.returncode != 0 or not Path(out).exists() or Path(out).stat().st_size == 0:
+            Path(out).unlink(missing_ok=True)
+            if log:
+                log("concat_error", error=(r.stderr or b"").decode(errors="ignore")[-800:])
+            return False
+        expected = sum(probe_duration(f) for f in files)
+        got = probe_duration(out)
+        if expected and got and abs(got - expected) > max(10.0, expected * 0.05) and log:
+            log("concat_duration_mismatch", expected=round(expected, 1), got=round(got, 1))
+        return True
+    except Exception as exc:
+        Path(out).unlink(missing_ok=True)
+        if log:
+            log("concat_exception", error=str(exc)[:300])
+        return False
+    finally:
+        list_path.unlink(missing_ok=True)
+
+
+
 class CaptureTask:
     """一次采集/导入/重新转写任务。
 
@@ -235,11 +355,24 @@ class CaptureTask:
     所有时间均为来源相对时间（媒体时间轴），转写/截图/标记共用。
     """
 
-    def __init__(self, sid, url=None, import_file=None, transcribe_only=False):
+    def __init__(self, sid, url=None, import_file=None, transcribe_only=False, resume=False):
         self.sid = sid
         self.url = url
         self.import_file = import_file
         self.transcribe_only = transcribe_only
+        # 续录：把新分段接在已有媒体后面，时间轴从已有媒体时长继续。
+        self.resume = bool(resume)
+        self.parts = []                       # 本次写入的分段（按顺序）
+        self._seg_base = 0.0                  # 当前分段的媒体时间起点
+        self._audio_base = 0.0                # 当前分段的音频时间起点
+        self._done_duration = 0.0             # 已完成分段的累计容器时长
+        self._part_reason = None              # stop/stall/refresh/manual/ended/exit
+        self.reconnects = []                  # 自动续录记录，供界面展示
+        self._force_reconnect = threading.Event()
+        self._stderr_tail = ""
+        self._url_expires = None
+        self._log_path = session_dir(sid) / "capture.log"
+        self._stall_limit = float(settings.get("live_stall_seconds") or STALL_RECONNECT_SEC)
         self.proc = None
         self.stop_flag = threading.Event()   # 停止采集（保存已有内容，后处理继续）
         self.cancel_flag = threading.Event() # 彻底取消（保留已有内容，不再继续处理）
@@ -332,6 +465,23 @@ class CaptureTask:
             self._warned.add(key)
             self.emit("warn", text=text)
 
+    def _log(self, event, **fields):
+        """每条记录一份采集日志（JSONL）：断流原因、分段、ffmpeg 退出码都留痕。"""
+        try:
+            row = {"at": round(time.time(), 3), "event": event}
+            row.update(fields)
+            with open(self._log_path, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+
+    def force_reconnect(self):
+        """用户在界面上点「立即重连」：不等退避，马上换流续录。"""
+        if self.capturing:
+            self._force_reconnect.set()
+            return True
+        return False
+
     def snapshot(self):
         return {
             "recording": self.capturing,
@@ -346,6 +496,9 @@ class CaptureTask:
             "phase_text": self.phase_text,
             "phase_progress": self.phase_progress,
             "max_shots": MAX_SHOTS,
+            "reconnects": list(self.reconnects),
+            "recording_seconds": max(self.media_time, self.audio_time),
+            "resume": self.resume,
         }
 
     # ----- 生命周期 -----
@@ -492,28 +645,20 @@ class CaptureTask:
             else:
                 if not DEPS["yt_dlp"]:
                     raise RuntimeError(HINT_YTDLP)
-                db.update_session(sid, status="recording", started_at=time.time(), error=None)
+                if self.resume:
+                    db.update_session(sid, status="recording", error=None)
+                else:
+                    db.update_session(sid, status="recording", started_at=time.time(), error=None)
                 self._meta(has_video=True, has_audio=True, asr_status="running")
+                self._log("run_start", mode="resume" if self.resume else "live", url=self.url)
                 self.emit("status", text="解析直播流地址")
-                stream_url, quality = self._resolve_stream()
-                self._quality_label = quality
-                self._meta(stream_quality=quality)
-                self.emit("status", text=f"开始采集直播流 · {quality}")
                 asr_thread.start()
                 # 直播流可能一直开着却没人说话：起一个兜底的收尾看门狗。
                 self.start_end_watch()
-                self._pipeline(stream_url, out_path=d / "media.ts", has_v=True, has_a=True,
-                               realtime=True, hls_dir=d / "live")
-                ts = d / "media.ts"
-                if ts.exists() and ts.stat().st_size > 0:
-                    db.update_session(sid, media_path="media.ts", duration=self._trimmed_duration())
-                    mp4 = self._remux(ts)
-                    if mp4:
-                        db.update_session(sid, media_path=mp4.name, duration=self._trimmed_duration())
-                        shutil.rmtree(d / "live", ignore_errors=True)
-                    (d / "preview.jpg").unlink(missing_ok=True)
-                else:
-                    raise RuntimeError("未采集到任何媒体数据（直播流中断或无法访问）")
+                parts, existing = self._live_capture(d)
+                self._finalize_live(d, parts, existing)
+                self._log("run_end", parts=[p.name for p in parts], reconnects=len(self.reconnects),
+                          media_time=round(self.media_time, 1))
 
             # 采集阶段结束：进入后处理（转写追赶）
             self.capturing = False
@@ -585,6 +730,192 @@ class CaptureTask:
             self.finished.set()
             _unregister(self)
 
+    # ----- 直播：分段采集与断流续录 -----
+    def _part_path(self, d: Path, index: int) -> Path:
+        if self.resume:
+            return d / f"media.resume{index:02d}.ts"
+        return d / "media.ts" if index == 1 else d / f"media.part{index:02d}.ts"
+
+    def _existing_media(self, d: Path):
+        """续录时这条记录已有的媒体文件。"""
+        name = (db.get_session(self.sid) or {}).get("media_path")
+        if not name:
+            return None
+        path = d / name
+        return path if path.exists() and path.stat().st_size > 0 else None
+
+    def _stream_live(self) -> bool:
+        """还开播吗？判断不了时按"还在播"处理，交给重试逻辑，避免误停。"""
+        try:
+            result = check_bilibili_live(self.url or "")
+        except Exception:
+            return True
+        status = result.get("status")
+        return status in ("live", "unreachable", "invalid")
+
+    def _live_capture(self, d: Path):
+        """反复「取流 → 录一段 → 掉线再取流」，直到手动停止或直播结束。"""
+        reconnect = bool(settings.get_all().get("live_reconnect", True))
+        existing = self._existing_media(d) if self.resume else None
+        if self.resume and not existing:
+            raise RuntimeError("没有找到可续接的媒体文件")
+        if existing:
+            base = probe_duration(existing) or float((db.get_session(self.sid) or {}).get("duration") or 0)
+            self._done_duration = max(0.0, base)
+            self._seg_base = self._audio_base = self._done_duration
+            self._meta(resume_from=existing.name)
+            self._log("resume_start", existing=existing.name, base=round(self._done_duration, 1))
+            self.emit("status", text=f"从已有 {int(self._done_duration / 60)} 分钟处继续录制")
+        parts = []
+        failures = 0
+        while not self.stop_flag.is_set() and not self.cancel_flag.is_set():
+            if failures:
+                delay = min(30, 2 ** min(failures, 5))
+                self.emit("status", text=f"{delay} 秒后重试连接直播流（连续第 {failures} 次）")
+                if self.stop_flag.wait(delay):
+                    break
+            if not self._stream_live():
+                self._log("live_ended", failures=failures)
+                if parts or existing:
+                    self.emit("status", text="直播已结束，已保存全部内容")
+                break
+            try:
+                stream_url, quality = self._resolve_stream()
+            except Exception as exc:
+                failures += 1
+                self._log("resolve_failed", error=str(exc)[:300], failures=failures)
+                if not parts and not existing:
+                    raise
+                if failures > MAX_LIVE_RECONNECTS:
+                    self.warn_once("reconnect_failed",
+                                   f"连续 {failures} 次无法重新取流，已停止采集；已保存内容（可能直播已结束或网络异常）")
+                    break
+                continue
+            self._quality_label = quality
+            if not parts and not existing:
+                self._meta(stream_quality=quality)
+                self.emit("status", text=f"开始采集直播流 · {quality}")
+            else:
+                self.emit("status", text=f"直播流已恢复，继续录制 · {quality}")
+            part = self._part_path(d, len(parts) + 1)
+            self._seg_base = self._audio_base = self._done_duration
+            self._log("part_start", part=part.name, quality=quality,
+                      seg_base=round(self._seg_base, 1), url_expires=self._url_expires)
+            self._pipeline(stream_url, out_path=part, has_v=True, has_a=True,
+                           realtime=True, hls_dir=d / "live", hls_append=bool(parts))
+            reason = self._part_reason
+            wrote = part.exists() and part.stat().st_size > 0
+            duration = probe_duration(part) if wrote else 0.0
+            if wrote:
+                parts.append(part)
+                self.parts = list(parts)
+                self._done_duration = self._seg_base + (duration or max(0.0, self.media_time - self._seg_base))
+            self._log("part_end", part=part.name, reason=reason, seconds=round(duration, 1),
+                      stderr=self._stderr_tail[:600])
+            if self.stop_flag.is_set() or self.cancel_flag.is_set():
+                break
+            if not reconnect:
+                if reason not in (None, "stop"):
+                    self.warn_once("ended", "直播流已结束或中断：已保存全部内容（未开启自动续录）")
+                break
+            if reason in ("stall", "manual", "refresh"):
+                failures = 0
+                if reason == "refresh":
+                    self.emit("status", text="已换用新的取流地址")
+                continue
+            # 正常 EOF 或异常退出：确认还开播后，退避重连。
+            if not self._stream_live():
+                self._log("live_ended", reason=reason)
+                self.emit("status", text="直播已结束，已保存全部内容")
+                break
+            failures += 1
+            if failures > MAX_LIVE_RECONNECTS:
+                self.warn_once("reconnect_failed", f"连续 {failures} 次重连失败，已停止采集；已保存内容")
+                break
+            self.reconnects.append({"at": round(time.time(), 1), "reason": reason,
+                                    "after": round(self.media_time, 1)})
+            self._meta(reconnects=self.reconnects)
+            self._log("reconnect", reason=reason, failures=failures,
+                      media_time=round(self.media_time, 1))
+            self.emit("warn", text=f"直播流中断，正在自动续录（第 {len(self.reconnects)} 次）")
+        return parts, existing
+
+    def _finalize_live(self, d: Path, parts, existing):
+        """把各分段拼成一个可回放文件；拼接失败保留原始分段，绝不删除。"""
+        if not parts:
+            if existing:
+                return
+            raise RuntimeError("未采集到任何媒体数据（直播流中断或无法访问）")
+        media_files = []
+        base_ts = None
+        if existing is not None:
+            base_ts = d / "media.resume-base.ts"
+            if to_ts(existing, base_ts):
+                media_files.append(base_ts)
+            else:
+                base_ts = None
+                self.warn_once("resume_base", "已有媒体无法读取，本次继续录制的分段已单独保留")
+        media_files.extend(parts)
+        # 画质/编码不一致（例如中途登录状态变化）时先转码对齐，保证能无损拼接。
+        target = probe_spec(media_files[0])
+        aligned = []
+        mismatch = False
+        for index, file in enumerate(media_files):
+            spec = probe_spec(file)
+            if index and target and spec and spec != target:
+                mismatch = True
+                out = file.with_name(file.stem + ".norm.ts")
+                if normalize_part(file, out, target):
+                    aligned.append(out)
+                    continue
+            aligned.append(file)
+        if mismatch:
+            self.emit("status", text="部分分段画质不一致，正在转码对齐…")
+            self._log("parts_normalized", parts=[f.name for f in aligned])
+        unreadable = [f for f in aligned if probe_duration(f) <= 0.05]
+        if unreadable:
+            self._log("parts_unreadable", files=[f.name for f in unreadable])
+            self.warn_once("parts_broken", "有分段读不出来，已保留原始分段（media*.ts），可回看其余部分")
+            aligned = [f for f in aligned if f not in unreadable]
+        joined = None
+        fallback = False
+        if len(aligned) == 1 and aligned[0].name == "media.ts":
+            joined = aligned[0]
+        elif aligned:
+            self._set_phase("remux", "正在拼接分段…", 0.0)
+            candidate = d / "media.all.ts"
+            if concat_media(aligned, candidate, log=self._log):
+                joined = candidate
+        if joined is None:
+            if existing is not None:
+                self.warn_once("concat", "分段拼接失败，原记录媒体保持不动；本次分段已保留为 media.resume*.ts")
+                db.update_session(self.sid, media_path=existing.name)
+                return
+            self.warn_once("concat", "分段拼接失败，已保留原始分段（media*.ts），可回看第一段")
+            joined = aligned[0] if aligned else parts[0]
+            fallback = True
+        db.update_session(self.sid, media_path=joined.name, duration=self._trimmed_duration())
+        out_name = "media.new.mp4" if existing is not None else "media.mp4"
+        mp4 = self._remux(joined, out=d / out_name)
+        if mp4:
+            if existing is not None:
+                final = d / "media.mp4"
+                try:
+                    os.replace(mp4, final)
+                    mp4 = final
+                except OSError:
+                    pass
+            db.update_session(self.sid, media_path=mp4.name, duration=self._trimmed_duration())
+            if fallback or unreadable:
+                self._log("parts_kept", fallback=fallback,
+                          files=[f.name for f in [*parts, *unreadable] if f.exists()])
+            else:
+                for file in [base_ts, joined, *aligned, *parts]:
+                    if file and file.exists() and file != mp4:
+                        file.unlink(missing_ok=True)
+                shutil.rmtree(d / "live", ignore_errors=True)
+        (d / "preview.jpg").unlink(missing_ok=True)
+
     def _resolve_stream(self):
         """优先：Chrome 登录态 + B站原画 FLV/AVC；失败回退 yt-dlp（匿名最高 720P）。"""
         warn = ""
@@ -603,6 +934,7 @@ class CaptureTask:
                         q += "（降级）"
                     if warn:
                         self.warn_once("quality", warn)
+                    self._url_expires = _url_expiry(info["url"])
                     return info["url"], q
             except Exception as e:
                 warn = f"获取原画流失败（{e}），改用兼容方式"
@@ -612,6 +944,7 @@ class CaptureTask:
         if not url:
             raise RuntimeError("无法获取直播流：可能是直播已结束、需要登录或网络问题。请稍后重试；如果一直失败，展开技术详情反馈。")
         self.warn_once("quality", warn or "使用兼容方式取流，画质可能低于 1080P")
+        self._url_expires = _url_expiry(url)
         return url, "兼容模式（降级）"
 
     # ----- 媒体处理 -----
@@ -630,12 +963,12 @@ class CaptureTask:
         self.warn_once("noplay", "该格式无法转为可回放文件，回看播放可能不可用；转写与截图不受影响")
         return media
 
-    def _remux(self, ts: Path):
+    def _remux(self, ts: Path, out=None):
         """直播 MPEG-TS → MP4（AVPlayer 可回放）。失败时保留 TS，不丢原始数据。
 
         自动结束时按"最后一个人说话"的位置裁掉尾部空白：`-c copy` + `-t`，不重新编码。
         """
-        out = ts.with_name("media.mp4")
+        out = Path(out) if out else ts.with_name("media.mp4")
         total = max(self.media_time, self.audio_time, 1.0)
         self._set_phase("remux", "正在生成回放文件…", 0.0)
         cmd = [DEPS["ffmpeg"], "-y", "-loglevel", "error", "-nostats",
@@ -660,6 +993,10 @@ class CaptureTask:
                     last = frac
                     self._set_phase("remux", "正在生成回放文件…", frac)
         try:
+            p.stdout.close()
+        except Exception:
+            pass
+        try:
             p.wait(timeout=3600)
         except subprocess.TimeoutExpired:
             p.kill()
@@ -671,7 +1008,19 @@ class CaptureTask:
         self.warn_once("remux", "直播文件转换为 MP4 失败，原始 TS 已保留")
         return None
 
-    def _pipeline(self, src, out_path, has_v, has_a, realtime, hls_dir=None):
+    def _part_deadline(self):
+        """这一段最晚录到什么时候：取流地址到期前 3 分钟，或按设置定时刷新。"""
+        try:
+            minutes = float(settings.get("live_refresh_minutes") or REFRESH_MINUTES)
+        except (TypeError, ValueError):
+            minutes = REFRESH_MINUTES
+        now = time.time()
+        deadline = now + max(5.0, minutes * 60)
+        if self._url_expires:
+            deadline = min(deadline, self._url_expires - 180)
+        return deadline if deadline > now + 30 else None
+
+    def _pipeline(self, src, out_path, has_v, has_a, realtime, hls_dir=None, hls_append=False):
         cmd = [DEPS["ffmpeg"], "-hide_banner", "-loglevel", "error", "-nostdin", "-y"]
         if realtime:
             hdr = "Referer: https://live.bilibili.com/\r\n"
@@ -685,12 +1034,21 @@ class CaptureTask:
             cmd += ["-map", "0:v?", "-map", "0:a?", "-c", "copy",
                     "-avoid_negative_ts", "make_zero", "-f", "mpegts", str(out_path)]
         if hls_dir:
-            shutil.rmtree(hls_dir, ignore_errors=True)
-            hls_dir.mkdir(parents=True, exist_ok=True)
+            # 重连时接着写同一个播放列表（不断流），只有第一次才清空目录。
+            if hls_append:
+                hls_dir.mkdir(parents=True, exist_ok=True)
+                start_no = len(list(hls_dir.glob("seg_*.ts")))
+                hls_flags = "append_list+discont_start+independent_segments+temp_file"
+            else:
+                shutil.rmtree(hls_dir, ignore_errors=True)
+                hls_dir.mkdir(parents=True, exist_ok=True)
+                start_no = 0
+                hls_flags = "independent_segments+temp_file"
             cmd += ["-map", "0:v?", "-map", "0:a?", "-c", "copy",
                     "-avoid_negative_ts", "make_zero",
                     "-f", "hls", "-hls_time", "2", "-hls_list_size", "0",
-                    "-hls_playlist_type", "event", "-hls_flags", "independent_segments+temp_file",
+                    "-hls_playlist_type", "event", "-hls_flags", hls_flags,
+                    "-start_number", str(start_no),
                     "-hls_segment_filename", str(hls_dir / "seg_%05d.ts"),
                     str(hls_dir / "index.m3u8")]
         full_r = full_w = None
@@ -719,6 +1077,14 @@ class CaptureTask:
             cmd += ["-map", "0:a:0", "-ac", "1", "-ar", str(SR), "-f", "s16le", f"pipe:{w_fd}"]
         if self.stop_flag.is_set():
             return
+        if realtime and out_path:
+            # 新分段：帧序号、原图缓存都从本段重新开始，时间戳靠 _seg_base 顺延。
+            self._part_reason = None
+            self._frame_idx = -1
+            self._shot_paths = {}
+            self._pending_full = []
+            with self._full_lock:
+                self._full_frames = {}
         fds = tuple(f for f in (w_fd, full_w) if f is not None)
         self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE if has_v else subprocess.DEVNULL,
                                      stderr=subprocess.PIPE, pass_fds=fds, start_new_session=True)
@@ -730,39 +1096,78 @@ class CaptureTask:
         if full_r is not None:
             readers.append(threading.Thread(target=self._full_reader, args=(full_r,), daemon=True))
         if has_a:
-            readers.append(threading.Thread(target=self._audio_reader, args=(r_fd,), daemon=True))
+            readers.append(threading.Thread(target=self._audio_reader, args=(r_fd, self._audio_base), daemon=True))
         err_buf = []
         errt = threading.Thread(target=lambda: err_buf.append(self.proc.stderr.read().decode(errors="ignore")),
                                 daemon=True)
         errt.start()
         for t in readers:
             t.start()
-        last_size, stall = 0, 0
+        live = bool(realtime and out_path)
+        last_size = out_path.stat().st_size if (live and out_path.exists()) else 0
+        last_change = time.time()
+        stall_warned = False
+        deadline = self._part_deadline() if live else None
         while self.proc.poll() is None:
             time.sleep(1)
-            if realtime and out_path:
+            if live:
                 self._check_disk(out_path)
                 size = out_path.stat().st_size if out_path.exists() else 0
-                stall = stall + 1 if size == last_size else 0
-                last_size = size
-                if stall == 20:
-                    self.warn_once("stall", "已 20 秒未收到新的直播数据，正在尝试重连；已采集内容已保存")
-                elif stall == 0 and "stall" in self._warned:
-                    self._warned.discard("stall")
-                    self.emit("status", text="直播数据已恢复")
+                if size != last_size:
+                    last_size = size
+                    last_change = time.time()
+                    if stall_warned:
+                        stall_warned = False
+                        self.emit("status", text="直播数据已恢复")
+                idle = time.time() - last_change
+                if idle >= STALL_WARN_SEC and not stall_warned:
+                    stall_warned = True
+                    self.emit("warn", text=f"已 {int(idle)} 秒未收到新的直播数据，仍在等待；超过 "
+                                           f"{int(self._stall_limit)} 秒会自动重连续录")
+                if idle >= self._stall_limit:
+                    self._part_reason = "stall"
+                    self._log("part_stall", idle=round(idle, 1), media_time=round(self.media_time, 1))
+                    self.emit("status", text=f"直播流卡住 {int(idle)} 秒，正在重新连接…")
+                    self._terminate()
+                    break
+                if self._force_reconnect.is_set():
+                    self._force_reconnect.clear()
+                    self._part_reason = "manual"
+                    self._log("part_manual", media_time=round(self.media_time, 1))
+                    self.emit("status", text="正在手动重连直播流…")
+                    self._terminate()
+                    break
+                if deadline and time.time() >= deadline:
+                    self._part_reason = "refresh"
+                    self._log("part_refresh", expires=self._url_expires,
+                              media_time=round(self.media_time, 1))
+                    self.emit("status", text="取流地址即将到期，正在刷新地址继续录制…")
+                    self._terminate()
+                    break
             self._emit_progress()
+        if self.proc.poll() is None and self._part_reason in ("stall", "manual", "refresh"):
+            try:
+                self.proc.wait(timeout=8)
+            except subprocess.TimeoutExpired:
+                pass
         for t in readers:
             t.join(timeout=30)
         errt.join(timeout=5)
         code = self.proc.returncode
-        if code not in (0, None) and not self.stop_flag.is_set():
-            msg = (err_buf[0] if err_buf else "").strip().splitlines()[-1:] or [""]
-            if realtime and self.media_time > 0:
-                self.warn_once("ended", f"直播流已结束或中断：{msg[0][:160]}")
-            elif not realtime:
-                raise RuntimeError(f"媒体处理失败：{msg[0][:200]}")
-            else:
-                raise RuntimeError(f"无法连接直播流：{msg[0][:200]}")
+        tail = ""
+        if code not in (0, None):
+            lines = (err_buf[0] if err_buf else "").strip().splitlines()
+            tail = "\n".join(lines[-3:])[:2000]
+            self._stderr_tail = tail
+            self._log("ffmpeg_exit", code=code, media_time=round(self.media_time, 1), stderr=tail[:1200])
+        if self._part_reason is None:
+            self._part_reason = "stop" if self.stop_flag.is_set() else ("ended" if code in (0, None) else "exit")
+        if code not in (0, None) and not realtime:
+            last = (tail.splitlines() or [""])[-1]
+            raise RuntimeError(f"媒体处理失败：{last[:200]}")
+        if code not in (0, None) and realtime and self._part_reason == "exit" and not self.stop_flag.is_set():
+            last = (tail.splitlines() or ["未知原因"])[-1]
+            self.emit("warn", text=f"直播流中断：{last[:160]}")
         self._emit_progress(force=True)
 
     def _check_disk(self, path):
@@ -869,7 +1274,7 @@ class CaptureTask:
             buf = out.read(size)
             if not buf or len(buf) < size:
                 break
-            ts = idx / FRAME_FPS
+            ts = self._seg_base + idx / FRAME_FPS
             self._frame_idx = idx
             idx += 1
             self.media_time = ts
@@ -1095,8 +1500,9 @@ class CaptureTask:
             pass
 
     # ----- 音频分段（能量 VAD） -----
-    def _audio_reader(self, fd):
+    def _audio_reader(self, fd, base=0.0):
         frame = SR // 10  # 100ms
+        base_samples = int(round(float(base or 0.0) * SR))
         pending = b""
         buf = []          # int16 frames
         rms_list = []
@@ -1112,17 +1518,17 @@ class CaptureTask:
                     pending = pending[frame * 2:]
                     buf.append(fr)
                     rms_list.append(float(np.sqrt(np.mean(fr.astype(np.float32) ** 2))))
-                    self.audio_time = (offset + len(buf) * frame) / SR
+                    self.audio_time = (base_samples + offset + len(buf) * frame) / SR
                     cut = self._find_cut(rms_list)
                     if cut:
-                        self._push_chunk(buf[:cut], rms_list[:cut], offset)
+                        self._push_chunk(buf[:cut], rms_list[:cut], offset, base_samples)
                         offset += cut * frame
                         buf, rms_list = buf[cut:], rms_list[cut:]
         if pending:
             buf.append(np.frombuffer(pending[: len(pending) // 2 * 2], dtype=np.int16))
             rms_list.append(0.0)
         if buf:
-            self._push_chunk(buf, rms_list, offset)
+            self._push_chunk(buf, rms_list, offset, base_samples)
 
     @staticmethod
     def _find_cut(rms):
@@ -1134,9 +1540,9 @@ class CaptureTask:
             return 80 + int(np.argmin(window)) + 1
         return 0
 
-    def _push_chunk(self, frames, rms, offset):
+    def _push_chunk(self, frames, rms, offset, base_samples=0):
         audio = np.concatenate(frames)
-        start = offset / SR
+        start = (base_samples + offset) / SR
         end = start + len(audio) / SR
         if not rms or max(rms) < SILENCE_RMS:
             self._silent_sec += end - start
@@ -1260,9 +1666,9 @@ def _unregister(task):
     scheduler.release(task.sid, task)
 
 
-def start_capture(sid, url=None, import_file=None, transcribe_only=False) -> CaptureTask:
+def start_capture(sid, url=None, import_file=None, transcribe_only=False, resume=False) -> CaptureTask:
     task = scheduler.acquire(sid, lambda: CaptureTask(sid, url=url, import_file=import_file,
-                                                      transcribe_only=transcribe_only))
+                                                      transcribe_only=transcribe_only, resume=resume))
     if not isinstance(task, CaptureTask):
         raise BusyError(sid)
     return task
@@ -1272,6 +1678,12 @@ def stop_capture(sid):
     t = get_task(sid)
     if t:
         t.stop()
+
+
+def force_reconnect(sid):
+    """界面上点「立即重连」：让正在录的任务马上换流续录。"""
+    t = get_task(sid)
+    return bool(t and t.force_reconnect())
 
 
 def cancel_capture(sid, wait=10):
@@ -1301,18 +1713,39 @@ def recover_interrupted():
         if s["status"] not in ("recording", "processing"):
             continue
         d = session_dir(s["id"])
-        ts = d / "media.ts"
         note = "上次应用异常退出，任务未正常结束"
-        if ts.exists() and ts.stat().st_size > 0 and DEPS["ffmpeg"]:
+        # 分段采集：media.ts + media.part*.ts（或续录的 media.resume*.ts）先拼起来再转 mp4。
+        segments = [p for p in (d / "media.ts", *sorted(d.glob("media.part*.ts")),
+                                *sorted(d.glob("media.resume*.ts"))) if p.exists() and p.stat().st_size > 0]
+        base = d / "media.mp4"
+        if base.exists() and base.stat().st_size > 0 and any(x.name.startswith("media.resume") for x in segments):
+            base_ts = d / "media.recover-base.ts"
+            if to_ts(base, base_ts):
+                segments.insert(0, base_ts)
+        ts = None
+        merged_all = False
+        if len(segments) > 1 and DEPS["ffmpeg"]:
+            joined = d / "media.recover.ts"
+            if concat_media(segments, joined):
+                ts = joined
+                merged_all = True
+            else:
+                ts = segments[0]
+        elif segments:
+            ts = segments[0]
+            merged_all = True
+        if ts is not None and ts.exists() and ts.stat().st_size > 0 and DEPS["ffmpeg"]:
             out = d / "media.mp4"
             r = subprocess.run([DEPS["ffmpeg"], "-y", "-loglevel", "error", "-i", str(ts),
                                 "-c", "copy", "-movflags", "+faststart", str(out)],
                                capture_output=True, timeout=3600)
             if r.returncode == 0 and out.exists() and out.stat().st_size > 0:
-                ts.unlink(missing_ok=True)
+                if merged_all:
+                    for leftover in {*segments, ts}:
+                        leftover.unlink(missing_ok=True)
                 db.update_session(s["id"], media_path="media.mp4")
             else:
-                db.update_session(s["id"], media_path="media.ts")
+                db.update_session(s["id"], media_path=ts.name)
             note += "；已保存的媒体可回看，未完成的转写可「重新转写」"
         shutil.rmtree(d / "live", ignore_errors=True)
         db.update_session(s["id"], status="error", error=note)

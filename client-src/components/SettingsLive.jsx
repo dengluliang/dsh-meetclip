@@ -39,6 +39,18 @@ export function SettingsLive({ t }) {
     }, 450)
   }
 
+  async function patchLive(body) {
+    setBusy('live')
+    setError('')
+    try {
+      setSettings(await saveAppSettings(body))
+    } catch (failure) {
+      setError(failure?.message || String(failure))
+    } finally {
+      setBusy('')
+    }
+  }
+
   async function patchAutoEnd(body) {
     setBusy('auto-end')
     setError('')
@@ -71,6 +83,23 @@ export function SettingsLive({ t }) {
             {savingSensitivity ? <span className="mc-foot-meta">保存中…</span> : null}
           </div>
         </div>
+      </div>
+
+      <div className="mc-card">
+        <div className="mc-form-row">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input type="checkbox" checked={settings?.live_reconnect !== false}
+              disabled={Boolean(busy)}
+              onChange={(event) => patchLive({ live_reconnect: event.target.checked })} />
+            <span>断流自动续录</span>
+          </label>
+          {busy === 'live' ? <span className="mc-foot-meta">保存中…</span> : null}
+        </div>
+        <p className="mc-card-text">
+          B站取流地址约 60 分钟过期，CDN 也可能中途断开。开启后：到期前主动换地址、卡住 45 秒或掉线时自动重连，
+          所有分段最后拼成同一条记录，不需要手动停止再重录。录制中也可以在详情页点「立即重连」。
+          关掉则恢复旧行为（断流就结束这一条）。
+        </p>
       </div>
 
       <div className="mc-card">

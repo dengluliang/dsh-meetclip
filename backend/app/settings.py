@@ -33,6 +33,11 @@ DEFAULTS = {
     # ---- 没人说话时自动结束采集 ----
     "auto_end_silence": "prompt",  # off | prompt（先问一句）| end（直接停）
     "auto_end_after": 600,         # 连续多少秒没有识别出词
+    # ---- 直播断流 ----
+    # B站取流地址约 60 分钟过期：到期前主动换地址、卡住/掉线自动重连续录同一条记录。
+    "live_reconnect": True,
+    "live_stall_seconds": 45,      # 多久没有新数据就主动重连
+    "live_refresh_minutes": 40,    # 取流地址提前多久刷新
 }
 _lock = threading.Lock()
 _cache = None
@@ -48,6 +53,15 @@ def _load():
         pass
     if data.get("link_cookie_browser") not in COOKIE_BROWSERS:
         data["link_cookie_browser"] = "chrome"
+    data["live_reconnect"] = bool(data.get("live_reconnect", True))
+    try:
+        data["live_stall_seconds"] = max(15, min(300, int(data.get("live_stall_seconds") or 45)))
+    except (TypeError, ValueError):
+        data["live_stall_seconds"] = 45
+    try:
+        data["live_refresh_minutes"] = max(5, min(180, int(data.get("live_refresh_minutes") or 40)))
+    except (TypeError, ValueError):
+        data["live_refresh_minutes"] = 40
     return data
 
 

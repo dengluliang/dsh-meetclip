@@ -7,6 +7,28 @@
 - 设置：**设置 → 会摘**
 - 后端是原 macOS 会摘的 fork，基线与改动见 [backend/UPSTREAM.md](backend/UPSTREAM.md)
 
+## 0.9.24 直播断流自动续录：60 分钟取流地址过期、卡死、掉线都不再需要手动停/重录
+
+发布日期：2026-11-25。
+
+- **现象**：录小鹏科技日时直播流反复中断，一条 2.5 小时的发布会被切成 6 条记录（多段 1 小时以内），只能手动停止再重录，重启间隙丢了约 207 秒。
+- **原因**：① B站取流地址带签名 `expires`，实测**约 60 分钟过期**，而代码只在开录时取一次地址；② ffmpeg 的 `-reconnect/-reconnect_streamed` 只在读错误时生效，半开连接/对端不推数据时进程既不退出也不报错，现有「20 秒未收到新数据」只提示不重启；③ CDN 踢连接、主播重推流会让流正常 EOF，同样被当成「直播结束」收尾；④ ffmpeg 进程内重连会留下时间戳毛刺（6e343a4ecec7 那段音频内容 1127 秒被压进 1019 秒容器）。
+- **分段采集**（`backend/app/capture.py`）：每段写 `media.ts` / `media.partNN.ts`（续录为 `media.resumeNN.ts`），视频 ts 与音频采样都按 `_seg_base` 顺延，截图/转写时间轴连续；每段结束用 ffprobe 取真实容器时长作为下一段偏移，收尾 `-f concat -c copy` 无损拼成一个 `media.mp4`。拼接失败、分段损坏一律保留原始分段，不删数据；画质/编码中途变化时先转码对齐再拼。
+- **四类中断**：
+  - 到期前换段：解析取流 URL 的 `expires`，提前 3 分钟（最长 40 分钟）主动结束当前段、重新取流，录制不中断。
+  - 卡死：保留 20 秒提示，**45 秒无新字节就主动结束该段并重连**（`live_stall_seconds` 可调），不再干等 ffmpeg。
+  - 掉线/EOF：先 `check_bilibili_live` 确认还开播，再按 2/4/8/15/30 秒退避重连，连续 8 次失败才放弃并保留内容。
+  - 手动：录制中点「立即重连」（`POST /api/sessions/{id}/reconnect`）不等退避马上换流；停止/出错后在详情页菜单点「继续录制」（`POST /api/sessions/{id}/resume`），新段接在已有媒体后面，结束自动拼接，不新建记录，断档时间写进笔记。
+- **HLS**：重连时用 `append_list+discont_start+start_number` 接着写同一个 `live/index.m3u8`，边看边播的预览不断流；只有第一次才清空目录。
+- **诊断**：每条记录写 `capture.log`（JSONL：分段起止、退出码、ffmpeg stderr 尾部、重连原因），下次断流可直接看原因，不再靠猜。
+- **设置**：设置 → 会摘 → 发布会直播新增「断流自动续录」开关（默认开）；`live_stall_seconds`、`live_refresh_minutes` 可通过 `/api/settings` 调整，关掉即回到旧行为。
+- **崩溃恢复**：`recover_interrupted()` 会把残留的 `media.ts` / `media.part*.ts` / `media.resume*.ts` 先拼再转 mp4。
+- **历史碎片合并**：新增一次性脚本 `backend/tools/merge_live_records.py`（先 `--dry-run` 看方案，`--apply` 才写库并自动备份 `zhibo.db`）：按容器时长拼媒体、转写/截图/标记顺延，画质不一致的分段先转码；产出「完整版」记录，原始碎片保留并收进卡包。
+- **顺带修好截图复制**：录发布会时右键截图选「复制图片」一直弹 `Failed to execute 'write' on 'Clipboard': Type image/jpeg not supported on write.`，图片进不了剪贴板；灯箱里的「复制图片」按钮同样失效。原因是截图按 JPEG 落盘（`shots/*.jpg`，`/api/files` 也按 `image/jpeg` 返回），而 Chromium 的异步剪贴板只收 `image/png`，旧代码把 `blob.type || 'image/png'` 原样塞进 `ClipboardItem`——`Content-Type` 缺失时更糟，会把声明成 PNG 的 JPEG 字节写进一张坏图。新增 `client-src/lib/clipboard-image.js`：写入前解码成位图（`createImageBitmap`，不支持时退回 `<img>` + objectURL）再用 canvas 重编码成 PNG，`ClipboardItem` 固定 `image/png`；本来就是 PNG 的原样写入，分辨率保持 1920×1080 原图。失败文案不再把 DOMException 原文弹给用户：格式不支持/转码失败都指向「下载图片」，权限或焦点问题提示先点一下页面。顺带两处：灯箱里 ⌘C 直接复制当前截图（现场「空格放大 → ⌘C → 粘进文档」），多选时右键原本写「复制 N 张图片」而实际复制的是链接，改成「复制 N 张截图的链接」。
+- **验证**：新增 `backend/tests/test_live_reconnect.py` 15 项（取流地址过期解析、开播判断、两段续录偏移、关闭开关走旧行为、卡死阈值、URL 到期换段、拼接成功/缺段/坏段回退、续录拼接、force_reconnect）；`backend/tests/run-all.sh` **34 个文件全 PASS**；`node --test tests/*.test.mjs` **360/360**。截图复制另有一套：`tests/clipboard-image.test.mjs` 13 项（MIME 判定、PNG 直通、JPEG 转码与位图释放、写入条目、缺 API、三种失败文案、读取失败与空 URL）、`build/interaction-smoke.mjs` 用真渲染核对「右键复制 → 剪贴板条目是 `image/png` + 提示已复制截图」、`build/clipboard-check.mjs`（真 Chrome + CDP）确认旧写法报 `Type image/jpeg not supported on write.` 而新写法写入成功、回读系统剪贴板得到 `image/png`、PNG 签名与 1920×1080。
+- **顺带修好链接视频「只下到预览图」转写失败**：竖屏微博视频配上设置里的「最高清晰度 720」时，`-f "bv*[height<=720]+ba/b[height<=720]"` 会因 height 是长边（1080×1920）把 540×960 / 720×1280 / 1080×1920 三档真视频全部过滤掉，唯一「height≤720」的候选是平台预览拼图 `scrubber_hd`（元数据 180×320，实为 540×9600 的 JPEG 雪碧图）；下载器随后用 `ffmpeg -c copy` 把这张图包成 mjpeg 的 `media.mp4`（0.04 秒、无音轨），转写抽音轨直接报 `Output file does not contain any stream`，而 meta 里 `has_audio` 写死为 true，界面只显示「部分完成」，坏文件还留在缓存里让「重试」永远跳过下载。修复：`_download_attempt` 改成先横屏按 height、再竖屏按 width 各兜一档并给 `b` 加 `[vcodec!=none]`（`b[height<=N]` 本身会匹配到图片格式），末尾再兜底一次真实清晰度；`_make_playable` 拒绝非视频容器；新增 `playable_media()` 在复用缓存和下载后校验音轨，坏缓存自动删除重下；`platform_errors` 增加 `preview_only` 分类给出「只下到平台预览图」的可执行文案。测试：`test_link_video.py` 新增 3 项（短边兜底选择器、预览图不被包成视频、无音轨缓存重下），56 项全过；`backend/tests/run-all.sh` 34 个文件仍全 PASS。
+- **部署**：同步 `backend/app/`、`client.js` 到本机 DSH 桌面 profile 的安装副本并重启本地引擎；`client.js` 需刷新页面后生效。
+
 ## 0.9.23 链接卡片：首页「＋」不再只认飞书文档，公众号/网页也能读成卡片
 
 发布日期：2026-11-19。

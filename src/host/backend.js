@@ -2,8 +2,11 @@ import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
-import { ensureDir, readApiToken, readLogTail } from './config.js'
+import { ensureDir, packageVersion, readApiToken, readLogTail } from './config.js'
 import { jsonResponse } from './http.js'
+
+// 后端在忙（采集/转写/排队）时不能为了换版本把它掐掉。
+const ACTIVE_STATUSES = new Set(['pending', 'queued', 'recording', 'processing'])
 
 const HOP_BY_HOP = new Set([
   'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
@@ -92,10 +95,26 @@ export class BackendManager {
   }
 
   async _ensure() {
-    if (this.state === 'running') return this.status()
+    if (this.state === 'running' && await this.stillRunning()) return this.status()
     const probe = await this.probe()
     if (probe.kind === 'current') {
+      // 端口上确实有一个会摘后端，但它可能是升级前启动的旧进程。旧进程换不掉自己，
+      // 直接接管就会一直跑老代码（旧版后端甚至会保留已经坏掉的出站连接状态）。
+      const outdated = this.outdatedReason(probe.data)
+      const external = this.settings.backendMode === 'external'
+      const busy = Boolean(outdated) && !external && await this.backendBusy(probe.data)
+      if (outdated && !external && !busy) {
+        this.logs.push(`替换端口上过期的后端：${outdated}`)
+        await this.retire(probe.data)
+        return this.spawn()
+      }
+      if (outdated) {
+        this.logs.push(busy
+          ? `端口上的后端是旧版本（${outdated}），正在采集/转写，等它结束再替换`
+          : `外部后端与插件不一致，按外部模式继续接管：${outdated}`)
+      }
       await this.adopt(probe.data)
+      if (busy) this.phase = 'stale_busy'
       return this.status()
     }
     if (probe.kind === 'foreign') {
@@ -108,6 +127,88 @@ export class BackendManager {
       throw new BackendError('external_down', '后端由外部管理，但当前未运行', this.settings.port)
     }
     return this.spawn()
+  }
+
+  /**
+   * 缓存里的 running 还算不算数：自己 spawn 的进程看退出码，接管的进程去探端口。
+   * 端口上已经没人时顺手把过期状态清掉，避免之后一直拿旧 pid 报"运行中"。
+   */
+  async stillRunning() {
+    if (this.child && this.child.exitCode === null) return true
+    const probe = await this.probe(1200)
+    if (probe.kind === 'current') {
+      const pid = Number(probe.data?.pid)
+      if (Number.isInteger(pid) && pid > 0) this.pid = pid
+      return true
+    }
+    this.state = 'stopped'
+    this.phase = 'stopped'
+    this.pid = null
+    this.attached = false
+    this.managed = false
+    this.wasHealthy = false
+    return false
+  }
+
+  /** 端口上的后端正在采集/转写吗？是的话先别为了换版本把它停掉。 */
+  async backendBusy(health) {
+    const token = readApiToken(this.settings.tokenPath)
+    if (!token) return false
+    const port = Number(health?.port) || this.settings.port
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 1500)
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/api/sessions`, {
+        headers: { 'x-meetclip-token': token },
+        signal: controller.signal,
+        cache: 'no-store'
+      })
+      if (!response.ok) return false
+      const rows = await response.json()
+      return Array.isArray(rows) && rows.some((row) => ACTIVE_STATUSES.has(String(row?.status || '')))
+    } catch {
+      return false
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+
+  /** 端口上那个后端是不是和当前插件同一份代码；返回不一致的原因，一致返回 null。 */
+  outdatedReason(health) {
+    const reported = String(health?.version || '')
+    if (reported && reported !== packageVersion) return `后端 ${reported} ≠ 插件 ${packageVersion}`
+    if (reported) return null
+    // 更老的版本不上报版本号：退回安装目录比对，同一份目录才算同源。
+    const reportedDir = realPathOf(health?.app_dir)
+    if (!reportedDir) return '后端没有上报版本与安装目录'
+    const expectedDir = realPathOf(this.settings.backendRoot)
+    if (!expectedDir) return null
+    return reportedDir === expectedDir ? null : `后端目录 ${reportedDir} ≠ 插件 ${expectedDir}`
+  }
+
+  /** 结束一个不是自己 spawn 的后端：先 SIGINT 等它收尾，不退再 SIGKILL。 */
+  async retire(health) {
+    let pid = Number(health?.pid)
+    if (Number.isInteger(pid) && pid > 0 && pid !== process.pid) {
+      try { process.kill(pid, 'SIGINT') } catch { pid = NaN }
+    }
+    const deadline = Date.now() + 12_000
+    while (Number.isInteger(pid) && Date.now() < deadline) {
+      if (!isAlive(pid)) break
+      if ((await this.probe(800)).kind === 'none') break
+      await delay(300)
+    }
+    if (Number.isInteger(pid) && isAlive(pid)) {
+      try { process.kill(pid, 'SIGKILL') } catch {}
+      const hard = Date.now() + 3_000
+      while (Date.now() < hard && isAlive(pid)) await delay(150)
+    }
+    this.pid = null
+    this.attached = false
+    this.managed = false
+    this.state = 'stopped'
+    this.phase = 'stopped'
+    this.removePidFile()
   }
 
   async adopt(health) {
@@ -273,6 +374,14 @@ export class BackendManager {
     const child = this.child
     this.stopping = true
     if (!child) {
+      // attached 模式下进程不是我们 spawn 的，child 为空：按 /api/health 里的 pid
+      // 确认端口上还是它，再真的结束掉。否则 restart() 只改状态，旧进程照样活着。
+      if (this.attached) {
+        const probe = await this.probe(1200)
+        if (probe.kind === 'current' && Number(probe.data?.pid) === this.pid) {
+          await this.retire(probe.data)
+        }
+      }
       this.attached = false
       this.managed = false
       this.state = 'stopped'
@@ -475,6 +584,26 @@ export class BackendManager {
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isAlive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0) return false
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return error?.code === 'EPERM'
+  }
+}
+
+/** 安装副本常是软链（pnpm / 备份还原），比目录前先取真实路径。 */
+function realPathOf(value) {
+  if (typeof value !== 'string' || !value.trim()) return null
+  try {
+    return fs.realpathSync(value)
+  } catch {
+    return path.resolve(value)
+  }
 }
 
 function waitForExit(child, timeoutMs) {
